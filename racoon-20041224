@@ -1,0 +1,72 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`command -v "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.sh"
+
+logiciel=racoon
+version=20041224
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+cd /tmp
+echo Obtention et décompression… >&2
+grep -q anoncvs.kame.net "$HOME/.cvspass" || echo ":pserver:anoncvs@anoncvs.kame.net:/cvsroot/kame Ay=0=h<Z" >> "$HOME/.cvspass"
+for i in kame/racoon kame/libipsec sys/netkey ; do
+	cvs -d :pserver:anoncvs@anoncvs.kame.net:/cvsroot/kame co -P -D 2004-12-24 kame/kame/$i
+done
+cd kame/kame/kame/racoon
+
+echo Configuration… >&2
+CFLAGS=-I../../sys ./configure --prefix=/usr/local/$logiciel-$version --host=darwin
+
+echo Correction… >&2
+#filtrer getcertsbyname.c awk '{print $0}/#ifdef HAVE_LWRES_GETRRSETBYNAME/{if(suivant == 0) suivant = 1}/#else/{if(suivant == 1) { print "#include <nameser_compat.h>" ; suivant = 2 }}'
+# Curieux, ils utilisent une syntaxe qui n'existe pas dans GNU make et même que
+# c'était pour ça que j'avais commencé à me recréer impa.
+filtrer Makefile sed -e '/^\([^	][^:]*\)\(\.[^.:]*\)\(:.*\)$\*/s//\1\2\3\1/'
+etendreVarMake Makefile CFLAGS -DBIND_8_COMPAT
+filtrer Makefile sed -e '/^LIBS=/a\
+PSEUDO_LIBS=libpfkey.o libpfkey_dump.o nkkey_debug.o
+'
+etendreVarMake Makefile LIBS "\$(PSEUDO_LIBS) -lresolv"
+cat >> Makefile << TERMINE
+lib%.o: \$(srcdir)/../libipsec/%.c
+	\$(CC) \$(CFLAGS) -o \$@ -c \$^
+nk%.o: \$(srcdir)/../../sys/netkey/%.c
+	\$(CC) \$(CFLAGS) -o \$@ -c \$^
+TERMINE
+filtrer Makefile sed -e '/$(INSTALL)/s/-o bin -g bin/-o 0 -g 0/g'
+filtrer Makefile sed -e '/racoon:/s/$/ $(PSEUDO_LIBS)/'
+filtrer Makefile sed -e '/racoonctl:/s/$/ $(PSEUDO_LIBS)/'
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo mkdir -p "$dest/man/man5" "$dest/man/man8" "$dest/sbin"
+sudo make install
+
+sudo utiliser $logiciel-$version
+sudo ln -s /usr/local/sbin/racoon /usr/local/bin/racoon
