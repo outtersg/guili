@@ -1,0 +1,82 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.sh"
+
+inclure libjpeg
+inclure libpng
+inclure sdl
+inclure ftgl
+
+logiciel=blender
+logiciel_capital="`echo $logiciel | python -c 'import sys ; print sys.stdin.readline().capitalize()'`"
+version=2.36
+dest="/Apps/Multimédia/$logiciel_capital.app"
+archive=http://download.blender.org/source/$logiciel-$version.tar.gz
+compil=/tmp/$logiciel
+
+[ -d "$dest" ] && exit 0
+
+if [ ! -d "$compil" ] ; then
+	cd /tmp
+	echo Obtention et décompression… >&2
+	case "$archive" in
+		*.tar.gz) commande="tar xzf" ;;
+		*.tar.bz2) commande="tar xjf" ;;
+		*.zip) commande="unzip" ;;
+	esac
+	$commande `obtenir "$archive"`
+fi
+cd "$compil"
+
+echo Configuration… >&2
+filtrer intern/SoundSystem/Makefile sed -e '/openal/s/^/#/'
+filtrer source/Makefile sed -e '/NAN_SND_LIBS.*OPENAL/s/^/#/'
+filtrer intern/SoundSystem/SND_DependKludge.h sed -e '/define USE_OPENAL/s//undef USR_OPENAL/' # Punaise, quand je dis que je n'en veux pas, c'est que je n'en veux pas, nom d'une pipe!
+for i in intl SDL ; do
+	filtrer source/Makefile sed -e '/COMLIB *+=.*lib'"$i"'.*\.a/s/[^ ]*lib'"$i"'.*\.a/-l'"$i"'/g'
+done
+grep -q '^-l%' source/Makefile || ( echo "-l%:" ; echo "	" ) >> source/Makefile # Sinon il essaie de les construire, le bougre!
+export NAN_SDLCFLAGS="-I /usr/local/include/SDL"
+export NAN_PYTHON=/System/Library/Frameworks/Python.framework/Versions/Current
+export NAN_PYTHON_VERSION=2.3
+export NAN_FREETYPE=/usr/local
+export NAN_FTGL=/usr/local
+export NAN_JPEG=/usr/local
+export NAN_PNG=/usr/local
+export NAN_GETTEXT=/usr/local
+export NAN_SDL=/usr/local
+export NAN_SDLLIBS="-lSDL -framework Cocoa -framework IOKit"
+export PY_FRAMEWORK=1
+
+export NAN_OBJDIR=/tmp/temp.$$
+mkdir -p "$NAN_OBJDIR"
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+make install
+sudo cp -R "`find "$NAN_OBJDIR" -name '[bB]lender.app'`" "$dest"
+rm -R "$NAN_OBJDIR"
