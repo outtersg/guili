@@ -1,0 +1,69 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.sh"
+
+inclure libusb
+inclure sane
+
+logiciel=hpoj
+version=0.91
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+cd /tmp
+echo Obtention et décompression… >&2
+tar xzf `obtenir "http://ovh.dl.sourceforge.net/sourceforge/hpoj/$logiciel-$version.tgz"`
+cd /tmp/$logiciel-$version
+
+echo Correction… >&2
+filtrer configure sed -e 's/-lusb/-lusb -framework IOKit -framework CoreFoundation/'
+for i in `find . -name Makefile -or -name Makefile.in` ; do
+	filtrer "$i" sed -e 's+-shared -Wl,-soname,$(SOSHORT)+-dynamiclib -flat_namespace -undefined suppress -install_name $(libdir)/$(SOLONG)+' -e '/^CLEANS=/s/\*\.so/*.so *.dylib/'
+	echo "$i" | grep -q lib/sane || filtrer "$i" sed -e '/^SONOVER=/s/\.so/.dylib/'
+done
+filtrer Makefile.in sed -e '/^libdir_program=/{
+s/\.so\./.dylib./g
+s/\(libsane-[^.]*\)\.dylib/\1.so/g
+}'
+
+echo Configuration… >&2
+./configure --prefix=/usr/local/$logiciel-$version
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+
+sudo utiliser $logiciel-$version
+
+# + Recopie des biblios chez SANE
+# Sur la bécane, faire un:
+# ./ptal-mlcd mlc:usb:plc_1350 -device %002%002 -nofork
+# et taper activate (après avoir dégommé le HP Communications)
+# On avance encore un peu plus en foutant à 0 le active sur l'interface PRINT
+# dans ExMgr.cpp les deux fois où il essaie de le passer à 1.
+# Mais ça ne marche toujours pas.
