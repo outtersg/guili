@@ -1,0 +1,68 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.sh"
+
+inclure freetype
+
+logiciel=ftgl
+logiciel_maj="`echo $logiciel | tr '[a-z]' '[A-Z]'`"
+version=2.1.2
+dest=/usr/local/$logiciel-$version
+archive=http://opengl.geek.nz/ftgl/$logiciel-$version.tar.gz
+compil=/tmp/$logiciel_maj
+
+[ -d "$dest" ] && exit 0
+
+if [ ! -d "$compil" ] ; then
+	cd /tmp
+	echo Obtention et décompression… >&2
+	case "$archive" in
+		*.tar.gz) commande="tar xzf" ;;
+		*.tar.bz2) commande="tar xjf" ;;
+		*.zip) commande="unzip" ;;
+	esac
+	$commande `obtenir "$archive"`
+fi
+cd "$compil"
+cd unix
+
+echo Correction… >&2
+for i in ax_check_gl ax_check_glu ax_check_glut acx_pthread ; do
+	cat `obtenir "http://www.gnu.org/software/ac-archive/m4source/$i.m4"` >> acinclude.m4
+done
+aclocal
+autoconf
+filtrer configure.ac sed -e '/^FTGL_CHECK_GL$/s//AX_CHECK_GL/' -e '/^FTGL_CHECK_GLUT$/s//AX_CHECK_GLUT/'
+( cd docs && tar xzf ../../docs/html.tar.gz )
+
+echo Configuration… >&2
+./configure --prefix="$dest" --with-apple-opengl-framework
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser "$logiciel-$version"
