@@ -1,0 +1,82 @@
+#!/bin/sh
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+
+. "$SCRIPTS/util.sh"
+
+avec_gd_interne=non
+[ -z "$1" ] && avec_gd_interne=
+
+# À FAIRE: comprendre pourquoi si on ne fait pas d'install_name sur libpng et
+# libjpeg, gd se lie à elle sous un nom générique (sans chemin) et de se lier à
+# gd résulte en un "libpng: no such file or directory".
+
+cd /tmp
+rm -Rf php-4.3.7 libpng-1.2.5 gd-2.0.26 jpeg-6b
+sudo desutiliser php-4.3.7 libpng-1.2.5 gd-2.0.26 libjpeg-6b
+
+fichier=`obtenir http://www.php.net/get/php-4.3.7.tar.bz2/from/fr2.php.net/mirror php-4.3.7.tar.bz2`
+tar xjf "$fichier"
+
+fichier=`obtenir http://switch.dl.sourceforge.net/sourceforge/png-mng/libpng-1.2.5.tar.bz2`
+tar xjf "$fichier"
+
+fichier=`obtenir http://www.boutell.com/gd/http/gd-2.0.26.tar.gz`
+tar xzf "$fichier"
+
+fichier=`obtenir http://freshmeat.net/redir/libjpeg/5665/url_tgz/jpegsrc.v6b.tar.gz`
+tar xzf "$fichier"
+
+cd /tmp/libpng-1.2.5
+filtrer scripts/makefile.macosx sed -e '/^prefix=/c\
+prefix=/usr/local/libpng-1.2.5
+' -e '/^LDFLAGS=/c\
+LDFLAGS=-L. -L$(ZLIBLIB) -lpng -lz
+' -e 's=-dynamiclib=-dynamiclib -install_name $(DL)/$@='
+cp scripts/makefile.macosx Makefile
+make && sudo mkdir -p /usr/local/libpng-1.2.5 && sudo make install
+sudo ln -s /usr/local/libpng-1.2.5/lib/libpng.3.1.2.5.dylib /usr/local/lib/libpng.dylib # Ces couillons ont merdé leur Makefile, avec deux suffixes différents pour les biblios mais l'un est vide (d'où les libpng. qui traînent).
+sudo utiliser libpng-1.2.5
+
+cd /tmp/jpeg-6b
+./configure --prefix=/usr/local/libjpeg-6b
+cat >> Makefile << TERMINE
+
+libjpeg.dylib: \$(LIBOBJECTS)
+	\$(RM) \$@
+	cc -dynamiclib -flat_namespace -o \$@ \$^ -install_name \$(libdir)/\$@
+TERMINE
+filtrer Makefile sed -e '/^all:/s/$/ libjpeg.dylib/' -e '/^install-lib:/{
+s/$/ libjpeg.dylib/
+a\
+\	mkdir -p \$(libdir)
+a\
+\	\$(INSTALL_LIB) libjpeg.dylib \$(libdir)/\$(binprefix)libjpeg.dylib
+}' -e '/^install-headers:/a\
+\	mkdir -p \$(includedir)
+' -e '/^install:/{
+a\
+\	mkdir -p \$(bindir)
+a\
+\	mkdir -p \$(mandir)
+}'
+make && sudo make install-lib
+sudo utiliser libjpeg-6b
+
+cd /tmp/gd-2.0.26
+./configure --prefix=/usr/local/gd-2.0.26
+filtrer config.h sed -e '/HAVE_LIBFREETYPE/c\
+#undef HAVE_LIBFREETYPE
+'
+make && sudo make install
+
+sudo utiliser gd-2.0.26
+
+cd /tmp/php-4.3.7
+option_gd="--with-gd"
+[ -z "$avec_gd_interne" ] && option_gd="--with-gd=/usr/local"
+./configure --prefix=/usr/local/php-4.3.7 --with-apxs --with-iconv $option_gd --enable-exif --with-expat --without-mysql --with-jpeg-dir=/usr/local --with-png-dir=/usr/local --with-zlib-dir=/usr/local -without-ttf --without-freetype-dir --without-t1lib --disable-gd-native-ttf --disable-gd-jis-conv
+filtrer main/php_config.h sed -e '/^#define HAVE_GD_STRINGFT/s/^[^ ]* \([^ ]*\).*$/#undef \1/'
+make && sudo make install
+sudo utiliser php-4.3.7
