@@ -1,0 +1,667 @@
+#!/usr/bin/env python
+# vim: set syntax=python:
+
+#========================
+# somethings you want to customize
+#========================
+#aaaa#bbbb
+
+# Replace *.edu with the host name, myUserID_* with your login name, and store
+# your password for host_a in a file ~/passFile_a. For the second host host_b,
+# the password command outputs an empty string, so there will a prompt for a
+# non-echoing password type-in. For the second host b, options -a -t are always
+# present.
+
+hostList = {
+'a': ('host_a.edu', 'myUserID_a', 'cat passFile_a', ''),
+'b': ('host_b.edu', 'myUserID_b', 'echo', '-a -t')
+}
+
+# replace myEmailAddress with your email address, which is to be used as a
+# password when the userName is 'anonymous'
+
+echoEmail = 'echo myEmailAddress' 
+
+#aaaa#bbbb
+#========================
+# end of customization
+#========================
+
+'''
+treeftp -- a smart ftp client for Unix.  
+
+By Benyang Tang. 
+Version 0.52. 8/11/00
+
+Complete documentation is in 
+http://beluga.ocgy.ubc.ca/~tang/treeftp/readme_treeftp
+
+The whole package (3 files) are tarred in the file treeftp.tar, which can be
+downloaded from 
+http://www.ocgy.ubc.ca/~tang/treeftp
+
+Please send bug report and questions to: 
+btang@pacific.jpl.nasa.gov 
+
+
+'''
+
+#aaaa#bbbb
+
+import os,sys,getopt
+import re
+import ftplib
+import getpass
+from fnmatch import fnmatch
+import types
+import string
+sys.path.append('.')
+import ls2stat
+
+blockSize = 1024
+home = os.environ['HOME']
+myUser = os.environ['USER']
+
+#===================================== 
+def main():
+#===================================== 
+  global f,archive,home,remoteHome,verbose,pats,ftpCommand, recLevel, forceDelete
+  global timeDiff
+  global subDirsG, iSubDirsG, infoSubDirsG
+
+  localDir = os.getcwd()
+
+#=== default options
+  optFormat = 'tah:u:p:v:e:c:r:f'
+
+  pats = ['.', '..','.__treeFTP.info','*.sw?']
+  ftpCommand = 'g'
+  archive = 0
+  verbose = 1
+  userName = ''
+  passCmd = ''
+  timeDiff = -9999
+  recLevel = 1000000L
+  forceDelete = 0
+
+#=== get options from command line arguments, the first pass
+  try:
+    opts, file0 = getopt.getopt(sys.argv[1:],optFormat)
+  except getopt.error, msg:
+    print msg
+    usage(msg)
+    sys.exit(1)
+
+  if len(file0)>1:
+    print 'Please specify only ONE file/directory at a time.\nDo nothing.'
+    sys.exit(1)
+
+  if len(file0)==0:
+    print 'File not specified. \nDo nothing.'
+    sys.exit(1)
+
+  file0 = file0[0]
+
+#=== figure out hostName and remote directory from the compounded filename
+  if file0[-1]=='/': file0 = file0[:-1]
+
+  filePath = file0
+  temp1 =  string.find(file0,':')
+  if temp1>=0:
+    temp2 = string.lower( file0[:temp1] )
+    if temp2=='ftp':
+      temp3 = file0[temp1+3:]
+      temp4 = string.find(temp3,'/')
+      hostShort = string.lower( temp3[:temp4] )
+      filePath = temp3[temp4:]
+    else:
+      hostShort = string.lower( file0[:temp1] )
+      filePath = file0[temp1+1:]
+
+  remoteDir, file = os.path.split(filePath)
+  file = [file]
+
+#=== if hostShort there 
+  for o,a in opts:
+    if o=='-h':
+      hostShort = a
+
+  if not hostShort:
+    print 'host not known. Do nothing.'
+
+  if hostList.has_key(hostShort):
+    hostName,userName,passCmd,optList = hostList[hostShort]
+  else: 
+    hostName,userName,passCmd,optList = hostShort, 'anonymous', echoEmail,''
+  optList = string.split(optList)
+
+#=== get options, the second pass
+  if optList:
+    try:
+      opts, temp1 = getopt.getopt(optList+sys.argv[1:],optFormat)
+    except getopt.error, msg:
+      usage(msg)
+      sys.exit(1)
+
+#=== distribute options 
+  for o,a in opts:
+    if o=='-c':
+      ftpCommand = a
+    if o=='-a':
+      archive = 1
+    if o == '-e': 
+      pats.append(a)
+    if o == '-v': 
+      if a: verbose = int(a)
+    if o == '-u': 
+      userName = a
+    if o == '-p': 
+      passCmd = a
+    if o == '-t': 
+      timeDiff = 0
+    if o == '-r': 
+      recLevel = int(a)
+    if o == '-f': 
+      forceDelete =1 
+
+  if ftpCommand=='d':
+    pats = ['.', '..']
+
+#=== check local files existing
+  if ftpCommand in 'p':
+    temp1 = os.listdir(localDir)
+    if not file[0] in temp1:
+      print "'%s' does not exist" %  file
+      print 'Nothing is done.'
+      sys.exit(1)
+
+#=== login
+  passWord = ''
+  if passCmd:
+    try:
+      passWord = os.popen(passCmd).read()
+    except:
+      sys.exit(1)
+
+  if passWord:
+    if passWord[-1]=='\n': passWord=passWord[:-1]
+  else:
+    passWord = getpass.getpass()
+
+# print hostName, userName, passWord
+  f = ftplib.FTP(hostName)
+  f.login(userName,passWord)
+
+  if verbose>=2: print f.getwelcome()
+    
+  remoteHome = f.pwd()
+
+  if file[0]=='.':
+    remoteDir, temp1 = os.path.split(remoteHome)
+    file = [temp1]
+
+  else:
+    remoteDir = os.path.join(remoteHome,remoteDir)
+
+#=== prepare to run down directory
+  subDirsG = [[os.path.join(remoteDir,file[0]), 0, 0, [], 0]]
+  iSubDirsG = 0
+  infoSubDirsG = [' ']
+
+#=== put file
+  if ftpCommand in 'p':
+    ftpPut(file,localDir,remoteDir,0,0)       
+    sizeTitle = 'UPLOADED to remote'
+
+#=== get file
+  if ftpCommand in 'g':
+    ftpGet(file,localDir,remoteDir,0,0)       
+    sizeTitle = 'DOWNLOADED to local'
+    
+    os.chdir(localDir)
+    for ii in range(len(subDirsG)-1,0,-1):
+#     print ii, len(infoSubDirsG), len(subDirsG)
+      ls2stat.setFileStat(subDirsG[ii][0],infoSubDirsG[ii])
+
+#=== delete file
+  if ftpCommand in 'd':
+    if forceDelete:
+      temp1 = 'y'
+    else:
+      temp1 = raw_input('Are you sure you want to delete the following?\n%s:%s/%s\n (y/n) ' \
+       % (hostName,remoteDir,file[0]) )
+    if temp1 in 'Yy':
+      ftpDel(file,remoteDir,0,0)       
+      sizeTitle = 'DELETED from remote'
+
+      for ii in range(len(subDirsG)-1,0,-1):
+        dir = subDirsG[ii][0]
+        head1,tail1 = os.path.split(dir)
+        try:
+          chRemoteDir(head1)
+          f.rmd(tail1)
+        except:
+          print 'The remote directory %s/ cannot be removed.' % dir
+    else:
+      print 'Nothing is done.'
+      sys.exit(0)
+
+#=== list file
+  if ftpCommand in 'lz':
+    ftpList(file,remoteDir, 0, 0)
+    sizeTitle = 'Size of remote'
+
+#=== close ftp connection
+  f.close()
+
+#=== print sizes
+  for ii in range(len(subDirsG)-1,0,-1):
+    calcSize(ii)
+
+  print '\n----------------------------------'
+  print '        %s directories:' % sizeTitle
+  print '----------------------------------'
+  for ii in range(1,len(subDirsG)):
+    if subDirsG[ii][4]<=recLevel:
+      printSize(subDirsG[ii][2],'%s' % subDirsG[ii][0])
+
+#=== End of main()
+
+#===================================== 
+def ftpPut(files,localDir1,remoteDir1, curDirIn, dirLevel):
+#===================================== 
+  global subDirsG, iSubDirsG, infoSubDirsG
+
+  os.chdir(localDir1)
+
+  noMake = 0
+  try:
+    f.mkd(remoteDir1)
+  except: 
+    noMake = 1
+
+  isOk = chRemoteDir(remoteDir1)
+  if not isOk: 
+    if noMake: print 'Cannot make remote dir: %s' % remoteDir1
+    return
+
+  if verbose>0: print '#### %s  ----->  %s' % (localDir1,remoteDir1)
+
+  sizeDir = 0L
+  dictU = {}
+
+  dictR = getDictR(remoteDir1)
+  dictL = getDictL()
+
+  for file in files:
+    skip = 0
+    for pat in pats:
+      if fnmatch(file,pat):
+        skip = 1
+        break
+    if skip: continue
+
+    if dictL[file][0]=='d':
+      if dirLevel+1<=recLevel:
+        if archive: dictU[file] = dictL[file]
+
+        iSubDirsG = iSubDirsG + 1
+        subDirsG.append([os.path.join(remoteDir1,file), 0, 0, [], dirLevel+1])
+
+        subDirsG[curDirIn][3].append(iSubDirsG)
+
+        localDir2 = os.path.join(localDir1,file)
+        remoteDir2 = os.path.join(remoteDir1,file)
+        files2 = os.listdir(localDir2)
+        ftpPut(files2, localDir2,remoteDir2,iSubDirsG,dirLevel+1)
+
+        isOk = chRemoteDir(remoteDir1)
+        os.chdir(localDir1)
+
+    if dictL[file][0]=='-':
+      if dictR.has_key(file) and timeDiff!=-9999: 
+        if dictL[file][ls2stat.stat_time]-dictR[file][ls2stat.stat_time] <= timeDiff:
+          if verbose: print '%s in the local site is not newer. Not uploaded.' % file
+          continue
+
+      if verbose: print '%s is being uploaded' % file
+      fp = open(file,'rb')
+#     fileTemp = '@'+file
+      fileTemp = file
+#     f.storbinary('STOR %s' % fileTemp, fp) # this won't work without blockSize.
+      f.storbinary('STOR %s' % fileTemp, fp, blockSize)
+      fp.close()
+#     f.rename(fileTemp,file)
+      if archive: dictU[file] = dictL[file]
+      sizeDir = sizeDir + dictL[file][4]
+
+    if dictL[file][0]=='l':
+      if verbose: print '%s is a link. Not uploaded, but linked remotely' % file
+      if archive: dictU[file] = dictL[file]
+
+  printSize(sizeDir, '%s/.' % localDir1)
+  subDirsG[curDirIn][1] = sizeDir
+
+  if archive: 
+    dictR.update(dictU)
+    putInfo(dictR,remoteDir1,'.__treeFTP.info')
+
+#===================================== 
+def ftpGet(files,localDir1,remoteDir1, curDirIn, dirLevel, dictR=None):
+#===================================== 
+  global subDirsG, iSubDirsG, infoSubDirsG
+
+  isOk = chRemoteDir(remoteDir1)
+  if not isOk: return 
+
+  noMake = 0
+  try:
+    os.mkdir(localDir1)
+  except: 
+    noMake = 1
+
+  try:
+    os.chdir(localDir1)
+  except:
+    if noMake:
+      print 'Cannot make local dir: %s' % localDir1
+    print 'Cannot change to local dir: %s' % localDir1
+    return
+
+  if verbose: print '#### %s  <-----  %s' % (localDir1,remoteDir1)
+
+  sizeDir = 0L
+
+  if type(dictR)==types.NoneType:
+    dictR = getDictR(remoteDir1)
+  dictL = getDictL()
+
+  for file in files:
+    skip = 0
+    for pat in pats:
+      if fnmatch(file,pat):
+        skip = 1
+        break
+    if skip: continue
+
+    noFile = 0
+    if not dictR.has_key(file):
+      print "######### '%s' does not exist ##########" %  file
+      noFile = 1
+      continue
+
+    if dictR[file][0]=='d':
+      if dirLevel+1<=recLevel:
+        iSubDirsG = iSubDirsG + 1
+        subDirsG.append([os.path.join(localDir1,file), 0, 0, [], dirLevel+1])
+        subDirsG[curDirIn][3].append(iSubDirsG)
+
+        infoSubDirsG.append(dictR[file])
+
+        localDir2 = os.path.join(localDir1,file)
+        remoteDir2 = os.path.join(remoteDir1,file)
+        dictA2 = getDictR(remoteDir2)
+        files2 = dictA2.keys()
+        ftpGet(files2, localDir2, remoteDir2, iSubDirsG, dirLevel+1, dictR=dictA2)
+
+  
+        isOk = chRemoteDir(remoteDir1)
+        os.chdir(localDir1)
+
+    elif dictR[file][0]=='-':
+      if dictL.has_key(file) and timeDiff!=-9999: 
+        if dictL[file][ls2stat.stat_time]-dictR[file][ls2stat.stat_time] >= timeDiff:
+          if verbose: print '%s in the remote site is not newer. Not downloaded.' % file
+          continue
+
+      if verbose: print '%s is being downloaded' % file
+ 
+#     fileTemp = '@'+file
+      fileTemp = file
+      fp = open(fileTemp,'wb')
+      f.retrbinary('RETR %s' % file, fp.write)
+      fp.close()
+#     os.rename(fileTemp,file)
+      ls2stat.setFileStat(file,dictR[file])
+      sizeDir = sizeDir + dictR[file][4]
+
+    if dictR[file][0]=='l':
+      if verbose: print '%s is a link. Not downloaded, but linked locally' % file
+      ls2stat.setFileStat(file,dictR[file])
+
+  printSize(sizeDir, '%s/.' % remoteDir1)
+  subDirsG[curDirIn][1] = sizeDir
+
+#===================================== 
+def ftpDel(files,remoteDir1,curDirIn, dirLevel):
+#===================================== 
+  global subDirsG, iSubDirsG, infoSubDirsG
+
+  isOk = chRemoteDir(remoteDir1)
+  if not isOk: return 
+
+  if files:
+    if verbose: print '#### deleting some files in xxxxxx>>>  %s' % (remoteDir1)
+  else:
+    if verbose: print '#### deleting xxxxxx>>>  %s' % (remoteDir1)
+
+  dictR = getDictR(remoteDir1,1)
+  if not files:
+    files = dictR.keys()
+  else:
+    if archive:
+      dictF = getDictR(remoteDir1,2)
+      for file in files:
+        if dictF.has_key(file): del dictF[file]
+      putInfo(dictF,remoteDir1,'.__treeFTP.info')
+
+  sizeDir = 0L
+
+  for file in files:
+    skip = 0
+    for pat in pats:
+      if fnmatch(file,pat):
+        skip = 1
+        break
+    if skip: continue
+
+    if dictR[file][0]=='d':
+      if dirLevel+1<=recLevel:
+        iSubDirsG = iSubDirsG + 1
+        subDirsG.append([os.path.join(remoteDir1,file), 0, 0, [], dirLevel+1])
+        subDirsG[curDirIn][3].append(iSubDirsG)
+
+        remoteDir2 = os.path.join(remoteDir1,file)
+        ftpDel(None,remoteDir2, iSubDirsG, dirLevel+1)
+
+        isOk = chRemoteDir(remoteDir1)
+
+    elif dictR[file][0] in '-l':
+      try:
+        f.delete(file)
+        if verbose: print '%s is being deleted.' % file
+        sizeDir = sizeDir + dictR[file][4]
+      except: 
+        if verbose: print '#### %s cannot be deleted.' % file
+        pass
+
+  printSize(sizeDir, '%s/.' % remoteDir1)
+  subDirsG[curDirIn][1] = sizeDir
+
+#===================================== 
+def ftpList(files,remoteDir1,curDirIn, dirLevel):
+#===================================== 
+  global subDirsG, iSubDirsG, infoSubDirsG
+
+  isOk = chRemoteDir(remoteDir1)
+  if not isOk: return
+
+  if verbose and ftpCommand=='l': 
+    print '#### listing xxxxxx>>>  %s' % (remoteDir1)
+
+  dictR = getDictR(remoteDir1)
+  if not files:
+    files = dictR.keys()
+    files.sort()
+    ifPrintSize = 1;
+  else: ifPrintSize = 0;
+
+  sizeDir = 0L
+
+  for file in files:
+    skip = 0
+    for pat in pats:
+      if fnmatch(file,pat):
+        skip = 1
+        break
+    if skip: continue
+
+    if verbose and ftpCommand=='l': 
+      print ls2stat.reverseEngine(file,dictR[file])
+
+    if dictR[file][0]=='-':
+      sizeDir = sizeDir + dictR[file][4]
+
+    elif dictR[file][0]=='d':
+      iSubDirsG = iSubDirsG + 1
+      subDirsG.append([os.path.join(remoteDir1,file), 0, 0, [], dirLevel+1])
+      subDirsG[curDirIn][3].append(iSubDirsG)
+
+      remoteDir2 = os.path.join(remoteDir1,file)
+      ftpList(None,remoteDir2, iSubDirsG, dirLevel+1)
+
+      isOk = chRemoteDir(remoteDir1)
+
+  subDirsG[curDirIn][1] = sizeDir
+
+#===================================== 
+def modifyInfo(info,remoteDir2,fileName):
+#===================================== 
+# print remoteDir2,fileName
+  isOk = chRemoteDir(remoteDir2)
+#=== if fileName there, update it with info
+  temp1 = []
+  f.dir(fileName,temp1.append)
+  if temp1:
+    if temp1[0][0]=='-':
+      infoF = []
+      f.retrlines('RETR %s' % fileName, infoF.append)   
+      dictF = ls2stat.ls2stat(infoF)
+    
+      dictU = ls2stat.ls2stat(info)
+      dictF.update(dictU)
+
+      temp1 = []
+      f.dir(temp1.append)
+      dictR = ls2stat.ls2stat(temp1)
+  
+      for file in dictF.keys():
+        if (not dictR.has_key(file)) and (not dictU.has_key(file)) \
+          and dictF[file][ls2stat.stat_modeLetter]!='l':
+          del dictF[file]
+
+  putInfo(dictF,remoteDir2,fileName)
+
+#===================================== 
+def putInfo(dict,remoteDir2,fileName):
+#===================================== 
+  info = ls2stat.stat2ls(dict)
+
+  temp1 = os.path.join(home,'.temp_treeftp____')
+  f2 = open( temp1,'w')
+  for line in info: f2.write(line)
+  f2.close()
+
+  f2 = open(temp1,'r') 
+  isOk = chRemoteDir(remoteDir2)
+  f.storlines('STOR %s' % fileName, f2)
+  f2.close()
+  
+  os.remove(temp1)
+
+#===================================== 
+def getDictR(remoteDir2,choice1=0):
+#===================================== 
+# choice1: 
+# =0, combined actual and store info; 
+# =1, actual info; 
+# =2, stored info; 
+
+  temp1 = []
+# f.dir(remoteDir2,temp1.append)
+
+  chRemoteDir(remoteDir2)
+  f.retrlines('LIST -a',temp1.append)
+  dictR = ls2stat.ls2stat(temp1)
+
+  if choice1==1: return dictR
+
+  if archive: 
+    temp1 = []
+    temp3 = os.path.join(remoteDir2,'.__treeFTP.info')
+    try:
+      f.retrlines('RETR ' + temp3, temp1.append)   
+      dictF = ls2stat.ls2stat(temp1)
+      if choice1==2: return dictF
+
+      dictR.update(dictF)
+    except: pass
+
+  if choice1==0: return dictR
+
+#===================================== 
+def getDictL():
+#===================================== 
+  lines = os.popen('LC_TIME=C ls -la | sed -e \'s/\([ 1-3][0-9]\) \([A-Z][a-z][a-z]\)/\\2 \\1/\' ').readlines()
+  dictL = ls2stat.ls2stat(lines)
+
+  return dictL
+
+#===================================== 
+def chRemoteDir(remoteDir):
+#===================================== 
+  isOk = 1
+  try:
+    f.cwd(remoteDir)
+  except:
+    if verbose: print 'Cannot change to remote dir: %s' % remoteDir
+    isOk = 0
+  return isOk
+
+#===================================== 
+def calcSize(curDirIn):
+#===================================== 
+  sum1 = subDirsG[curDirIn][1]
+  for ii in subDirsG[curDirIn][3]:
+    sum1 = sum1 + subDirsG[ii][2]
+  subDirsG[curDirIn][2] = sum1
+
+#===================================== 
+def printSize(num,title1):
+#===================================== 
+  if verbose:
+    print '%s bytes %s' % (string.rjust(i2aComma(num),14),title1)
+#   print 'size of %s:\n--------- %s bytes ----------' % (string.rjust(i2aComma(num),14,title1)
+
+#===================================== 
+def i2aComma(num):
+#===================================== 
+  string1 = str(num)
+  if string1[-1]=='L': string1 = string1[:-1]
+
+  p1 =  re.compile(r'(\d+)(\d\d\d)\b')
+  for i in range(3):
+    string1 = p1.sub(r'\1,\2',string1)
+  return string1
+    
+#===================================== 
+def usage(msg):
+#===================================== 
+  print msg
+  print 'usage:'
+  print "treeftp -h HostName -u userName -p 'echo passFile' filePath" 
+  sys.exit(1)
+
+#======
+main()
+
