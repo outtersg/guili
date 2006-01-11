@@ -1,0 +1,550 @@
+#!/bin/bash
+set -e
+shopt -s extglob
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.sh"
+
+filtrerJar()
+{
+	# Eclipse commence à compresser ses composants en jar. C'est moins pratique
+	# pour taper dedans.
+	
+	local c="$1" f= r=
+	shift
+	
+	if [ -e "$c" ]
+	then
+		filtrer "$c" "$@"
+		return $?
+	fi
+	
+	while true
+	do
+		if [ -f "$c.jar" ]
+		then
+			mkdir "$c" || return 1 # Ben on vient de vérifier qu'il n'existe pas?
+			( cd "$c" && jar x ) < "$c.jar"
+			pushd "$c" > /dev/null
+			c="`basename "$c"`"
+			f="`echo "$f" | cut -d / -f 2-`"
+			jar xf "../$c.jar" "$f"
+			filtrer "$f" "$@"
+			r=$?
+			jar uf "../$c.jar" "$f"
+			cd ..
+			rm -R "$c"
+			popd
+			return $r
+		fi
+		[[ "$c" == */* ]] || break
+		f="/${c##*/}$f"
+		c="${c%/*}"
+	done
+
+	return 1
+}
+
+analyserParametres()
+{
+	local i=
+	
+	DEST=
+	INCLUSIONS_PHP=
+	while [ $# -gt 0 ] ; do
+		case "$1" in
+			--avec)
+				shift
+				ajouterAvec "$1"
+				;;
+			--inclusions-php)
+				shift
+				INCLUSIONS_PHP="$1"
+				;;
+			*)
+				for i in DEST ; do
+					if eval test -z \$$i ; then
+						eval $i="$1"
+						break
+					fi
+				done
+				
+		esac
+		shift
+	done
+}
+
+analyserParametres "$@"
+[ -z "$AVEC" ] && ajouterAvec jseditor
+
+if [ -z "$DEST" ] || ( avec cache && [ -z "$INCLUSIONS_PHP" ] ) ; then
+	aide_cache=
+	avec cache && aide_cache=' --inclusions-php <répertoire utilitaires PHP>'
+	cat << TERMINE >&2
+Utilisation: $0$aide_cache <répertoire de destination>
+TERMINE
+	exit 1
+fi
+
+if [ -d /tmp/eclipse ] ; then
+	cat << TERMINE >&2
+Impossible d'installer: le répertoire /tmp/eclipse doit être déplacé pour être utilisé par le script.
+TERMINE
+	exit 1
+fi
+
+# Différentes versions installées; les directives "entre versions" indiquent
+# les changements de comportement à prendre en compte.
+
+ajouterAvec java_swt
+ajouterAvec phpeclipse
+
+ARCHIVES='ftp://sunsite.informatik.rwth-aachen.de/pub/mirror/eclipse/S.0M8-200403261517/eclipse-SDK-3.0M8-macosx-carbon.tar.gz|http://switch.dl.sourceforge.net/sourceforge/phpeclipse/-snapshot-wampp2-RC1.zip|http://switch.dl.sourceforge.net/sourceforge/jseditor/net.sourceforge.jseditor.0.0.4.2004.05.16.zip'
+
+VERSION_UI=3.0.0
+ARCHIVES='ftp://sunsite.informatik.rwth-aachen.de/pub/mirror/eclipse/R-3.0-200406251208/eclipse-SDK-3.0-macosx-carbon.tar.gz|http://switch.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse-070504.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE'
+
+VERSION_UI=3.0.1
+ARCHIVES='ftp://sunsite.informatik.rwth-aachen.de/pub/mirror/eclipse/R-3.0.1-200409161125/eclipse-SDK-3.0.1-macosx-carbon.tar.gz|http://ovh.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse1.1.0-2004-09-25.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE'
+
+retirerAvec java_swt
+ajouterAvec php_foireux
+ajouterAvec cache_foireux
+
+VERSION_UI=3.1.0
+VERSION_PHP=1.1.2
+ARCHIVES="ftp://sunsite.informatik.rwth-aachen.de/pub/mirror/eclipse/S-3.1M4-200412162000/eclipse-SDK-3.1M4-macosx-carbon.tar.gz|http://ovh.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse$VERSION_PHP-2004-12-04.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE"
+
+VERSION_UI=3.1.0
+VERSION_PHP=1.1.2
+ARCHIVES="http://sunsite.informatik.rwth-aachen.de/eclipse/downloads/drops/N20050120-0010/eclipse-SDK-N20050120-0010-macosx-carbon.tar.gz|http://ovh.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse$VERSION_PHP-2004-12-04.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE"
+
+retirerAvec php_foireux
+retirerAvec cache_foireux
+
+VERSION_UI=3.1.0
+VERSION_PHP=1.1.3
+ARCHIVES="http://sunsite.informatik.rwth-aachen.de/eclipse/downloads/drops/N20050120-0010/eclipse-SDK-N20050120-0010-macosx-carbon.tar.gz|http://ovh.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse$VERSION_PHP-2005-01-29.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE"
+echo "À FAIRE: installer ShellEd" >&2
+
+ARCHIVES="ftp://sunsite.informatik.rwth-aachen.de/pub/mirror/eclipse/S-3.1M6-200504011645/eclipse-SDK-3.1M6-macosx-carbon.tar.gz|http://ovh.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse$VERSION_PHP-2005-01-29.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE"
+ajouterAvec endroit_foireux
+
+ARCHIVES="http://eclipse.objectweb.org/downloads/drops/R-3.1-200506271435/eclipse-SDK-3.1-macosx-carbon.tar.gz|http://ovh.dl.sourceforge.net/sourceforge/phpeclipse/PHPEclipse$VERSION_PHP-2005-01-29.zip|sf://jseditor/net.sourceforge.jseditor:compilJSE"
+
+# Désormais PHPEclipse ne fournit plus les composants JS, CSS, etc.
+
+ajouterAvec php_et_dependances
+ajouterAvec php_en_maj
+
+VERSION_EMF=(2.1.0 R 200507070200)
+VERSION_GEF=(3.1 R 200507071758)
+VERSION_JEM=(1.1 R 200507221721)
+VERSION_WTP=(1.0M8 S 200509230840)
+VERSION_ECLIPSE=(3.1 R 200506271435)
+VERSION_PHP=1.1.7
+
+retirerAvec phpeclipse # Marre de PHPEclipse, ils passent leur temps à livrer des version qui font des « Le module n'a pas pu se charger, au bout de cinq secondes, votre environnement est peut-être incomplet ». Ah bah ouais, tu parles qu'il est incomplet, je ne peux même pas ouvrir un .php! En plus quand on voit leur historique, ils ne m'ont pas simplifié la vie…
+ajouterAvec trustudio # On remplace par TruStudio.
+VERSION_TRU=1.0.1a
+
+VERSION_ECLIPSE=(3.1.1 R 200509290840)
+
+ARCHIVES="http://eclipse.objectweb.org/downloads/drops/${VERSION_ECLIPSE[1]}-${VERSION_ECLIPSE[0]}-${VERSION_ECLIPSE[2]}/eclipse-SDK-${VERSION_ECLIPSE[0]}-macosx-carbon.tar.gz|http://download.pipestone.com/eclipse/updates|sf://jseditor/net.sourceforge.jseditor:compilJSE"
+ARCHIVE_EMF="http://download.eclipse.org/tools/emf/downloads/drops/${VERSION_EMF[0]}/${VERSION_EMF[1]}${VERSION_EMF[2]}/emf-sdo-xsd-SDK-${VERSION_EMF[0]}.zip"
+ARCHIVE_GEF="http://download.eclipse.org/tools/gef/downloads/drops/${VERSION_GEF[1]}-${VERSION_GEF[0]}-${VERSION_GEF[2]}/GEF-SDK-${VERSION_GEF[0]}.zip"
+ARCHIVE_JEM="http://download.eclipse.org/tools/ve/downloads/drops/${VERSION_JEM[1]}-${VERSION_JEM[0]}-${VERSION_JEM[2]}/JEM-SDK-${VERSION_JEM[0]}.zip"
+ARCHIVE_WTP="http://mirror.switch.ch/eclipse/webtools/downloads/drops/${VERSION_WTP[1]}-${VERSION_WTP[0]}-${VERSION_WTP[2]}/wtp-wst-${VERSION_WTP[0]}.zip"
+ARCHIVE_TRU="http://ovh.dl.sourceforge.net/sourceforge/trustudio/trustudio-foundation-$VERSION_TRU-macosx.tar.gz"
+
+obtenir2()
+{
+	if echo "$1" | grep -q '^sf://' ; then
+		truc=`echo "$1" | sed -e 's+[/:][/:]*+/+g'`
+		site=`echo "$truc" | cut -d / -f 2`
+		module=`echo "$truc" | cut -d / -f 3`
+		commande=`echo "$truc" | cut -d / -f 4`
+		$commande `cvssf "$site" "$module"`
+	else
+		fichier=`obtenir "$@"`
+	fi
+}
+
+cvssf()
+{
+	depart=`pwd`
+	cd /tmp/
+	if [ ! -d "$2" ] ; then
+		grep -q "^:pserver:anonymous@cvs.sourceforge.net:/cvsroot/$1" ~/.cvspass || echo ":pserver:anonymous@cvs.sourceforge.net:/cvsroot/$1 A " >> ~/.cvspass
+		chut cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/$1 co $2
+		find $2 -name CVS -print0 | xargs -0 rm -R
+	fi
+	echo /tmp/$2
+	cd "$depart"
+}
+
+# Paramètres:
+#   $1: dossier à compiler.
+#   $2: jar à créer ou compléter.
+compilJava()
+{
+	local depart
+	depart=`pwd`
+	mkdir -p /tmp/$$/obj
+	cd "$1"
+	find . -name \*.java > /tmp/liste
+	bloub=`find /tmp/eclipse/Eclipse.app/Contents/MacOS/plugins -name \*.jar | tr '\012' :`
+	chut javac -d /tmp/$$/obj -classpath "$bloub" @/tmp/liste
+	cd "$depart"
+	lettre=c
+	if [ -f "$2" ] ; then
+		lettre=u
+		cp "$2" /tmp/$$/machin.jar
+	else
+		lettre=c
+	fi
+	( cd /tmp/$$/obj && find . -name \*.class -print0 | xargs -0 jar ${lettre}f /tmp/$$/machin.jar ) && cat /tmp/$$/machin.jar > "$2"
+	rm -R /tmp/$$/obj
+}
+
+compilJSE()
+{
+	depart=`pwd`
+	cd "$1"
+	mkdir -p obj
+	cd src-*
+	find . -name \*.java > /tmp/liste
+	bloub=`find /tmp/eclipse/Eclipse.app/Contents/MacOS/plugins -name \*.jar | tr '\012' :`
+	chut javac -d ../obj -classpath "$bloub" @/tmp/liste 2>&1 | less
+	cd ..
+	( cd obj && jar cf ../jseditor.jar . )
+	mkdir /tmp/$$/net.sourceforge.jseditor_0.0.4
+	cp -R icons jseditor.jar plugin.xml /tmp/$$/net.sourceforge.jseditor_0.0.4/
+	echo /tmp/$$/net.sourceforge.jseditor_0.0.4
+	cd "$depart"
+}
+
+# Récupère une MAJ Eclipse 3.1 (à partir d'un site.xml)
+# Invocation: obtenirMAJ <url> <id> <version>
+#   <url>: URL racine du site
+obtenirMAJ()
+{
+	local archive i
+	archive=`curl -s "$1/site.xml" | sed -e '/<feature.*id="'"$2"'"/!d' -e '/version="'"$3"'"/!d' -e 's/^.*url="//' -e 's/".*$//'` # On espère que tout est sur la même ligne.
+	curl -s "$1/$archive" | ( cd features && mkdir -p "$2_$3" && cd "$2_$3" && jar x )
+	python -c '
+import sys
+import xml.dom.minidom
+doc = xml.dom.minidom.parse(sys.stdin)
+for e in doc.childNodes[0].childNodes:
+	if e.nodeType == e.ELEMENT_NODE and e.localName == "plugin":
+		sys.stdout.write(e.getAttribute("id")+"_"+e.getAttribute("version")+".jar\n")
+' < "features/$2_$3/feature.xml" | ( cd plugins && while read i
+	do
+		cp "`obtenir "$1/plugins/$i"`" ./
+	done )
+}
+
+# Paramètre:
+#   $1: chemin vers phpeclipse.jar.
+ajusterPHP()
+{
+	local chemin=net/sourceforge/phpdt/ui
+	mkdir -p /tmp/$$/src
+	mkdir -p /tmp/$$/src/$chemin
+	mv `cvssf phpeclipse net.sourceforge.phpeclipse/src/$chemin/PreferenceConstants.java` /tmp/$$/src/$chemin
+	filtrer /tmp/$$/src/$chemin/PreferenceConstants.java awk '{if(oui==1){printf "{//";oui=2}}/syncExec/{printf "//";oui=1}/\}\);/{if(oui==2){printf "//";oui=0;}}{print $0}'
+	compilJava /tmp/$$/src "$1"
+	rm -R /tmp/$$/src
+}
+
+nomsZip()
+{
+	unzip -l "$1" | sed -e '1,/-----/d' -e '/-----/{
+x
+p
+d
+}' -e '{
+H
+d
+}' | cut -c `unzip -l "$1" | sed -e '/Name/!d' -e 's/Name.*$//' | head -1 | wc -c`-
+}
+
+# Renvoie le nom officiel (nom et version) prélevés sur un plugin.xml; certains
+# ont pour nom nom_0.0.4 mais s'annoncent en interne comme 0.0.5.
+nomOfficiel()
+{
+	chaine="`sed -e '/<plugin/,/>/!d' < "$1"`"
+	(
+		echo "$chaine" | sed -e '/^.*id="\([^"]*\)"/!d' -e 's//\1/'
+		echo _
+		echo "$chaine" | sed -e '/^.*version="\([^"]*\)"/!d' -e 's//\1/'
+	) | tr -d '\012\015'
+}
+
+# Prend en paramètre un plugin.xml ou fragment.xml et un répertoire dans lequel
+# pondre un manifeste Eclipse (cache du plug-in)
+composerCacheManifest()
+{
+	php -d "include_path=$INCLUSIONS_PHP" "$SCRIPTS/eclipse.manifest.php" "$1" > "$2/`nomOfficiel "$1"`.MF"
+}
+
+decompresserDansEclipse()
+{
+	local archive
+	# Les archives zip s'attendent à trouver un répertoire 'eclipse' dans lequel se placer.
+	mkdir -p /tmp/$$/glub
+	ln -s "`pwd`" /tmp/$$/glub/eclipse 2> /dev/null || true # On va dire que c'est déjà un lien qui pointe vers le bon endroit…
+	archive="$(obtenir "$1")"
+	case "$archive" in
+		*.tar.gz|*.tgz) dec="tar xzf" ;;
+		*.tar.bz2) dec="tar xjf" ;;
+		*.zip) dec="unzip -qq -o" ;;
+	esac
+	( cd /tmp/$$/glub && chut $dec "$archive" )
+}
+
+cd /tmp
+echo Décompression… >&2
+archive=`echo "$ARCHIVES" | cut -d '|' -f 1`
+tar xzf `obtenir "$archive"`
+cd /tmp/eclipse
+mv configuration features plugins startup.jar .eclipseproduct Eclipse.app/Contents/MacOS
+cd Eclipse.app/Contents/MacOS
+filtrer ../Info.plist sed -e 's/>eclipse</>amorce</'
+
+if avec java_swt ; then
+
+mv eclipse amorce
+DEMARREUR=java_swt
+DEMARRE=Eclipse
+mv $DEMARREUR $DEMARRE
+cat > $DEMARREUR << TERMINE
+#!/bin/bash
+
+DOSSIER=\$(dirname \$(dirname \$(command -v "\$0")))/MacOS
+exec "\$DOSSIER/$DEMARRE" -Xms30M -Xmx150M -cp "\$DOSSIER/startup.jar" org.eclipse.core.launcher.Main -os macosx -ws carbon -arch ppc -keyring "\$HOME/.eclipse_keyring" -showlocation  -data "\$HOME/Library/Application Support/Eclipse"
+TERMINE
+chmod a+x $DEMARREUR
+
+else # avec java_swt
+
+effacement_du_cache=
+#avec cache_foireux && effacement_du_cache="rm -R \$HOME/.eclipse/org.eclipse.platform_$VERSION_UI/configuration/org.eclipse.osgi/manifests"
+avec cache_foireux && effacement_du_cache="rm -R \$HOME/.eclipse"
+avec endroit_foireux && filtrer ../Info.plist sed -e 's=\.\./\.\./\.\./==g'
+cat > amorce << TERMINE
+#!/bin/bash
+
+cat > /tmp/temp.\$\$.lex << FINI
+%s AVANT PENDANT
+%%
+"<key>Eclipse</key>" { BEGIN(AVANT); }
+<AVANT>\<[^>]*\> { BEGIN(PENDANT); }
+<PENDANT>\<[^>]*\> { BEGIN(0); }
+<PENDANT>"<string>"[^<]*"</string>" { fwrite(&yytext[8], 1, yyleng - 17, yyout); fputc(0, yyout); }
+<*>. {}
+<*>\n {}
+%%
+int yywrap() { return 1; }
+int main(int argc, char ** argv) { yylex(); }
+FINI
+( cd /tmp && lex -t temp.\$\$.lex > temp.\$\$.c && cc -o temp.\$\$ temp.\$\$.c )
+
+DOSSIER=\$(dirname \$(dirname \$(command -v "\$0")))/MacOS
+REMPL_HOME="s+~+\`echo "\$HOME" | sed -e s/+/\\+/\`+"
+$effacement_du_cache
+donnees="\$HOME/Library/Application Support/Eclipse"
+while [ \$# -gt 0 ] ; do
+	case "\$1" in
+		-*) true ;;
+		*) donnees="\$1" ;;
+	esac
+	shift
+done
+/tmp/temp.\$\$ < "\$DOSSIER/../Info.plist" | sed -e "\$REMPL_HOME" | tr -d '\\012' | xargs -0 "\$DOSSIER/eclipse" -data "\$donnees"
+TERMINE
+chmod a+x amorce
+
+fi # avec java_swt
+
+if avec phpeclipse ; then
+
+if avec php_et_dependances
+then
+	for i in EMF GEF JEM WTP
+	do
+		decompresserDansEclipse "$(eval echo \$ARCHIVE_$i)"
+	done
+fi
+archive=`echo "$ARCHIVES" | cut -d '|' -f 2`
+if avec php_en_maj
+then
+	obtenirMAJ "$archive" net.sourceforge.phpeclipse $VERSION_PHP
+else
+	archive="`obtenir "$archive"`"
+	chut unzip -o "$archive"
+	# Quelques vieilles versions oubliaient de fournir le descriptif XML avec.
+	dossier="features/net.sourceforge.phpeclipse_$VERSION_PHP"
+	case "$VERSION_PHP" in
+		1.0.*|1.1.[01])
+			mkdir -p "$dossier"
+			(
+				cat << TERMINE
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+		id="net.sourceforge.phpeclipse"
+		label="PHPEclipse"
+		version="$VERSION_PHP"
+		provider-name="Personne"
+		image="logo.jpg">
+	
+	<url>
+		<update label="New update site" url="http://phpeclipse.sourceforge.net/update-site/site.xml"/>
+	</url>
+	
+	<requires>
+		<import plugin="org.eclipse.core.boot"/>
+		<import plugin="org.eclipse.core.resources"/>
+		<import plugin="org.eclipse.core.runtime"/>
+		<import plugin="org.eclipse.swt"/>
+		<import plugin="org.eclipse.ui"/>
+		<import plugin="org.eclipse.ui.editors"/>
+		<import plugin="org.eclipse.ui.views"/>
+		<import plugin="org.eclipse.ui.workbench"/>
+		<import plugin="org.eclipse.ui.workbench.texteditor"/>
+		<import plugin="org.eclipse.jface"/>
+		<import plugin="org.eclipse.text"/>
+		<import plugin="org.eclipse.jface.text"/>
+	</requires>
+	
+	<copyright>
+		Personne ne détient les droits.
+	</copyright>
+
+	<license>OK?</license>
+	
+TERMINE
+				
+				# Certains des composants doivent être référencés dans le
+				# fichier de conf du module. Je ne sais pas pourquoi (il me
+				# semble qu'en son temps j'avais récupéré ce fichier codé en dur
+				# quelque part).
+				module=net.sourceforge.phpeclipse
+				compo=${module}_
+				for i in debug.core debug.ui launching phphelp quantum.sql ; do
+					compo="$compo|$module.${i}_"
+				done
+				nomsZip "$archive" | cut -d / -f 2 | sort -u | egrep "^($compo)" | sed -e 's+^+<plugin id="+' -e 's+_+" download-size="0" install-size="0" version="+' -e 's+$+"/>+'
+				
+				cat << TERMINE
+
+</feature>
+TERMINE
+			) > "$dossier/feature.xml"
+			chut curl http://www.phpeclipse.de/topic_image.php?id=2 > "$dossier/logo.jpg"
+			;;
+		1.1.*)
+			( echo "$dossier/feature.xml" ; nomsZip "$archive" | egrep "^plugins/net.sourceforge.phpeclipse.(monitor.core|monitor.ui)_[^/]*/plugin.xml" ) | while read descr ; do
+				filtrer "$descr" sed -e 's/equivalent/compatible/' # Par défaut leurs composants sont prévus pour la 3.0.*, on voudrait faire un peu de 3.1
+			done
+			;;
+	esac
+fi
+
+dossier="plugins/net.sourceforge.phpeclipse_$VERSION_PHP"
+
+avec php_foireux && ajusterPHP "$dossier/phpeclipse.jar"
+
+fi
+
+if avec trustudio
+then
+	echo "TruStudio…" >&2
+	
+	decompresserDansEclipse "$ARCHIVE_TRU"
+fi
+
+if avec jseditor ; then
+
+echo JS Editor… >&2
+archive=`echo "$ARCHIVES" | cut -d '|' -f 3`
+cp -R `obtenir2 "$archive"` plugins/
+
+fi
+
+echo Personnalisation… >&2
+filtrerJar plugins/org.eclipse.jdt.ui_$VERSION_UI/plugin.xml sed -e '/point="org.eclipse.ui.ide.resourceFilters"/{a\
+<filter selected="false" pattern="_darcs"/>
+a\
+<filter selected="false" pattern="++*"/>
+a\
+<filter selected="false" pattern=",,*"/>
+a\
+<filter selected="false" pattern="{arch}"/>
+a\
+<filter selected="false" pattern=".arch-ids"/>
+a\
+<filter selected="false" pattern="*.orig"/>
+a\
+<filter selected="false" pattern="*.rej"/>
+}'
+
+if avec cache ; then # Finalement, ça ne m'a pas l'air nécessaire. La 3.1M4 avait un bogue qui l'empêchait de tourner correctement, mais une version intermédiaire lancée peu après fonctionne sans (et mentionne dans un fichier « Fixed a deadlock at startup »).
+# Il faut maintenant reconstruire les caches d'Eclipse, sinon il ne se lancera
+# pas (à moins de le lancer une première fois en root, mais ce n'est pas le but
+# de l'install automatisée).
+
+echo Création du cache… >&2
+if true ; then
+java -cp startup.jar org.eclipse.core.launcher.Main -application org.eclipse.update.core.standaloneUpdate  -command update
+else
+
+# Les manifestes des composants sont extraits
+
+ignores=`for i in core.runtime.compatibility core.runtime osgi.services osgi.util osgi pde.build swt.carbon swt ; do 
+	printf "org.eclipse.%s|" $i
+done | sed -e 's/|$//'`
+MANIFS=configuration/org.eclipse.osgi/manifests
+mkdir -p "$MANIFS"
+ls plugins | egrep -v "^($ignores)_" | while read compo ; do
+	echo "  ${compo}…" >&2
+	composerCacheManifest plugins/$compo/@(plugin|fragment).xml "$MANIFS"
+done
+
+fi # true
+fi # avec cache
+
+echo Installation… >&2
+commande=CpMac
+command -v $commande > /dev/null || commande=cp
+sudo $commande -r /tmp/eclipse/Eclipse.app "$DEST"/Eclipse.app
+
+rm -R /tmp/$$
+
+# Tests
+
+exit 0
+
+# Pour remettre en ordre les Provide-Package d'un Eclipse lancé à la main, à des
+# fins de compoaraison avec ce que nous arrivons à générer par script:
+
+mkdir /tmp/normalement
+for i in *.MF ; do
+awk '/^[^ ]/{chose=0}/^Provide-Package: /{sub(/^[^ ]* /, " ");chose=1;print "Provide-Package: "}{if(chose){sub(/,$/, "");print>>"/tmp/'$$'/temp.ordonne"}else print}' < "$i" > /tmp/$$/temp.ordonne.1
+sort < /tmp/$$/temp.ordonne > /tmp/$$/temp.ordonne.2
+awk '{if($0 ~ /^Provide-Package: /)system("sed -e '\''$!s/$/,/'\'' -e '\''1s/^/Provide-Package:/'\'' < /tmp/'$$'/temp.ordonne.2"); else print}' < /tmp/$$/temp.ordonne.1 > /tmp/normalement/$i
+done
+
+# Pour effectuer la comparaison:
+
+i=0
+for dossier in /tmp/eclipse/Eclipse.app/Contents/MacOS/configuration/org.eclipse.osgi/manifests /tmp/normalement ; do
+i=$((++i))
+mkdir /tmp/$i
+cd "$dossier"
+for fichier in * ; do
+sed -e '/^Generated-from:/d' < "$fichier" > "/tmp/$i/$fichier"
+done
+done
+opendiff /tmp/[12]
