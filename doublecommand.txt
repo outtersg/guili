@@ -1,0 +1,6 @@
+# Télécharger la version officielle.
+# Télécharger le module doublecommand sous CVS.
+# cd …/kext
+# Modifier les deux fichiers indiqués dans mon mél du 1er novembre 2005.
+# make
+# Copier le kext résultant à la place de l'original.
