@@ -1,0 +1,99 @@
+#!/bin/bash
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+modifs_libao=inclusions_ao
+modifs_vorbistools=MUTE
+modifs_libvorbis=soxdependencies
+
+inclusions_ao()
+{
+	filtrer src/plugins/macosx/ao_macosx.c sed -e '/^#include/{
+x
+s/./&/
+t-(
+g
+:-(
+x
+}' -e '/^$/{
+x
+s/^#.*$//
+t-)
+b-/
+:-)
+i\
+#include <limits.h>
+i\
+#include <string.h>
+s/^.*$/coucou/
+:-/
+x
+}'
+}
+
+MUTE()
+{
+	filtrer ogg123/http_transport.c grep -v CURLOPT_MUTE
+}
+
+#for i in ao/libao-r10015 ogg/libogg-1.1.2 vorbis/libvorbis-1.1.1 vorbis/vorbis-tools-1.1.1
+for i in ao/libao-0.8.6 ogg/libogg-1.1.3 vorbis/libvorbis-1.1.2 vorbis/vorbis-tools-1.1.1
+do
+
+logiciel=${i#*/}
+version=${logiciel##*-}
+logiciel=${logiciel%-*}
+archive=http://downloads.xiph.org/releases/$i.tar.gz
+archive_svn=http://svn.xiph.org/trunk/${logiciel#lib}
+
+dest="/usr/local/$logiciel-$version"
+
+[ -d "$dest" ] && continue
+
+conf=./configure
+if [[ $version = r* ]] ; then
+	obtenirEtAllerDansSvn -r ${version#r} $archive_svn
+	export ACLOCAL_FLAGS="-I /usr/local/share/aclocal"
+	conf=./autogen.sh
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+echo Correction… >&2
+for modif in $(eval echo \$modifs_${logiciel//-/}) ; do $modif ; done
+
+echo Configuration… >&2
+"${conf[@]}" --prefix="$dest"
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser "$logiciel-$version"
+
+done
+
+rm -Rf /tmp/$$
