@@ -1,0 +1,105 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+inclure fltk
+
+logiciel=xdiskusage
+
+# Historique des versions gérées
+
+version=1.48
+modifs=confParFltk
+
+OPTIONS_CONF=()
+
+# Modifications
+
+confParFltk()
+{
+	filtrer makeinclude.in sed -e "/LDLIBS[ 	]*=/s#=.*\$#= @LIBS@ `fltk-config --ldflags`#"
+}
+
+maquer()
+{
+	chemin=$1
+	fichier="`basename $chemin`"
+	
+	# http://seriss.com/people/erco/fltk/#MacBundle
+	
+	mkdir -p $fichier.app
+	mkdir -p $fichier.app/Contents
+	mkdir -p $fichier.app/Contents/Resources
+	mkdir -p $fichier.app/Contents/MacOS
+	echo APPLnone > $fichier.app/Contents/PkgInfo
+	cp $chemin $fichier.app/Contents/MacOS
+	chmod 755 $fichier.app/Contents/MacOS/$fichier
+	cat << EOF > $fichier.app/Contents/info.plist
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+        <key>CFBundleName</key>
+        <string>$fichier</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleVersion</key>
+        <string>59</string>
+        <key>CFBundleShortVersionString</key>
+        <string>1.1</string>
+        <key>CFBundleSignature</key>
+        <string>none</string>
+</dict>
+</plist>
+EOF
+}
+
+# Variables
+
+archive="http://xdiskusage.sourceforge.net/$logiciel-$version.tgz"
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+
+echo Compilation… >&2
+make
+maquer "./$logiciel"
+
+echo Installation… >&2
+sudo mkdir -p "$dest/bin"
+sudo mkdir -p "$dest/man/man1"
+sudo make install
+sudo cp -r "$logiciel.app" /Apps/Utilitaires/
+sudo utiliser $logiciel-$version
+
+rm -Rf /tmp/$$
