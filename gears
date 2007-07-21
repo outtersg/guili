@@ -1,0 +1,126 @@
+#!/bin/bash
+# Copyright (c) 2007 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+logiciel=gears
+
+# Historique des versions gérées
+
+OPTIONS=' '
+
+version=r148
+modifs="ppc sansJs"
+
+OPTIONS_CONF=()
+
+# Modifications
+
+ppc()
+{
+	patch -p0 <<TERMINE
+--- gears/base/safari/project/project.xcodeproj/project.pbxproj	2007-07-20 12:15:14.000000000 +0200
++++ gears/base/safari/project/project.xcodeproj/project.pbxproj	2007-07-20 12:20:51.000000000 +0200
+@@ -1435,10 +1435,7 @@
+ 			baseConfigurationReference = 9B57EEA30BE7E6A300451F56 /* Release.xcconfig */;
+ 			buildSettings = {
+ 				ALWAYS_SEARCH_USER_PATHS = NO;
+-				ARCHS = (
+-					"\$(NATIVE_ARCH)",
+-					ppc,
+-				);
++				ARCHS = "\$(NATIVE_ARCH)";
+ 				COPY_PHASE_STRIP = YES;
+ 				GCC_C_LANGUAGE_STANDARD = c99;
+ 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+@@ -1617,10 +1614,7 @@
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+ 				ALWAYS_SEARCH_USER_PATHS = NO;
+-				ARCHS = (
+-					"\$(NATIVE_ARCH)",
+-					ppc,
+-				);
++				ARCHS = "\$(NATIVE_ARCH)";
+ 				COPY_PHASE_STRIP = YES;
+ 				DEPLOYMENT_LOCATION = NO;
+ 				DSTROOT = /;
+TERMINE
+}
+
+sansJs()
+{
+	patch -p0 <<TERMINE
+--- gears/base/common/js_runner.h	2007-07-21 12:46:08.000000000 +0200
++++ gears/base/common/js_runner.h	2007-07-21 12:49:20.000000000 +0200
+@@ -45,6 +45,10 @@
+ #elif defined BROWSER_FF
+   typedef nsISupports IGeneric;
+   typedef nsIID gIID;
++#elif defined BROWSER_SAFARI
++  typedef void IGeneric;
++  typedef int gIID;
++  typedef void * JsContextPtr;
+ #endif
+ 
+ 
+TERMINE
+}
+
+# Variables
+
+archive_svn="http://google-gears.googlecode.com/svn/trunk"
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Compilation… >&2
+compil="`defaults read com.apple.Xcode PBXProductDirectory`"
+[ -z "$compil" ] && compil=Build
+[[ "$compil" = \~/* ]] && compil="$HOME/${compil#\~}"
+compil="$compil/Release"
+pushd gears/base/safari/project
+xcodebuild
+popd
+
+echo Installation… >&2
+sudo bash <<TERMINE
+set -e
+for i in "Gears.plugin:Library/Internet Plug-Ins" "GoogleGearsEnabler:Library/InputManagers"
+do
+f="\${i%%:*}"
+c="\${i#*:}"
+mkdir -p "$dest/\$c"
+cp -R "$compil/\$f" "$dest/\$c/"
+rm -f "/\$c/\$f"
+ln -s "$dest/\$c/\$f" "/\$c/\$f"
+done
+TERMINE
+
+rm -Rf /tmp/$$
