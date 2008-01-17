@@ -1,0 +1,71 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+logiciel=xquartz
+
+# Historique des versions gérées
+
+OPTIONS=' '
+
+modifs=envconf
+
+version=1.3.0.7
+version_mesa=7.0.2
+
+# Modifications
+
+envconf()
+{
+	export CFLAGS="-Wall -O2 -arch ppc -pipe"
+	export LDFLAGS="-Wall -O2 -arch ppc -pipe"
+	export XLIB_CFLAGS=
+	export XLIB_LIBS=
+}
+
+# Variables
+
+v2="${version%.*}-apple${version##*.}"
+archive="http://xquartz.macosforge.org/downloads/xorg-server-$v2.tar.bz2"
+archive_mesa="http://dfn.dl.sourceforge.net/sourceforge/mesa3d/MesaLib-$version_mesa.tar.bz2"
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+mesa="$(archive="$archive_mesa";obtenirEtAllerDansVersion;pwd)"
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" --with-mesa-source="$mesa" --disable-dependency-tracking
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser $logiciel-$version
