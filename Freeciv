@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+
+if [ ! -d "$HOME/Documents/Freeciv" ]
+then
+	mkdir "$HOME/Documents/Freeciv"
+	ln -s "$SCRIPTS/../../../usr"/* "$HOME/Documents/Freeciv/"
+fi
+
+"$SCRIPTS/Freeciv.bin"
