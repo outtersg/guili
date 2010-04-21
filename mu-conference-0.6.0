@@ -1,0 +1,59 @@
+#!/bin/bash
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.sh"
+
+inclure jcr
+inclure jabberd
+
+logiciel=mu-conference
+version=0.6.0
+
+ls /usr/local/jabberd-2*/bin/mu-conference 2> /dev/null | grep -q . && exit 0
+
+. "$SCRIPTS/util-jabberd"
+
+cd /tmp/jcr-*
+echo Obtention et décompression… >&2
+tar xzf `obtenir "http://www.jabberstudio.org/files/mu-conference/$logiciel-$version.tar.gz"`
+cd $logiciel-$version
+
+echo Configuration… >&2
+cd src
+cp ../../src/jcomp.mk ../../src/main.c ./
+
+echo Compilation… >&2
+make -f jcomp.mk
+
+echo Installation… >&2
+sed -e '/secret/i\
+  <user>jabberd</user>
+' < ../muc-jcr.xml > ./muc.xml
+for dest in /usr/local/jabberd-2* ; do
+	sudo cp mu-conference $dest/bin
+	filtrerXml . muc.xml:jcr:spool:"$dest/var/jabberd/spool" muc.xml:jcr:logdir:"$dest/var/jabberd/log" muc.xml:jcr:pidfile:"$dest/var/jabberd/pid" muc.xml:jcr:secret:totoestgrand
+	sudo cp muc.xml $dest/etc/jabberd/
+	sed -e '/^filtrerXml /s/$/ muc.xml:jcr:name:`hostname` muc.xml:jcr:host:`hostname`/' -e '/for i in etc/s=; do=var/spool ; do=' < "$dest/bin/jabberd-local" > /tmp/$$/jabberd-local && sudo sh -c "cat /tmp/$$/jabberd-local > \"$dest/bin/jabberd-local\""
+	sudo utiliser "`echo $dest | sed -e 's=^/usr/local/=='`"
+done
