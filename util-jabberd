@@ -1,0 +1,21 @@
+filtrerXml()
+{
+	destFiltrage="$1"
+	shift
+	while [ $# -gt 0 ] ; do
+		fichier=`echo "$1" | cut -d : -f 1`
+		section=`echo "$1" | cut -d : -f 2`
+		reglage=`echo "$1" | cut -d : -f 3`
+		valeur=`echo "$1" | cut -d : -f 4`
+		filtrer "$destFiltrage/$fichier" sed -e '/<'"$section"'>/h' -e '/<'"$reglage"'>/{
+x
+s/^..*$//
+x
+toto
+b
+:oto
+s!>.*<!>'"$valeur"'<!
+}'
+		shift
+	done
+}

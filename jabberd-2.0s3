@@ -1,0 +1,186 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.sh"
+
+inclure db
+
+logiciel=jabberd
+version=2.0s3
+dest=/usr/local/$logiciel-$version
+cvs=oui
+
+[ -d "$dest" ] && exit 0
+
+cd /tmp
+echo Obtention et décompression… >&2
+if [ $cvs = oui ] ; then
+	grep -q jabberstudio.org "$HOME/.cvspass" || echo ":pserver:anonymous@jabberstudio.org:/home/cvs A" >> "$HOME/.cvspass"
+	cvs -d :pserver:anonymous@jabberstudio.org:/home/cvs -z 3 co jabberd2
+	mv jabberd2 $logiciel-$version
+else
+	tar xzf `obtenir "http://jabberstudio.org/projects/jabberd2/releases/file/$logiciel-$version.tar.gz"`
+fi
+cd /tmp/$logiciel-$version
+
+echo Correction… >&2
+
+. "$SCRIPTS/util-jabberd"
+
+if [ $cvs = oui ] ; then
+	patch -p 0 << TERMINE
+--- ./configure.in      Sat Oct 16 15:15:02 2004
++++ ./configure.in      Sat Oct 16 15:15:59 2004
+@@ -366,7 +366,6 @@
+     arpa/inet.h \
+     arpa/nameser.h \
+     netinet/in.h \
+-    resolv.h \
+     signal.h \
+     sys/ioctl.h \
+     sys/socket.h \
+@@ -379,6 +378,12 @@
+     unistd.h \
+     windows.h \
+     winsock2.h)
++
++AC_CHECK_HEADERS(resolv.h,,,
++[#include <sys/types.h>
+#ifdef HAVE_NETINET_IN_H
++# include <netinet/in.h>
++#endif])
+ 
+ AC_CHECK_HEADERS(windns.h,,,
+ [#ifdef HAVE_WINSOCK2_H
+--- mio/mio.c      Sat Oct 16 16:50:45 2004
++++ mio/mio.c   Sat Oct 16 16:51:21 2004
+@@ -29,6 +29,9 @@
+ 
+ #include "mio.h"
+ 
++#ifdef HAVE_SYS_TIME_H
++# include <sys/time.h>
++#endif
+ #ifdef HAVE_SYS_RESOURCE_H
+ # include <sys/resource.h>
+ #endif
+--- util/util.h.orig    Sat Oct 16 16:54:04 2004
++++ util/util.h Sat Oct 16 16:54:40 2004
+@@ -34,6 +34,9 @@
+ #ifdef HAVE_NETINET_IN_H
+ # include <netinet/in.h>
+ #endif
++#ifdef HAVE_SYS_SOCKET_H
++# include <sys/socket.h>
++#endif
+ 
+ #if defined(HAVE_SYS_TIME_H)
+ # include <sys/time.h>
+TERMINE
+else
+	filtrer util/util.h sed -e '/#ifdef HAVE_NETINET_IN_H/h' -e '/#endif/{
+x
+s/^..*$//
+toto
+b-)
+:oto
+a\
+#include <sys/socket.h>
+:-)
+x
+}'
+fi
+
+passer()
+{
+	fichier="$1"
+	shift
+	"$@" < "$fichier"
+}
+
+echo Configuration… >&2
+if [ $cvs = oui ] ; then
+	aclocal
+	autoconf
+	autoheader
+	cp /usr/bin/libtool /usr/share/libtool/ltmain.sh ./
+	automake -a
+fi
+./configure --prefix=/usr/local/$logiciel-$version --disable-idn --disable-mysql --enable-db --enable-anon --enable-fs
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+
+# Création de jabberd-local
+
+cat > "/tmp/$$/jabberd-local" << TERMINE
+#!/bin/sh
+
+dest="$dest" # dest d'install, donc notre source
+nouveau="\$1"
+for i in etc var/pid var/db var/log ; do
+	mkdir -p "\$nouveau/\$i"
+done
+mkdir /tmp/\$\$
+
+TERMINE
+sed -e '/^filtrer()$/,/^}$/p' -e d < "$SCRIPTS/util.sh" >> "/tmp/$$/jabberd-local"
+sed -e '/^passer()$/,/^}$/p' -e d < "$SCRIPTS/$logiciel-$version" >> "/tmp/$$/jabberd-local"
+sed -e '/^filtrerXml()$/,/^}$/p' -e d < "$SCRIPTS/util-jabberd" >> "/tmp/$$/jabberd-local"
+cat >> "/tmp/$$/jabberd-local" << TERMINE
+
+cp "$dest/etc/jabberd/"* "\$nouveau/etc/"
+filtrerXml "\$nouveau/etc" c2s.xml:local:id:\`hostname\` c2s.xml:authreg:module:db sm.xml:sm:id:\`hostname\` sm.xml:storage:driver:db
+for i in "\$nouveau/etc/"* ; do filtrer "\$i" sed -e "s=$dest/etc/jabberd=\$nouveau/etc=g" -e "s=$dest/var/jabberd=\$nouveau/var=g" ; done
+TERMINE
+
+# Sur le même modèle, modifications en root
+
+cat > /tmp/$$/config.temp << TERMINE
+#!/bin/sh
+
+dest="$dest" # dest d'install, donc notre source
+nouveau="\$1"
+for i in etc var/pid var/db var/log ; do
+	mkdir -p "\$nouveau/\$i"
+done
+mkdir /tmp/\$\$
+
+TERMINE
+sed -e '/^filtrer()$/,/^}$/p' -e d < "$SCRIPTS/util.sh" >> "/tmp/$$/config.temp"
+sed -e '/^passer()$/,/^}$/p' -e d < "$SCRIPTS/$logiciel-$version" >> "/tmp/$$/config.temp"
+sed -e '/^filtrerXml()$/,/^}$/p' -e d < "$SCRIPTS/util-jabberd" >> "/tmp/$$/config.temp"
+cat >> /tmp/$$/config.temp << TERMINE
+for i in "\$dest/etc/jabberd/"*.xml ; do filtrer "\$i" sed -e '/<log type=/s/syslog/file/' ; done
+TERMINE
+chmod a+x /tmp/$$/config.temp
+sudo /tmp/$$/config.temp
+
+chmod a+x /tmp/$$/jabberd-local
+sudo cp /tmp/$$/jabberd-local "$dest/bin/"
+
+sudo utiliser $logiciel-$version
