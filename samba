@@ -1,0 +1,69 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+logiciel=samba
+
+# Historique des versions gérées
+
+version=3.0.23c
+OPTIONS_CONF=()
+
+version=3.0.28
+
+# Modifications
+
+# Variables
+
+dest="/usr/local/$logiciel-$version"
+archive=http://us4.samba.org/samba/ftp/$logiciel-$version.tar.gz
+
+[ -d "$dest" ] && exit 0
+
+if [[ $version = r* ]] ; then
+	obtenirEtAllerDansSvn -r ${version#r} $archive_svn
+elif [[ $version = *-* ]] ; then
+	obtenirEtAllerDansCvs -d $version $archive_cvs
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+cd source
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./autogen.sh
+./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser "$logiciel-$version"
+
+rm -Rf /tmp/$$
