@@ -1,0 +1,92 @@
+#!/bin/bash
+# Copyright (c) 2004,2009 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.bash"
+
+logiciel=sqlite
+
+version=3.0.7
+options=
+
+version=3.6.4
+options=
+
+version=3.6.23.1
+modifs=foutuTclPourLePointH
+options=
+
+# Modifications
+
+foutuTclPourLePointH()
+{
+	for i in main.mk Makefile.in
+	do
+		filtrer "$i" sed -e "s#tclsh .*/mksqlite3h.tcl#\"$SCRIPTS/sqlite_mksqlite3h.sh\"#"
+	done
+}
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://www.sqlite.org/$logiciel-$version.tar.gz"
+version_="`echo "$version" | tr . _`"
+pge "$version" 3.6.24 && archive="http://www.sqlite.org/sqlite-amalgamation-$version_.zip"
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+if pge $version 3.6.24
+then
+	true
+else
+	./configure --prefix="$dest" --enable-threadsafe $options
+fi
+
+echo Compilation… >&2
+if pge $version 3.6.24
+then
+	cc -c sqlite3.c -o sqlite3.o && ar rcs libsqlite3.a sqlite3.o #&& gcc -shared -o sqlite3.so sqlite3.o
+else
+	make
+fi
+
+echo Installation… >&2
+if pge $version 3.6.24
+then
+	sudo mkdir -p "$dest/lib" "$dest/include"
+	sudo cp libsqlite3.a "$dest/lib/"
+	sudo cp sqlite3.h "$dest/include"
+else
+	sudo make install
+fi
+sudo utiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
