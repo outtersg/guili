@@ -1,0 +1,83 @@
+#!/bin/bash
+# Copyright (c) 2007 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+if [ ! -d "/Volumes/Safari 3 Beta" ]
+then
+	echo "Veuillez monter l'image de l'installeur de Safari 3 Public Beta, puis relancer ce programme" >&2
+	exit 1
+fi
+
+if [ -z "$1" ]
+then
+	echo "Veuillez donner le répertoire d'install en paramètre" >&2
+	exit 1
+fi
+
+if [ "x$1" = x/ ]
+then
+	echo "Je ne travaille pas sur /. Trop risqué." >&2
+	exit 1
+fi
+
+mkdir "$1"
+cd "$1"
+gunzip < "/Volumes/Safari 3 Beta/Safari3Beta.pkg/Contents/Archive.pax.gz" | pax -r
+
+rempl="`pwd`/lib"
+mkdir -p "$rempl"
+find . -name "*.framework" | while read i
+do
+j="${i:1}"
+echo "$j"
+# À FAIRE: distinguer les numéros en fonction de ce qu'on remplace. Dans la
+# pratique, c'est toujours le même, donc on s'en tire avec un 0.
+remplici="$rempl/0"
+reste="${j:${#remplici}}"
+suffixe="${reste%%/*}"
+depart="$remplici$suffixe"
+tailledest=$((${#remplici} + ${#suffixe}))
+dest="${j:0:${tailledest}}"
+rm -f "$depart"
+ln -s "`pwd`$dest" "$depart"
+cat > /tmp/$$.temp.lex <<TERMINE
+%%
+"$j" { fprintf(yyout, "%s", "$remplici$reste"); }
+%%
+int yywrap() { return 1; }
+int main(int argc, char ** argv) { yylex(); return 0; }
+TERMINE
+lex /tmp/$$.temp.lex
+cc -o /tmp/$$.r.temp lex.yy.c
+f="`basename "$i"`"
+f="$i/${f%.*}" # Le fichier dans le framework
+/tmp/$$.r.temp < "$f" > /tmp/$$.temp.temp && cat /tmp/$$.temp.temp > "$f"
+done
+
+# Remplacement de Safari par un lanceur.
+
+mv ./Applications/Safari.app/Contents/MacOS/Safari ./Applications/Safari.app/Contents/MacOS/Safari.bin
+cat > ./Applications/Safari.app/Contents/MacOS/Safari <<TERMINE
+#!/bin/bash
+SCRIPTS="\`command -v "\$0"\`" ; SCRIPTS="\`dirname "\$SCRIPTS"\`" ; [[ "\$SCRIPTS" = /* ]] || SCRIPTS="\`pwd\`/\$SCRIPTS"
+export DYLD_FRAMEWORK_PATH="\$SCRIPTS/../../../../System/Library/Frameworks"
+"\$SCRIPTS/Safari.bin"
+TERMINE
+chmod a+x ./Applications/Safari.app/Contents/MacOS/Safari
