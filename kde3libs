@@ -1,0 +1,290 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+inclure qt
+
+logiciel=kdelibs
+
+# Historique des versions gérées
+
+version=3.5.7
+modifs=357PourMac
+
+OPTIONS_CONF=()
+
+# Modifications
+
+357PourMac()
+{
+	patch -p0 << TERMINE
+--- kwin2.cpp	2007-05-28 15:19:16.000000000 +0200
++++ kdecore/kwin.cpp	2007-05-28 15:18:43.000000000 +0200
+@@ -941,7 +941,7 @@
+         << "Pass NET::WMWindowType to KWin::windowInfo()" << endl;
+     return d->info->windowType( supported_types );
+ #else
+-    return 0;
++    return (NET::WindowType)0;
+ #endif
+ }
+ 
+--- /tmp/kglobalacce_mac.h	2007-05-28 15:35:09.000000000 +0200
++++ kdecore/kglobalaccel_mac.h	2007-05-28 15:33:28.000000000 +0200
+@@ -26,6 +26,9 @@
+     { Q_UNUSED(key); return false; }
+     bool disconnectKey( const KKeyServer::Key& )
+     { return false; }
++static void blockShortcuts( bool block ) {}
++void disableBlocking( bool disable ) {}
++void suspend( bool s ) {};
+ };
+ 
+ #endif // _KGLOBALACCEL_EMB_H
+--- /tmp/kapplication.h	2007-05-28 16:02:28.000000000 +0200
++++ kdecore/kapplication.h	2007-05-28 16:01:36.000000000 +0200
+@@ -33,6 +33,8 @@
+ typedef unsigned long Atom;
+ #if !defined(Q_WS_X11)
+ typedef void Display;
++typedef void Window;
++typedef void XEvent;
+ #endif
+ 
+ #include <qapplication.h>
+--- /tmp/kcmoduleproxy.cpp	2007-05-28 17:08:01.000000000 +0200
++++ kutils/kcmoduleproxy.cpp	2007-05-28 17:07:26.000000000 +0200
+@@ -48,7 +48,11 @@
+ #include <kstandarddirs.h>
+ #include <kuser.h>
+ 
++#ifdef Q_WS_X11
+ #include <X11/Xlib.h>
++#else
++#define QXEmbed QWidget
++#endif
+ 
+ #include "kcmoduleproxy.h"
+ #include "kcmoduleproxyIface.h"
+@@ -398,8 +402,10 @@
+ {
+ 	kdDebug(711) << k_funcinfo << endl;
+ 
++	#ifdef Q_WS_X11
+ 	if ( d->embedWidget->embeddedWinId() )
+ 		XDestroyWindow(qt_xdisplay(), d->embedWidget->embeddedWinId());
++	#endif
+ 
+ 	delete d->embedWidget;
+ 	d->embedWidget = 0;
+@@ -435,8 +441,10 @@
+ 
+ void KCModuleProxy::deleteClient()
+ {
++	#ifdef Q_WS_X11
+ 	if( d->embedWidget )
+ 		XKillClient(qt_xdisplay(), d->embedWidget->embeddedWinId());
++	#endif
+ 
+ 
+ 	delete d->kcm;
+--- /tmp/main.cpp	2007-05-28 17:55:21.000000000 +0200
++++ kcmshell/main.cpp	2007-05-28 18:01:06.000000000 +0200
+@@ -152,7 +152,9 @@
+ {
+     kdDebug(780) << k_funcinfo << endl;
+ 
++    #ifdef Q_WS_X11
+     KStartupInfo::setNewStartupId( this, asn_id );
++    #endif
+ }
+ 
+ void KCMShell::setDCOPName(const QCString &dcopName, bool rootMode )
+@@ -299,7 +301,9 @@
+         {
+             KCModuleProxy *module = new KCModuleProxy( modules.first()->desktopEntryName() );
+             module->realModule();
++            #ifdef Q_WS_X11
+             QXEmbed::embedClientIntoWindow( module, id);
++            #endif
+             app.exec();
+             delete module;
+         }
+@@ -321,7 +325,9 @@
+         id = args->getOption( "embed" ).toInt(&idValid);    
+         if( idValid )
+         {
++            #ifdef Q_WS_X11
+             QXEmbed::embedClientIntoWindow( dlg, id );
++            #endif
+             dlg->exec();
+             delete dlg;
+         }
+--- /tmp/kdetrayproxy.cpp	2007-05-28 15:55:42.000000000 +0200
++++ kdeui/kdetrayproxy/kdetrayproxy.cpp	2007-05-28 16:17:56.000000000 +0200
+@@ -19,6 +19,7 @@
+ 
+ #include "kdetrayproxy.h"
+ 
++#ifdef Q_WS_X11
+ #include <kapplication.h>
+ #include <kdebug.h>
+ #include <netwm.h>
+@@ -28,8 +29,10 @@
+ #include <sys/types.h>
+ #include <unistd.h>
+ #include <assert.h>
++#endif
+ 
+ KDETrayProxy::KDETrayProxy()
++#ifdef Q_WS_X11
+     :   selection( makeSelectionAtom())
+     {
+     connect( &selection, SIGNAL( newOwner( Window )), SLOT( newOwner( Window )));
+@@ -41,8 +44,12 @@
+         windowAdded( *it );
+     kapp->installX11EventFilter( this ); // XSelectInput( StructureNotifyMask ) on windows is done by KWinModule
+ //    kdDebug() << "Init done" << endl;
++#else
++	{
++#endif
+     }
+ 
++#ifdef Q_WS_X11
+ Atom KDETrayProxy::makeSelectionAtom()
+     {
+     return XInternAtom( qt_xdisplay(), "_NET_SYSTEM_TRAY_S" + QCString().setNum( qt_xscreen()), False );
+@@ -124,7 +131,7 @@
+     }
+ 
+ void KDETrayProxy::dockWindow( Window w, Window owner )
+-    {
++    { 
+ //    kdDebug() << "Docking " << w << " into " << owner << endl;
+     docked_windows[ w ] = XNextRequest( qt_xdisplay());
+     static Atom prop = XInternAtom( qt_xdisplay(), "_XEMBED_INFO", False );
+@@ -182,6 +189,7 @@
+     }
+ 
+ #include "kdetrayproxy.moc"
++#endif
+ 
+ #if 0
+ #include <kcmdlineargs.h>
+--- /tmp/kjavaappletwidget.h	2007-05-28 22:32:03.000000000 +0200
++++ khtml/java/kjavaappletwidget.h	2007-05-28 22:32:26.000000000 +0200
+@@ -75,6 +75,10 @@
+ 
+ class KJavaAppletWidgetPrivate;
+ 
++#ifndef Q_WS_X11
++#define QXEmbed QWidget
++#endif
++
+ class KJavaAppletWidget : public QXEmbed
+ {
+     Q_OBJECT
+--- /tmp/kjavaappletwidget.cpp	2007-05-28 22:40:36.000000000 +0200
++++ khtml/java/kjavaappletwidget.cpp	2007-05-28 22:41:26.000000000 +0200
+@@ -42,7 +42,9 @@
+ KJavaAppletWidget::KJavaAppletWidget( QWidget* parent, const char* name )
+    : QXEmbed ( parent, name)
+ {
++	#ifdef Q_WS_X11
+     setProtocol(QXEmbed::XPLAIN);
++	#endif
+ 
+     m_applet = new KJavaApplet( this );
+     d        = new KJavaAppletWidgetPrivate;
+@@ -93,7 +95,9 @@
+                     this,  SLOT( setWindow( WId ) ) );
+ 
+ 
++		#ifdef Q_WS_X11
+         embed( w );
++		#endif
+         setFocus();
+     }
+ }
+--- /tmp/kwinmodule.cpp	2007-05-28 22:52:41.000000000 +0200
++++ kdecore/kwinmodule.cpp	2007-05-28 23:00:45.000000000 +0200
+@@ -477,4 +477,30 @@
+ }
+ 
+ #include "kwinmodule.moc"
++#else
++#include "kwinmodule.h"
++
++KWinModule::KWinModule( QObject* parent )
++    : QObject( parent, "kwin_module" )
++{
++}
++
++KWinModule::KWinModule( QObject* parent, int what )
++    : QObject( parent, "kwin_module" )
++{
++}
++
++KWinModule::~KWinModule()
++{
++}
++
++void KWinModule::doNotManage( const QString& title )
++{
++}
++
++void KWinModule::connectNotify( const char* signal )
++{
++}
++
++#include "kwinmodule.moc"
+ #endif
+TERMINE
+}
+
+# Variables
+
+archive="ftp://fr2.rpmfind.net/linux/KDE/stable/$version/src/$logiciel-$version.tar.bz2"
+archive_svn="svn://anonsvn.kde.org/home/kde/trunk/KDE/kdelibs"
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" --enable-mac --with-qt-dir=/usr/local --without-arts --disable-pcre
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser $logiciel-$version
+
+rm -Rf /tmp/$$
