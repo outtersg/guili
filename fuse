@@ -1,0 +1,689 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+inclure pkgconfig
+inclure glib
+
+logiciel=fuse
+
+# Historique des versions gérées
+
+OPTIONS=' '
+
+version=r96
+versionLibfuse=2.6.1
+modifs=autres
+
+version=r241
+version_libfuse=2.6.3
+version_sshfs=1.7
+
+version=r259
+
+version=r306
+
+version=r340
+version_libfuse=2.6.5
+version_sshfs=1.8
+version_ntfs3g=1.516
+modifs="autres rustine_sshfs_18 rustine_ntfs3g_1516"
+OPTIONS=" constrfs$OPTIONS"
+
+version=r647
+version_libfuse=2.7.1
+version_sshfs=1.8
+version_ntfs3g=1.1104
+modifs="allerAuBonEndroit autres sshfs_cf"
+OPTIONS=" constrfs$OPTIONS"
+
+version=r651
+version_libfuse=2.7.1
+version_sshfs=1.8
+version_ntfs3g=1.1120
+modifs="allerAuBonEndroit autres sshfs_cf"
+OPTIONS=" constrfs$OPTIONS"
+
+version=r772
+version_libfuse=2.7.1
+version_sshfs=1.9
+version_ntfs3g=1.2129
+modifs="allerAuBonEndroit autres sshfs_cf"
+modifs_libfuse="libfuse_cf"
+OPTIONS=" constrfs$OPTIONS"
+
+version=r1686
+version_libfuse=
+version_sshfs=
+version_ntfs3g=2010.3.6
+modifs="allerAuBonEndroit enablePasLeFSNodeLock autres"
+OPTIONS=" constrfs$OPTIONS"
+
+OPTIONS_CONF=()
+
+archive_sshfs="http://heanet.dl.sourceforge.net/sourceforge/fuse/sshfs-fuse-$version_sshfs.tar.gz"
+rustine_sshfs=filesystems/sshfs/sshfs-fuse
+
+archive_libfuse="http://heanet.dl.sourceforge.net/sourceforge/fuse/fuse-$version_libfuse.tar.gz"
+rustine_libfuse=libfuse/fuse
+
+archive_ntfs3g="http://www.ntfs-3g.org/ntfs-3g-$version_ntfs3g.tgz"
+pge "$version_ntfs3g" 2010.1.1 ||archive_ntfs3g="http://tuxera.com/opensource/ntfs-3g-$version_ntfs3g.tgz"
+rustine_ntfs3g=filesystems/ntfs-3g/ntfs-3g
+
+# Modifications
+
+rustine_sshfs_18()
+{
+	cat > filesystems/sshfs/sshfs-fuse-1.8-macosx.patch << TERMINE
+diff -ru sshfs-fuse-1.8/Makefile.in sshfs-fuse-1.8-mac/Makefile.in
+--- sshfs-fuse-1.8/Makefile.in	2007-05-16 13:21:20.000000000 +0200
++++ sshfs-fuse-1.8-mac/Makefile.in	2007-06-02 09:36:11.000000000 +0200
+@@ -607,8 +607,13 @@
+ @SSH_NODELAY_SO_TRUE@uninstall-local:
+ @SSH_NODELAY_SO_TRUE@	rm -f "\$(DESTDIR)\$(libdir)/sshnodelay.so"
+ 
++@SSH_NODELAY_SO_TRUE@ifeq "\$(shell uname)" "Darwin"
++@SSH_NODELAY_SO_TRUE@sshnodelay.so:
++@SSH_NODELAY_SO_TRUE@	\$(CC) -Wall -dynamiclib \$(CFLAGS) \$(sshnodelay_libs) -install_name "\$(DESTDIR)\$(libdir)/sshnodelay.so" sshnodelay.c -o @SSH_NODELAY_SO_TRUE@sshnodelay.so
++@SSH_NODELAY_SO_TRUE@else
+ @SSH_NODELAY_SO_TRUE@sshnodelay.so:
+ @SSH_NODELAY_SO_TRUE@	\$(CC) -Wall -W -s --shared -fPIC \$(sshnodelay_libs) sshnodelay.c -o sshnodelay.so
++@SSH_NODELAY_SO_TRUE@endif
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.
+ .NOEXPORT:
+Only in sshfs-fuse-1.8-mac: README.MacFUSE
+diff -ru sshfs-fuse-1.8/cache.c sshfs-fuse-1.8-mac/cache.c
+--- sshfs-fuse-1.8/cache.c	2007-04-18 22:10:46.000000000 +0200
++++ sshfs-fuse-1.8-mac/cache.c	2007-06-02 09:32:47.000000000 +0200
+@@ -499,6 +499,9 @@
+     cache.next_oper = oper;
+ 
+     cache_unity_fill(oper, &cache_oper);
++#if (__FreeBSD__ >= 10)
++    cache_enabled = cache.on;
++#endif
+     if (cache.on) {
+         cache_oper.getattr  = oper->oper.getattr ? cache_getattr : NULL;
+         cache_oper.readlink = oper->oper.readlink ? cache_readlink : NULL;
+@@ -552,3 +555,7 @@
+ 
+     return fuse_opt_parse(args, &cache, cache_opts, NULL);
+ }
++
++#if (__FreeBSD__ >= 10)
++int cache_enabled;
++#endif
+diff -ru sshfs-fuse-1.8/cache.h sshfs-fuse-1.8-mac/cache.h
+--- sshfs-fuse-1.8/cache.h	2006-02-20 12:43:23.000000000 +0100
++++ sshfs-fuse-1.8-mac/cache.h	2007-06-02 09:32:53.000000000 +0200
+@@ -26,3 +26,7 @@
+ int cache_parse_options(struct fuse_args *args);
+ void cache_add_attr(const char *path, const struct stat *stbuf);
+ void cache_invalidate(const char *path);
++
++#if (__FreeBSD__ >= 10)
++extern int cache_enabled;
++#endif
+diff -ru sshfs-fuse-1.8/sshfs.c sshfs-fuse-1.8-mac/sshfs.c
+--- sshfs-fuse-1.8/sshfs.c	2007-05-16 13:20:48.000000000 +0200
++++ sshfs-fuse-1.8-mac/sshfs.c	2007-06-02 09:40:01.000000000 +0200
+@@ -18,7 +18,9 @@
+ #include <string.h>
+ #include <stdint.h>
+ #include <errno.h>
++#if !(__FreeBSD__ >= 10)
+ #include <semaphore.h>
++#endif
+ #include <pthread.h>
+ #include <netdb.h>
+ #include <signal.h>
+@@ -30,6 +32,9 @@
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+ #include <glib.h>
++#if (__FreeBSD__ >= 10)
++#include <libgen.h>
++#endif
+ 
+ #include "cache.h"
+ 
+@@ -100,6 +105,32 @@
+ 
+ #define SSHNODELAY_SO "sshnodelay.so"
+ 
++#if (__FreeBSD__ >= 10)
++#undef sem_t
++
++#undef sem_init
++#undef sem_destroy
++#undef sem_post
++#undef sem_wait
++
++#include <mach/mach.h>
++
++typedef semaphore_t sem_t;
++
++#define sem_init(s, a, b) \\
++    semaphore_create(mach_task_self(), (s), SYNC_POLICY_FIFO, 0)
++#define sem_destroy(s) semaphore_destroy(mach_task_self(), (semaphore_t)*(s))
++#define sem_post(s)    semaphore_signal((semaphore_t)*(s))
++#define sem_wait(s)    semaphore_wait((semaphore_t)*(s))
++
++#ifndef LIBDIR
++#define LIBDIR "/usr/local/lib"
++#endif
++
++static char sshfs_program_path[PATH_MAX] = { 0 };
++
++#endif
++
+ struct buffer {
+     uint8_t *p;
+     size_t len;
+@@ -149,6 +180,9 @@
+     int connver;
+     int modifver;
+     int refs;
++#if (__FreeBSD__ >= 10)
++    pthread_mutex_t file_lock;
++#endif
+ };
+ 
+ struct sshfs {
+@@ -184,6 +218,10 @@
+     int server_version;
+     unsigned remote_uid;
+     unsigned local_uid;
++#if (__FreeBSD__ >= 10)
++    unsigned remote_gid;
++    unsigned local_gid;
++#endif
+     int remote_uid_detected;
+     unsigned blksize;
+     char *progname;
+@@ -585,8 +623,17 @@
+         }
+     }
+ 
++#if (__FreeBSD__ >= 10)
++    if (sshfs.remote_uid_detected) {
++        if (uid == sshfs.remote_uid)
++            uid = sshfs.local_uid;
++        if (gid == sshfs.remote_gid)
++            gid = sshfs.local_gid;
++    }
++#else
+     if (sshfs.remote_uid_detected && uid == sshfs.remote_uid)
+         uid = sshfs.local_uid;
++#endif
+ 
+     memset(stbuf, 0, sizeof(struct stat));
+     stbuf->st_mode = mode;
+@@ -645,11 +692,33 @@
+ #ifdef SSH_NODELAY_WORKAROUND
+ static int do_ssh_nodelay_workaround(void)
+ {
++#if (__FreeBSD__ >= 10)
++    char *oldpreload = getenv("DYLD_INSERT_LIBRARIES");
++#else
+     char *oldpreload = getenv("LD_PRELOAD");
++#endif
+     char *newpreload;
+     char sopath[PATH_MAX];
+     int res;
+ 
++#if (__FreeBSD__ >= 10)
++    char *sshfs_program_path_base = NULL;
++    if (!sshfs_program_path[0]) {
++        goto nobundle;
++    }
++    sshfs_program_path_base = dirname(sshfs_program_path); 
++    if (!sshfs_program_path_base) {
++        goto nobundle;
++    }
++    snprintf(sopath, sizeof(sopath), "%s/%s", sshfs_program_path_base,
++             SSHNODELAY_SO); 
++    res = access(sopath, R_OK);
++    if (res == -1) {
++        goto nobundle;
++    }
++    goto pathok;
++nobundle:
++#endif
+     snprintf(sopath, sizeof(sopath), "%s/%s", LIBDIR, SSHNODELAY_SO);
+     res = access(sopath, R_OK);
+     if (res == -1) {
+@@ -673,14 +742,22 @@
+             return -1;
+         }
+     }
++#if (__FreeBSD__ >= 10)
++pathok:
++#endif
+ 
+     newpreload = g_strdup_printf("%s%s%s",
+                                  oldpreload ? oldpreload : "",
+                                  oldpreload ? " " : "",
+                                  sopath);
+ 
++#if (__FreeBSD__ >= 10)
++    if (!newpreload || setenv("DYLD_INSERT_LIBRARIES", newpreload, 1) == -1)
++        fprintf(stderr, "warning: failed set DYLD_INSERT_LIBRARIES for ssh nodelay workaround\\n");
++#else
+     if (!newpreload || setenv("LD_PRELOAD", newpreload, 1) == -1)
+         fprintf(stderr, "warning: failed set LD_PRELOAD for ssh nodelay workaround\\n");
++#endif
+     g_free(newpreload);
+     return 0;
+ }
+@@ -1154,6 +1231,10 @@
+ 
+     sshfs.remote_uid = stbuf.st_uid;
+     sshfs.local_uid = getuid();
++#if (__FreeBSD__ >= 10)
++    sshfs.remote_gid = stbuf.st_gid;
++    sshfs.local_gid = getgid();
++#endif
+     sshfs.remote_uid_detected = 1;
+     DEBUG("remote_uid = %i\\n", sshfs.remote_uid);
+ 
+@@ -1800,6 +1881,9 @@
+     sf = g_new0(struct sshfs_file, 1);
+     list_init(&sf->write_reqs);
+     pthread_cond_init(&sf->write_finished, NULL);
++#if (__FreeBSD__ >= 10)
++    pthread_mutex_init(&sf->file_lock, NULL);
++#endif
+     /* Assume random read after open */
+     sf->is_seq = 0;
+     sf->refs = 1;
+@@ -1832,11 +1916,21 @@
+     }
+ 
+     if (!err) {
++#if (__FreeBSD__ >= 10)
++        if (cache_enabled)
++            cache_add_attr(path, &stbuf);
++#else
+         cache_add_attr(path, &stbuf);
++#endif
+         buf_finish(&sf->handle);
+         fi->fh = (unsigned long) sf;
+     } else {
++#if (__FreeBSD__ >= 10)
++        if (cache_enabled)
++            cache_invalidate(path);
++#else
+         cache_invalidate(path);
++#endif
+         g_free(sf);
+     }
+     buf_free(&buf);
+@@ -1891,14 +1985,32 @@
+ 
+ static void sshfs_file_put(struct sshfs_file *sf)
+ {
++#if (__FreeBSD__ >= 10)
++    pthread_mutex_lock(&sf->file_lock);
++#endif
+     sf->refs--;
++#if (__FreeBSD__ >= 10)
++    if (!sf->refs) {
++        pthread_mutex_unlock(&sf->file_lock);
++        g_free(sf);
++    } else {
++        pthread_mutex_unlock(&sf->file_lock);
++    }
++#else
+     if (!sf->refs)
+         g_free(sf);
++#endif
+ }
+ 
+ static struct sshfs_file *sshfs_file_get(struct sshfs_file *sf)
+ {
++#if (__FreeBSD__ >= 10)
++    pthread_mutex_lock(&sf->file_lock);
++#endif
+     sf->refs++;
++#if (__FreeBSD__ >= 10)
++    pthread_mutex_unlock(&sf->file_lock);
++#endif
+     return sf;
+ }
+ 
+@@ -2533,7 +2645,12 @@
+         exit(1);
+ 
+     case KEY_VERSION:
++#if (__FreeBSD__ >= 10)
++        fprintf(stderr, "SSHFS version %s (MacFUSE, %d, %s, %s)\\n",
++                PACKAGE_VERSION, 10, __DATE__, __TIME__);
++#else
+         fprintf(stderr, "SSHFS version %s\\n", PACKAGE_VERSION);
++#endif
+ #if FUSE_VERSION >= 25
+         fuse_opt_add_arg(outargs, "--version");
+         sshfs_fuse_main(outargs);
+@@ -2599,8 +2716,17 @@
+         fuse_opt_insert_arg(args, 1, "-olarge_read");
+ }
+ 
++#if (__FreeBSD__ >= 10)
++int main(int argc, char *argv[], __unused char *envp[], char **exec_path)
++#else
+ int main(int argc, char *argv[])
++#endif
+ {
++#if (__FreeBSD__ >= 10)
++    if (!realpath(*exec_path, sshfs_program_path)) {
++        memset(sshfs_program_path, 0, PATH_MAX);
++    }
++#endif
+     int res;
+     struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+     char *tmp;
+@@ -2614,7 +2740,11 @@
+     sshfs.max_read = 65536;
+     sshfs.nodelay_workaround = 1;
+     sshfs.nodelaysrv_workaround = 0;
++#if (__FreeBSD__ >= 10)
++    sshfs.rename_workaround = 1;
++#else
+     sshfs.rename_workaround = 0;
++#endif
+     sshfs.truncate_workaround = 0;
+     sshfs.buflimit_workaround = 1;
+     sshfs.ssh_ver = 2;
+@@ -2624,6 +2754,12 @@
+     ssh_add_arg("-a");
+     ssh_add_arg("-oClearAllForwardings=yes");
+ 
++#if (__FreeBSD__ >= 10)
++    sshfs.detect_uid = 1;
++    /* Until this gets fixed somewhere else. */
++    g_slice_set_config(G_SLICE_CONFIG_ALWAYS_MALLOC, TRUE);
++#endif
++
+     if (fuse_opt_parse(&args, &sshfs, sshfs_opts, sshfs_opt_proc) == -1 ||
+         parse_workarounds() == -1)
+         exit(1);
+diff -ru sshfs-fuse-1.8/sshnodelay.c sshfs-fuse-1.8-mac/sshnodelay.c
+--- sshfs-fuse-1.8/sshnodelay.c	2006-02-01 10:43:22.000000000 +0100
++++ sshfs-fuse-1.8-mac/sshnodelay.c	2007-06-02 09:40:12.000000000 +0200
+@@ -5,6 +5,31 @@
+ #include <netinet/in.h>
+ #include <netinet/tcp.h>
+ 
++#if (__FreeBSD__ >= 10)
++
++int custom_connect(int sock, const struct sockaddr *addr, socklen_t addrlen);
++
++typedef struct interpose_s {
++    void *new_func;
++    void *orig_func;
++} interpose_t;
++
++static const interpose_t interposers[] \\
++    __attribute__ ((section("__DATA, __interpose"))) = {
++        { (void *)custom_connect,  (void *)connect  },
++    };
++   
++int custom_connect(int sock, const struct sockaddr *addr, socklen_t addrlen)
++{
++    int res = connect(sock, addr, addrlen);
++    if (!res && addr->sa_family == AF_INET) {
++        int opt = 1;
++        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
++    }
++    return res;
++}
++
++#else
+ int connect(int sock, const struct sockaddr *addr, socklen_t addrlen)
+ {
+     int (*next_connect)(int, const struct sockaddr *, socklen_t) =
+@@ -14,5 +39,5 @@
+         int opt = 1;
+         setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
+     }
+-    return res;
+ }
++#endif
+TERMINE
+}
+
+rustine_ntfs3g_fournie()
+{
+	ln -s ntfs-3g-1.0.patch filesystems/ntfs-3g/ntfs-3g-$version_ntfs3g-macosx.patch
+}
+
+rustine_ntfs3g_1516()
+{
+cat > filesystems/ntfs-3g/ntfs-3g-1.516-macosx.patch << TERMINE
+diff -ru ntfs-3g-1.516/configure ntfs-3g-1.516-mac/configure
+--- ntfs-3g-1.516/configure	2007-05-15 23:20:33.000000000 +0200
++++ ntfs-3g-1.516-mac/configure	2007-06-02 12:20:42.000000000 +0200
+@@ -19828,7 +19828,7 @@
+ 
+ 
+ case "\$target_os" in
+-linux*)
++linux*|darwin*)
+ 
+   succeeded=no
+ 
+diff -ru ntfs-3g-1.516/src/ntfs-3g.c ntfs-3g-1.516-mac/src/ntfs-3g.c
+--- ntfs-3g-1.516/src/ntfs-3g.c	2007-05-15 23:19:59.000000000 +0200
++++ ntfs-3g-1.516-mac/src/ntfs-3g.c	2007-06-02 12:19:01.000000000 +0200
+@@ -135,7 +135,11 @@
+ } opts;
+ 
+ static const char *EXEC_NAME = "ntfs-3g";
+-static char def_opts[] = "silent,allow_other,nonempty,";
++#if (__FreeBSD__ >= 10)
++static char def_opts[] = "silent,nonempty,";
++#else
++static char def_opts[] = "silent,nonempty,allow_other,";
++#endif
+ static ntfs_fuse_context_t *ctx;
+ static u32 ntfs_sequence;
+ 
+@@ -2140,12 +2144,16 @@
+ 		goto err_out;
+ 	}
+ 
++#if (__FreeBSD__ >= 10)
++	fstype = FSTYPE_FUSE;
++#else
+ #ifdef linux
+ 	fstype = get_fuse_fstype();
+ 	if (fstype == FSTYPE_NONE || fstype == FSTYPE_UNKNOWN)
+ 		fstype = load_fuse_module();
+ #endif	
+ 	create_dev_fuse();
++#endif
+ 	
+ 	if (stat(opts.device, &sbuf)) {
+ 		ntfs_log_perror("Failed to access '%s'", opts.device);
+TERMINE
+}
+
+sshfs_cf()
+{
+	export sshfs_LDFLAGS="-framework CoreFoundation" # À FAIRE?: peut-être inutile maintenant qu'un problème a été corrigé à la source (libfuse_cf()).
+}
+
+rustine_ntfs3g_aupied()
+{
+	# Je ne sais pourquoi il veut tout installer dans /lib
+	filtrer configure sed -e "s/INSTALL_LIBRARY_TRUE=.*/INSTALL_LIBRARY_TRUE='#'/" -e "s/INSTALL_LIBRARY_FALSE=.*/INSTALL_LIBRARY_FALSE=/"
+}
+
+libfuse_cf()
+{
+	filtrer lib/Makefile.in sed -e 's/\(libfuse_la_LIBADD *=\).*/\1 -framework CoreFoundation/' 
+}
+
+allerAuBonEndroit()
+{
+	case "`uname -r`"
+	in
+		8.*) cd core/10.4 ;;
+		9.*|10.*) cd core/10.5 ;;
+	esac
+	[ -h filesystems ] && rm -f filesystems && ln -s ../../filesystems ./
+	AUTRES_CFLAGS="-I`pwd`/fusefs/common"
+}
+
+autres()
+{
+	local logiciel=
+	local version=
+	local archive=
+	local modifs=
+	for logiciel in :libfuse 3:sshfs 3:ntfs-3g
+	do
+		[ "${logiciel%%:*}" = "$1" ] || continue
+		logiciel="${logiciel#*:}"
+		logiciel="${logiciel//-/}"
+		eval "version=\$version_$logiciel"
+		[ "$version" = "" ] && continue
+		eval "archive=\$archive_$logiciel"
+		eval "rustine=`pwd`/\$rustine_$logiciel-$version-macosx.patch"
+		eval "modifs=\$modifs_$logiciel"
+		pushd /tmp/ > /dev/null
+		obtenirEtAllerDansVersion
+		rm -f README.MacFUSE
+		[ -f "$rustine" ] && patch -p1 < "$rustine"
+		for modif in true $modifs ; do $modif ; done
+		CFLAGS="-D__FreeBSD__=10 -D__`uname -p`__=1 $AUTRES_CFLAGS -DDARWIN_SEMAPHORE_COMPAT" ./configure --prefix="$dest" --exec-prefix="$dest" # ntfs-3g tient au exec-prefix (il ignore prefix pour les binaires).
+		make
+		AUTRES=("${AUTRES[@]}" "`pwd`")
+		popd > /dev/null
+	done
+}
+
+enablePasLeFSNodeLock()
+{
+	filtrer fusefs/common/fuse_param.h sed -e '/define.*_MACFUSE_ENABLE_INTERIM_FSNODE_LOCK/s/1/0/'
+}
+
+# Variables
+
+archive_svn="http://macfuse.googlecode.com/svn/trunk"
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+AUTRES=()
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Compilation… >&2
+
+xcbuild()
+{
+	sdk="-sdk /Developer/SDKs/MacOSX10.5.sdk"
+	xcodebuild -target "$1" -configuration Release $sdk
+}
+compil="`defaults read com.apple.Xcode PBXProductDirectory`"
+[ -z "$compil" ] && compil=Build
+[[ "$compil" = \~/* ]] && compil="$HOME/${compil#\~}"
+compil="$compil/Release"
+
+if true # Version 16xx
+then
+
+# Une biblio n'a pas ce qu'il faut pour compiler en ppc64 sous 10.6. Plutôt que d'essayer de ce faire, on désactive le support du ppc64.
+#for i in libfuse/fuse-*-macosx.patch
+#do
+#	filtrer "$i" sed -e 's/-arch ppc/-arch ppc -arch ppc64/g'
+#done
+filtrer ../../core/sdk-objc/MacFUSE.xcodeproj/project.pbxproj grep -v ppc64,
+
+cd ../..
+filtrer core/macfuse_buildtool.sh sed -e "/ms_built_products_dir=/s#=.*#=\"$compil/\"#" -e 's#build/"\$m_configuration"/\*.framework#'"$compil"'/MacFUSE.framework#'
+./core/macfuse_buildtool.sh -t smalldist
+
+echo Installation… >&2
+sudo installer -pkg /tmp/macfuse-core-*/"MacFUSE Core.pkg" -target /
+
+else
+
+pushd fusefs
+xcbuild fusefs
+xcbuild load_fusefs
+rm -f "$compil/fusefs.kext/Contents/Resources/load_fusefs"
+ln "$compil/load_fusefs" "$compil/fusefs.kext/Contents/Resources/"
+xcbuild mount_fusefs
+[[ "$OPTIONS" = *" constrfs "* ]] && xcbuild fusefs.fs
+rm -f "$compil/fusefs.fs/mount_fusefs"
+ln "$compil/mount_fusefs" "$compil/fusefs.fs/"
+popd
+
+autres 2
+
+echo Installation… >&2
+pushd fusefs
+sudo bash <<TERMINE
+set -e
+mkdir -p "$dest/Filesystems" "$dest/Extensions" "$dest/bin"
+cp -R "$compil/fusefs.fs" "$dest/Filesystems"
+cp -R "$compil/fusefs.kext" "$dest/Extensions"
+chmod u+s "$dest/Extensions/fusefs.kext/Contents/Resources/load_fusefs"
+ln -s . "$dest/Filesystems/fusefs.fs/Support"
+ln -s ../../Extensions/fusefs.kext "$dest/Filesystems/fusefs.fs/"
+rm -f "$dest/bin/mount_fusefs"
+ln "$dest/Filesystems/fusefs.fs/mount_fusefs" "$dest/bin/mount_fusefs"
+ln "$dest/Extensions/fusefs.kext/Contents/Resources/load_fusefs" "$dest/Filesystems/fusefs.fs/"
+rm -f "/System/Library/Filesystems/fusefs.fs"
+ln -s "$dest/Filesystems/fusefs.fs" /System/Library/Filesystems/
+rm -f "/System/Library/Extensions/fusefs.kext"
+ln -s "$dest/Extensions/fusefs.kext" /System/Library/Extensions/
+TERMINE
+popd
+for ou in "${AUTRES[@]}"
+do
+	( cd "$ou" && sudo make install )
+done
+sudo utiliser $logiciel-$version
+
+fi
+
+AUTRES=()
+autres 3
+for ou in "${AUTRES[@]}"
+do
+	( cd "$ou" && sudo make install )
+done
+sudo utiliser $logiciel-$version
+
+rm -Rf /tmp/$$
