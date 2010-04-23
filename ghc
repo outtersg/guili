@@ -1,0 +1,905 @@
+#!/bin/bash
+set -x
+# Copyright (c) 2004-2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Cycle complet à partir d'un binaire sur freebsd:
+# cd ~/tmp ; ~/src/installs/ghc demarrant ; mv ghc-6.6.1 ghc-6.6.1-includes ; ( ( export PATH=~/tmp/ghc-6.6.1-bin/bin:$PATH ; ~/src/installs/ghc demarreur localhost:tmp/ghc-6.6.1-includes && cp ghc-6.6.1/ghc-6.6.1-i386-unknown-freebsd-hc.tar.gz ~/paquets/ && cp ghc-6.6.1/ghc-6.6.1-i386-unknown-freebsd-hc.tar.gz ~/paquets/ghc-6.6.1-hc.tar.gz && mv ghc-6.6.1 ghc-reur ) && ~/src/installs/ghc demarre ) 2>&1 | tee /tmp/log.3
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+# Versions
+
+logiciel=ghc
+version=6.2.2
+version_demarreur=6.2.1
+type_demarreur=dmg
+
+version=6.4
+version_demarreur=6.4
+type_demarreur=tar
+modifs="staticObjects register discard"
+
+version=6.4.1
+modifs=
+
+version=6.6
+modifs=extralibs
+
+version=6.8.2
+type_demarreur=actuel
+modifs="extralibs uli"
+
+version=6.10.4
+modifs="extralibs uli"
+
+version=6.10.4.20090921
+modifs="extralibs uli"
+
+version=6.12.1
+
+if false
+then
+version=6.6.1
+type_demarreur=actuel
+modifs="extralibs pasStatic testReadline"
+fi
+
+auMoins()
+{
+	PATH=${PATH//.:/}
+	# À FAIRE: tester le num de version
+	command -v ghc 2> /dev/null >&2 || return 1
+	pge "`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`" $1 && type_demarreur=actuel && return 0
+	return 1
+}
+
+nomArchive()
+{
+	suffixe=gz
+	pge $1 4.08.2 && suffixe=bz2
+	# Attention, l'archive (dès la 0.29) ne passe pas sur le tar d'un fBSD 6.2
+	# (voir la fin de ./ghc-0.29/ghc/lib/Jmake.inc5).
+	[[ "$version" = 6.10.*.???????? ]] && echo "http://www.haskell.org/$logiciel/dist/stable/dist/6.10/ghc-$version-src.tar.$suffixe" && return
+	echo "http://www.haskell.org/$logiciel/dist/$1/$logiciel-$1-src.tar.$suffixe"
+}
+
+distribHcBuild6()
+{
+	# Bon, encore une fausse piste. Avec des .hc pourtant sympathiquement
+	# générés par un powerpc pour un i386, plantage. Par exemple dans genapply,
+	# alors que tous les symboles générés pointent vers des fonctions, pour
+	# ZCMain_main_srt, il pointe sur un pointeur sur fonction. Et la merde,
+	# c'est qu'il tient à l'appeler comme une fonction. Il faudrait voir, si ça
+	# se trouve, sur i386, on attend directement la fonction.
+		chmod u+x distrib/hc-build
+		filtrer distrib/hc-build sed -e '/GhcUnregisterised/a\
+GhcNotThreaded = YES
+'
+		( echo "GhcRTSWays = " ; echo "GhcLibWays = " ) >> mk/config.mk
+		# Les utilitaires générés via les .hc sont pourris. On les refait avec
+		# le GHC tout juste créé (avec les .hc, lui), en générant les .hi dont
+		# on a besoin (les .o ont été créés sans à la première passe, car
+		# directement en C).
+		cat <<TERMINE > distrib/hc-build-corr
+filtrer()
+{
+	fichier="\$1"
+	shift
+	"\$@" < "\$fichier" > /tmp/temp.\$\$.filtrer && cat /tmp/temp.\$\$.filtrer > "\$fichier"
+}
+[ -f compiler/ghc-inplace.original ] || cp compiler/ghc-inplace compiler/ghc-inplace.original
+#filtrer compiler/ghc-inplace sed -e 's/"/-cpp "/'
+# Merde, on dirait qu'il m'a géré un ghc-inplace sans cpp.
+if false # Ah non en fait il faudra juste s'y prendre correctement. Mais je garde ce bloc pour la beauté du code.
+then
+mv compiler/ghc-inplace compiler/ghc-inplace.original
+cat <<FINI > compiler/ghc-inplace
+#!`command -v bash`
+analyserParams()
+{
+	ORIGINAUX=()
+	CPP_OPTS=()
+	PARAMS=()
+	unlit="\\\`dirname \\\$0\\\`/../utils/unlit/unlit"
+	includes="\\\`dirname \\\$0\\\`/../includes"
+	while [ \\\$# -gt 0 ]
+	do
+		case "\\\$1" in
+			-D*|-I*)
+				CPP_OPTS[\\\${#CPP_OPTS[@]}]="\\\$1"
+				PARAMS[\\\${#PARAMS[@]}]="\\\$1"
+				;;
+			*.lhs)
+				i="\\\${1%.lhs}.hs"
+				"\\\$unlit" "\\\$1" "\\\$i"
+				ORIGINAUX[\\\${#ORIGINAUX[@]}]="\\\$i"
+				PARAMS[\\\${#PARAMS[@]}]="\\\$i"
+				;;
+			*.hs)
+				ORIGINAUX[\\\${#ORIGINAUX[@]}]="\\\$1"
+				PARAMS[\\\${#PARAMS[@]}]="\\\$1"
+				;;
+			*)
+				PARAMS[\\\${#PARAMS[@]}]="\\\$1"
+				;;
+		esac
+		shift
+	done
+}
+analyserParams "\\\$@"
+menage()
+{
+	for i in "\\\${ORIGINAUX[@]}"
+	do
+		mv "\\\$i.original" "\\\$i"
+	done
+}
+for i in "\\\${ORIGINAUX[@]}"
+do
+	mv "\\\$i" "\\\$i.original"
+	cpp -I\\\$includes -traditional -o "\\\$i" "\\\$i.original" "\\\${CPP_OPTS[@]}"
+done
+"\\\$0.original" "\\\${PARAMS[@]}"
+menage
+FINI
+chmod a+x compiler/ghc-inplace
+fi
+
+find libraries compat -name \\*.o -o -name \\*.a -o -name \\*.hi -o -name \\*.o-boot -o -name \\*.hi-boot | grep -v libgmp | xargs rm -f
+# L'idée c'est que les outils générateurs de dépendances ne sont pas encore là
+# (puisqu'on cherche à les créer). Donc mimine.
+touch libraries/base/GHC/Prim.hs libraries/base/GHC/PrimopWrappers.hs # Pour leur éviter un écrasement par make.
+m() { ( cd libraries/base/ && for i in "\$@" ; do j="\${i%.o*}" ; rm -f "\$j.o" "\$j.hi" ; make "\$i" ; done ) }
+m() { make -C libraries/base "\$@" ; }
+m GHC/Err.o-boot
+m GHC/Base.o Data/Maybe.o Data/Tuple.o GHC/List.o
+m Control/Monad.o Data/Either.o GHC/Show.o GHC/Enum.o GHC/Num.o GHC/ST.o GHC/Arr.o GHC/STRef.o
+m GHC/Unicode.o-boot
+m Text/ParserCombinators/ReadP.o GHC/Real.o Text/Read/Lex.o Text/ParserCombinators/ReadPrec.o GHC/Float.o GHC/Read.o Data/Bits.o GHC/Word.o GHC/Int.o Data/Int.o GHC/Unicode.o
+m Data/Typeable.o-boot Data/Dynamic.o-boot GHC/Dynamic.o-boot GHC/IOBase.o
+m GHC/Exception.o GHC/Err.o
+m Data/Char.o Data/List.o GHC/Ptr.o
+m Data/HashTable.o Data/Word.o GHC/Exception.o GHC/Err.o GHC/Stable.o GHC/Storable.o Foreign/Storable.o Numeric.o GHC/ForeignPtr.o Data/Typeable.o Data/Dynamic.o GHC/Dynamic.o
+m Foreign/Ptr.o Foreign/ForeignPtr.o Foreign/StablePtr.o Foreign/Marshal/Error.o Foreign/C/Types.o Foreign/Marshal/Alloc.o Foreign/Marshal/Utils.o Foreign/Marshal/Array.o Foreign/Marshal/Pool.o Foreign/Marshal/Utils.o System/IO/Unsafe.o Foreign/Marshal.o Foreign.o
+m Foreign/C/String.o Foreign/C/Error.o Foreign/C.o
+m Text/Show.o System/IO/Error.o System/Posix/Types.o System/Posix/Internals.o GHC/Pack.o GHC/TopHandler.o-boot GHC/Conc.o System/Directory/Internals.o GHC/Handle.o
+m GHC/IO.o System/IO.o Text/Read.o Data/Bool.o Data/Eq.o Data/Ord.o Prelude.o
+m Control/Monad/Instances.o Control/Monad/Fix.o Control/Arrow.o Data/Monoid.o Control/Applicative.o GHC/Weak.o Data/IORef.o Control/Exception.o Control/Concurrent/MVar.o Control/Concurrent/Chan.o Control/Concurrent/QSem.o Control/Concurrent/QSemN.o Control/Concurrent/SampleVar.o GHC/TopHandler.o Control/Concurrent.o
+m Data/Ix.o Data/Generics/Basics.o Data/Generics/Instances.o Data/Array.o Data/Complex.o Data/Ratio.o Control/Parallel.o Control/Parallel/Strategies.o Control/Monad/ST.o Control/Monad/ST/Lazy.o Data/Array/Base.o Data/Array/IArray.o Data/Array/MArray.o Data/Array/IO/Internals.o Data/Array/IO.o Data/Array/Diff.o
+m Foreign/Concurrent.o
+m Data/Generics/Aliases.o Data/Generics/Schemes.o Data/Generics/Text.o Data/Generics/Twins.o Data/Generics.o Data/ByteString/Base.o Data/ByteString/Fusion.o Data/ByteString.o
+m GHC/Exts.o Data/Foldable.o Data/Traversable.o Data/Sequence.o Data/Tree.o Data/Array/ST.o Data/Graph.o Data/IntSet.o Data/IntMap.o Data/Set.o Data/Map.o Numeric.o
+m GHC/ForeignPtr.o System/CPUTime.o System/Locale.o System/Time.o System/Random.o
+m System/Exit.o System/Process/Internals.o System/Process.o System/Posix/Signals.o System/Cmd.o
+m System/Environment.o System/Directory.o
+m Text/PrettyPrint/HughesPJ.o Text/PrettyPrint.o
+touch -t 197910100830 compiler/prelude/primops.txt.pp
+touch -t 197910100831 compiler/prelude/primops.txt
+touch libraries/base/GHC/Prim.hs libraries/base/GHC/PrimopWrappers.hs
+m libHSbase.a # Ce qui n'est pas mentionné avant se fait dans l'ordre alphabétique, sans dépendance, entraîné par la demande de libHSbase.a.
+make -C libraries/base/cbits
+[ -f utils/ghc-pkg/ghc-pkg-inplace.original ] || cp utils/ghc-pkg/ghc-pkg-inplace utils/ghc-pkg/ghc-pkg-inplace.original
+cat <<FINI > utils/ghc-pkg/ghc-pkg-inplace
+#!`command -v bash`
+true
+FINI
+chmod a+x utils/ghc-pkg/ghc-pkg-inplace
+( cd compat/ && for i in Distribution/Compat/ReadP Distribution/Version Language/Haskell/Extension Distribution/Compiler Distribution/License Distribution/Package Distribution/Compat/FilePath Distribution/ParseUtils Distribution/InstalledPackageInfo Compat/Directory Compat/RawSystem ; do rm -f \$i.o ; make \$i.o ; done )
+make -C libraries/haskell98 Ix.o Array.o libHShaskell98.a
+make -C libraries/parsec Text/ParserCombinators/Parsec/Pos.o Text/ParserCombinators/Parsec/Error.o Text/ParserCombinators/Parsec/Prim.o Text/ParserCombinators/Parsec/Combinator.o Text/ParserCombinators/Parsec/Char.o Text/ParserCombinators/Parsec.o Text/ParserCombinators/Parsec/Token.o Text/ParserCombinators/Parsec/Language.o all
+for i in genapply genprimopcode ; do ( cd utils/ && rm -f \$i/\$i && make -C \$i clean all ) ; done
+make -C rts all
+make -C compat boot all
+filtrer utils/ghc-pkg/Makefile sed -e "s/^INSTALLING=1/INSTALLING=0/"
+( cd utils/ && make -C ghc-pkg all )
+filtrer utils/ghc-pkg/Makefile sed -e "s/^INSTALLING=0/INSTALLING=1/"
+# Ah bah non, plante toujours
+#cp utils/ghc-pkg/ghc-pkg-inplace.original utils/ghc-pkg/ghc-pkg-inplace
+TERMINE
+	filtrer distrib/hc-build sed -e '/^find/i\
+. ./distrib/hc-build-corr
+'
+	filtrer mk/bootstrap.mk grep -v stginit_Prelude # Darwin m'embête, car quand on lui fait un ld -u toto, même si on n'utilise après coup pas toto, il se plaint de son asence.
+	./distrib/hc-build --prefix="$1" --enable-hc-boot-unregisterised
+	# ghc-pkg était pourri à la première passe, il nous en faut une seconde.
+	for i in libraries/*/package.conf.installed ; do ( cd "`dirname $i`" &&  ../../utils/ghc-pkg/ghc-pkg-inplace update - -f ../../driver/package.conf --force-files < package.conf.installed ) ; done
+	for i in */package.conf.installed ; do ( cd "`dirname $i`" &&  ../utils/ghc-pkg/ghc-pkg-inplace update - -f ../driver/package.conf --force-files < package.conf.installed ) ; done
+	make install stage=1
+}
+
+pasStatic()
+{
+	# http://developer.apple.com/qa/qa2001/qa1118.html
+	filtrer mk/bootstrap.mk sed -e '/-static/{
+i\
+ifneq "$(darwin_TARGET_OS)" "1"
+a\
+endif
+}'
+}
+
+testReadline()
+{
+	# Cherche un char rl_readline_version(); depuis la 5.0, on a du
+	# extern int rl_readline_version. gcc 3.4.6 FreeBSD ne semble nullement
+	# gêné, par contre gcc 4.0.1 Darwin si.
+	filtrer libraries/readline/configure sed -e 's/char rl_readline_version ()/extern int rl_readline_version/' -e 's/rl_readline_version ()/return rl_readline_version/'
+}
+
+uli()
+{
+	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-includes=/usr/local/include"
+	echo '#include "/usr/local/include/gmp.h"' > includes/gmp.h
+}
+
+# Pour une amorce de version sur cette machine, les fichiers .hc ayant été
+# prégénérés sur une autre.
+
+if [ "x$1" = "xdemarre" ]
+then
+	complement="$INSTALL_MEM/$logiciel-$version-hc.tar.gz"
+	if ! [ -e "$complement" ]
+	then
+		echo "Il me faut les fichiers .hc générés pour moi. Envoyez-les chez moi. Au pire, lancez-moi avec l'argument demarrant, une fois que j'ai fini, lancez-moi sur une machine ayant déjà ghc avec l'argument demarreur et l'adresse de cette machine suivie de : suivie du répertoire où je compile, déplacez sur la machine actuelle le répertoire qui aura servi en demarrant, puis transmettez-moi le fichier résultant sous le nom que j'attends." >&2
+		echo "Quant à moi, j'attends ici." >&2
+		while ! [ -f "$complement" ]
+		do
+			sleep 60
+			printf .
+		done
+		echo
+	fi
+	rm -Rf "$TMP/ghc-$version" "$TMP/ghc-$version-amorce" # Ça ne fait pas de mal, c'est tellement le foutoir leur truc qu'il vaut mieux repartir de zéro.
+	archive="`nomArchive $version`"
+	obtenirEtAllerDansVersion
+	( cd ../ && tar xzf "$complement" ) # Normalement il a été fait pour se décompresser ainsi.
+	( cd ../ && tar tzf "$complement" | xargs touch )
+	modifs="${modifs//extralibs/}"
+	for i in $modifs true
+	do
+		$i
+	done
+	distribHcBuild6 "$TMP/ghc-$version-amorce"
+	make install stage=1
+	echo "Vous devriez maintenant pouvoir compiler une nouvelle version de GHC après un export PATH=$TMP/ghc-$version-amorce:\$PATH"
+	exit 0
+fi
+
+[ $type_demarreur = actuel ] && pge $version 6.6 && ! auMoins 6.4 && "$0" demarre
+
+false && \
+! auMoins 0.29 \
+&& v2=0.29 \
+&& modifs="hcFiles vieuxSource v029"
+
+# Pour préparer une version pour une autre machine.
+if [ "x$1" = "xdemarreur" ]
+then
+version=6.6.1
+v2=$version
+binVersion=$INSTALLS/ghc-$version/bin
+[ ! -x $binVersion/ghc ] && echo "# Il vaudrait mieux que vous ayez le compilo en version $version sur cette machine (en $binVersion/ghc)." && exit 1
+export PATH=$binVersion:$PATH
+modifs="${modifs//extralibs/} preparationPour6"
+type_demarreur=actuel
+shift
+while [ $# -gt 0 ]
+do
+	case "$1" in
+		*:*)
+			DDEMARRANT="${1#*:}"
+			DEMARRANT[${#DEMARRANT[@]}]="${1%%:*}"
+			;;
+		*)
+			DEMARRANT[${#DEMARRANT[@]}]="$1"
+			;;
+	esac
+	shift
+done
+[ -z "$DDEMARRANT" ] && echo "# Utilisation: `basename "$0"` demarreur hôte:dossier # Emplacement du GHC en cours de compil sur la machine cible, créé par un `basename "$0"` demarrant; attention cependant, si c'est sur localhost, à ce que ce soit ailleurs que l'endroit où nous allons nous-même compiler." >&2 && exit 1
+# Bon, chier, au final, il n'y a pas une combinaison qui fonctionne sur leur
+# bordel.
+# 0.29 standalone, hc files 6.6.1 openbsd pour une 6.6.1 freebsd (floating
+# point exception sur le ghc-inplace), génération de fichiers hc déregistrés sur
+# une plate-forme avec déjà un ghc (6.6-ppc-apple-darwin pour 6.6, ghc-inplace
+# en bus error (il semble avoir compilé son inplace avec quelques bidules en
+# little endian); 6.6.1 ou 6.4.2 sur un linux i386, se lance dans du multithread
+# et s'y plante).
+# Bien entendu à chaque fois il y aura eu des manips manuelles à faire parce que
+# leurs putains de Makefiles sont foireux (fichiers manquants, symboles non
+# définis, départs en boucle infinie de make, etc.).
+# 
+# Je décerne la palme de la non portabilité à ce compilo de chiotte.
+fi
+
+# Pour une version sur cette machine à partir d'une autre.
+if [ "x$1" = "xdemarrant" ]
+then
+v2=$version
+modifs="${modifs//extralibs/} preparation6"
+fi
+
+INCLUDES=ghc/includes
+pge $version 6.6 && INCLUDES=includes
+
+versionVoulue=$version
+! [ -z "$v2" -o "x$v2" == "x$version" ] && version=$v2 && recommencer=1 # Si on doit compiler une vieille version pour celle voulue, on se laisse une note comme quoi il faudra reprendre pour la nouvelle version.
+
+archive="`nomArchive $version`"
+
+case "$type_demarreur"
+in
+	c)
+		inclure make
+		;;
+	dmg)
+		archive_demarreur=http://www.haskell.org/ghc/dist/$version_demarreur/MacOSX/GHC.$version_demarreur.dmg
+		modifs="$modifs avecDemarreurDMG avecDemarreurMalFoutu"
+		;;
+	tar)
+		archive_demarreur=http://www.haskell.org/ghc/dist/$version_demarreur/MacOSX/ghc-$version_demarreur-darwin-bootstrap-tiger.tar.bz2
+		modifs="$modifs avecDemarreurTar"
+		;;
+	*)
+		export GHC="`command -v ghc`"
+		;;
+esac
+
+dest="$INSTALLS/$logiciel-$version"
+[ "x$1" = xdemarre -o "x$1" = xdemarrant ] && dest=$dest-brut # Notre démarreur n'inclut pas les biblios supplémentaires.
+
+[ -d "$dest" -a -z "$DDEMARRANT" ] && exit 0
+
+# Autres nécessaires
+
+inclure dlcompat
+inclure gmp
+export LIBRARY_PATH="$INSTALLS/lib"
+export LD_LIBRARY_PATH=$LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$LIBRARY_PATH
+inclure readline
+
+# Modifs
+
+avecDemarreurDMG()
+{
+	pushd /tmp
+	echo Mise en place du démarreur… >&2
+	demarreur=`obtenir "$archive_demarreur"`
+	hdid "$demarreur" > /tmp/$$/hdid.temp
+	periph=`grep Apple_partition_scheme < /tmp/$$/hdid.temp | cut -d ' ' -f 1`
+	montage=`grep Apple_HFS < /tmp/$$/hdid.temp | awk 'NR == 1' | cut -f 3-`
+	
+	rm -Rf /tmp/$$/démarreur ; mkdir /tmp/$$/démarreur
+	cd /tmp/$$/démarreur
+	gunzip -c "$montage/GHC"*".pkg/Contents/Archive.pax.gz" | pax -r
+	hdiutil detach $periph
+	# Quelques bidouilles pour que ghc retrouve son framework qui n'est pas à un
+	# emplacement standard.
+	filtrer usr/local/bin/ghc sed -e 's=/usr/local/=/tmp/'$$'/démarreur/usr/local/=g' -e '/^exec/s=GHCBIN=GHCBIN -I/tmp/'$$'/démarreur/include='
+	cat > /tmp/$$/ld <<- TERMINE
+	#!/bin/sh
+	/usr/bin/ld -F/tmp/$$/démarreur/Library/Frameworks "\$@"
+	TERMINE
+	chmod a+x /tmp/$$/ld
+	mkdir -p /tmp/$$/démarreur/include
+	ln -s /tmp/$$/démarreur/Library/Frameworks/HaskellSupport.framework/Headers /tmp/$$/démarreur/include/HaskellSupport
+	
+	export HOME=/tmp/$$/démarreur
+	export PATH="/tmp/$$:$PATH"
+	export CFLAGS="-F/tmp/$$/démarreur/Library/Frameworks"
+	export GHC=/tmp/$$/démarreur/usr/local/bin/ghc
+	popd
+}
+
+avecDemarreurTar()
+{
+	pushd /tmp
+	obtenirEtAllerDans "$archive_demarreur"
+	export PATH="`pwd`/bin:$PATH"
+	export LD_LIBRARY_PATH="`pwd`/lib:$PATH"
+	export GHC="`pwd`/bin/ghc"
+	filtrer bin/ghc sed -e '/^#!/a\
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; ou="${SCRIPTS%/bin}"
+' -e 's=/opt/local=$ou=g' -e '/^exec/s=$= -I$ou/lib/ghc-6.4/imports -I$ou/lib/ghc-6.4/include='
+	filtrer lib/ghc-6.4/package.conf sed -e "s=/opt/local=`pwd`=g"
+	for i in ghc-asm ghc-split
+	do
+		filtrer lib/ghc-6.4/$i sed -e '/^#!.*perl/c\
+#!/usr/bin/perl
+'
+	done
+	popd
+}
+
+avecDemarreurMalFoutu()
+{
+	# On trifouille aussi les Makefiles intermédiaires (génèrant les binaires
+	# finaux, mais utilisant les bibliothèques de notre amorce).
+	filtrer ./ghc/compiler/Makefile sed -e '/^	echo exec/s=^\(	echo exec [^ ]*\)=\1 -I/tmp/'$$'/démarreur/include='
+	filtrer ./ghc/utils/hsc2hs/hsc2hs.sh sed -e 's=$HSC2HS_EXTRA=$HSC2HS_EXTRA -I/tmp/'$$'/démarreur/include='
+	for i in ./libraries/unix/cbits/Makefile hslibs/posix/Makefile hslibs/posix/cbits/Makefile ; do filtrer "$i" sed -e '/^SRC_CC_OPTS/{
+x
+s/./a/
+x
+t-)
+i\
+SRC_CC_OPTS += -I/tmp/'$$'/démarreur/include
+h
+:-)
+}' ; done
+	# Oh et puis finalement on a toutes les biblios nécessaires, pas besoin du
+	# HaskellSupport.framework
+	filtrer configure sed -e '/^HaveFrameworkHaskellSupport=NO$/h' -e '/^if/{
+x
+s/.//g
+x
+t-)
+b
+:-)
+s/^if/if false \&\&/
+}'
+}
+
+staticObjects()
+{
+	filtrer ghc/rts/GC.c sed -e '/^static.*static_objects/s/^static *//'
+	filtrer ghc/rts/Profiling.c sed -e '/^static.*total_prof_ticks/s/^static *//'
+}
+
+register()
+{
+	# GHC génère, pour des bouts de code style "gloc = fonction()", avec la
+	# fonction en externe, des choses comme "(type)gloc = (type)fonction()".
+	# gcc 4.0, chez Apple en tout cas, semble en interne le voir comme un
+	# "*(type *)&gloc = (type)fonction()". L'inconvénient, c'est qu'à quelques
+	# endroits, GHC voudrait du register, et gcc ne sait pas lui refuser. Du
+	# coup on se retrouve avec un &(registre PPC) du plus mauvais effet.
+	
+	cat > /tmp/$$/register.temp <<- TERMINE
+	#!/bin/sh
+	params()
+	{
+		suffixe=.hc
+		while [ \$# -gt 0 ]
+		do
+			case "\$1" in
+				-o) shift ; sortie="\$1" ;;
+				*.hc|*.p_hc|*.thr_hc|*.thr_p_hc|*.debug_hc) sed -e 's/(.*)\(R.*=.*(.*);\)/\1/' < "\$1" > "\$1.temp" && cat "\$1.temp" > "\$1" ;;
+			esac
+			shift
+		done
+	}
+	params "\$@"
+	gcc "\$@" > "\$sortie"
+	TERMINE
+	chmod a+x /tmp/$$/register.temp
+	filtrer ghc/rts/Makefile sed -e '/Compiling the cmm files/a\
+PrimOps_HC_OPTS += -pgmc /tmp/'"$$"'/register.temp
+'
+}
+
+discard()
+{
+	# Pour empêcher que gcc n'enmêle des blocs de code PPC qui doivent rester
+	# séparés, GHC intercale une fonction bidon, laisse gcc générer l'assembleur
+	# puis vire dans le .s l'appel à la fonction. Cependant, le fait de l'avoir
+	# déclarée génère une sorte de dyld_stub_discard qui, elle, attend une
+	# présence. On s'en occupe.
+	# On l'inclue dans libHSrts, pour que les programmes compilés y aient
+	# également droit.
+	
+	echo "void __DISCARD__() {}" > ghc/rts/discard.c
+}
+
+extralibs()
+{
+	# On fait se décompresser l'archive des extralibs, car on sait qu'elle ira
+	# se placer au bon endroit, autrement dit là où GHC s'est extrait.
+	( obtenirEtAllerDans "${archive//-src/-src-extralibs}" )
+}
+
+hcFiles()
+{
+	( obtenirEtAllerDans http://www.haskell.org/ghc/dist/$version/ghc-$version-hc-files.tar.gz ; tar cf - . ) | tar xf -
+}
+
+vieuxSource()
+{
+	# Fichiers prégénérés par un lex foireux
+	rm -f ./glafp-utils/verbatim/verbatim.c
+	rm -f literate/lit-deatify.c
+}
+
+startup()
+{
+	[ -f STARTUP ] && sh < STARTUP
+	cd ghc
+	PARAMS_MAKE=(all)
+}
+
+v029()
+{
+	# Modifs nécessaires à la compil sur une FreeBSD 6.2 de kimsufi:
+	# gcc 3.4.6
+	# gnu make 3.81
+	# gnu tar 1.19
+	
+	# Boucle infinie; cf. http://www.dcs.gla.ac.uk/mail-www/glasgow-haskell-bugs/msg00220.html
+	filtrer ghc/utils/parallel/Jmakefile sed -e '/qp2ap.pl/s/PerlCmd,qp2ap[^,]*/PerlCmd,qp2ap/'
+	filtrer ghc/runtime/storage/SMap.lc sed -e '/ifdef HAVE_VADVISE/,/endif/d'
+	filtrer ghc/runtime/storage/SMstatic.lc sed -e '/SMinternal/{
+i\
+#define INTLIKE_closures Brontoglouc
+a\
+#undef INTLIKE_closures
+}'
+	# Problème: l'assembleur crée des fonctions bidons, du genre __gcc__. Le
+	# mangler s'embrouille sur freebsd/gcc, où les fonctions sont généralement
+	# préfixées d'un _ dans le passage de C à asm… sauf celles-ci, qui restent à
+	# deux _.
+	filtrer ghc/driver/ghc-asm.lprl sed -e '/}__std/{
+p
+s//}_std/
+}'
+	# En fait, le mangler n'arrive même pas à lire le code généré par un as
+	# récent. On utilise donc un plus récent.
+	
+	( obtenirEtAllerDans "`nomArchive $versionVoulue`" ; cat driver/mangler/ghc-asm.lprl ) > ghc/driver/ghc-asm.lprl
+	filtrer ghc/driver/ghc-asm.lprl grep -v TARGETPLATFORM # Une affectation gênante, car elle écrase une variable parfaitement définie par notre appelant.
+	filtrer ghc/driver/ghc-asm.lprl grep -v '&mangle_asm'
+	filtrer ghc/driver/ghc-asm.lprl grep -v 'exit(0)'
+	filtrer ghc/driver/ghc-asm.lprl sed -e '/mini_mangle_asm /d' -e '/sub mangle_asm/i\
+sub mini_mangle_asm { &mangle_asm(@_); }
+'
+	filtrer ghc/runtime/Jmakefile sed -e '/SUBDIRS/s/ *gmp */ /'
+	# Version pourrie
+	rm -f ghc/utils/ugen/lex.c
+	( cd ghc/utils/ugen && flex -olex.c lex.l )
+	filtrer ghc/utils/ugen/yyerror.c grep -v yylineno
+	chmod u+w configure
+	filtrer configure sed -e "/cpp.*> conftest.pl/s#'.*'#'if(/conftest.c/) { s@conftest.c@@ ; s@-v@@ ; print \"\$_\" }'#" # Problème dans leur détection du cpp utilisé: ne marche pas avec gcc 3 (ils s'attendent à trouver la commande cpp, gcc3 préfère un cc1 -E).
+	# De même, l'option -traditional est passée directement à cpp; or celui-
+	# ci attend en fait un -traditional-cpp, et ça, c'est gcc qui le sait, pas
+	# nous.
+	filtrer configure sed -e '/gcc -v -E conftest.c/h' -e '/RAWCPP=/s/ -traditional//' -e '/RAWCPP=/{
+x
+s/gcc/gcc -traditional/
+p
+x
+}'
+	# mkdependC laisse passer des lignes bizarres dans nos Makefiles (<built-in>, <command-line>).
+	filtrer glafp-utils/scripts/mkdependC.prl sed -e '/depend = /i\
+next line if /<.*>/;
+'
+	# Des prédéclarations invalides en C récent.
+	# Quelques petits forçes néssaires
+	filtrer ghc/driver/ghc.lprl sed -e '/^@UserLibrary_dir.*=/s#()#("/usr/local/lib")#'
+#	filtrer ghc/driver/ghc.lprl awk '/^.RegisteriseC =/{oui=1}/end.code/&&oui{print "\$RegisteriseC = 0;";oui=0}{print}'
+#	filtrer ghc/includes/StgMacros.lh awk '/^.define STK_CHK/{oui=1}/end.code/&&oui{print "#define STK_CHK(a,b,c,d,e,f,g)do{}while(0)";oui=0}{print}'
+#	filtrer ghc/driver/ghc.lprl sed -e '/^@Cpp_define.*=/s#()#("-DNULL_REG_MAP")#'
+#	filtrer ghc/driver/ghc.lprl sed -e '/^@HsC_flags.*=/s#()#("-dno-stk-chks")#'
+#	filtrer ghc/driver/ghc.lprl sed -e '/^@CcBoth_flags.*=/s#(\([^)]*\))#("-D__OMIT_STK_CHKS__", \1)#' -e '/^@CcBoth_flags.*=/s/, )/)/'
+	filtrer glafp-utils/etags/etags.c grep -v 'char[^=]*index.*;'
+}
+
+v661()
+{
+	# Cette grosse daube de mangler est tellement mal foutue qu'elle fait sauter
+	# des pans entiers de code sur i386-apple-darwin, via un commentaire à la
+	# con « Ouh là là, si je vois un .no_dead_strip, je le fais sauter, de peur
+	# qu'Apple ne fasse sauter le bout de code après. Ah, et puis j'en profite
+	# pour faire disparaître le bout de code après. Comme ça au moins je suis
+	# sûr que ce n'est pas l'autre qui va planter la compil, vu que je m'en
+	# assure moi-même.
+	# Bon, ben on est dans le caca.
+	true
+}
+
+preparation6()
+{
+	./configure --enable-hc-boot --enable-hc-boot-unregisterised
+	cd $INCLUDES
+	make
+	exit 0
+}
+
+mpreparation66Pour64()
+{
+	# Problème d'ordre, les dépendances sont foireuses; on se fait générer le .o et le .hi.
+	false && filtrer ghc/lib/compat/Makefile sed -e '/include.*mk.target.mk/i\
+Compat/Directory.hs : System/Directory/Internals.o
+'
+	# En fait parce qu'ils tenaient pour acquise une biblio depuis la 6.3, or
+	# ils l'ont retirée (ou autre) depuis la 6.6.
+	filtrer ghc/lib/compat/Makefile sed -e '/^	.*System.Directory.Internals/s/^/ #/'
+	# Une curieuse erreur de syntaxe. Le 6.6 n'est pas si tolérant.
+	for i in Literal Module
+	do
+		filtrer ghc/compiler/basicTypes/$i.lhs sed -e '/^module /,/where/{
+s/,[ 	]*$//
+s/,[ 	]*--/--/
+}'
+	done
+	filtrer ghc/compiler/hsSyn/HsTypes.lhs sed -e 's/},/}/g'
+	filtrer ghc/compiler/parser/RdrHsSyn.lhs sed -e 's/mkGroup,/mkGroup/'
+	filtrer ghc/compiler/typecheck/TcTyClsDecls.lhs sed -e 's/, ,/,/'
+	# La compil de la 6.4 par la 6.6, c'est coton.
+	for i in ghc/compiler/utils/PrimPacked.lhs ighc/compiler/utils/FastString.lhs
+	do
+		filtrer "$i" sed -e '1{
+i\
+#if __GLASGOW_HASKELL__ >= 600
+i\
+#define unsafe_ccall(x) ccall unsafe x
+i\
+#else
+i\
+#define unsafe_ccall(x) ccall x unsafe
+i\
+#endif
+}' -e 's/ccall\(.*\)unsafe/unsafe_ccall(\1)/'
+	done
+	# Bon, ça ne suffit pas, par la suite on a des conflits à cause des types
+	# 6.4 qui voudraient utiliser d'autres types 6.4 alors que ceux-ci sont
+	# surchargés par le compilo en 6.6.
+}
+
+rap() # Hôte:racinedecompil répertoire fichiers…
+{
+	ssh "${DEMARRANT[@]}" "cd '$DDEMARRANT' ; tar cf - $@" | tar xf -
+}
+
+preparationPour6()
+{
+	# http://stderr.org/doc/ghc-cvs-doc/html/building/sec-porting-ghc.html#unregisterised-porting
+	# Tentatives foirées:
+	# 6.8.2 -> 6.4.3: lui fait inclure des déclarations de la 6.8 sans le lier ensuite aux biblios correspondantes (Directory, PrettyPrint).
+	# 6.6 -> 6.4.3: mieux, ne manque que Directory, dont on sait forcer l'inclusion.. Pour le moment le code qui suit est fait pour cette combinaison.
+	# À FAIRE: passer ça en paramètre.
+	./configure --with-ghc="`command -v ghc`"
+	cat <<TERMINE > mk/build.mk
+GhcUnregisterised = YES
+GhcNotThreaded = YES
+GhcLibHcOpts = -O -fvia-C -keep-hc-files
+GhcRtsHcOpts = -keep-hc-files
+GhcLibWays =
+GhcRTSWays =
+SplitObjs = NO
+GhcWithNativeCodeGen = NO
+GhcWithInterpreter = NO
+GhcStage1HcOpts = -O
+GhcStage2HcOpts = -O -fvia-C -keep-hc-files
+SRC_HC_OPTS += -H32m
+GhcBootLibs = YES
+TERMINE
+	make stage1
+	# On récupère les fichiers de conf distants, qu'on recopie chez nous, à
+	# moins qu'on n'en prélève des bouts.
+	cp mk/config.mk mk/config.mk.mien
+	rap "$INCLUDES/ghcautoconf.h" "$INCLUDES/DerivedConstants.h" "$INCLUDES/GHCConstants.h" mk/config.mk
+	( cd $INCLUDES/ && touch ghcautoconf.h DerivedConstants.h GHCConstants.h )
+	PLATFORM="`sed -e '/^TARGETPLATFORM/!d' -e 's/.*= *//' < mk/config.mk`"
+	LEADINGUNDERSCORE="`sed -e '/LeadingUnderscore/!d' -e 's/.*= *//' < mk/config.mk`"
+	cat mk/config.mk.mien > mk/config.mk
+	ARCH="${PLATFORM%%-*}"
+	VENDOR="${PLATFORM#*-}"
+	VENDOR="${VENDOR%-*}"
+	OS="${PLATFORM##*-}"
+	filtrer mk/config.mk sed -e "/^TARGETPLATFORM[ 	]*=/s/=.*/= $PLATFORM/" -e "/^LeadingUnderscore[ 	]*=/s/=.*/=$LEADINGUNDERSCORE/"
+	filtrer mk/config.mk sed -e '/^TargetPlatform_CPP/{
+i\
+TargetPlatform_CPP = '"${PLATFORM//-/_}"'
+i\
+TargetArch_CPP = '"$ARCH"'
+i\
+TargetOS_CPP = '"$OS"'
+i\
+TargetVendor_CPP = '"$VENDOR"'
+}' -e '/^Target/d'
+	filtrer mk/config.mk sed -e "s/.*_TARGET[^_]/${PLATFORM//-/_}_TARGET /"
+	for i in ARCH VENDOR OS
+	do
+		filtrer mk/config.mk sed -e "s/.*_TARGET_$i/`eval echo \\\$$i`_TARGET_$i/"
+	done
+	( echo "GhcRTSWays = " ; echo "GhcLibWays = " ) >> mk/config.mk
+	if pge $version 6.6
+	then
+		filtrer rts/Makefile sed -e 's/-DTHREADED_RTS//' # Ils font ça soi-disant pour que la génération des dépendances n'oublie même pas les cas qu'on n'utilisera pas par la suite, sauf que même uniquement pour la génération des dépendances, ils lancent une erreur sur l'absence de registres en mode THREADED_RTS. Donc merde pour les dépendances. Après tout si on fait du GhcNotThreaded, c'est pour une raison, non?
+		#( cd "$i" ; find . -name \*.o -exec rm -f {} \; ; make || true )
+if false
+then
+		filtrer Makefile awk '/^hc-file-bundle/{oui=1}/tar/{if(oui){oui=0;split("base/Control/Exception base/Data/Bits base/Data/Char base/Data/Either base/Data/List base/Data/Maybe base/Data/Tuple base/Data/Version base/Data/Word base/Foreign/C/Error base/Foreign/C/String base/Foreign/C/Types base/Foreign/Marshal/Alloc base/Foreign/Marshal/Array base/Foreign/Storable base/GHC/Base base/GHC/Enum base/GHC/Err base/GHC/Exception base/GHC/Float base/GHC/ForeignPtr base/GHC/Handle base/GHC/IO base/GHC/IOBase base/GHC/Int base/GHC/List base/GHC/Num base/GHC/Ptr base/GHC/Read base/GHC/Real base/GHC/STRef base/GHC/Show base/GHC/TopHandler base/GHC/Unicode base/GHC/Word base/Prelude base/System/Cmd base/System/Console/GetOpt base/System/Directory base/System/Directory/Internals base/System/Environment base/System/Exit base/System/IO base/System/IO/Error base/System/Posix/Internals base/System/Posix/Signals base/System/Posix/Types base/System/Process base/System/Process/Internals base/Text/ParserCombinators/ReadP base/Text/ParserCombinators/ReadPrec base/Text/PrettyPrint base/Text/PrettyPrint/HughesPJ base/Text/Read/Lex haskell98/Char haskell98/Directory haskell98/IO haskell98/List haskell98/Maybe haskell98/Monad haskell98/System parsec/Text/ParserCombinators/Parsec parsec/Text/ParserCombinators/Parsec/Char parsec/Text/ParserCombinators/Parsec/Combinator parsec/Text/ParserCombinators/Parsec/Error parsec/Text/ParserCombinators/Parsec/Pos parsec/Text/ParserCombinators/Parsec/Prim", z);for(i in z)print "	echo ghc-$(ProjectVersion)/libraries/"z[i]".hi >> hc-files-to-go"}}{print}'
+		filtrer Makefile awk '/^hc-file-bundle/{oui=1}/tar/{if(oui){oui=0;print "	echo ghc-$(ProjectVersion)/driver/package.conf.inplace >> hc-files-to-go"}}{print}'
+		filtrer Makefile awk '/^hc-file-bundle/{oui=1}/tar/{if(oui){oui=0;print "	echo ghc-$(ProjectVersion)/libraries/base/GHC/Prim.hs >> hc-files-to-go"}}{print}'
+		filtrer Makefile awk '/^hc-file-bundle/{oui=1}/tar/{if(oui){oui=0;print "	echo ghc-$(ProjectVersion)/libraries/base/GHC/PrimopWrappers.hs >> hc-files-to-go"}}{print}'
+		sleep 2
+		( cd $INCLUDES/ && touch ghcautoconf.h DerivedConstants.h GHCConstants.h )
+		#[ $version = 6.6.1 ] && ( cd compiler/stage1/ && make ghc_boot_platform.h && filtrer ghc_boot_platform.h
+		if [ $version = 6.6.1 ] # Ces gros nazes ont commencé des changements dans la gestion BUILD / HOST / TARGET, mais ne les ont pas finis. Du coup il nous crée un stage1 à moitié construit pour le TARGET… donc plantant. Bon et puis apparemment ils se plantent aussi en utilisant TARGET (alors qu'en stage1 on ne devrait pas).
+		then
+			( cd includes/ && make ghcplatform.h )
+			mv includes/ghcplatform.h includes/ghcplatform.2.h
+			sed -e '/Host/d' -e '/HOST/d' -e '/Target/d' -e '/TARGET/d' -e '/Build/{
+p
+s/Build/Host/g
+}' -e '/BUILD/{
+p
+s/BUILD/HOST/g
+}' -e '/Target/{
+p
+s/Target/Host/g
+}' -e '/TARGET/{
+p
+s/TARGET/HOST/g
+}' < includes/ghcplatform.2.h > includes/ghcplatform.h
+			filtrer compiler/Makefile sed -e '/^stage1/,/^$/{
+s/\$(TARGET/$(HOST/g
+s/\$(Target/$(Host/g
+}'
+			#make stage1
+			mv includes/ghcplatform.2.h includes/ghcplatform.h
+		fi
+		make boot && make -k
+else
+		make -k stage2
+fi
+		filtrer Makefile sed -e '/^[^#].*haskell-src/s/^/#/'
+	else
+		( cd glafp-utils && make boot && make )
+		mpreparation66Pour64
+		( cd ghc && make boot && make )
+		( cd libraries && make boot && make )
+		( cd ghc/compiler && make boot stage=2 && make stage=2 )
+		( cd compat && make clean && rm -f .depend && make boot UseStage1=YES EXTRA_HC_OPTS='-O -fvia-C -keep-hc-files' )
+		( cd ghc/utils && make clean && make -k UseStage1=YES EXTRA_HC_OPTS='-O -fvia-C -keep-hc-files' )
+	fi
+	for i in libraries/Cabal/cabal-setup libraries/Cabal compat
+	do
+		filtrer "$i/Makefile" awk '/SRC_HC_OPTS[ 	]*\+=/{if(!bouh){print "SRC_HC_OPTS += -keep-hc-file";bouh=1}}{print}'
+		( cd "$i" && find . -name \*.o -exec rm -f {} \; && make )
+	done
+	# Mais ce n'est pas fini! Certains répertoires n'ont pas jugé nécessaire
+	# de générer leurs .hc. Et le compilo sur la cible va s'en plaindre. On
+	# modifie donc les Makefiles et on lui fait regénérer les .o, en lui
+	# demandant de nous mettre de côté les .hc.
+	for i in utils/*/
+	do
+		#filtrer "$i/Makefile" awk '/SRC_HC_OPTS[ 	]*\+=/{if(!bouh){print "SRC_HC_OPTS += -keep-hc-file";bouh=1}}{print}'
+		find "$i" -name Makefile | while read j
+		do
+			filtrer "$j" sed -e '/boilerplate/a\
+SRC_HC_OPTS += -keep-hc-file
+' || true
+			( cd "$i" && make -k )
+		done
+	done
+	make hc-file-bundle Project=Ghc
+	exit 0
+}
+
+# Version à récupérer
+
+if [[ $version = *-* ]] ; then
+	obtenirEtAllerDansCvs -d $version $archive_cvs
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+#./configure --prefix=/usr/local/$logiciel-$version --with-ghc='/tmp/$$/démarreur/usr/local/bin/ghc -pgmP "gcc3 -E -traditional"' --with-gcc=gcc3
+if [ $type_demarreur = c ]
+then
+	if pge $version 6
+	then
+		distribHcBuild6 /usr/local/$logiciel-$version
+	else
+		export JMAKECPP="`command -v cpp`" LDFLAGS="-L/usr/local/lib"
+		./configure --prefix=/usr/local/$logiciel-$version --with-hc=c --disable-profiling #--enable-portable-C
+		startup
+	fi
+else
+	./configure --prefix=/usr/local/$logiciel-$version --with-ghc=$GHC "${OPTIONS_CONF[@]}"
+fi
+
+echo Compilation… >&2
+make "${PARAMS_MAKE[@]}"
+
+echo Installation… >&2
+sudo make install
+for biblio in /usr/local/$logiciel-$version/lib/$logiciel-$version/libHS*.a ; do sudo ranlib $biblio ; done
+
+sudo utiliser $logiciel-$version
+rm -Rf /tmp/$$
+
+[ -z "$recommencer" ] || "$SCRIPTS/`basename $0`" # Travaillant en deux passes, on invoque la seconde.
+
+exit 0
+
+# Dernière tentative manuelle en date sur un FreeBSD 6.6.1. J'ai tenté de la
+# formaliser dans le reste du fichier, mais je préfère garder ça pour référence
+# tant qu'avec ce reste du fichier je n'aurais pas tenté la recompil complète.
+
+curl -O http://www.haskell.org/ghc/dist/6.6.1/FreeBSD/ghc-6.6.1-i386-unknown-freebsd6-boot.tar.bz2
+tar xjf ghc-6.6.1-i386-unknown-freebsd6-boot.tar.bz2
+tar xjf ~/paquets/ghc-6.6.1-src.tar.bz2
+cd ghc-6.6.1-boot
+./configure && make in-place
+cd ../ghc-6.6.1
+mkdir ~/tmp/ghc-6.6.1-bin
+./configure --prefix=/home/gui/tmp/ghc-6.6.1-bin --with-ghc=/home/gui/tmp/ghc-6.6.1-boot/bin/i386-unknown-freebsd/ghc
+make # Il aura fallu s'y reprendre à plusieurs fois.
+make install
+cd ../
+rm -Rf ghc-6.6.1
+tar xjf ~/paquets/ghc-6.6.1-src.tar.bz2
+cd ghc-6.6.1
+./configure --enable-hc-boot --enable-hc-boot-unregisterised --with-ghc=/home/gui/tmp/ghc-6.6.1-bin/bin/ghc
+cd includes
+make
+cd ../.. ; mv ghc-6.6.1 ghc-6.6.1-includes
+tar xjf ~/paquets/ghc-6.6.1-src.tar.bz2
+cd ghc-6.6.1
+./configure --with-ghc=/home/gui/tmp/ghc-6.6.1-bin/bin/ghc
+cat <<TERMINE > mk/build.mk
+GhcUnregisterised = YES
+GhcNotThreaded = YES
+GhcLibHcOpts = -O -fvia-C -keep-hc-files
+GhcRtsHcOpts = -keep-hc-files
+GhcLibWays =
+SplitObjs = NO
+GhcWithNativeCodeGen = NO
+GhcWithInterpreter = NO
+GhcStage1HcOpts = -O
+GhcStage2HcOpts = -O -fvia-C -keep-hc-files
+SRC_HC_OPTS += -H32m
+GhcBootLibs = YES
+TERMINE
+vi mk/config.mk # GhcLibWays et GhcRTSWays à forcer à rien du tout, plus, si on est sur une compil croisée, toutes les variables en TARGET ou Target.
+for i in ghcautoconf.h DerivedConstants.h GHCConstants.h
+do
+cp ~/tmp/ghc-6.6.1-includes/includes/$i includes/
+done
+( cd includes && touch ghcautoconf.h DerivedConstants.h GHCConstants.h mkDerivedConstants.c mkDerivedConstantsHdr mkDerivedConstants.o mkGHCConstants mkGHCConstants.o )
+make boot && make -k
+filtrer Makefile sed -e '/^[^#].*haskell-src/s/^/#/'
+( cd libraries/Cabal/cabal-setup && rm CabalSetup.o && ../../../compiler/ghc-inplace -H32m -H16m -O -H32m -package Cabal -keep-hc-files   -c CabalSetup.hs -o CabalSetup.o  -ohi CabalSetup.hi )
+for i in libraries/Cabal compat
+do
+filtrer "$i/Makefile" awk '/SRC_HC_OPTS[ 	]*\+=/{if(!bouh){print "SRC_HC_OPTS += -keep-hc-file";bouh=1}}{print}'
+( cd "$i" && find . -name \*.o -exec rm -f {} \; && make )
+done
+make hc-file-bundle Project=Ghc
+cd ../
+mv ghc-6.6.1 ghcbouh # Notre version compilée avec ses fichiers .hc.
+tar xjf ~/paquets/ghc-6.6.1-src.tar.bz2
+tar xzf ghcbouh/ghc-6.6.1-i386-unknown-freebsd-hc.tar.gz
+tar tzf ghcbouh/ghc-6.6.1-i386-unknown-freebsd-hc.tar.gz | xargs touch
+cd ghc-6.6.1
+chmod u+x ./distrib/hc-build
+./distrib/hc-build --enable-hc-boot-unregisterised --prefix="$TMP/ghc-$version-amorce"
+make install stage=1
