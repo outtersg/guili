@@ -1,0 +1,85 @@
+#!/bin/bash
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+# Historique des versions gérées
+
+logiciel=libjpeg
+version=6b
+version_biblio=63 # Pour AquaScribus, entre autres
+
+version=8a
+
+# Modifications
+
+# Variables
+
+vnum="`echo "$version" | sed -e 's/[^0-9]//g'`"
+dest="$INSTALLS/$logiciel-$version"
+archive="http://freshmeat.net/redir/$logiciel/5665/url_tgz/jpegsrc.v$version.tar.gz"
+pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$version.tar.gz"
+
+# Constitution
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDans "$archive"
+
+echo Correction… >&2
+[ "x$modifs" = x ] || $modifs
+
+echo Configuration… >&2
+./configure --prefix="$dest" $OPTIONS_CONF
+cat >> Makefile << TERMINE
+
+libjpeg.dylib: \$(LIBOBJECTS)
+	\$(RM) \$@
+	cc -dynamiclib -flat_namespace -Wl,-compatibility_version -Wl,$version_biblio.0.0 -Wl,-current_version -Wl,$version_biblio.0.0 -o \$@ \$^ -install_name \$(libdir)/\$@
+TERMINE
+filtrer Makefile sed -e '/^install-lib:/a\
+\	mkdir -p \$(libdir)
+' -e '/^install-headers:/a\
+\	mkdir -p \$(includedir)
+' -e '/^install:/{
+a\
+\	mkdir -p \$(bindir)
+a\
+\	mkdir -p \$(mandir)
+}'
+[ "`uname -s`" = Darwin ] && filtrer Makefile sed -e '/^all:/s/$/ libjpeg.dylib/' -e '/^install-lib:/{
+s/$/ libjpeg.dylib/
+a\
+\	\$(INSTALL_LIB) libjpeg.dylib \$(libdir)/\$(binprefix)libjpeg.dylib
+}'
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+pge $vnum 8 || sudo make install-lib
+sudo make install
+sudo utiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
