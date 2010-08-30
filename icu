@@ -1,0 +1,78 @@
+#!/bin/bash
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+logiciel=icu
+
+# Historique des versions gérées
+
+version=3.4
+
+archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
+
+version=3.6
+
+archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/${logiciel}4c-${version//./_}-src.tgz
+
+version=4.4
+
+version=4.4.1
+
+# Crétin, il ne trouve même pas son fichier.
+#version=3.8.1
+
+pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version/${logiciel}4c-${version//./_}-src.tgz
+
+# Modifications
+
+# Variables
+
+dest="/usr/local/$logiciel-$version"
+
+[ -d "$dest" ] && exit 0
+
+if [[ $version = *-* ]] ; then
+	obtenirEtAllerDansCvs -d $version $archive_cvs
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+cd source
+type=`uname -s`
+[ $type = Darwin ] && type=MacOSX
+./runConfigureICU $type --prefix="$dest"
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser "$logiciel-$version"
+
+rm -Rf /tmp/$$
