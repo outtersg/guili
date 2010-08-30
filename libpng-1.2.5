@@ -1,0 +1,68 @@
+#!/bin/bash
+# Copyright (c) 2004,2008 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if [ "$SCRIPTS" = "" ] ; then SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+. "$SCRIPTS/util.bash"
+
+
+logiciel=libpng
+version=1.2.5
+
+version=1.2.25
+
+version=1.2.37
+
+version=1.4.1
+
+version=1.4.3
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://switch.dl.sourceforge.net/sourceforge/png-mng/$logiciel-$version.tar.bz2"
+pge $version 1.2.25 && archive="ftp://ftp.simplesystems.org/pub/libpng/png/src/$logiciel-$version.tar.bz2"
+
+[ -d "$dest" ] && exit 0
+
+cd /tmp
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Configuration… >&2
+if pge $version 1.2.25
+then
+	./configure --prefix="$dest"
+else
+filtrer scripts/makefile.macosx sed -e '/^prefix=/c\
+prefix='"$dest"'
+' -e '/^LDFLAGS=/c\
+LDFLAGS=-L. -L$(ZLIBLIB) -lpng -lz
+' -e 's=-dynamiclib=-dynamiclib -install_name $(DL)/$@='
+cp scripts/makefile.macosx Makefile
+fi
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo mkdir -p "$dest" && sudo make install
+pge 1.2.5 $version && [ "`uname -s`" = Darwin ] && sudo rm -f "$INSTALLS/lib/libpng.dylib" && sudo ln -s "$dest/lib/libpng.3.$version.dylib" "$INSTALLS/lib/libpng.dylib" # Ces couillons ont merdé leur Makefile, avec deux suffixes différents pour les biblios mais l'un est vide (d'où les libpng. qui traînent).
+sudo utiliser "$logiciel-$version"
