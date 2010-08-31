@@ -1,0 +1,92 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+inclure readline
+
+logiciel=mysql
+
+# Historique des versions gérées
+
+version=5.0.24a
+OPTIONS_CONF=()
+
+version=5.0.51
+OPTIONS_CONF=(--without-editline --with-readline=yes --with-charset=utf8 CPPFLAGS=-I$INSTALLS/include)
+modifs=poumReadline
+
+version=5.1.46
+OPTIONS_CONF=()
+
+version=5.1.50
+OPTIONS_CONF=()
+
+vmaj="`echo $version | sed -e 's#^\([^.]*.[^.]*\).*#\1#'`"
+
+# Modifications
+
+poumReadline()
+{
+	rm -Rf include/readline # Leur version intégrée possède une définition pour laquelle dans mysql.cc ils disent justement « comme cette définition n'existe pas dans readline, on la définit ici » et du coup doublon et boum. On utilise une vraie readline, mais leur include intégré passe devant nos CPPFLAGS, il faut donc le faire sauter.
+}
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+archive=ftp://mir1.ovh.net/ftp.mysql.com/Downloads/MySQL-$vmaj/$logiciel-$version.tar.gz
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+
+echo Compilation… >&2
+make
+plugins=
+pge $version 5.1.50 && plugins='plugin-load=innodb=ha_innodb_plugin.so'
+cat <<TERMINE > my.cnf
+[mysqld]
+datadir=$HOME/var/mysql
+$plugins
+
+[server]
+bind-address=127.0.0.1
+TERMINE
+
+echo Installation… >&2
+sudo make install
+sudo cp my.cnf "$dest/"
+sudo utiliser "$logiciel-$version"
+
+#mysql_install_db --datadir="$HOME/var/mysql"
+# Pour une machine déjà installée:
+#sudo mysql_upgrade -uroot -p
+
+rm -Rf "$TMP/$$"
