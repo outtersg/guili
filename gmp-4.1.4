@@ -1,0 +1,175 @@
+#!/bin/bash
+# Copyright (c) 2004,2008 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=gmp
+version=4.1.4
+
+version=4.2.2
+
+version=4.3.1
+
+version=5.0.1
+
+dest="$INSTALLS/$logiciel-$version"
+
+[ -d "$dest" ] && exit 0
+
+# Création de biblio multiarchi si nécessaire et possible.
+lipoenfler()
+{
+	# A-t-on de quoi faire des binaires universels?
+	
+	command -v lipo > /dev/null 2>&1 || return 0
+	
+	# Quelle archi a-t-elle été compilée, par défaut?
+	
+	defaut="`awk '/^Decided/{d=1}/^ABI=/{if(d){sub(/^.*=/,"");print;d=0}}' < config.log`"
+	archis="`sed -e '/^abilist=/!d' -e 's/^.*=//' < config.log`"
+	
+	# Préparation du travail
+	
+	(
+		cd "$dest/include"
+		for i in *.h
+		do
+			echo "#if 0" > /tmp/temp.$$.inc.$i
+		done
+	)
+	
+	(
+		cd "$dest/lib"
+		find . -type f \( -name \*.a -o -name \*.dylib -o -name \*.so \) | while read i
+		do
+			i="`basename "$i"`"
+			cp "$i" /tmp/temp.$$.lib.$i
+		done
+	)
+	
+	# Les archis envisagées pour cette machine.
+	
+	for archi in $archis
+	do
+		# L'archi par défaut, on l'a déjà.
+		
+		[ $archi = $defaut ] && continue
+		
+		# Sait-on générer quelque chose pour cette archi?
+		
+		ifdef=""
+		case `uname -p` in
+			powerpc)
+				case $archi in
+					mode32) ifdef=__ppc__ ;;
+					mode64) ifdef=__ppc64__ ;;
+				esac
+				;;
+		esac
+		
+		# Bon, on ne sait pas.
+		
+		[ -z "$ifdef" ] && continue
+		
+		# Bon, on sait.
+		
+		make clean
+		ABI=$archi ./configure --prefix=/tmp/gmp-$archi
+		make
+		make check
+		make install
+		
+		# Combinaison des includes.
+		
+		(
+			cd "$dest/include"
+			for i in *.h
+			do
+				(
+					echo "#elif defined ($ifdef)"
+					echo
+					cat /tmp/gmp-$archi/include/$i
+				) >> /tmp/temp.$$.inc.$i
+			done
+		)
+		
+		# Idem pour les biblios.
+		
+		(
+			cd "$dest/lib"
+			find . -type f \( -name \*.a -o -name \*.dylib -o -name \*.so \) | while read i
+			do
+				i="`basename "$i"`"
+				rm -f /tmp/temp.$$.lib.$i.2
+				lipo -create /tmp/temp.$$.lib.$i /tmp/gmp-$archi/lib/$i -output /tmp/temp.$$.lib.$i.2 && cat /tmp/temp.$$.lib.$i.2 > /tmp/temp.$$.lib.$i
+			done
+		)
+	done
+	
+	# Complément et installation.
+	
+	(
+		cd "$dest/include"
+		for i in *.h
+		do
+			(
+				echo
+				echo "#else"
+				echo
+				cat "$dest/include/$i"
+				echo
+				echo "#endif"
+			) >> /tmp/temp.$$.inc.$i
+			sudo cp /tmp/temp.$$.inc.$i "$dest/include/$i"
+		done
+	)
+	
+	(
+		cd "$dest/lib"
+		find . -type f \( -name \*.a -o -name \*.dylib -o -name \*.so \) | while read i
+		do
+			i="`basename "$i"`"
+			sudo cp /tmp/temp.$$.lib.$i "$dest/lib/$i"
+		done
+	)
+}
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDans "http://ftp.sunet.se/pub/gnu/$logiciel/$logiciel-$version.tar.bz2"
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+
+echo Compilation… >&2
+make
+make check
+
+echo Installation… >&2
+sudo make install
+
+lipoenfler
+
+sudo utiliser $logiciel-$version
+
+rm -Rf "$TMP/$$"
