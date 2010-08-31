@@ -1,0 +1,163 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+logiciel=rsync
+
+# Historique des versions gérées
+
+version=2.6.3
+version_apple=24
+modifs="apple copyfile_h monmtime cd_rsync"
+
+version=3.0.0pre10
+modifs="rustine_dates rustine_bsd"
+modifs=""
+
+version=3.0.0
+modifs=""
+
+version=3.0.4
+
+version=3.0.6
+
+version=3.0.7
+
+# Modifications
+
+OPTIONS_CONF=()
+
+apple()
+{
+	OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-ea-support)
+}
+
+cd_rsync()
+{
+	cd rsync
+}
+
+rustine()
+{
+	(
+		archive="${archive//$version/patches-$version}"
+		obtenirEtAllerDansVersion
+		patch -p1 < patches/$1.diff
+	)
+}
+
+rustine_dates()
+{
+	rustine osx-create-time
+}
+
+rustine_bsd()
+{
+	rustine flags
+	./prepare-source
+}
+
+copyfile_h()
+{
+	curl -o copyfile.h http://darwinsource.opendarwin.org/10.4.6.ppc/Libc-391.2.5/darwin/copyfile.h
+	false && filtrer Makefile sed -e '/Extra_CC_Flags/{
+s= -I\$\(Sources\)/\.\.$==
+s=$= -I$(Sources)/..=
+}'
+	export CFLAGS="$CFLAGS -I.."
+}
+
+# La copie fournie par Apple change la date de modif de tout fichier doté de
+# ressources. Résultat, le fichier lui semble différent, et est transféré à
+# chaque fois; avec un --link-dest, il n'est plus lié.
+# Je m'apprétais à modifier moi-même dans syscall.c leur version du rename,
+# quand j'ai trouvé ceci sur le net.
+mtime()
+{
+	curl -O http://www.lartmaker.nl/rsync/rsync-tiger-fixes.diff
+	( cd rsync && patch -p0 < ../rsync-tiger-fixes.diff )
+}
+
+# Bon, finalement je vais le faire moi-même en plus simple (pourvu que ça
+# marche!).
+monmtime()
+{
+	( cd rsync && patch -N -p0 <<TERMINE
+--- syscall.c	2006-06-10 18:38:13.000000000 +0200
++++ syscall.c	2006-06-10 18:46:17.000000000 +0200
+@@ -130,6 +130,7 @@
+ }
+ #endif
+ 
++extern int set_modtime(char *fname, time_t modtime);
+ int do_rename(char *fname1, char *fname2)
+ {
+ 	if (dry_run) return 0;
+@@ -143,7 +144,12 @@
+ 		snprintf(dst_fname, MAXPATHLEN, "%s/%s", dirname(fname2), basename(fname2) + 2);
+ 		if(copyfile(fname1, dst_fname, 0,
+ 		    COPYFILE_UNPACK | COPYFILE_METADATA) == 0)
+-		return unlink(fname1);
++		{
++			STRUCT_STAT st;
++			if(do_stat(fname1, &st) == 0)
++				set_modtime(dst_fname, st.st_mtime);
++			return unlink(fname1);
++		}
+ 	    }
+ 	}
+ #endif
+TERMINE
+	)
+}
+
+# Variables
+
+dest="/usr/local/$logiciel-$version"
+archive=http://www.opensource.apple.com/darwinsource/tarballs/other/$logiciel-$version_apple.tar.gz
+[ "${version%%.*}" -ge 3 ] && archive=http://www.samba.org/ftp/$logiciel/$logiciel-$version.tar.gz
+
+[ -d "$dest" ] && exit 0
+
+if [[ $version = *-* ]] ; then
+	obtenirEtAllerDansCvs -d $version $archive_cvs
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser "$logiciel-$version"
+
+rm -Rf /tmp/$$
