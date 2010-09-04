@@ -1,0 +1,287 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+logiciel=python
+
+# Historique des versions gérées
+
+version=2.6
+modifs=
+OPTIONS_CONF=()
+
+version=2.6.5
+inclure sqlite
+modifs="incdir"
+
+version=2.6.6
+inclure sqlite
+#modifs="incdir thrdlfbsd thrfbsd"
+#modifs="incdir fbsd"
+modifs="incdir fbsdopenssl"
+
+version=2.7
+inclure sqlite
+#modifs="incdir thrdlfbsd thrfbsd"
+#modifs="incdir fbsd"
+modifs="incdir fbsdopenssl"
+
+# Modifications
+
+incdir()
+{
+	filtrer setup.py sed -e "/inc_dirs = /s#\$# + ['$INSTALLS/include']#"
+}
+
+thrdlfbsd()
+{
+	# Magistral! Sous FreeBSD 7.3, le dlopen, dans des circonstances encore inconnues, change de thread durant son appel. Du coup, comme Python s'assure un lock, et vérifie en sortie que le thread relâchant le lock est bien celui qui l'a mis, ça explose. On fait donc une vérif en sortie de dlopen.
+	# Pour vérifier, on peut effectuer le test suivant sous Python en interactif (pas en -c, car il faut que les instructions soient lancées séparément pour partir du même thread non perverti).
+	# import _ssl # Ne passe pas.
+	# import dl
+	# dl.open('…/_ssl.so
+	# import _ssl # Passe, car le dl.open a été fait par ailleurs.
+	[ "`uname -s`" = FreeBSD ] && patch -p0 <<TERMINE
+diff -ru Python/dynload_shlib.c Python/dynload_shlib.c
+--- Python/dynload_shlib.c	2010-09-03 02:41:57.000000000 +0200
++++ Python/dynload_shlib.c	2010-09-03 02:40:56.000000000 +0200
+@@ -65,6 +65,9 @@
+ } handles[128];
+ static int nhandles = 0;
+ 
++#ifdef WITH_THREAD
++extern long import_lock_thread;
++#endif
+ 
+ dl_funcptr _PyImport_GetDynLoadFunc(const char *fqname, const char *shortname,
+                                     const char *pathname, FILE *fp)
+@@ -127,6 +130,15 @@
+     pathname = pathbuf;
+ #endif
+ 
++	#ifdef WITH_THREAD
++	long me = PyThread_get_thread_ident();
++	#endif
++    handle = dlopen(pathname, dlopenflags);
++	#ifdef WITH_THREAD
++	long menow = PyThread_get_thread_ident();
++	if(menow != me && import_lock_thread == me)
++		import_lock_thread = menow; /* Ugh! Why did pthread_self() change with the dlopen()? And how can we ensure that the original thread ID is not still running, opening other modules at the same time as us? */
++	#endif
+     handle = dlopen(pathname, dlopenflags);
+ 
+     if (handle == NULL) {
+diff -ru Python/import.c Python/import.c
+--- Python/import.c	2010-09-03 02:34:26.000000000 +0200
++++ Python/import.c	2010-09-03 02:40:59.000000000 +0200
+@@ -253,7 +253,7 @@
+ #include "pythread.h"
+ 
+ static PyThread_type_lock import_lock = 0;
+-static long import_lock_thread = -1;
++long import_lock_thread = -1;
+ static int import_lock_level = 0;
+ 
+ void
+TERMINE
+	# Celui-ci est récupéré des ports de FreeBSD.
+	[ "`uname -s`" = FreeBSD ] && patch -p0 <<TERMINE
+--- Python/thread_pthread.h.orig	2010-05-09 22:46:46.000000000 +0800
++++ Python/thread_pthread.h	2010-08-15 14:27:51.886823397 +0800
+@@ -26,13 +26,18 @@
+ #endif
+ #endif
+ 
++#ifdef __FreeBSD__
++#include <osreldate.h>
++#endif
++
+ /* The POSIX spec says that implementations supporting the sem_*
+    family of functions must indicate this by defining
+    _POSIX_SEMAPHORES. */
+ #ifdef _POSIX_SEMAPHORES
+ /* On FreeBSD 4.x, _POSIX_SEMAPHORES is defined empty, so
+    we need to add 0 to make it work there as well. */
+-#if (_POSIX_SEMAPHORES+0) == -1
++#if defined(__FreeBSD__) && __FreeBSD_version < 701104 && \\
++    (_POSIX_SEMAPHORES+0) == -1
+ #define HAVE_BROKEN_POSIX_SEMAPHORES
+ #else
+ #include <semaphore.h>
+@@ -44,7 +49,6 @@
+    in default setting.  So the process scope is preferred to get
+    enough number of threads to work. */
+ #ifdef __FreeBSD__
+-#include <osreldate.h>
+ #if __FreeBSD_version >= 500000 && __FreeBSD_version < 504101
+ #undef PTHREAD_SYSTEM_SCHED_SUPPORTED
+ #endif
+@@ -149,6 +153,7 @@
+ {
+     pthread_t th;
+     int status;
++    sigset_t set, oset;
+ #if defined(THREAD_STACK_SIZE) || defined(PTHREAD_SYSTEM_SCHED_SUPPORTED)
+     pthread_attr_t attrs;
+ #endif
+@@ -177,6 +182,8 @@
+ #if defined(PTHREAD_SYSTEM_SCHED_SUPPORTED)
+     pthread_attr_setscope(&attrs, PTHREAD_SCOPE_SYSTEM);
+ #endif
++    sigfillset(&set);
++    SET_THREAD_SIGMASK(SIG_BLOCK, &set, &oset);
+ 
+     status = pthread_create(&th,
+ #if defined(THREAD_STACK_SIZE) || defined(PTHREAD_SYSTEM_SCHED_SUPPORTED)
+@@ -188,6 +195,7 @@
+                              (void *)arg
+                              );
+ 
++    SET_THREAD_SIGMASK(SIG_SETMASK, &oset, NULL);
+ #if defined(THREAD_STACK_SIZE) || defined(PTHREAD_SYSTEM_SCHED_SUPPORTED)
+     pthread_attr_destroy(&attrs);
+ #endif
+TERMINE
+}
+
+thrfbsd()
+{
+	# Bon, finalement, la modif suivante ne suffit pas: apparemment c'est tout pthread qui est foireux sous FreeBSD, à en croire les forums. D'ailleurs le saut de threads de dlopen nous joue encore des tours malgré la manip précédente: une fois un dlopen appelé, le thread principal n'est plus thread principal. Or dans CalendarServer, le thread qui se croit principal s'envoit un signal (pour relire sa conf)… et Python, qui interdit cela depuis un thread secondaire, explose.
+	# Alors on fait comme tout le monde (je crois que c'est ainsi que fonctionne le port de Python): on désactive purement et simplement les Pthreads.
+	[ "`uname -s`" = FreeBSD ] && OPTIONS_CONF="$OPTIONS_CONF --with-pth"
+	# À FAIRE: en fait récupérer en plus le patch de désactivation complète des phtreads. Cf. fbsd() plus bas.
+}
+
+fbsd()
+{
+	# Bon, manquerait au moins le patch qui désactive vraiment les pthreads d'/usr/ports; ou alors celui qui empêche les signaux de remonter dans un thread secondaire. Les Pthreads semblent encore bien actifs. En tout état de cause, on aura plus vite fait de lancer le make d'/usr/ports, qui me semble suffisant pour ce que je veux faire.
+	if [ "`uname -s`" = FreeBSD ]
+	then
+		vfbsd="`echo "$version" | sed -e 's/\([0-9]*\)\.\([0-9]*\).*/\1\2/'`"
+		cd /usr/ports/lang/python$vfbsd
+		version="`grep 'PORTVERSION *=' < Makefile | sed -e 's/^[^=]*= *//' -e 's/ *$//'`" # Ben on prend ce qu'ils nous proposent.
+		dest="$INSTALLS/$logiciel-$version"
+		sudo /usr/bin/make PREFIX="$dest" install
+		sudo utiliser "$logiciel-$version"
+		exit 0
+	fi
+}
+
+fbsdopenssl()
+{
+	# Bon, alors en fait personne n'arrive à faire démarrer ce putain de Python. À force d'investigation, j'ai fini par mieux cerner: en fait c'est le fait que Python charge OpenSSL qui fout la grouille. Genre celui-ci lance, à son initialisation, un second thread sur lequel tout le monde bascule. La solution est simple: charger OpenSSL avant le main() de Python, de façon à ce que l'on soit déjà dans le second thread lorsque Python se pose la question « alors, voyons, dans quel thread suis-je, que nous le décrétions thread principal? ».
+	# Et pour faire propre, on voulait fouiller le LD_LIBRARY_PATH bout par bout, plus les bibliothèques système.
+	# Mais ça ne marche pas, car lorsque le LD_LIBRARY_PATH ne contient pas libssl.so (ou contient une version incompatible avec celle avec laquelle on a compilé, par exemple lorsque l'on tourne en root qui ne voit qu'/usr/lib et non /usr/local/lib), l'import _ssl semble quand même marcher, ce qui voudrait dire qu'il arrive soit à recomposer ses petits (oui je sais c'est abominable), soit à se lier in fine avec un libssl.so d'une autre version mais compatible.
+	# Quoi qu'il en soit, le plus prudent, même si c'est dégueu parce que codage en dur empêchant le déplacement, c'est de ne reposer que sur la présence de _ssl.so.
+	
+	# Ici avec _ssl.so en dur:
+	[ "`uname -s`" = FreeBSD ] && filtrer Modules/python.c sed -e '/#include "Python.h"/a\
+#include <dlfcn.h>
+' -e '/return Py_Main/i\
+dlopen("'"$dest/lib/python$vm"'/lib-dynload/_ssl.so", 0);
+'
+	
+	# Ici avec libssl.so dans LD_LIBRARY_PATH:
+	if false
+	then
+	[ "`uname -s`" = FreeBSD ] && filtrer Modules/python.c sed -e '/#include "Python.h"/a\
+#include <dlfcn.h>
+' -e '/return Py_Main/{
+i\
+char * ldlp = getenv("LD_LIBRARY_PATH");
+i\
+const char * slp = "/usr/lib:/lib";
+i\
+char * lp = (char *)malloc((ldlp ? strlen(ldlp) + 1 : 0) + strlen(slp) + 1);
+i\
+char * l = (char *)malloc((ldlp ? strlen(ldlp) + 1 : 0) + strlen(slp) + 10 + 1);
+i\
+if(ldlp)
+i\
+{
+i\
+strcpy(lp, ldlp);
+i\
+strcat(lp, ":");
+i\
+}
+i\
+else
+i\
+*lp = 0;
+i\
+strcat(lp, slp);
+i\
+char * endp = strchr(lp, 0);
+i\
+char * p, * ep;
+i\
+for(p = lp; p < endp; p = ep + 1)
+i\
+{
+i\
+(ep = strchr(p, '\':\'')) || (ep = strchr(p, 0));
+i\
+strncpy(l, p, ep - p);
+i\
+strcpy(&l[ep - p], "/libssl.so");
+i\
+if(dlopen(l, 0))
+i\
+break;
+i\
+}
+i\
+free(l);
+i\
+free(lp);
+}'
+	fi
+}
+
+# Variables
+
+archive="http://www.python.org/ftp/$logiciel/$version/Python-$version.tar.bz2"
+dest="$INSTALLS/$logiciel-$version"
+vm="`echo "$version" | sed -e 's/^\([0-9]*\.[0-9]*\).*$/\1/'`"
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" $OPTIONS_CONF
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo utiliser $logiciel-$version
+
+rm -Rf /tmp/$$
