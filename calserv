@@ -1,0 +1,423 @@
+#!/bin/bash
+# Copyright (c) 2004,2009 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
+. "$SCRIPTS/util.bash"
+
+logiciel=calserv
+
+version=t2.4
+modifs="fichierDeConf internap zopeInterfaceSansZope rsyncAbsolu rsyncVaChercherTonBin twistedEnodata setuptools caldavdplistDansEtc caldavdPythonpath installerMemcached"
+
+inclure kerberos
+
+# Modifications
+
+defVarInstallPython()
+{
+	# Python choisit d'implanter ses bazars un peu partout, en fonction de
+	# machins codés en dur, mais aussi de variables de config. Ainsi, sous
+	# FreeBSD, les scripts sont installés sous $prefix/bin, mais sous Mac OS X,
+	# la conf par défaut redéfinit un BINDIR à /usr/local/bin (alors que le
+	# $prefix va quelque part dans /System/Library/…).
+	# Aussi, pour être sûrs d'aller chercher au bon endroit… ben on crée un
+	# script d'install bidon, on le lance, et une fois qu'on est bien dedans, on
+	# lui demande de nous sortir ce qu'il sait de son environnement.
+	# Merci à http://mail.python.org/pipermail/distutils-sig/2009-September/013261.html
+	cat > "$TMP/$$/bidon.py" <<TERMINE
+import distutils.core as core
+from distutils.command.install import install 
+class bidon(install):
+    def run(self):
+	        print "PY_SCRIPT_DIR=%s"%(self.install_scripts)
+core.setup(cmdclass={'install':bidon})
+TERMINE
+	eval "`python "$TMP/$$/bidon.py" install | grep =`"
+}
+
+defVarInstallPython
+
+zopeInterfaceSansZope()
+{
+	# zope/interface/__init__.py est installé, mais pas zope/__init__.py, sur
+	# l'hypothèse qu'on a déjà un Zope d'installé dont il ne manque que la
+	# partie Interface. Manque de bol, on n'a pas Zope. Et Python refuse de
+	# reconnaître le premier si le second n'est point présent. On lui dit donc
+	# d'installer aussi ça.
+	filtrer run sed -e '/www_get.*Zope Interface/a\
+! py_have_module zope && grep -v namespace_packages < "${zope}/setup.py" > "${zope}/setup.py.temp" && cat "${zope}/setup.py.temp" > "${zope}/setup.py"
+'
+}
+
+rsyncAbsolu()
+{
+	filtrer run sed -e 's#\(rsync -av "\)\([^/]*\)/#\1`python -c "import os;print os.path.normpath('\'\\2\'')"`/#'
+}
+
+rsyncVaChercherTonBin()
+{
+	# Sur Mac OS X, on ne sait pourquoi, en préparant son déploiement, il aura mis le répertoire bin sous un usr/local plutôt que sous le répertoire nommé d'après la destination réelle (où rsync va le chercher). Sous BSD il aura bien préparé son arborescence. Pour pallier, on envoie tous les fichiers au même endroit si on en trouve aux deux.
+	# À FAIRE: ne marche pas encore des masses, pydir.py va de toute manière s'installer direct dans /usr/local/bin. Et est introuvable du coup pour Twisted aui a codé en dur qu'il était dans le répertoire inattendu.
+	filtrer run sed -e '/rsync.*bin/{
+i\
+transit_bin_inattendu="`python -c "import os;print os.path.normpath('\''${install}/usr/local'\'')"`/bin/"
+i\
+transit_bin_attendu="`python -c "import os;print os.path.normpath('\''${install}${py_prefix}'\'')"`/bin/"
+i\
+[ -d "$transit_bin_inattendu" ] && mkdir -p "$transit_bin_attendu" && cp "$transit_bin_inattendu"/* "$transit_bin_attendu/"
+}'
+}
+
+twistedEnodata()
+{
+	# Utilise une constante d'erreur non définie sous FreeBSD (donc à priori non
+	# utilisée). On la vire, et on reconstitue un tableau Python valide derrière
+	# ("(4)" est un scalaire, il faut "(4,)").
+	filtrer run sed -e '/py_install.*Twisted/i\
+sed -e "/errno.ENODATA, /s///" -e "s/= (\\\\([^,]*\\\\))/= (\\\\1,)/" < "${twisted}/twisted/web2/dav/xattrprops.py" > "${twisted}/twisted/web2/dav/xattrprops.py.temp" && cat "${twisted}/twisted/web2/dav/xattrprops.py.temp" > "${twisted}/twisted/web2/dav/xattrprops.py"
+'
+}
+
+setuptools()
+{
+	sudo sh "`obtenir "http://pypi.python.org/packages/$pvc/s/setuptools/setuptools-0.6c11-py$pvc.egg"`"
+}
+
+# Pas sûr qu'il faille l'appeler: le script run fait la même chose, mais applique en plus des rustines.
+pydirector()
+{
+	(
+		obtenirEtAllerDans "http://sourceforge.net/projects/pythondirector/files/pythondirector/pythondirector-1.0.0/pydirector-1.0.0.tar.gz/download" pydirector-1.0.0.tar.gz
+		python setup.py build
+		sudo python setup.py install
+	)
+}
+
+caldavdplistDansEtc()
+{
+	filtrer calendarserver/tools/fixcalendardata.py sed -e "s#/etc/caldavd/caldavd.plist#$dest/etc/caldavd.plist#"
+	filtrer setup.py sed -e '/caldavd.plist/s/"caldavd"/"etc"/'
+	filtrer run sed -e '/rsync/s#/caldavd/#/etc/#g'
+}
+
+caldavdPythonpath()
+{
+	# La "Home Install" (seule qui nous permette de placer caldavd exactement où
+	# nous le voulons) oublie qu'elle utilise un PYTHONPATH qui ne sera sûrement
+	# pas présent en root. On le colle donc dans le script de démarrage.
+	filtrer setup.py sed -e '/script.append.*PYTHONPATH/{
+s#%s#%s:%s#
+s#,)#,os.getenv("PYTHONPATH"))#
+}'
+}
+
+internap()
+{
+	# internap ne répond plus.
+	filtrer run sed -e 's/internap.dl.sourceforge.net/switch.dl.sourceforge.net/g'
+}
+
+fichierDeConf()
+{
+	patch -p0 <<TERMINE
+--- conf/caldavd.plist	Wed Mar 24 10:03:47 2010
++++ conf/caldavd.plist	Fri Mar 26 19:19:53 2010
+@@ -36,7 +36,7 @@
+ 
+     <!-- HTTP port [0 = disable HTTP] -->
+     <key>HTTPPort</key>
+-    <integer>80</integer>
++    <integer>8080</integer>
+ 
+     <!-- SSL port [0 = disable HTTPS] -->
+     <!-- (Must also configure SSLCertificate and SSLPrivateKey below) -->
+@@ -78,11 +78,11 @@
+ 
+     <!-- Data root -->
+     <key>DataRoot</key>
+-    <string>/Library/CalendarServer/Data/</string>
++    <string>$db/data</string>
+ 
+     <!-- Document root -->
+     <key>DocumentRoot</key>
+-    <string>/Library/CalendarServer/Documents/</string>
++    <string>$db/docs</string>
+ 
+     <!-- Child aliases -->
+     <key>Aliases</key>
+@@ -133,7 +133,7 @@
+       <key>params</key>
+       <dict>
+         <key>xmlFile</key>
+-        <string>/etc/caldavd/accounts.xml</string>
++        <string>$dest/etc/caldavd-accounts.xml</string>
+       </dict>
+     </dict>
+     
+@@ -179,7 +179,7 @@
+ 
+     <!-- Principals that can pose as other principals -->
+     <key>SudoersFile</key>
+-    <string>/etc/caldavd/sudoers.plist</string>
++    <string>etc/caldavd-sudoers.plist</string>
+ 
+     <!-- Create "proxy access" principals -->
+     <key>EnableProxyPrincipals</key>
+@@ -250,13 +250,13 @@
+ 
+     <!-- Apache-style access log -->
+     <key>AccessLogFile</key>
+-    <string>/var/log/caldavd/access.log</string>
++    <string>$dest/var/log/caldavd/access.log</string>
+     <key>RotateAccessLog</key>
+     <true/>
+ 
+     <!-- Server activity log -->
+     <key>ErrorLogFile</key>
+-    <string>/var/log/caldavd/error.log</string>
++    <string>$dest/var/log/caldavd/error.log</string>
+ 
+     <!-- Log levels -->
+     <key>DefaultLogLevel</key>
+@@ -264,15 +264,15 @@
+ 
+     <!-- Global server stats --> 
+     <key>GlobalStatsSocket</key> 
+-    <string>/var/run/caldavd-stats.sock</string> 
++    <string>$dest/var/run/caldavd-stats.sock</string> 
+ 
+     <!-- Server statistics file -->
+     <key>ServerStatsFile</key>
+-    <string>/var/run/caldavd/stats.plist</string>
++    <string>$dest/var/run/caldavd/stats.plist</string>
+ 
+     <!-- Server process ID file -->
+     <key>PIDFile</key>
+-    <string>/var/run/caldavd.pid</string>
++    <string>$dest/var/run/caldavd.pid</string>
+ 
+ 
+     <!--
+@@ -293,10 +293,10 @@
+       -->
+ 
+     <key>UserName</key>
+-    <string>daemon</string>
++    <string>www</string>
+ 
+     <key>GroupName</key>
+-    <string>daemon</string>
++    <string>www</string>
+ 
+     <key>ProcessType</key>
+     <string>Combined</string>
+TERMINE
+
+	# NOTE: guid
+	# Lorsque l'on précise à iCal de se connecter à principals/users/gui, il
+	# l'enregistre sous son nom brut (principals/__uids__/55xxx). Problème:
+	# calserv ne se crée l'association en mémoire que lorsqu'on appelle le
+	# premier. Aussi au redémarrage d'iCal (ou lorsque calserv vide son cache,
+	# régulièrement), iCal essaie d'accéder via /__uids__/ et se prend une 404.
+	# Il faut alors réaccéder en manuel à /users/ avant qu'iCal ne retrouve son
+	# petit.
+	# En précisant le <guid> dans le fichier de conf, calserv n'a plus besoin de
+	# le retrouver à la volée. Ici, dans un premier temps le serveur a tourné
+	# sans guid, puis j'ai récupéré celui qu'il avait généré tout seul pour le
+	# coller ici.
+	# cf. http://old.nabble.com/Debugging-caldavd-on-Linux-td13539777.html
+	cat > $TMP/$$/caldavd-accounts.xml <<TERMINE
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+Copyright (c) 2006-2007 Apple Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+ -->
+
+<!DOCTYPE accounts SYSTEM "accounts.dtd">
+
+<accounts realm="Agenda de famille">
+  <user>
+    <uid>root</uid>
+    <passwordouille>admin</password>
+    <name>Rootine</name>
+  </user>
+  <user>
+    <uid>gui</uid>
+    <passwordouille>test</password>
+    <name>Guillaume</name>
+    <cuaddr>mailto:guillaume.outters@free.fr</cuaddr>
+	<!-- Cf. note dans l'installeur. -->
+	<guid>55ae0bd5-c0ce-577a-b63f-a19196aad419</guid>
+  </user>
+  <group>
+    <uid>famille</uid>
+    <passwordouille>users</password>
+    <name>Famille</name>
+    <members>
+      <member type="users">gui</member>
+    </members>
+  </group>
+  <location>
+    <uid>maison</uid>
+    <passwordouille>mercury</password>
+    <name>La Villa des Étangs</name>
+    <auto-schedule/>
+    <proxies>
+      <member type="users">gui</member>
+    </proxies>
+  </location>
+</accounts>
+TERMINE
+
+	cat > $TMP/$$/caldavd-sudoers.plist <<TERMINE
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>users</key>
+<array>
+<!-- Sudo user definitions -->
+<!-- With the exception of username and password none of the following
+     elements are used in the current implementation. -->
+<!--
+  <dict>
+    <key>authorize-as</key>
+    <dict>
+      <key>allow</key>
+      <true/>
+      <key>principals</key>
+      <array>
+	<string>all</string>
+        <string>/principals/user/wsanchez</string>
+      </array>
+    </dict>
+    <key>authorize-from</key>
+    <array>
+      <string>127.0.0.1</string>
+    </array>
+
+    <key>username</key>
+    <string></string>
+
+    <key>password</key>
+    <string></string>
+  </dict>
+-->
+  <dict>
+    <key>username</key>
+    <string>root</string>
+    <key>password</key>
+    <stringouille>superuser</string>
+  </dict>
+</array>
+</dict>
+</plist>
+TERMINE
+	
+	pypath="`python -c "import sys; print sys.prefix;"`"
+	filtrer twistedcaldav/config.py sed \
+		-e "s#/usr/share/caldavd/bin/twistd#$dest/bin/twistd#g" \
+		-e "s#/usr/share/caldavd/bin/pydir.py#$PY_SCRIPT_DIR/pydir.py#g" \
+		-e "s#/Library/CalendarServer/Data#$db/data#g" \
+		-e "s#/Library/CalendarServer/Documents#$db/docs#g" \
+		-e "s#/etc/caldavd/caldavd.plist#$dest/etc/caldavd.plist#g" \
+		-e "s#/etc/caldavd/sudoers.plist#$dest/etc/caldavd-sudoers.plist#g" \
+		-e "s#/etc/caldavd/servertoserver.xml#$dest/etc/caldavd-servertoserver.xml#g" \
+		-e "s#/var/log/caldavd/access.log#$dest/var/log/caldavd/access.log#g" \
+		-e "s#/var/log/caldavd/error.log#$dest/var/log/caldavd/error.log#g" \
+		-e "s#/var/log/caldavd/accounting#$dest/var/log/caldavd/accounting#g" \
+		-e "s#/var/run/caldavd-stats.sock#$dest/var/run/caldavd-stats.sock#g" \
+		-e "s#/var/run/caldavd/stats.plist#$dest/var/run/caldavd-stats.plist#g" \
+		-e "s#/var/run/caldavd.pid#$dest/var/run/caldavd.pid#g" \
+		-e "s#/var/run/caldavd.sock#$dest/var/run/caldavd.sock#g"
+}
+
+installerMemcached()
+{
+	filtrer run sed -e '/rsync.*install_home.*etc/{
+a\
+set +u
+a\
+[ -z "$libevent" ] || rsync -av "$libevent/_root/" "'"$dest"'/"
+a\
+[ -z "$memcached" ] || rsync -av "$memcached/_root/" "'"$dest"'/"
+a\
+set -u
+}'
+}
+
+# Variables
+
+v="${version#t}"
+dest="$INSTALLS/$logiciel-$v"
+db="$HOME/var/db/caldav"
+archive_svn="http://svn.macosforge.org/repository/calendarserver/CalendarServer/trunk"
+archive_svn_tag="http://svn.macosforge.org/repository/calendarserver/CalendarServer/tags/release/CalendarServer-$v"
+pvc="`python --version 2>&1 | sed -e 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/'`" # Python version courte
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration et compilation… >&2
+./run -s
+
+echo Installation… >&2
+sudo ./run -I "$dest"
+
+sudo mkdir -p "$dest/etc" "$dest/var/log/caldavd" "$dest/var/run" "$db/data" "$db/docs"
+sudo cp $TMP/$$/caldavd-accounts.xml $TMP/$$/caldavd-sudoers.plist "$dest/etc/"
+sudo chmod 700 "$dest/etc/"*
+sudo chown -R www:www "$db"
+sudo cp contrib/tools/fix_calendar "$dest/bin/"
+calcScripts python
+[ -f "$SCRIPTS/pydir.py" ] || sudo ln /usr/local/bin/pydir.py "$SCRIPTS/"
+
+sudo utiliser "$logiciel-$v"
+
+rm -Rf "$TMP/$$"
+
+echo "Vous songerez à régler les mots de passe dans $dest/etc/caldavd-sudoers.plist et $dest/etc/caldavd-accounts.xml (repérer les ouille)" >&2
+echo "L'invocation du serveur pourr se faire en:" >&2
+echo "sudo $dest/bin/caldavd -f $dest/etc/caldavd.plist -X" >&2
+echo "Pour Chandler, vous activerez l'authentification Basic dans $dest/etc/caldavd.plist" >&2
+echo "Modifiez aussi le accounts.xml: ajouter des first-name et last-name à chaque compte." >&2
+# N.B.: pour certain paquets, j'ai l'impression que le schéma est le suivant (genre pydir): s'il faut télécharger, je télécharge, décompresse et patche. Sinon je décompresse juste (et oublie de patcher). J'ai eu ce problème avec un pydirector non patché qui s'est installé (et du coup serveur non fonctionnel).
