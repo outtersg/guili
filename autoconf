@@ -21,13 +21,19 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+inclure m4
 
 logiciel=autoconf
+
 version=2.59
-dest="/usr/local/$logiciel-$version"
-archive=ftp://ftp.cs.univ-paris8.fr/mirrors/ftp.gnu.org/$logiciel/$logiciel-$version.tar.bz2
+
+version=2.68
+
+dest="$INSTALLS/$logiciel-$version"
+archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 
 [ -d "$dest" ] && exit 0
 
@@ -43,4 +49,4 @@ echo Installation… >&2
 sudo make install
 sudo utiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
