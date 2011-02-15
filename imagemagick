@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,8 +21,8 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
 
 inclure libjpeg
 inclure libtiff
@@ -31,10 +31,14 @@ inclure freetype
 
 logiciel_maj=ImageMagick
 logiciel="`echo $logiciel_maj | tr '[A-Z]' '[a-z]'`"
+
 version_min=6.2.4-4
 version_min=6.2.5-5
+
+version_min=6.6.7-7
+
 version="${version_min%%-*}"
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_min.tar.bz2
 
 [ -d "$dest" ] && exit 0
@@ -51,4 +55,4 @@ echo Installation… >&2
 sudo make install
 sudo utiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
