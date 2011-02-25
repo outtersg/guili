@@ -132,6 +132,30 @@ obtenirEtAllerDansVersion()
 	fi
 }
 
+inclureBiblios()
+{
+	local trou=
+	[ "x$1" = x-t ] && trou=oui && shift
+	local dou="$1"
+	[ -z "$dou" ] || dou="$dou/"
+	for biblio in $biblios
+	do
+		v=${biblio#*:}
+		if [ "x$v" = "x$biblio" ]
+		then
+			v=
+		else
+			v="-v $v"
+		fi
+		if [ -z "$trou" ]
+		then
+			inclure $dou${biblio%:*} $v
+		else
+			inclure $dou${biblio%:*} $v || true
+		fi
+	done
+}
+
 ajouterModif()
 {
 	modifs="$modifs $1"
