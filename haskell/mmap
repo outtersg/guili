@@ -30,16 +30,24 @@ SCRIPTS="$SCRIPTS/.."
 logiciel=mmap
 
 version=0.4.1
+biblios=
 
-#version=0.5.4
+version=0.5.4
 
-#version=0.5.6
+version=0.5.6
 
-pge $version 0.5.6 && inclure haskell/HUnit || true
+version=0.5.7
+
+[ "x$1" = x-v ] && version="$2" && shift && shift
+
+pge $version 0.5.6 && biblios="HUnit"
+pge $version 0.5.7 && biblios="HUnit:1.2.2.1"
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv
 archive=http://hackage.haskell.org/packages/archive/$logiciel/$version/$logiciel-$version.tar.gz
+
+inclureBiblios -t haskell
 
 # Modifications
 

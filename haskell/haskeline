@@ -35,13 +35,15 @@ version=0.6.2.1
 
 version=0.6.2.2
 
+[ "x$1" = x-v ] && version="$2" && shift && shift
+biblios="utf8-string terminfo"
+pge $version 0.6.2.2 && biblios="utf8-string:0.3.6 terminfo:0.3.1.2 mtl:1.1.0.2"
+
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv
 archive=http://hackage.haskell.org/packages/archive/$logiciel/$version/$logiciel-$version.tar.gz
 
-inclure haskell/utf8-string || true
-inclure haskell/terminfo || true
-pge $version 0.6.2.2 && inclure haskell/mtl || true
+inclureBiblios -t haskell
 
 # Modifications
 

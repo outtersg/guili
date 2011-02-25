@@ -33,6 +33,8 @@ version=0.93
 
 version=0.93.2
 
+[ "x$1" = x-v ] && version="$2" && shift && shift
+
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv
 archive=http://hackage.haskell.org/packages/archive/$logiciel/$version/$logiciel-$version.tar.gz

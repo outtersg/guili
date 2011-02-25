@@ -43,16 +43,19 @@ version=0.4.13
 
 version=0.5.2
 
+version=0.5.4
+
+[ "x$1" = x-v ] && version="$2" && shift && shift
+
+pge $version 0.3.7 && biblios="mmap zlib binary dataenc"
+pge $version 0.4.11 && biblios="mmap:0.4.1 zlib:0.5.2.0 binary:0.5.0.2 dataenc:0.13.0.2 mtl:1.1.0.2"
+pge $version 0.5.4 && biblios="mmap:0.5.7 zlib:0.5.2.0 binary:0.5.0.2 dataenc:0.13.0.2 mtl:1.1.0.2"
+
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv
 archive=http://hackage.haskell.org/packages/archive/$logiciel/$version/$logiciel-$version.tar.gz
 
-inclure haskell/mmap || true
-inclure haskell/zlib || true
-inclure haskell/binary || true
-inclure haskell/dataenc || true
-pge $version 0.4.11 && inclure haskell/mmap || true
-pge $version 0.4.11 && inclure haskell/mtl || true
+inclureBiblios -t haskell
 
 # Modifications
 

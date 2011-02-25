@@ -66,6 +66,18 @@ version=2.4.1
 
 version=2.4.4
 
+version=2.5 # C'est chiant, un darcs cha me sort les trucs en pseudo ISO8859 (http://www.mail-archive.com/darcs-users@darcs.net/msg17276.html)
+
+version=2.5.1
+
+[ "x$1" = x-v ] && version="$2" && shift && shift
+
+pge $version 2.3.0 && biblios="haskeline hashed-storage terminfo"
+pge $version 2.4.1 && biblios="haskeline hashed-storage terminfo html mtl parsec regex-compat"
+pge $version 2.4.4 && biblios="haskeline:0.6.2.2 hashed-storage:0.4.13 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.0.1 regex-compat:0.93.1"
+pge $version 2.5 && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.1.0 regex-compat:0.93.1 tar:0.3.1.0 text:0.10.0.0"
+pge $version 2.5.1 && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.1.0 regex-compat:0.93.1 tar:0.3.1.0 text:0.11.0.5" && modifs=sortieBrute 
+
 dest=$INSTALLS/$logiciel-$version
 archive=http://darcs.net/$logiciel-$version.tar.gz
 pge $version 2.3.0 && archive=http://darcs.net/releases/$logiciel-$version.tar.gz
@@ -74,13 +86,7 @@ archive_darcs=http://darcs.net
 
 inclure ghc
 
-pge $version 2.3.0 && inclure haskell/haskeline || true
-pge $version 2.3.0 && inclure haskell/hashed-storage || true
-pge $version 2.3.0 && inclure haskell/terminfo || true
-pge $version 2.4.1 && inclure haskell/html || true
-pge $version 2.4.1 && inclure haskell/mtl || true
-pge $version 2.4.1 && inclure haskell/parsec || true
-pge $version 2.4.1 && inclure haskell/regex-compat || true
+inclureBiblios -t haskell
 
 # Modifications
 
@@ -100,6 +106,12 @@ configureSansDarcs()
    I_AM_IN_REPO=1
  else
 TERMINE
+}
+
+sortieBrute()
+{
+	# http://www.mail-archive.com/darcs-users@darcs.net/msg17276.html
+	filtrer src/darcs.hs grep -v 'hSetBinaryMode.*True'
 }
 
 # Boulot
