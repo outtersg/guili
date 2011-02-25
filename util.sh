@@ -24,7 +24,9 @@ INSTALLS=/usr/local
 TMP=$HOME/tmp
 
 mkdir -p "$TMP/$$"
-export PATH="`echo $PATH | sed -e 's/^\.://' -e 's/:\.:/:/g'`"
+export PATH="`echo $PATH | sed -e 's/^\.://' -e 's/:\.://g'`"
+export LD_LIBRARY_PATH="$INSTALLS/lib:$LD_LIBRARY_PATH"
+export LDFLAGS="-L$INSTALLS/lib"
 
 obtenir()
 {
@@ -170,6 +172,62 @@ inclure()
 		echo '# Aucune instruction pour installer '"$1" >&2
 		return 1
 	fi
-	"$SCRIPTS/$truc"
+	shift
+	"$SCRIPTS/$truc" "$@"
 	return $?
+}
+
+# Fonctions utilitaires dans le cadre des modifs.
+
+# Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
+# Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
+libtool3264()
+{
+	if command -v arch >&1 2> /dev/null && arch -arch x86_64 true 2> /dev/null
+	then
+		CFLAGS="$CFLAGS -arch x86_64 -arch i386"
+		LDFLAGS="$CFLAGS -arch x86_64 -arch i386"
+		export CFLAGS LDFLAGS
+		modifspostconf="$modifspostconf libtool3264bis"
+	fi
+}
+
+libtool3264bis()
+{
+	# Toutes les étapes incluant une génération de fichiers de dépendances (-M) plantent en multi-archis. C'est d'ailleurs ce qui nous pose problème, car certaines compils combinent génération de méta ET compil proprement dite, qui elle a besoin de son -arch multiple.
+	filtrer libtool sed -e '/func_show_eval_locale "/i\
+command="`echo "$command" | sed -e "/ -M/s/ -arch [^ ]*//g"`"
+'
+}
+
+# À ajouter en modif; après la compil dans l'archi cible, déterminera si celle-ci est une 64bits, et, si oui, lancera la recompil équivalente totale en 32bits, avant de combiner les produits via lipo.
+compil3264()
+{
+	if command -v arch 2> /dev/null && arch -arch x86_64 true 2> /dev/null
+	then
+		if [ "x$1" = "x-32" ]
+		then
+			CFLAGS="$CFLAGS -arch i386"
+			CXXFLAGS="$CXXFLAGS -arch i386"
+			LDFLAGS="$LDFLAGS -arch i386"
+			export CFLAGS LDFLAGS CXXFLAGS
+		else
+			mkdir -p "/tmp/$$/compil32bits"
+			modifspostcompil="$modifspostcompil compil3264bis"
+		fi
+	fi
+}
+
+compil3264bis()
+{
+	icirel="`pwd | sed -e "s#$TMP/*##"`"
+	tmp2="$TMP/$$/compil32bits"
+	TMP="$tmp2" "$SCRIPTS/`basename "$0"`" -32
+	tmp2="$tmp2/$icirel"
+	find . \( -name \*.dylib -o -name \*.a -o -perm -100 \) -a -type f | xargs file | grep ": *Mach-O" | cut -d : -f 1 | while read f
+	do
+		touch -r "$f" "$TMP/$$/h"
+		lipo -create "$f" "$tmp2/$f" -output "$f.univ" && cat "$f.univ" > "$f"
+		touch -r "$TMP/$$/h" "$f"
+	done
 }
