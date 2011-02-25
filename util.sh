@@ -21,7 +21,7 @@
 
 INSTALL_MEM="$HOME/tmp/paquets"
 INSTALLS=/usr/local
-TMP=$HOME/tmp
+[ -z "$TMP" ] && TMP=/tmp
 
 mkdir -p "$TMP/$$"
 export PATH="`echo $PATH | sed -e 's/^\.://' -e 's/:\.://g'`"
