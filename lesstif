@@ -95,6 +95,6 @@ echo Installation… >&2
 sudo make install
 sudo mkdir -p $dest/docs
 sudo mv $dest/LessTif $dest/docs/lesstif
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
