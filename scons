@@ -56,6 +56,6 @@ python src/script/scons.py build/scons
 echo Installation… >&2
 cd build/scons
 sudo python setup.py install --prefix="$dest"
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
