@@ -68,5 +68,5 @@ echo Installation… >&2
 sudo mkdir -p "$dest/man/man5" "$dest/man/man8" "$dest/sbin"
 sudo make install
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 sudo ln -s /usr/local/sbin/racoon /usr/local/bin/racoon
