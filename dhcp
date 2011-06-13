@@ -57,7 +57,7 @@ make
 
 echo Installation… >&2
 sudo make DESTDIR="$dest" USERBINDIR=/bin BINDIR=/sbin ADMMANDIR="/share/man/man8" ADMMANEXT=.8 FFMANDIR="/share/man/man5" FFMANEXT=.5 LIBMANDIR="/share/man/man3" LIBMANEXT=.3 USRMANDIR="/share/man/man1" USRMANEXT=.1 LIBDIR=/lib INCDIR=/include install
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 sudo touch /var/db/dhcpd.leases
 
 rm -Rf /tmp/$$
