@@ -61,6 +61,6 @@ echo Compilation… >&2
 
 echo Installation… >&2
 sudo ./setup.py install --prefix="$dest"
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
