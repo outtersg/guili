@@ -71,4 +71,4 @@ for modif in true $modifs ; do $modif ; done
 echo Installation… >&2
 sudo cp -R . "$dest"
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
