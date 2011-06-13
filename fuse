@@ -674,7 +674,7 @@ for ou in "${AUTRES[@]}"
 do
 	( cd "$ou" && sudo make install )
 done
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 fi
 
@@ -684,6 +684,6 @@ for ou in "${AUTRES[@]}"
 do
 	( cd "$ou" && sudo make install )
 done
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
