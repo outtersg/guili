@@ -75,6 +75,6 @@ scons PREFIX="$dest" LINKFLAGS="-lgthread-2.0"
 
 echo Installation… >&2
 sudo scons PREFIX="$dest" install
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
