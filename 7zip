@@ -31,8 +31,15 @@ logiciel=7z
 version=4.57
 
 version=4.65
+modifs=dlopenPourTous
 
 # Modifications
+
+dlopenPourTous()
+{
+	filtrer CPP/Windows/DLL.cpp sed -e 's/_APPLE_CC_/_OH_NON_APPLE_CC_/'
+	filtrer CPP/7zip/UI/Common/LoadCodecs.cpp sed -e 's/7z.dll/7z.so/g'
+}
 
 # Variables
 
@@ -59,7 +66,7 @@ DEST_HOME='"$dest"'
 filtrer makefile.machine sed -e '/^\(ALLFLAGS=.*\) -s /s//\1 /'
 
 echo Compilation… >&2
-make
+make 7za 7z
 
 echo Installation… >&2
 sudo make install
