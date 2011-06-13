@@ -100,6 +100,6 @@ sudo mkdir -p "$dest/bin"
 sudo mkdir -p "$dest/man/man1"
 sudo make install
 sudo cp -r "$logiciel.app" /Apps/Utilitaires/
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
