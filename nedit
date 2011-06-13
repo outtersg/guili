@@ -74,6 +74,6 @@ mkdir -p $dest/man/man1
 cp doc/*.man $dest/man/man1/
 mv $dest/man/man1/nc.man $dest/man/man1/ned.man
 TERMINE
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
