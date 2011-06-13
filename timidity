@@ -77,6 +77,6 @@ sudo make install
 sudo mkdir -p "$dest/share/timidity"
 sudo ln "$INSTALL_MEM/FluidR3 GM.SF2" "$dest/share/timidity/"
 finirFluid
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
