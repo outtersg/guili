@@ -80,6 +80,6 @@ make
 
 echo Installation… >&2
 sudo make package pkgdir="$dest"
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
