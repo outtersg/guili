@@ -58,7 +58,7 @@ make
 echo Installation… >&2
 sudo make install
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 # + Recopie des biblios chez SANE
 # Sur la bécane, faire un:
