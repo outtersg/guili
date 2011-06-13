@@ -155,4 +155,4 @@ else
 	sudo make install
 fi
 
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
