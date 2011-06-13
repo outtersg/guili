@@ -76,4 +76,4 @@ make
 
 sudo make install
 
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
