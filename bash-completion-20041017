@@ -43,4 +43,4 @@ echo Installation… >&2
 sudo sh -c "mkdir -p $dest/etc && ln -s /usr/local/etc/bash_completion.d $dest/etc/ && cp /tmp/bash_completion/bash_completion $dest/etc/"
 
 sudo mkdir /usr/local/etc/bash_completion.d
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
