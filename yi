@@ -75,6 +75,6 @@ echo Compilation… >&2
 
 echo Installation… >&2
 ./Setup.hs install
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
