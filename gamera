@@ -59,7 +59,7 @@ python setup.py build
 
 echo Installation… >&2
 sudo python setup.py install --home="$dest"
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 echo AOMR2… >&2
 obtenirEtAllerDans "$archive_aomr2"
@@ -79,6 +79,6 @@ export CPPFLAGS=-I"$dest/include/python2.3/gamera"
 python setup.py build
 sudo python setup.py install --home="$dest"
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
