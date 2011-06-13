@@ -183,4 +183,4 @@ sudo /tmp/$$/config.temp
 chmod a+x /tmp/$$/jabberd-local
 sudo cp /tmp/$$/jabberd-local "$dest/bin/"
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
