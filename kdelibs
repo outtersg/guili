@@ -72,6 +72,6 @@ make all
 
 echo Installation… >&2
 sudo make install
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
