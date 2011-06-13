@@ -762,7 +762,7 @@ echo Installation… >&2
 sudo make install
 for biblio in /usr/local/$logiciel-$version/lib/$logiciel-$version/libHS*.a ; do sudo ranlib $biblio ; done
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 rm -Rf /tmp/$$
 
 [ -z "$recommencer" ] || "$SCRIPTS/`basename $0`" # Travaillant en deux passes, on invoque la seconde.
