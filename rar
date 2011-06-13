@@ -47,6 +47,6 @@ for modif in true $modifs ; do $modif ; done
 echo Installation… >&2
 sudo mkdir -p "$dest/bin"
 sudo cp rar unrar "$dest/bin/"
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf /tmp/$$
