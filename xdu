@@ -60,6 +60,6 @@ echo Installation… >&2
 sudo mkdir -p "$dest/bin" "$dest/man/man1"
 sudo cp "$logiciel" "$dest/bin/"
 sudo cp "$logiciel.man" "$dest/man/man1/"
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf /tmp/$$
