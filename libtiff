@@ -29,10 +29,14 @@ logiciel=libtiff
 # Historique des versions gérées
 
 version=3.7.2
-correctifs=true
+
 
 version=2005-05-05
-correctifs=detectionGLMac
+modifs=detectionGLMac
+
+version=3.9.4
+modifs="compil3264 dyld105"
+
 detectionGLMac()
 {
 	patch -p0 << TERMINE
@@ -238,7 +242,7 @@ TERMINE
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive=ftp://ftp.remotesensing.org/pub/$logiciel/tiff-$version.tar.gz
 archive_cvs=cvs://cvsanon:@cvs.maptools.org:/cvs/maptools/cvsroot:libtiff
 
@@ -246,19 +250,21 @@ archive_cvs=cvs://cvsanon:@cvs.maptools.org:/cvs/maptools/cvsroot:libtiff
 
 if [[ $version = *-* ]] ; then
 	obtenirEtAllerDansCvs -d $version $archive_cvs
-	$correctifs
 else
 	obtenirEtAllerDans "$archive"
 fi
+for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest" --with-apple-opengl-framework
+for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
 sudo utiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf "$TMP/$$"
