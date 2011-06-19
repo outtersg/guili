@@ -24,10 +24,6 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.bash"
 
-modifs_libao=inclusions_ao
-modifs_vorbistools=MUTE
-modifs_libvorbis=soxdependencies
-
 inclusions_ao()
 {
 	filtrer src/plugins/macosx/ao_macosx.c sed -e '/^#include/{
@@ -58,42 +54,64 @@ MUTE()
 	filtrer ogg123/http_transport.c grep -v CURLOPT_MUTE
 }
 
+uint()
+{
+	filtrer include/ogg/os_types.h sed -e 's/u_int16_t/uint16_t/g' -e 's/u_int32_t/uint32_t/g'
+}
+
 #for i in ao/libao-r10015 ogg/libogg-1.1.2 vorbis/libvorbis-1.1.1 vorbis/vorbis-tools-1.1.1
-for i in ao/libao-0.8.6 ogg/libogg-1.1.3 vorbis/libvorbis-1.1.2 vorbis/vorbis-tools-1.1.1
+
+#modifs_libao=inclusions_ao
+#modifs_vorbistools=MUTE
+#modifs_libvorbis=soxdependencies
+#for i in ao/libao-0.8.6 ogg/libogg-1.1.3 vorbis/libvorbis-1.1.2 vorbis/vorbis-tools-1.1.1
+
+#modifs=dyld105
+#modifs_libogg=uint
+#for i in ao/libao-1.0.0 ogg/libogg-1.2.1 vorbis/libvorbis-1.3.2 vorbis/vorbis-tools-1.4.0
+
+modifs=dyld105
+for i in ao/libao-1.1.0 ogg/libogg-1.2.2 vorbis/libvorbis-1.3.2 vorbis/vorbis-tools-1.4.0
 do
 
 logiciel=${i#*/}
 version=${logiciel##*-}
 logiciel=${logiciel%-*}
+[ "x$RETROAPPEL" != x -a "$RETROAPPEL" != $logiciel ] && continue
 archive=http://downloads.xiph.org/releases/$i.tar.gz
 archive_svn=http://svn.xiph.org/trunk/${logiciel#lib}
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 
 [ -d "$dest" ] && continue
 
+modifspostcompil=
 conf=./configure
 if [[ $version = r* ]] ; then
 	obtenirEtAllerDansSvn -r ${version#r} $archive_svn
-	export ACLOCAL_FLAGS="-I /usr/local/share/aclocal"
+	export ACLOCAL_FLAGS="-I $INSTALLS/share/aclocal"
 	conf=./autogen.sh
 else
 	obtenirEtAllerDans "$archive"
 fi
 
 echo Correction… >&2
-for modif in $(eval echo \$modifs_${logiciel//-/}) ; do $modif ; done
+for modif in compil3264 $modifs $(eval echo \$modifs_${logiciel//-/}) ; do $modif "$@" ; done
 
 echo Configuration… >&2
 "${conf[@]}" --prefix="$dest"
 
 echo Compilation… >&2
 make
+VIEUXRETRO=$RETROAPPEL
+export RETROAPPEL=$logiciel
+for modif in true $modifspostcompil ; do $modif "$@" ; done
+RETROAPPEL=$VIEUXRETRO
 
 echo Installation… >&2
-sudo make install
-sudo utiliser "$logiciel-$version"
+sudo make install || true
+sutiliser "$logiciel-$version" || true
 
 done
 
-rm -Rf /tmp/$$
+rm -Rf "$TMP/$$"
