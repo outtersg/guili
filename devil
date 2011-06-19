@@ -1,0 +1,78 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+inclure libtiff
+inclure libjpeg
+inclure libpng
+
+logiciel=devil
+
+version=1.7.8
+modifs="compil3264 sanspngchecksig dyld105"
+modifspostconf="libtoolAvecArch"
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://netcologne.dl.sourceforge.net/project/openil/DevIL/$version/DevIL-$version.tar.gz"
+
+# Modifs
+
+sanspngchecksig()
+{
+	# La man page de libpng précise bien que l'appel est obsolète, et dit même par quoi il a été remplacé.
+	filtrer src-IL/src/il_png.c sed -e 's/png_check_sig(Signature,/!png_sig_cmp(Signature, 0,/'
+}
+
+# Le libtool en place oublie, en pré-édition de lien, de transmettre les paramètres généraux.
+libtoolAvecArch()
+{
+	filtrer libtool sed -e '/^archive_cmds=.*-master/s#~# \\$compiler_flags~#'
+}
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif "$@" ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+for modif in true $modifspostconf ; do $modif "$@" ; done
+
+echo Compilation… >&2
+make
+#echo "BON LA JE REFAIS LIBIL"
+#( cd lib && make libIL.la ) # Si on ne le fait pas avant, il est effectué dans le make install, écrasant le fichier lipoaugmenté grâce aux travaux de compil3264 par un fichier monoarchitecture.
+#echo "BON LA J'AI REFAIT LIBIL, JE LANCE LES AUTERS "
+#touch lib/glouglou
+for modif in true $modifspostcompil ; do $modif "$@" ; done
+#echo "BON LA J'AI FINI LES AUTERS "
+#touch lib/fini
+
+echo Installation… >&2
+sudo make install
+sutiliser "$logiciel-$version"
