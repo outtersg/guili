@@ -1,0 +1,131 @@
+#!/bin/bash
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+if false
+then
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+fi
+. "$SCRIPTS/util.bash"
+
+version_h=4.0.1
+version_al=1.0.0
+version_k=3.0.1
+
+trieversions()
+{
+	php -r 'while(($arg = array_shift($argv)) !== null) switch($arg) { case "-min": $min = array_shift($argv); break; case "-max": $max = array_shift($argv); break; case "-x": $excl[array_shift($argv)] = true; break; } $v = array(); while(($l = fgets(STDIN)) !== false) { $l = trim($l);if(isset($excl[$l]) || (isset($max) && version_compare($l, $max) > 0) || (isset($min) && version_compare($l, $min) < 0)) continue; $v[] = $l; } usort($v, "version_compare"); echo implode("\n", $v)."\n";' -- "$@"
+}
+
+# Comme Pear, mais en plus comme je veux.
+pire()
+{
+	local p_dest=
+	local p_serveur=
+	local p_paquet=
+	local p_paramvers=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-d) shift ; p_dest="$1" ;;
+			-s) shift ; p_serveur="$1" ;;
+			-min|-max|-x) p_paramvers="$p_paramvers $1 $2" ; shift ;;
+			*) p_paquet="$1" ;;
+		esac
+		shift
+	done
+	
+	[ -e "/tmp/$$/$p_paquet-$p_paramvers" ] && return
+	
+	# Petits changements codés en dur.
+	
+	[ $p_paquet = kronolith ] || p_dest="$desti/horde"
+	mkdir -p "$p_dest"
+	
+echo pire -d "$p_dest" $p_paquet >&2
+	# Récup de la dernière version potable.
+	
+	p_paquet_url="`echo "$p_paquet" | tr '[A-Z]' '[a-z]'`"
+echo http://$p_serveur/rest/r/$p_paquet_url/allreleases.xml >&2
+	curl -s http://$p_serveur/rest/r/$p_paquet_url/allreleases.xml > /tmp/$$/versions
+grep '<v>' < /tmp/$$/versions | sed -e 's/.*<v>//' -e 's/<.*//' >&2
+#echo "=======" >&2
+#cat /tmp/$$/versions >&2
+#echo "-------" >&2
+	p_version="`grep '<v>' < /tmp/$$/versions | sed -e 's/.*<v>//' -e 's/<.*//' | trieversions $p_paramvers | tail -1`"
+echo "-> $p_version" >&2
+	p_tgz="`curl -s http://$p_serveur/rest/r/$p_paquet_url/$p_version.xml | grep '<g>' | sed -e 's/[^>]*>//' -e 's/<.*//'`.tgz"
+	obtenirEtAllerDans "$p_tgz"
+	local p_ou="`pwd`"
+	
+	touch "/tmp/$$/$p_paquet-$p_paramvers" # Bon, il n'est pas complètement installé, mais on espère pouvoir aller jusqu'au bout.
+	
+	# Récupération des dépendances.
+	
+	sed -e '/<dependencies>/,/<\/dependencies>/!d' < package.xml | sed -e '/<required>/,/<\/required>/!d' | awk '/<package>/{s=""}/<(name|channel|min|max|exclude)>/{s=s" "$0}/<\/package>/{print s}' | sed -e 's/<min>/-min /g' -e 's/<max>/-max /g' -e 's/<channel>/-s /g' -e 's/<exclude>/-x /g' -e 's/<[^>]*>/ /g' | while read i
+	do
+		pire -d "$p_dest" $i
+	done
+	
+	# Installation.
+	
+	cd "$p_ou"
+	( cd "$p_paquet-$p_version" && tar cf - . ) | ( cd "$p_dest" && tar xf - )
+}
+
+pipi()
+{
+	#{pear -D php_dir=/tmp/$$ -D download_dir=/tmp/$$ "$@"
+	"$SCRIPTS/pire" "$@"
+}
+
+mkdir -p /tmp/$$
+chmod 700 /tmp/$$
+rm -Rf /tmp/$$/* 
+
+desti="/home/famille/internet/kro"
+
+if false
+then
+	mkdir -p "$desti"
+	pire -d "$desti" -s pear.horde.org kronolith
+	# Bon, on lâche l'affaire, les packages PEAR ont deux subtilités qu'il me gave d'implémenter:
+	# - leurs <file>s ont un <role> qui en donne l'emplacement final.
+	# - et leurs <install> rajoutent un élément à cet emplacement pas si final que ça.
+else
+	pipi config-set temp_dir /tmp/$$
+	pipi channel-discover pear.horde.org
+	pipi install horde/horde_role
+if false
+then
+	export PHP_PEAR_SYSCONF_DIR=/tmp/$$
+	cat > /tmp/$$/pear.conf <<TERMINE
+#PEAR_Config 0.9
+a:0:{}
+TERMINE
+fi
+	echo /tmp/$$ | pipi run-scripts horde/Horde_Role
+	pipi install -P /tmp/$$ horde/horde
+fi
+
+cd "$desti"
+cp horde/config/conf.php.dist horde/config/conf.php
