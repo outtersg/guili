@@ -1,0 +1,55 @@
+#!/bin/sh
+# Comme PEAR, mais en pire: il sait travailler entièrement sur un répertoire utilisateur, sans avoir besoin de passer root!
+
+pear="`command -v pear`"
+
+PIRE=/tmp/pire
+mkdir -p "$PIRE"
+
+cp "$pear" "$PIRE/pear"
+sed -e "s#[^ ]*pearcmd.php#$PIRE/monpearcmd.php &#" < "$PIRE/pear" > "$PIRE/pear.2" && cat "$PIRE/pear.2" > "$PIRE/pear"
+cat > "$PIRE/monpearcmd.php" <<TERMINE
+<?php
+
+array_shift(\$argv);
+\$vraipear = \$argv[0];
+require_once \$vraipear;
+
+?>
+TERMINE
+"$pear" -D php_dir="$PIRE" -D download_dir="$PIRE" config-set temp_dir "$PIRE"
+
+# Ce qui suit est l'exécutable pear, un peu retouché (variables $vrai[…]), comme s'il était appelé comme suit:
+#"$PIRE/pear" -D php_dir="$PIRE" -D download_dir="$PIRE" "$@"
+# On se permet, lors de l'invocation du PHP, de modifier en prélude quelques variables d'environnement pour leur faire prendre conscience d'autres répertoires qu'on a eu envie de lire pour compléter l'environnement (genre ceux qui nous servent de stockage bis).
+vraiphp="`command -v php`"
+vraiphp="`realpath "$vraiphp"`"
+vraielib="`dirname "$vraiphp"`"
+vraielib="`realpath "$vraielib/../lib/php"`"
+
+# first find which PHP binary to use
+if test "x$PHP_PEAR_PHP_BIN" != "x"; then
+  PHP="$PHP_PEAR_PHP_BIN"
+else
+  if test "$vraiphp" = '@'php_bin'@'; then
+    PHP=php 
+  else
+    PHP="$vraiphp"
+  fi
+fi
+
+# then look for the right pear include dir
+if test "x$PHP_PEAR_INSTALL_DIR" != "x"; then
+  INCDIR=$PHP_PEAR_INSTALL_DIR
+  INCARG="-d include_path=$PHP_PEAR_INSTALL_DIR"
+else
+  if test "$vraielib" = '@'php_dir'@'; then
+    INCDIR=`dirname $0`
+    INCARG=""  
+  else
+    INCDIR="$vraielib"
+    INCARG="-d include_path=$vraielib"
+  fi
+fi
+
+exec $PHP -C -q $INCARG -d output_buffering=1 -d variables_order=EGPCS -d open_basedir="" -d safe_mode=0 -d register_argc_argv="On" -d auto_prepend_file="" -d auto_append_file="" -r "require_once 'PEAR/Installer/Role.php'; PEAR_Installer_Role::registerRoles('$PIRE/PEAR/Installer/Role'); \$roles = \$GLOBALS['_PEAR_INSTALLER_ROLES']; unset(\$GLOBALS['_PEAR_INSTALLER_ROLES']); PEAR_Installer_Role::registerRoles(); \$GLOBALS['_PEAR_INSTALLER_ROLES'] += \$roles; require_once '$INCDIR/pearcmd.php';" -- -D php_dir="$PIRE" -D download_dir="$PIRE" "$@"
