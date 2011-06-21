@@ -115,23 +115,6 @@ obtenirEtAllerDansCvs()
 	[ "x$archive_date" = x ] || tar cjf "$archive_date" .
 }
 
-# Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
-obtenirEtAllerDansVersion()
-{
-	if [[ $version = *@* ]] ; then
-		obtenirEtAllerDansDarcs -n "${version%%@*}" -p "${version#*@}" "$archive_darcs"
-		version="${version%%@*}"
-	elif [[ $version = r* ]] ; then
-		obtenirEtAllerDansSvn -r ${version#r} $archive_svn
-	elif [[ $version = t* ]] ; then
-		obtenirEtAllerDansSvn -t ${version#t} $archive_svn_tag
-	elif [[ $version = *-* ]] ; then
-		obtenirEtAllerDansCvs -d $version $archive_cvs
-	else
-		obtenirEtAllerDans "$archive"
-	fi
-}
-
 inclureBiblios()
 {
 	local trou=
