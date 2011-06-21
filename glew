@@ -1,0 +1,65 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=glew
+
+version=1.5.7
+modifs="dyld105"
+
+version=1.6.0
+modifs="dyld105"
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://freefr.dl.sourceforge.net/project/$logiciel/$logiciel/$version/$logiciel-$version.tgz"
+
+[ -d "$dest" ] && exit 0
+
+pre32()
+{
+	command -v arch 2> /dev/null && arch -arch x86_64 true 2> /dev/null && filtrer Makefile sed -e '/^LIB.LDFLAGS =/s/$/ -arch x86_64 -arch i386/' -e '/^CFLAGS =/s/$/ -arch x86_64 -arch i386/' -e '/STRIP/d'
+}
+
+dyld105()
+{
+	filtrer Makefile sed -e '/^LIB.LDFLAGS =/s/$/ -mmacosx-version-min=10.5/'
+}
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in pre32 $modifs ; do $modif "$@" ; done
+
+echo Compilation… >&2
+make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
+
+echo Installation… >&2
+sudo make GLEW_DEST="$dest" install
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
