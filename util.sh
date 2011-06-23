@@ -97,10 +97,59 @@ obtenirEtAllerDans()
 	fi
 }
 
-# Version minimaliste de ce qu'on trouve dans util.bash.
+obtenirEtAllerDansGit()
+{
+	l="`basename "$1"`"
+	v="$2"
+	a="$INSTALL_MEM/$l-$v.tar.gz"
+	
+	cd "$TMP"
+	echo Obtention et décompression… >&2
+	if [ -f "$a" ]
+	then
+		tar xzf "$a"
+		cd "$l-$v"
+	else
+		urlGit="$archive_git"
+		brancheGit=
+		case "$urlGit" in
+			*@*)
+				brancheGit="-b `echo "$archive_git" | sed -e 's/.*@//'`"
+				urlGit="`echo "$archive_git" | sed -e 's/@[^@]*//'`"
+				;;
+		esac
+		git clone $brancheGit "$urlGit" "$l-$v"
+		cd "$l-$v"
+		[ -z "$v" ] || git checkout "$v"
+		[ -z "$v" ] || ( cd .. && tar czf "$a" "$l-$v" )
+	fi
+}
+
+# Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {
-	obtenirEtAllerDans "$archive"
+	case "$version" in
+		*.git)
+			v="`echo "$version" | sed -e 's/.git//'`"
+			obtenirEtAllerDansGit "$archive_git" "$v"
+			if [ -z "$v" ]
+			then
+				v="`date +%Y-%m-%d`"
+			else
+				git checkout "$v"
+			fi
+			;;
+		*@*)
+			vn="`echo "$version" | sed -e 's/@.*//'`"
+			vp="`echo "$version" | sed -e 's/^[^@]*@//'`"
+			obtenirEtAllerDansDarcs -n "$vn" -p "$vp" "$archive_darcs"
+			version="$vn"
+			;;
+		#*-*) obtenirEtAllerDansCvs -d "$version" "$archive_cvs" ;; # Trop de numéros de version utilisent le tiret.
+		r*) obtenirEtAllerDansSvn "-$version" "$archive_svn" ;;
+		t*) obtenirEtAllerDansSvn "-$version" "$archive_svn_tag" ;;
+		*) obtenirEtAllerDans "$archive" ;;
+	esac
 }
 
 # Remplacements de commandes (pour la phase d'amorçage).
