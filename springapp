@@ -1,0 +1,100 @@
+#!/bin/sh
+# Copyright (c) 2010-2011 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Pour construire ailleurs que dans /usr/local: à appeler après un export INSTALLS=/tmp/constr PREFIXE_UTILISER=/tmp/constr
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+inclure spring
+
+eval "`grep '^[a-z]*=' < "$SCRIPTS/spring"`"
+dspring="$dest"
+
+inclure springlobby
+
+eval "`grep '^[a-z]*=' < "$SCRIPTS/springlobby"`"
+dlobby="$dest"
+
+dest="$TMP/$$/SpringLobby.app"
+rm -Rf "$dest"
+
+cp -R "$dlobby/bin/springlobby.app" "$dest"
+cp -R "$dspring/." "$dest/Contents/Resources"
+mkdir -p "$dest/Contents/Resources/share/"
+cp -R "$dlobby/share/locale" "$dest/Contents/Resources/share/"
+
+# libunitsync passe de .so à .dylib: il faut aller vérifier.
+so="`ls -tr $dspring/lib/libunitsync.* | tail -1 | sed -e 's/^.*\.//'`"
+
+# Si l'on décide d'utiliser le curl système: l'ajouter dans le sed de filtrage.
+echo "Contents/Resources/lib/libunitsync.$so @loader_path" > $TMP/$$/temp.reloc
+echo "Contents/Resources/bin/spring @executable_path/../lib" >> $TMP/$$/temp.reloc
+rm -f "$dest/Contents/Resources/bin/spring-multithreaded"
+#echo "Contents/Resources/bin/spring-multithreaded @executable_path/../lib" >> $TMP/$$/temp.reloc
+echo "Contents/MacOS/springlobby @executable_path/../Resources/lib" >> $TMP/$$/temp.reloc
+while read app rel
+do
+	echo "Localisation de $app"
+	# Étant donné que je ne maîtrise pas forcément toujours toutes mes compilations, certaines bibliothèques, dans leurs parties x86_64 et i386, ne vont pas chercher leurs dépendances au même endroit (ex.: curl, en i386, cherche /usr/local/…/libssl, tandis qu'en x86_64, il va chercher dans le $INSTALLS (!= /usr/local). Pour cette raison on va fouiller les deux archis de chaque binaire à la recherche de chemins inexplorés.
+	for arch in x86_64 i386 ; do otool -arch $arch -L "$dest/$app" | sed -E -e 1d -e 's/ .*//' -e 's/^[  ]*//' -e '/\/(AGL|AppKit|ApplicationServices|AudioToolbox|AudioUnit|Carbon|Cocoa|CoreFoundation|CoreServices|Foundation|IOKit|LDAP|OpenAL|OpenGL|QuickTime|WebKit)/d' -e '/\/lib(expat|iconv|gcc_s|objc|stdc\+\+|System|z)\./d' ; done | while read path
+	do 
+		lib="`basename "$path"`"
+		if [ ! -f "$dest/Contents/Resources/lib/$lib" ]
+		then
+			f="$INSTALLS/lib/$lib"
+			[ -f "$f" ] || f="$path" # Pour les bilios introuvables dans notre répertoire d'install, on essaie de récupérer l'originale telle que précisée.
+			cat "$f" > "$dest/Contents/Resources/lib/$lib"
+			echo "Contents/Resources/lib/$lib @loader_path" >> $TMP/$$/temp.reloc
+		fi
+		#file "$dest/$app" | grep 'for architecture' | while read i
+		#do
+			## Apparemment install_name_tool se satisfait du premier remplacement qu'il trouve à faire, et, tout content de lui, s'arrête là. On est donc obligé de l'appeler autant de fois que l'archive inclut d'archis, pour s'assurer que toutes seront retraitées.
+			#echo install_name_tool -change "$path" "$rel/$lib" "$dest/$app"
+		install_name_tool -change "$path" "$rel/$lib" "$dest/$app"
+		#done
+	done
+done < $TMP/$$/temp.reloc
+
+telecharger()
+{
+	[ -f "$INSTALL_MEM/`basename "$2"`" ] && cp "$INSTALL_MEM/`basename "$2"`" "$2" && return
+	curl -o "$2" "$1"
+	cp "$2" "$INSTALL_MEM/`basename "$2"`"
+}
+
+mkdir -p "$dest/Contents/Resources/share/games/spring/maps/"
+for carte in 245-tropical_ 155-levelsv2_ #29-2continentsremake_ 242-aftershock-v31_ 12-deltasiegedry_ 168-folsomdamfinal_ 100-small-supreme-battlefield_ 101-smallsupremebattlefieldv2_ 4-supreme-battlefield_ 235-tabula-v3_
+do
+	u="http://spring-portal.com/index.php/docman/doc_download/$carte"
+	f="`curl -s -I "$u" | sed -e '/.*filename="/'\!d -e 's///' -e 's/".*//'`"
+	telecharger "$u" "$dest/Contents/Resources/share/games/spring/maps/$f"
+done
+
+mkdir -p "$dest/Contents/Resources/share/games/spring/mods/"
+for jeu in ba750.sdz #XTAPEV9642.sd7 ca-stable-8405.sdz
+do
+	telecharger "http://files.springrts.de/5/$jeu" "$dest/Contents/Resources/share/games/spring/mods/$jeu"
+done
+
+echo "Application générée en $dest"
