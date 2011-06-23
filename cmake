@@ -93,4 +93,4 @@ echo Installation… >&2
 sudo make install
 sudo utiliser $logiciel-$version
 
-rm -Rf /tmp/$$
+rm -Rf "$TMP/$$"
