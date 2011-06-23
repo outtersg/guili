@@ -20,13 +20,16 @@
 # SOFTWARE.
 
 INSTALL_MEM="$HOME/tmp/paquets"
-INSTALLS=/usr/local
+[ -z "$INSTALLS" ] && INSTALLS=/usr/local
 [ -z "$TMP" ] && TMP=/tmp
 
 mkdir -p "$TMP/$$"
-export PATH="`echo $PATH | sed -e 's/^\.://' -e 's/:\.://g'`"
+export PATH="$TMP/$$:`echo $PATH | sed -e 's/^\.://' -e 's/:\.://g'`"
 export LD_LIBRARY_PATH="$INSTALLS/lib:$LD_LIBRARY_PATH"
+export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+export CMAKE_LIBRARY_PATH="$INSTALLS"
 export LDFLAGS="-L$INSTALLS/lib"
+export CPPFLAGS="-I$INSTALLS/include"
 
 obtenir()
 {
@@ -111,7 +114,7 @@ then
 	}
 fi
 
-if ! command -v sudo 2> /dev/null >&2
+if [ "x$SANSSU" = x1 ] || ! command -v sudo 2> /dev/null >&2
 then
 	sudo()
 	{
@@ -126,6 +129,11 @@ then
 		"$SCRIPTS/utiliser" "$@"
 	}
 fi
+
+sutiliser()
+{
+	sudo utiliser -r "$INSTALLS" "$@"
+}
 
 filtrer()
 {
@@ -187,7 +195,7 @@ libtool3264()
 	then
 		CFLAGS="$CFLAGS -arch x86_64 -arch i386"
 		LDFLAGS="$CFLAGS -arch x86_64 -arch i386"
-		export CFLAGS LDFLAGS
+		export CFLAGS LDFLAGS CXXFLAGS
 		modifspostconf="$modifspostconf libtool3264bis"
 	fi
 }
@@ -224,10 +232,36 @@ compil3264bis()
 	tmp2="$TMP/$$/compil32bits"
 	TMP="$tmp2" "$SCRIPTS/`basename "$0"`" -32
 	tmp2="$tmp2/$icirel"
-	find . \( -name \*.dylib -o -name \*.a -o -perm -100 \) -a -type f | xargs file | grep ": *Mach-O" | cut -d : -f 1 | while read f
+	find . \( -name \*.dylib -o -name \*.a -o -perm -100 \) -a -type f | xargs file | egrep ": *Mach-O|archive random library" | cut -d : -f 1 | while read f
 	do
 		touch -r "$f" "$TMP/$$/h"
 		lipo -create "$f" "$tmp2/$f" -output "$f.univ" && cat "$f.univ" > "$f"
 		touch -r "$TMP/$$/h" "$f"
 	done
 }
+
+dyld105()
+{
+	# À FAIRE: ne rajouter ça que si on est en > 10.5.
+	# http://lists.apple.com/archives/xcode-users/2005/Dec/msg00524.html
+	LDFLAGS="$LDFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
+	CFLAGS="$CFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
+	CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
+	CPPFLAGS="$CPPFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
+	export LDFLAGS CFLAGS CXXFLAGS CPPFLAGS
+}
+
+# Remplacement d'utilitaires.
+
+# http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
+for i in jar javac java
+do
+	rm -f "$TMP/$$/$i"
+	commande="`command -v $i || true`"
+	cat > "$TMP/$$/$i" <<TERMINE
+#!/bin/sh
+export DYLD_LIBRARY_PATH=
+"$commande" "\$@"
+TERMINE
+	chmod a+x "$TMP/$$/$i"
+done
