@@ -1,0 +1,210 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+inclure spring
+inclure curl
+inclure libtorrent
+inclure wx
+
+logiciel=springlobby
+
+version=0.117
+modifs="biblios portableConf portableExeForce dyld105 mac386"
+modifspostconf="dyld105link"
+
+version=0.131
+modifs="biblios portableConf portableExeForce dyld105 mac386"
+modifspostconf="dyld105link"
+
+#version=0.132a
+#modifs="biblios portableExeTrunk dyld105 mac386"
+#modifspostconf="dyld105link"
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://springlobby.info/tarballs/springlobby-$version.tar.bz2"
+
+# Modifications
+
+biblios()
+{
+	filtrer CMakeLists.txt sed -e 's/boost_system-mt/boost_system/g'
+}
+
+portableConf()
+{
+	filtrer src/Helper/slconfig.cpp sed -e '/global_config_path = /c\
+wxString global_config_path = wxString::Format( _T("%s/../Resources/default.conf"), GetExecutableFolder().c_str());
+'
+}
+
+# Si les binaires embarqués existent, ils passent devant celui configuré dans les prefs (qui peut être une vieille version. Ou une neuve, certes, mais dans ce cas, retéléchargez l'ensemble).
+portableExeForce()
+{
+	portableExe -f
+}
+
+portableExe()
+{
+	# Besoin d'aller chercher le préfixe réel de la biblio unitsync. On passe de .so à .dylib entre la 0.82.7.1 et la (svn) d'un peu plus tard. Et le GetLibExtension se fonde sur une fonction wx, dont s'est bien contrefoutu la compil de Spring pour décider quoi choisir. Le meilleur moyen est donc d'aller voir par nous-même de quoi il ressort.
+	suffixeLibUnitSync="`ls -tr $INSTALLS/spring-*/lib/libunitsync* | tail -1 | sed -e 's/.*\.//'`"
+	if [ "x$1" = x-f ]
+	then
+		testExec='wxFile::Exists( GetExecutableFolder() + wxString( "/../Resources/bin/spring", wxConvUTF8 ) )'
+		testLib="wxFile::Exists( GetExecutableFolder() + wxString( \"/../Resources/lib/libunitsync.$suffixeLibUnitSync\", wxConvUTF8 ) )"
+	else
+		testExec='!wxFile::Exists( GetSpringBinary( GetCurrentUsedSpringIndex() ) )'
+		testLib='!wxFile::Exists( GetUnitSync( GetCurrentUsedSpringIndex() ) )'
+	fi
+	patch -p0 <<TERMINE
+--- src/settings.cpp	2010-12-18 14:53:58.000000000 +0100
++++ src/settings.cpp	2010-12-18 16:55:04.000000000 +0100
+@@ -901,6 +901,7 @@
+ #ifdef __WXMSW__
+ 	else if ( GetSearchSpringOnlyInSLPath() ) return GetExecutableFolder() + wxFileName::GetPathSeparator() + _T( "spring.exe" );
+ #endif
++	else if ( $testExec ) return GetExecutableFolder() + wxString( "/../Resources/bin/spring", wxConvUTF8 );
+ 	else return GetSpringBinary( GetCurrentUsedSpringIndex() );
+ }
+ 
+@@ -911,6 +912,7 @@
+ #ifdef __WXMSW__
+ 	else if ( GetSearchSpringOnlyInSLPath() ) return GetExecutableFolder() + wxFileName::GetPathSeparator() + _T( "unitsync" ) + GetLibExtension();
+ #endif
++	else if ( $testLib ) return GetExecutableFolder() + wxString( "/../Resources/lib/libunitsync.$suffixeLibUnitSync", wxConvUTF8 );
+ 	else return GetUnitSync( GetCurrentUsedSpringIndex() );
+ }
+ 
+--- ./src/springlobbyapp.cpp	2010-12-18 21:19:08.000000000 +0100
++++ ./src/springlobbyapp.cpp	2010-12-18 21:27:21.000000000 +0100
+@@ -141,6 +141,10 @@
+ #else
+ 	#if defined(LOCALE_INSTALL_DIR)
+ 		wxString path ( _T(LOCALE_INSTALL_DIR) );
++		wxString path2 = wxStandardPaths::Get().GetLocalizedResourcesDir(_T("noneWH"),wxStandardPaths::ResourceCat_Messages);
++		path2 = path2.Left( path2.First(_T("noneWH") ) ) + wxString("share/locale/", wxConvUTF8);
++		if ( wxDirExists( path2 ) )
++			path = path2;
+ 	#else
+ 		// use a dummy name here, we're only interested in the base path
+ 		wxString path = wxStandardPaths::Get().GetLocalizedResourcesDir(_T("noneWH"),wxStandardPaths::ResourceCat_Messages);
+TERMINE
+}
+
+portableExeTrunk()
+{
+	patch -p1 <<TERMINE
+diff --git a/src/settings.cpp b/src/settings.cpp
+index a1a7f28..ad42f3e 100644
+--- a/src/settings.cpp
++++ b/src/settings.cpp
+@@ -923,12 +923,29 @@ wxString Settings::GetCurrentUsedDataDir()
+ }
+ 
+ 
++wxString Settings::GetFullBundleSpringBinaryPath()
++{
++	return GetExecutableFolder() + _T( "/../MacOS/spring" );
++}
++
++
++bool Settings::GetIsFullBundle()
++{
++#ifdef __APPLE__
++	return wxFile::Exists( GetFullBundleSpringBinaryPath() );
++#else
++	return false;
++#endif
++}
++
++
+ wxString Settings::GetCurrentUsedSpringBinary()
+ {
+ 	if ( IsPortableMode() ) return GetCurrentUsedDataDir() + wxFileName::GetPathSeparator() + _T( "spring.exe" );
+ #if defined(__WXMSW__) && !defined(SL_QT_MODE)
+ 	else if ( GetSearchSpringOnlyInSLPath() ) return GetExecutableFolder() + wxFileName::GetPathSeparator() + _T( "spring.exe" );
+ #endif
++	else if ( GetIsFullBundle() ) return GetFullBundleSpringBinaryPath();
+ 	else return GetSpringBinary( GetCurrentUsedSpringIndex() );
+ }
+ 
+@@ -939,6 +956,7 @@ wxString Settings::GetCurrentUsedUnitSync()
+ #if defined(__WXMSW__)
+ 	else if ( GetSearchSpringOnlyInSLPath() ) return GetExecutableFolder() + wxFileName::GetPathSeparator() + _T( "unitsync" ) + GetLibExtension();
+ #endif
++	else if ( GetIsFullBundle() ) return GetExecutableFolder() + _T( "/../lib/libunitsync.so" ); // Do not use GetLibExtension. This is a wx-specific function, and Spring's build system won't necessarily respect this convention. On Mac OS, libunitsync will be built as .so, but GetLibExtension() returns .dylib.
+ 	else return GetUnitSync( GetCurrentUsedSpringIndex() );
+ }
+ 
+diff --git a/src/settings.h b/src/settings.h
+index 5032eae..79b676f 100644
+--- a/src/settings.h
++++ b/src/settings.h
+@@ -396,6 +396,10 @@ class Settings : public SL::NonCopyable
+     void SetSearchSpringOnlyInSLPath( bool value );
+     bool GetSearchSpringOnlyInSLPath();
+ 
++    /// full-bundle mode, with spring included
++    bool GetIsFullBundle();
++    wxString GetFullBundleSpringBinaryPath();
++
+     /// convenience wrappers to get current used version paths
+ 	wxString GetCurrentUsedUikeys();
+     wxString GetCurrentUsedDataDir();
+TERMINE
+}
+
+mac386()
+{
+	export CFLAGS="$CFLAGS -arch i386" CXXFLAGS="$CXXFLAGS -arch i386" CPPFLAGS="$CPPFLAGS -arch i386" LDFLAGS="$LDFLAGS -arch i386" OBJCFLAGS="$OBJCFLAGS -arch i386" OBJCXXFLAGS="$OBJCXXFLAGS -arch i386" # wxWidgets nous a imposé ça.
+}
+
+dyld105link()
+{
+	# Par défaut, les exécutables créés sous 10.6 utilisent le nouveau format d'infos dyld (LC_DYLD_INFO_ONLY), que le 10.5 ne sait pas lancer. On doit donc intervenir.
+	find . -name link.txt | while read i ; do filtrer "$i" sed -e '/c++/s/$/ -mmacosx-version-min=10.5/' ; done
+}
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+cmake -DCMAKE_INSTALL_PREFIX="$dest" -DENABLE_DEBUG_REPORT=OFF .
+for modif in true $modifspostconf ; do $modif "$@" ; done
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+
+sutiliser "$logiciel-$version"
+
+rm -Rf $TMP/$$
