@@ -1,0 +1,78 @@
+#!/bin/sh
+# Copyright (c) 2004,2009 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+inclure icu
+
+logiciel=boost
+
+version=1.45.0
+modifs="sanspch dyld105 dyld105bis" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
+modifspostconfig="python105"
+
+# Modifications
+
+sanspch()
+{
+	# Quand on compile pour plusieurs archis en même temps, difficile de faire de l'en-tête précompilé qui marche partout… Mac OS X s'y casse de toute façon les dents, en essayant de faire un lipo sur des fichiers vides (eh oui, que de l'en-tête!).
+		filtrer tools/build/v2/tools/darwin.jam grep -v "generators.override darwin.compile.c++.pch"
+		filtrer tools/build/v2/tools/darwin.jam grep -v "generators.override darwin.compile.c.pch"
+		filtrer tools/build/v2/tools/darwin.jam sed -e '/toolset.inherit-generators/s/ ;/ gcc.compile.c.pch gcc.compile.c++.pch ;/'
+}
+
+dyld105bis()
+{
+	filtrer tools/build/v2/tools/darwin.jam sed -e "/-dynamiclib/s##-dynamiclib $LDFLAGS#"
+}
+
+python105()
+{
+	filtrer project-config.jam sed -e '/python/s/2.6/2.5/g' # Python 2.5 est à la fois sur 10.6 et 10.5.
+}
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://switch.dl.sourceforge.net/project/$logiciel/$logiciel/$version/${logiciel}_`echo $version | tr . _`.tar.bz2"
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./bootstrap.sh --prefix="$dest"
+for modif in true $modifspostconfig ; do $modif ; done
+
+echo Compilation… >&2
+./bjam -j4 address-model=32_64 architecture=combined macosx-version=10.5
+
+echo Installation… >&2
+sudo ./bjam address-model=32_64 architecture=combined macosx-version=10.5 install
+
+sutiliser $logiciel-$version
