@@ -1,0 +1,483 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+inclure cmake
+inclure boost
+inclure sdl
+inclure devil
+inclure ogg
+inclure glew
+inclure freetype
+
+logiciel=spring
+
+version=0.82.6.1
+modifs="list sansicone sdlenmain sansx portableData tailleAuto dyld105"
+modifspostconf="sanslGL doublearchi dyld105link"
+
+version=0.82.7.1
+modifs="list sansicone sdlenmain sansx portableData tailleAuto dyld105"
+#modifspostconf="sanslGL doublearchi dyld105link locksAvant" # locksAvant semblait fonctionner (pas d'erreur de compil), cela dit ça ne servait pas à grand-chose, vu qu'à l'exécution on avait un beau message d'erreur disant que telle opération, en 64 bits, n'est implémentée que sous Linux. Donc vu que ça ne fait avancer en rien nos affaires, autant ne pas l'inclure. Et tant pis pour le multithread pour le moment.
+modifspostconf="sanslGL doublearchi dyld105link"
+
+#version=e6478924145c23ded192890ae09391876bfe66fa.git
+#version=f6a1c80e726348452bb9fb8448d6abd43603e16b.git
+#version=a979fe63793130c99e70.git # Correspond à la 0.82.7.1, via git.
+#modifs="list sansicone sdlenmain sansx sansTropGuillotiner portableData dyld105 undefX11"
+#modifspostconf="sanslGL doublearchi dyld105link"
+
+#version=7f5c49473a971a2f0d15c2e587a990e62a0f713b.git
+#modifs="list sansicone sdlenmain sansx sansTropGuillotiner portableDataGit dyld105"
+#modifspostconf="sanslGL doublearchi dyld105link"
+
+#version=fb2a7cb79abb3342f50bbae8a7d446caad3832e9.git # Chez hoijui; adapter archive_git.
+#modifs="list sansicone sdlenmain sansx sansTropGuillotiner dyld105 undefX11"
+
+#orgaTrunk=1 # Lu par l'empaqueteur de SpringLobby: à 1, les applis se trouvent sous MacOS, les biblios sous lib, le share sous Resources/share; à 0, springlobby est sous MacOS, le reste sous Resources dans les répertoires bin, lib et share.
+
+version=fc8e1f23c3c8f4d1d84a1acd79073ca8e02b967a.git # Trunk au 24/07/2011.
+modifs="list sansicone sdlenmain sansx sansTropGuillotiner tailleAuto2 dyld105 removeDefaultsFoireux bonnesBiblios sansShader"
+modifspostconf="sanslGL doublearchi dyld105link"
+
+# Tentative de retrouver la régression empêchant le bousin de tourner sur le MacBook d'Églan. Ouf, ça y est, j'ai trouvé! Cf. sansShader.
+#version=f2e18e466efce3b158d8180cc8f839e1d622f9b2.git # Version commune, août. Marche.
+#version=5ee697c8cd7d72ee689afadd864703a5ed397703.git # 0.82.7.1, novembre. Marche.
+#modifs="list sansicone sdlenmain sansx portableData tailleAuto dyld105"
+#version=07c3f6f997254615223539f55b7b5d8b24c346e1.git # trunk, octobre. Problème avec une expression awk tordue, d'ailleurs.
+#version=2ce495f5ba8e38cdd046bf4e709bd95a31fa91e1.git # trunk, 9 novembre. Marche.
+#version=4110c7555f8c44d37fbc2f826eab6146f5231e07.git # trunk, 12 novembre.
+#version=33c1c358a53b0c87a34ffd574845e712e6f0d7e9.git # trunk, 14 novembre.
+#version=18ad246d71c9cc48ddd401d6a8be8fb08ebb1f8c.git # trunk, 14 novembre. Marche (crashe ensuite, mais on a eu le temps de voir que les textures apparaissaient).
+#version=0a4988e61e389b4c025d72a4180dbcadbcaa64da.git # trunk, 17 novembre. Marche (crashe ensuite, mais on a eu le temps de voir que les textures apparaissaient).
+#version=6c4411756d31eb79c1ee1c12fd279f6bcd897539.git # Marche (avant de crasher).
+#version=4fa5a62ef8a6e3eb315eb3ee9b1daffe1dfa6fd6.git # Crashe (avant de marcher).
+#version=f9cb75c797cd1025a588aad868d56dd454f28cdf.git # Crashe (avant de marcher).
+#version=f123fc4dc9a3ee0fb9250aaf85da96ed11a89017.git # Crashe (avant de marcher).
+#version=926e33b79a04607c5b32f0c803ba17f597be4e9a.git # trunk, 20 novembre. Crashe.
+#version=c901e7f392611e6b05d419982b2bbccd4c5044de.git # trunk, 22 novembre. Crashe.
+#version=2642e753a9cab91aeda791013271b3056c78bb5b.git # trunk, 13 décembre. Crashe.
+#version=941aebe16956bc37a716619b9dc8e2a99b2b6169.git # trunk, fin décembre. Marche.
+#version=6c6cf898bda975308e88d86a99b8d2140ef3213d.git # Marche.
+#version=a3f17536cce0167139b77f9ca7dc97803b71d7a6.git # Marche.
+#version=0789fc960d7639879cc5e8e2049514732b09b37d.git # Marche. 10250
+#version=77b141b088e45a4e7136eccc1f3c6d039c00226a.git # Compilé. 10220
+#version=f1e62d878110dcce10672ec62b14b022146ec584.git # Marche. Compilé
+#version=0d570e29b8bc01ec95c92b44330da66e9b404f1a.git # Crashe. Compilé. 10195#
+#version=6dd6cd718ceabe2400e8241f8d53f38bbb5c67df.git # Crashe. Compilé. 10184#
+#version=aa9f8ad3137d1bf5483fa9c0ff6b0102305a1617.git # Compilé. 10155
+#version=9391d8f99978bcc4a07be9e90e39d89f352212fa.git # Compilé. 10136
+#version=0f5d1c0c0b2eaed9c0a76b3bd244697f124045c6.git # Crashe. Compilé. 10130#
+#version=0eafce1e2776891855ad9aba16fa078aea52da67.git # Crashe. Compilé. 10075
+#version=90132efbdaa8e9a13d67638207db799e05d0981f.git # Marche. 10064
+#modifs="list sansicone sdlenmain sansx sansTropGuillotiner portableData dyld105 undefX11 fenv bonnesBiblios vieilAgl vieuxStreflop awkCallbacksPourri maxSearchedNodesPasPartout nvGlewAvantGl atanSansFamille fltMax plantageCubeMap sansShader"
+#version=00324efa4bf7f4247a23ba03f784881631aef873.git # 9622 Remarche avec sansShader
+#version=965bef03afe4cc3ec951bd3367d640a398ad5583.git # Ne marche pas. 10046
+#version=6b0921542b79cbdb44f5e4dec1a6f48d4141fe37.git # trunk, février. Ne marche pas.
+#version=fcd21f73d4e4061fdc64d1adc9e97db05bfbedd0.git # Ne marche pas.
+#modifs="list sansicone sdlenmain sansx sansTropGuillotiner portableData dyld105 undefX11 fenv bonnesBiblios"
+#modifspostconf="doublearchi dyld105link"
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://ovh.dl.sourceforge.net/project/springrts/springrts/spring-$version/spring_${version}_src.tar.gz"
+archive_git="http://github.com/spring/spring.git"
+#archive_git="http://github.com/hoijui/spring.git@macBundle"
+
+# Modifications
+
+list()
+{
+	filtrer rts/lib/lobby/Connection.h sed -e '/#include <string>/a\
+#include <list>
+'
+}
+
+jnimac()
+{
+	filtrer AI/Interfaces/Java/src/main/native/JavaBridge.c sed -e 's#<jni.h>#<JavaVM/jni.h>#g'
+}
+
+sansicone()
+{
+	# Ces abrutis incluent une spring.bmp censée atterir, pouf, comme ça, dans le ~/.spring, par génération spontanée.
+	filtrer rts/System/SpringApp.cpp grep -v spring.bmp
+	# Apparemment ils appellent une fonction avec des paramètres différents de l'appel interne à SDL_SetVideoMode, et ça met en vrac tout le monde.
+	filtrer rts/System/SpringApp.cpp grep -v PrintAvailableResolutions
+}
+
+sdlenmain()
+{
+	# Pour une raison que j'ignore (encore), l'inclusion de <SDL/SDL.h> dans le Main permet à Spring de ne pas planter lors de l'initialisation de sa première fenêtre par SDL.
+	filtrer rts/System/Main.cpp sed -e '/#include "SpringApp.h"/a\
+#include <SDL/SDL.h>
+'
+}
+
+sansx()
+{
+	[ -f rts/build/scons/config.py ] && filtrer rts/build/scons/config.py grep -v X11
+	filtrer rts/builds/default/CMakeLists.txt grep -v X11
+	filtrer rts/builds/GML/CMakeLists.txt grep -v X11
+	filtrer rts/System/Platform/Linux/myX11.cpp sed -e '1i\
+#ifndef __APPLE__
+' -e '$a\
+#endif
+'
+}
+
+sansTropGuillotiner()
+{
+	# Le mode "sans tête" est assez abrupt, en ce qu'il tente de remplacer glew par un .h qui en définit toutes les constantes obtenues d'habitude de glew: d'une part les spécifiques à glew, d'autre part celles standard GL. Pour les premières, le remplacement définit explicitement les constantes. Pour les secondes, il repose sur une inclusion de GL/glu.h et GL/glext.h… que moi je n'ai pas. Donc plutôt que de m'embêter à recréer le mécanisme par lequel glew abstrait ces inclusions pour nous soulager, je réinclus glew.h, et tant pis si le compilo me dit que les redéfinitions explicites font double emploi avec glew.h.
+	filtrer rts/lib/headlessStubs/glewstub.h sed -e '/#include/s#^#//#' -e '/define _GLEW_STUB_H_/a\
+#include <GL/glew.h>
+'
+}
+
+sansShader()
+{
+	# L'activation du shader dégomme toutes les textures du terrain sur un MacBook unibody (le seul modèle de la gamme MB, avant qu'il ne soit renommé MB Pro 13"; GeForce 9400M).
+	filtrer rts/Map/SMF/*GroundDrawer.cpp sed -e 's/globalRendering->haveARB && !globalRendering->haveGLSL/1 || (&)/'
+}
+
+fenv()
+{
+	for i in rts/System/FPUCheck.h `grep -rl fenv_t rts/lib/streflop`
+	do
+		filtrer "$i" sed -e 's/fenv_t/fpenv_t/g'
+	done
+}
+
+undefX11()
+{
+	# Bon, ma compil de SDL inclut un bout de X11, qui fait un  #define Status très moche, car cette chose-là, c'est le nom d'une variable dans une struct Apple.
+	# À rapatrier sans doute dans ma compil de SDL (d'ailleurs dans leurs fichiers, on voit qu'ils ont déjà constaté un conflit, puisqu'ils encadrent l'inclusion de X11 d'un #define Cursor X11Cursor / #undef Cursor).
+	# Cela dit certaines des variables sont utilisées par d'autres que SDL: GrayScale par exemple est le nom d'une méthode du Bitmap.h de Spring… et bien évidemment X11 ne se gêne pas pour faire des #define sur des noms aussi génériques.
+	filtrer rts/System/SpringApp.cpp sed -e '/include "Game.LoadScreen.h"/i\
+#undef Status
+' -e '/SDL_syswm.h/{
+a\
+#undef Status
+a\
+#undef GrayScale
+}'
+	filtrer rts/System/OffscreenGLContext.h sed -e '/AGL.agl.h/a\
+#undef GrayScale
+'
+}
+
+removeDefaultsFoireux()
+{
+	# Problème de compil chez moi: la méthode RemoveDefaults utilise un operator!= qu'aime moyennement le compilo ().
+	filtrer rts/System/Config/ConfigHandler.cpp sed -e '/sources.rend/c\
+while(0) {
+'
+}
+
+
+bonnesBiblios()
+{
+	# FindGLEW référence LD_LIBRARY_PATH. Problème: FIND_LIBRARY ne comprend pas la notion du séparateur deux-points.
+	for i in GLEW
+	do
+		filtrer rts/build/cmake/Find$i.cmake sed -e 's#$ENV{LD_LIBRARY_PATH}#'"`echo "$LD_LIBRARY_PATH" | tr : \ `#g"
+	done
+	# Les autres biblios passent par cette variable.
+	export CMAKE_PREFIX_PATH="$INSTALLS"
+}
+
+vieilAgl()
+{
+	filtrer rts/System/OffscreenGLContext.h sed -e 's/AGLPixelFmtID/AGLPixelFormat/g' -e '/AGL.agl.h/{
+i\
+#define CIcon AppleCIcon
+i\
+#define SoundSource AppleSoundSource
+a\
+#undef SoundSource
+a\
+#undef CIcon
+}'
+	filtrer rts/System/OffscreenGLContext.cpp sed -e 's/aglChoosePixelFmt/aglChoosePixelFormat/g'
+}
+
+vieuxStreflop()
+{
+	# Inclut à la fois streflop et agl.h (ce dernier incluant un streflop système entrant en conflit pour certaines définitions).
+	filtrer rts/System/OffscreenGLContext.cpp sed -e '/OffscreenGLContext.h/{
+a\
+#undef FE_DFL_ENV
+}'
+}
+
+atanSansFamille()
+{
+	filtrer rts/System/FastMath.h sed -e 's/a=atan/a = math::atan/'
+}
+
+fltMax()
+{
+	if grep -q FLT_MAX rts/Map/MapInfo.cpp
+	then
+		grep -q float.h rts/Map/MapInfo.cpp || filtrer rts/Map/MapInfo.cpp sed -e '/Exceptions.h/a\
+#include <float.h>
+'
+	fi
+}
+
+plantageCubeMap()
+{
+	filtrer rts/Rendering/Env/CubeMapHandler.cpp sed -e 's/(specularUpdateIter + 1) % specTexSize/specTexSize ? (specularUpdateIter + 1) % specTexSize : 1/'
+}
+
+awkCallbacksPourri()
+{
+	# La détection de version n'est pas terrible pour l'awk livré avec Mac OS X.
+	filtrer rts/build/cmake/FindAWK.cmake sed -e 's/-W version/--version/'
+	# Certains ont eu pas mal de déboires avec awk. Heureusement, les versions plus récentes du trunk nous permettent de retrouver le code correct, que l'on applique ici.
+	filtrer AI/Interfaces/Java/bin/jni_wrappCallback.awk sed -e 's/{retTypeConv/{/'
+	filtrer AI/Wrappers/CUtils/bin/common.awk sed -e 's/\\v//g' # Utilise les \v, qui sont sans doute interprétés par gawk mais pas par le nôtre, qui voit ça comme de simples v; du coup, quand ce \v est utilisé dans la regex du trim, trim(void), ça donne oid.
+	filtrer AI/Wrappers/Cpp/bin/wrappCallback.awk sed -e 's/|(\\\*/|(\\\\*/' -e 's/|(\*/|(\\\\*/'
+	filtrer AI/Wrappers/JavaOO/bin/wrappEvents.awk sed -e '/interfMeta_es..interf/s#"\\),"#/\\)\\,/#' -e 's#"),"#/\\)\\,/#'
+	grep -q close.out AI/Wrappers/JavaOO/bin/wrappEvents.awk || patch -p0 <<TERMINE
+--- AI/Wrappers/JavaOO/bin/wrappEvents.awk	2011-07-29 10:39:54.000000000 +0200
++++ AI/Wrappers/JavaOO/bin/wrappEvents.awk	2011-07-31 22:05:39.000000000 +0200
+@@ -503,6 +503,8 @@
+ 	}
+ 
+ 	print("}") >> outFile;
++
++	close(outFile);
+ }
+ 
+ function printOOEventInterface(int_name_ei) {
+TERMINE
+}
+
+maxSearchedNodesPasPartout()
+{
+	# Une constante a été passée mi-novembre de 10000 à 65536 (git 4fa5a62ef8a6e3eb315eb3ee9b1daffe1dfa6fd6). Problème: apparemment pas tout le code n'est au courant, du coup l'allocation est faite sur un truc un peu plus petit, du coup quand on tente d'aller lire la mémoire au 65536ème octet, on est déjà sorti depuis bien longtemps en erreur. Corrigé quelque part en février 2011.
+	filtrer rts/Sim/Path/Default/PathConstants.h sed -e 's/65536U/10000U/'
+}
+
+nvGlewAvantGl()
+{
+	# glext.h a besoin de gl.h, mais si celui-ci est défini avant glew.h, ce dernier gueule. Il nous faut donc nous assurer qu'une inclusion du dernier est précédée par une du premier. myGL.h peut jouer ce rôle d'inclueur de glew.h, et ça tombe bien, car c'est ce qui était fait dans les vieilles versions, et puis finalement a été retiré, va comprendre pourquoi. On rétablit.
+	grep myGL.h rts/Rendering/Textures/nv_dds.h || filtrer rts/Rendering/Textures/nv_dds.h sed -e '/__APPLE__/i\
+#include "Rendering/GL/myGL.h"
+'
+}
+
+portableData()
+{
+	patch -p0 <<TERMINE
+--- ./rts/System/FileSystem/DataDirLocater.cpp	2010-12-18 17:38:41.000000000 +0100
++++ ./rts/System/FileSystem/DataDirLocater.cpp	2010-12-18 18:00:50.000000000 +0100
+@@ -279,6 +279,9 @@
+ 		AddDirs(dd_curWorkDir); // "./"
+ 	}
+ 	AddDirs(SubstEnvVars("\$HOME/.spring")); // "~/.spring/"
++	char real[PATH_MAX + 1];
++	realpath((dd_curWorkDir + "../share/games/spring/").c_str(), real);
++	AddDirs(real);
+ 	AddDirs(dd_etc);            // from /etc/spring/datadir
+ #endif
+ 
+TERMINE
+}
+
+portableDataGit()
+{
+	patch -p0 <<TERMINE
+--- ./rts/System/FileSystem/DataDirLocater.cpp	2011-06-21 17:57:44.000000000 +0200
++++ ./rts/System/FileSystem/DataDirLocater.cpp	2011-06-21 17:58:35.000000000 +0200
+@@ -310,6 +310,9 @@
+ 
+ 		AddCwdOrParentDir(dd_curWorkDir); // "./" or "../"
+ 		AddDirs(SubstEnvVars("\$HOME/.spring")); // "~/.spring/"
++		char real[PATH_MAX + 1];
++		realpath((dd_curWorkDir + "../share/games/spring/").c_str(), real);
++		AddDirs(real);
+ 		AddDirs(dd_etc);            // from /etc/spring/datadir
+ #endif
+ 
+TERMINE
+}
+
+tailleAuto()
+{
+	patch -p0 <<TERMINE
+--- ./rts/System/SpringApp.cpp	2010-12-18 21:43:09.000000000 +0100
++++ ./rts/System/SpringApp.cpp	2010-12-19 11:42:16.000000000 +0100
+@@ -86,6 +86,8 @@
+ boost::uint16_t currentUnicode = 0;
+ ClientSetup* startsetup = NULL;
+ 
++static bool hasForcedResolution = false;
++
+ /**
+  * @brief xres default
+  *
+@@ -390,6 +391,22 @@
+ 
+ 	FSAA = MultisampleTest();
+ 
++	if (globalRendering->fullScreen) {
++		const SDL_VideoInfo * info = SDL_GetVideoInfo();
++		SDL_Rect ** rects = SDL_ListModes(info->vfmt, sdlflags);
++		SDL_Rect * maxRect = NULL;
++		while (*rects) {
++			if (!maxRect || (*rects)->w * (*rects)->h > maxRect->w * maxRect->h) {
++				maxRect = *rects;
++			}
++			++rects;
++		}
++		if (maxRect) {
++			screenWidth = maxRect->w;
++			screenHeight = maxRect->h;
++		}
++	}
++	
+ 	SDL_Surface *screen = SDL_SetVideoMode(screenWidth, screenHeight, 32, sdlflags);
+ 	if (!screen) {
+ 		char buf[1024];
+@@ -868,6 +885,7 @@
+ 		}
+ 	}
+ 
++	hasForcedResolution = cmdline->IsSet("xresolution") || configHandler->IsSet("XResolution");
+ 	screenWidth = configHandler->Get("XResolution", XRES_DEFAULT);
+ 	if (cmdline->IsSet("xresolution"))
+ 		screenWidth = std::max(cmdline->GetInt("xresolution"), 640);
+TERMINE
+}
+
+tailleAuto2()
+{
+	patch -p0 <<TERMINE
+--- rts/System/SpringApp.cpp
++++ rts/System/SpringApp.cpp
+@@ -118,6 +118,8 @@ CONFIG(std::string, name).defaultValue("UnnamedPlayer");
+ ClientSetup* startsetup = NULL;
+ COffscreenGLContext* SpringApp::ogc = NULL;
+ 
++static bool hasForcedResolution = false;
++
+ 
+ 
+ /**
+@@ -406,6 +407,22 @@ bool SpringApp::SetSDLVideoMode()
+ 		globalRendering->viewSizeY = 768;
+ 	}
+ 
++	if (globalRendering->fullScreen) {
++		const SDL_VideoInfo * info = SDL_GetVideoInfo();
++		SDL_Rect ** rects = SDL_ListModes(info->vfmt, sdlflags);
++		SDL_Rect * maxRect = NULL;
++		while (*rects) {
++			if (!maxRect || (*rects)->w * (*rects)->h > maxRect->w * maxRect->h) {
++				maxRect = *rects;
++			}
++			++rects;
++		}
++		if (maxRect) {
++			globalRendering->viewSizeX = maxRect->w;
++			globalRendering->viewSizeY = maxRect->h;
++		}
++	}
++	
+ 	//! screen will be freed by SDL_Quit()
+ 	//! from: http://sdl.beuc.net/sdl.wiki/SDL_SetVideoMode
+ 	//! Note 3: This function should be called in the main thread of your application.
+@@ -864,6 +881,8 @@ void SpringApp::ParseCmdLine()
+ 		}
+ 	}
+ 
++	hasForcedResolution = cmdline->IsSet("xresolution") || configHandler->IsSet("XResolution");
++	
+ 	globalRendering->viewSizeX = configHandler->GetInt("XResolution");
+ 	if (cmdline->IsSet("xresolution"))
+ 		globalRendering->viewSizeX = std::max(cmdline->GetInt("xresolution"), 640);
+TERMINE
+}
+
+sanslGL()
+{
+	filtrer rts/builds/GML/CMakeFiles/engine-multithreaded.dir/link.txt sed -e 's/ -lGL//g' -e 's/ -ldlU//g' # Bon, ça c'est pour mon Mac. Vraisemblablement c'est CMake qui a rajouté la double option -lGL -framework OpenGL, à corriger là-bas donc.
+}
+
+doublearchi()
+{
+	find . -name flags.make | while read i ; do filtrer "$i" sed -e '/^CXX_FLAGS = /s/$/ -arch i386 -arch x86_64/' -e '/^C_FLAGS = /s/$/ -arch i386 -arch x86_64/' ; done
+	find . -name link.txt | while read i ; do filtrer "$i" sed -e '/c++/s/$/ -arch i386 -arch x86_64/' ; done
+}
+
+dyld105link()
+{
+	# Par défaut, les exécutables créés sous 10.6 utilisent le nouveau format d'infos dyld (LC_DYLD_INFO_ONLY), que le 10.5 ne sait pas lancer. On doit donc intervenir.
+	find . -name link.txt | while read i ; do filtrer "$i" sed -e '/c++/s/$/ -mmacosx-version-min=10.5/' ; done
+	# Très curieux, l'inclusion limits en 10.5 inclut un bool(__DBL_DENORM_MIN__) dans la définition d'une constante, qui, si __DBL_DENORM_MIN__ est implicitement converti en float, plante (a cast to a type other than an integral or enumeration type cannot appear in a constant-expression).
+	find . -name link.txt -o -name flags.make | while read i ; do filtrer "$i" sed -e 's/-fsingle-precision-constant//g' ; done
+}
+
+locksAvant()
+{
+	# Les singletons de LogOutput font appel à des locks (en mode multithread; en mono on s'en fiche) instanciés par gml.cpp. Il faut donc qu'à la génération des biblios, le code d'initialisation de gml.cpp se trouve avant celui de LogOutput.
+	# Argh, non, ça ne marche pas, car le reste de gml.cpp dépend de tout. En fait il faudrait réussir à passer juste la partie locks dans LogOutput.
+	#filtrer rts/builds/GML/CMakeFiles/engine-multithreaded.dir/link.txt sed -e 's#../../lib/gml/libgml.a##' -e 's# [^ ]LogOutput# ../../lib/gml/libgml.a&#'
+	filtrer rts/System/LogOutput.cpp sed -e '/boost.thread.recursive_mutex.hpp/{
+a\
+#include "lib/gml/gmlcls.h"
+a\
+#if GML_ENABLE_SIM
+a\
+boost::mutex logmutex;
+a\
+#endif
+}'
+	filtrer rts/lib/gml/gml.cpp grep -v logmutex
+}
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in $modifs ; do $modif "$@" ; done
+
+echo Configuration… >&2
+cmake -DCMAKE_INSTALL_PREFIX="$dest" -DMACOSX_BUNDLE=1 .
+for modif in true $modifspostconf ; do $modif "$@" ; done
+
+echo Compilation… >&2
+make -j 4 spring #spring-multithreaded
+for modif in true $modifspostcompil ; do $modif "$@" ; done
+
+echo Installation… >&2
+sudo make install-spring #install-spring-multithreaded
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
