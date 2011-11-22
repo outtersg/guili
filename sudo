@@ -30,6 +30,8 @@ logiciel=sudo
 
 version=1.6.9p13
 
+version=1.8.3p1
+
 # Modifications
 
 OPTIONS_CONF=()
