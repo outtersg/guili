@@ -36,6 +36,9 @@ OPTIONS_CONF=()
 version=2.8.3
 modifs=putainDeLibJPEGDeMacOSX
 
+version=2.8.6
+modifs=putainDeLibJPEGDeMacOSX
+
 # Modifications
 
 # CMake, pour sa config, teste son petit monde en essayant de se lier à Carbon.
