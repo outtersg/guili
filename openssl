@@ -33,13 +33,23 @@ version=0.9.8g
 version=1.0.0
 
 version=1.0.0a
-archis=oui
+mac && archis=oui
 modifspostconf="dyld105postconf"
+
+version=1.0.0e
+modifs=perlredir
 
 # Modifications
 
+perlredir()
+{
+	# Le traiteur assembleur en Perl s'emmêle les pinceaux lorsque la sortie standard est un SSH.
+	filtrer crypto/perlasm/x86_64-xlate.pl sed -e '/$stddev!=$outdev/s//& || (!$stddev \&\& !defined($outdev))/'
+}
+
 dyld105postconf()
 {
+	mac || return 0
 	filtrer Makefile sed -e "/^SHARED_LDFLAGS=/s#\$# $LDFLAGS#"
 }
 
