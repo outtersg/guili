@@ -43,6 +43,12 @@ OPTIONS_CONF=()
 version=5.1.50
 OPTIONS_CONF=()
 
+version=5.5.18
+OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF)
+modifs="poumReadline cheminsInstallDb"
+
+inclure cmake # depuis la 5.5.18 pour sûr.
+
 vmaj="`echo $version | sed -e 's#^\([^.]*.[^.]*\).*#\1#'`"
 
 # Modifications
@@ -52,10 +58,24 @@ poumReadline()
 	rm -Rf include/readline # Leur version intégrée possède une définition pour laquelle dans mysql.cc ils disent justement « comme cette définition n'existe pas dans readline, on la définit ici » et du coup doublon et boum. On utilise une vraie readline, mais leur include intégré passe devant nos CPPFLAGS, il faut donc le faire sauter.
 }
 
+cheminsInstallDb()
+{
+	# Chez Oracle, ce sont de bien priètres intégrateurs.
+	for i in scripts/mysql_install_db.*
+	do
+		filtrer "$i" sed \
+			-e "s#@prefix@#$dest#g" \
+			-e "s#@bindir@#$dest/bin#g" \
+			-e "s#@libexecdir@#$dest/bin#g" \
+			-e "s#@pkgdatadir@#$dest/share#g" \
+			-e "s#@scriptdir@#$dest/bin#g"
+	done
+}
+
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
-archive=ftp://mir1.ovh.net/ftp.mysql.com/Downloads/MySQL-$vmaj/$logiciel-$version.tar.gz
+archive=http://mirrors.ircam.fr/pub/mysql/Downloads/MySQL-$vmaj/$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
@@ -65,12 +85,17 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+if pge $version 5.5.18
+then
+	cmake -DCMAKE_INSTALL_PREFIX="$dest" "${OPTIONS_CONF[@]}"
+else
+	./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+fi
 
 echo Compilation… >&2
 make
 plugins=
-pge $version 5.1.50 && plugins='plugin-load=innodb=ha_innodb_plugin.so'
+pge $version 5.1.50 && pge 5.2 $version && plugins='plugin-load=innodb=ha_innodb_plugin.so'
 cat <<TERMINE > my.cnf
 [mysqld]
 datadir=$HOME/var/mysql
@@ -82,11 +107,15 @@ TERMINE
 
 echo Installation… >&2
 sudo make install
+# À partir de la 5.5, avec le passage d'Oracle et à CMake, ça devient du grand n'importe quoi côté organisation du système de fichiers.
+sudo rm -Rf "$dest/mysql-test" "$dest/sql-bench"
+[ -d "$dest/scripts" ] && sudo mv "$dest/scripts/"* "$dest/bin/" && sudo rm -Rf "$dest/scripts"
+[ -d "$dest/support-files" ] && sudo mkdir -p "$dest/share/mysql/" && sudo mv "$dest/support-files/"* "$dest/share/mysql/" && sudo rm -Rf "$dest/support-files"
 sudo cp my.cnf "$dest/"
 sutiliser "$logiciel-$version"
 
-#mysql_install_db --datadir="$HOME/var/mysql"
-# Pour une machine déjà installée:
+#[ -d "$HOME/var/mysql" ] || mysql_install_db --datadir="$HOME/var/mysql"
+# Pour une machine déja installée:
 #sudo mysql_upgrade -uroot -p
 
 rm -Rf "$TMP/$$"
