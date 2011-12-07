@@ -38,8 +38,8 @@ OPTIONS_CONF=()
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
-archive="ftp://ftp.cs.univ-paris8.fr/mirrors/ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
+dest="$INSTALLS/$logiciel-$version"
+archive="http://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
@@ -58,4 +58,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
