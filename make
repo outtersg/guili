@@ -30,6 +30,8 @@ logiciel=make
 
 version=3.81
 
+version=3.82
+
 # Modifications
 
 OPTIONS_CONF=()
