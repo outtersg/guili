@@ -32,20 +32,11 @@ version_biblio=63 # Pour AquaScribus, entre autres
 
 version=8a
 
-# Modifications
+version=8b
+modifs="compil3264 dyld105"
+modifspostconf=dylib
 
-# Variables
-
-vnum="`echo "$version" | sed -e 's/[^0-9]//g'`"
-dest="$INSTALLS/$logiciel-$version"
-archive="http://freshmeat.net/redir/$logiciel/5665/url_tgz/jpegsrc.v$version.tar.gz"
-pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$version.tar.gz"
-
-# Constitution
-
-[ -d "$dest" ] && exit 0
-
-obtenirEtAllerDans "$archive"
+version=8c
 
 # Modifications
 
@@ -67,7 +58,9 @@ a\
 a\
 \	mkdir -p \$(mandir)
 }'
-	[ "`uname -s`" = Darwin ] && filtrer Makefile sed -e '/^all:/s/$/ libjpeg.dylib/' -e '/^install-lib:/{
+	mac || return 0
+	
+	filtrer Makefile sed -e '/^all:/s/$/ libjpeg.dylib/' -e '/^install-lib:/{
 s/$/ libjpeg.dylib/
 a\
 \	\$(INSTALL_LIB) libjpeg.dylib \$(libdir)/\$(binprefix)libjpeg.dylib
