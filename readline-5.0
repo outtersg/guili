@@ -34,6 +34,9 @@ modifs=darwin89aussi
 version=6.1.2
 modifs=
 
+version=6.2.1
+modifs=
+
 dest=$INSTALLS/$logiciel-$version
 
 darwin8aussi()
@@ -51,7 +54,7 @@ darwin89aussi()
 rustine=${version##*.}
 version=${version%.*}
 
-archive="ftp://ftp.ironie.org/ftp.gnu.org/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
+archive="ftp://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
