@@ -27,10 +27,18 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 logiciel=lsof
 
 version=4.82
+modifs=paslirelaconf
 
 version=4.84
 
+version=4.85
+
 # Modifications
+
+paslirelaconf()
+{
+	export FREEBSD_MAKE_CONF=/rien/du/tout
+}
 
 # Variables
 
@@ -58,3 +66,5 @@ sudo mkdir -p "$dest/bin"
 sudo cp lsof "$dest/bin/"
 
 sutiliser $logiciel-$version
+
+rm -Rf "$TMP/$$"
