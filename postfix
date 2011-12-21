@@ -38,7 +38,7 @@ PFCCARGS=
 
 # Modifications
 
-creeComptes()
+creeCompte()
 {
 	case `uname` in
 		FreeBSD)
@@ -109,7 +109,7 @@ echo Compilation… >&2
 make
 
 echo Installation… >&2
-creeComptes
+creeCompte
 sudo make upgrade
 sudo chown -R postfix:postfix "$dest/var/run"
 sutiliser "$logiciel-$version"
