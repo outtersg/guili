@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Inspirons-nous de l'INSTALL de Postfix.
+
+[ -e /usr/local/etc/postfix/main.cf.original ] || mv /usr/local/etc/postfix/main.cf /usr/local/etc/postfix/main.cf.original
+cp /usr/local/etc/postfix/main.cf.original /usr/local/etc/postfix/main.cf
+cat >> /usr/local/etc/postfix/main.cf <<TERMINE
+
+mynetworks = 127.0.0.0/8
+mydestination = outters.eu, gclo.fr, `hostname`, localhost
+relay_domains =
+smtpd_client_restrictions = permit_sasl_authenticated, permit_mynetworks, reject
+smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination, permit
+TERMINE
+
+# À FAIRE: ne permettre vers hostname que localhost
+# Bon, espèce de bordel de tête à queue, comment se fait-il que je ne peux pas distinguer les locaux (mynetworks) des autres? Je croyais que reject_unauth_destination permettait justement de faire passer les locaux et virer les autres. Parce que moi je voudrais que mydestination ne comprenne que les deux domaines, mais que les locaux aient des passe-droits pour se balancer entre eux (daemon à root, etc.).
+
+/etc/rc.d/sendmail stop
+sudo newaliases -C /usr/local/postfix-2.8.7/etc/postfix
+sudo postfix -c /usr/local/postfix-2.8.7/etc/postfix start
