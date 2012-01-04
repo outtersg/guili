@@ -1,0 +1,76 @@
+#!/bin/sh
+# Copyright (c) 2004,2009 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=imaproxy
+
+version=1.2.7
+
+# Modifications
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://kent.dl.sourceforge.net/project/squirrelmail/imap_proxy/1.2.7/squirrelmail-imap_proxy-$version.tar.bz2"
+
+[ -d "$dest" ] && exit 0
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+cat > "$TMP/$$/imapproxy.conf" <<TERMINE
+server_hostname localhost
+cache_size 3072
+listen_port 144
+server_port 143
+cache_expiration_time 300
+proc_username postfix
+proc_groupname postfix
+stat_filename /var/run/pimpstats
+protocol_log_filename $dest/var/log/imapproxy_protocol.log
+syslog_facility LOG_MAIL
+send_tcp_keepalives no
+enable_select_cache no
+foreground_mode no
+force_tls no
+enable_admin_commands no
+TERMINE
+sudo mkdir -p "$dest/var/log" "$dest/etc"
+sudo cp "$TMP/$$/imapproxy.conf" "$dest/etc/"
+
+sutiliser $logiciel-$version
+
+rm -Rf "$TMP/$$"
