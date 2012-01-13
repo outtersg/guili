@@ -1,0 +1,293 @@
+#!/bin/bash
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.bash"
+
+version_h=4.0.1
+version_al=1.0.0
+version_k=3.0.1
+
+trieversions()
+{
+	php -r 'while(($arg = array_shift($argv)) !== null) switch($arg) { case "-min": $min = array_shift($argv); break; case "-max": $max = array_shift($argv); break; case "-x": $excl[array_shift($argv)] = true; break; } $v = array(); while(($l = fgets(STDIN)) !== false) { $l = trim($l);if(isset($excl[$l]) || (isset($max) && version_compare($l, $max) > 0) || (isset($min) && version_compare($l, $min) < 0)) continue; $v[] = $l; } usort($v, "version_compare"); echo implode("\n", $v)."\n";' -- "$@"
+}
+
+# Comme Pear, mais en plus comme je veux.
+pire()
+{
+	local p_dest=
+	local p_serveur=
+	local p_paquet=
+	local p_paramvers=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-d) shift ; p_dest="$1" ;;
+			-s) shift ; p_serveur="$1" ;;
+			-min|-max|-x) p_paramvers="$p_paramvers $1 $2" ; shift ;;
+			*) p_paquet="$1" ;;
+		esac
+		shift
+	done
+	
+	[ -e "/tmp/$$/$p_paquet-$p_paramvers" ] && return
+	
+	# Petits changements codés en dur.
+	
+	[ $p_paquet = kronolith ] || p_dest="$desti/horde"
+	mkdir -p "$p_dest"
+	
+echo pire -d "$p_dest" $p_paquet >&2
+	# Récup de la dernière version potable.
+	
+	p_paquet_url="`echo "$p_paquet" | tr '[A-Z]' '[a-z]'`"
+echo http://$p_serveur/rest/r/$p_paquet_url/allreleases.xml >&2
+	curl -s http://$p_serveur/rest/r/$p_paquet_url/allreleases.xml > /tmp/$$/versions
+grep '<v>' < /tmp/$$/versions | sed -e 's/.*<v>//' -e 's/<.*//' >&2
+#echo "=======" >&2
+#cat /tmp/$$/versions >&2
+#echo "-------" >&2
+	p_version="`grep '<v>' < /tmp/$$/versions | sed -e 's/.*<v>//' -e 's/<.*//' | trieversions $p_paramvers | tail -1`"
+echo "-> $p_version" >&2
+	p_tgz="`curl -s http://$p_serveur/rest/r/$p_paquet_url/$p_version.xml | grep '<g>' | sed -e 's/[^>]*>//' -e 's/<.*//'`.tgz"
+	obtenirEtAllerDans "$p_tgz"
+	local p_ou="`pwd`"
+	
+	touch "/tmp/$$/$p_paquet-$p_paramvers" # Bon, il n'est pas complètement installé, mais on espère pouvoir aller jusqu'au bout.
+	
+	# Récupération des dépendances.
+	
+	sed -e '/<dependencies>/,/<\/dependencies>/!d' < package.xml | sed -e '/<required>/,/<\/required>/!d' | awk '/<package>/{s=""}/<(name|channel|min|max|exclude)>/{s=s" "$0}/<\/package>/{print s}' | sed -e 's/<min>/-min /g' -e 's/<max>/-max /g' -e 's/<channel>/-s /g' -e 's/<exclude>/-x /g' -e 's/<[^>]*>/ /g' | while read i
+	do
+		pire -d "$p_dest" $i
+	done
+	
+	# Installation.
+	
+	cd "$p_ou"
+	( cd "$p_paquet-$p_version" && tar cf - . ) | ( cd "$p_dest" && tar xf - )
+}
+
+pipi()
+{
+	#{pear -D php_dir=/tmp/$$ -D download_dir=/tmp/$$ "$@"
+	"$SCRIPTS/pire" "$@"
+}
+
+mkdir -p /tmp/$$
+chmod 700 /tmp/$$
+rm -Rf /tmp/$$/* 
+
+desti="/home/gui/internet/kro"
+
+#mkdir -p "$desti"
+#pire -d "$desti" -s pear.horde.org kronolith
+# Bon, on lâche l'affaire, les packages PEAR ont deux subtilités qu'il me gave d'implémenter:
+# - leurs <file>s ont un <role> qui en donne l'emplacement final.
+# - et leurs <install> rajoutent un élément à cet emplacement pas si final que ça.
+
+#pipi config-set temp_dir /tmp/$$
+pipi config-set temp_dir "$PIRE/tmp"
+pipi channel-discover pear.horde.org
+pipi install horde/horde_role
+echo /tmp/$$ | pipi run-scripts horde/Horde_Role
+
+pipi install Net_SMTP
+pipi install horde/horde
+pipi install horde/kronolith
+pipi install horde/imp
+
+find "/tmp/pire" -name Translation.php | while read i
+do
+	filtrer "$i" sed -e '/self::$_directory = .*: /{
+s//self::$_directory = /
+s#'\''/tmp/pire/#dirname(__FILE__) . '\''/../../../#
+}'
+done
+
+w="/home/gui/internet"
+l="/home/gui/local"
+b="/home/gui/var/db/horde/horde.sqlite3"
+mkdir -p "$w/horde" "$l/horde"
+( cd /tmp/$$ && tar cf - . ) | ( cd "$w/horde" && tar xf - )
+( cd /tmp/pire && tar cf - bin data php ) | ( cd "$l/horde" && tar xf - )
+
+cp "$w/horde/config/conf.php.dist" "$w/horde/config/conf.php"
+cat >> "$w/horde/config/conf.php" <<TERMINE
+\$conf['sql']['database'] = '$b';
+\$conf['sql']['charset'] = 'utf-8';
+\$conf['sql']['phptype'] = 'sqlite';
+\$conf['auth']['params']['app'] = 'imp';
+\$conf['auth']['driver'] = 'application';
+\$conf['perms']['driver'] = null;
+\$conf['server']['server_list'] = 'hidden';
+\$conf['tasklist']['use_tasklist'] = false;
+\$conf['notepad']['use_notepad'] = false;
+\$conf['group']['driverconfig'] = 'horde';
+\$conf['group']['driver'] = 'Sql';
+\$conf['group']['cache'] = false;
+\$conf['share']['no_sharing'] = false;
+\$conf['share']['auto_create'] = true;
+\$conf['share']['world'] = true;
+\$conf['share']['any_group'] = false;
+\$conf['share']['hidden'] = false;
+\$conf['share']['cache'] = false;
+\$conf['share']['driver'] = 'Sqlng';
+TERMINE
+filtrer "$w/horde/config/conf.php" sed -e '/<?php/a\
+// \$Id: d94b6875b6b5dbca139da015e875605792f24ebe $
+'
+
+cat > "$w/horde/imp/config/conf.php" <<TERMINE
+<?php
+/* CONFIG START. DO NOT CHANGE ANYTHING IN OR AFTER THIS LINE. */
+// \$Id: 31981bdcd485f0af81362cbffbc3cc334540cba1 $
+\$conf['dimp']['viewport']['buffer_pages'] = 10;
+\$conf['dimp']['viewport']['viewport_wait'] = 10;
+\$conf['mailer']['type'] = 'smtp';
+\$conf['mailer']['params']['host'] = 'localhost';
+\$conf['mailer']['params']['port'] = 25;
+\$conf['mailer']['params']['auth'] = true;
+/* CONFIG END. DO NOT CHANGE ANYTHING IN OR BEFORE THIS LINE. */
+TERMINE
+
+cat > "$w/horde/kronolith/config/conf.php" <<TERMINE
+<?php
+/* CONFIG START. DO NOT CHANGE ANYTHING IN OR AFTER THIS LINE. */
+// \$Id: 9d577b2c7737b71564d7de667746ad6cf93cd6ab $
+\$conf['calendar']['params']['table'] = 'kronolith_events';
+\$conf['calendar']['params']['driverconfig'] = 'horde';
+\$conf['calendar']['params']['utc'] = true;
+\$conf['calendar']['driver'] = 'sql';
+\$conf['storage']['params']['table'] = 'kronolith_storage';
+\$conf['storage']['params']['driverconfig'] = 'horde';
+\$conf['storage']['driver'] = 'sql';
+\$conf['autoshare']['shareperms'] = 'none';
+\$conf['share']['notify'] = false;
+\$conf['holidays']['enable'] = true;
+\$conf['menu']['import_export'] = true;
+\$conf['menu']['apps'] = array('horde', 'imp');
+\$conf['menu']['apps_iframe'] = false;
+\$conf['maps']['driver'] = false;
+/* CONFIG END. DO NOT CHANGE ANYTHING IN OR BEFORE THIS LINE. */
+TERMINE
+
+cat > "$w/horde/imp/config/backends.local.php" <<TERMINE
+<?php
+\$servers['imap'] = array
+(
+	'disabled' => false,
+	'name' => 'Serveur local',
+	'hostspec' => 'localhost',
+	'hordeauth' => false,
+	'protocol' => 'imap',
+	'port' => 143,
+	'port' => 144, // imapproxy
+	'secure' => false,
+	'maildomain' => '',
+	'cache' => false,
+);
+TERMINE
+
+db="`dirname "$b"`"
+mkdir -p "$db"
+touch "$b"
+chown gui:www "$b" "$db"
+chmod g+w "$b" "$db"
+
+#chown -R gui:www "$w/horde"
+#chmod g+w "$w/horde/config/conf.php" "$w/horde/config"
+
+php > "$l/horde/pear.conf" <<TERMINE
+<?php
+echo '#PEAR_Config 0.9'."\\n";
+echo serialize
+(
+	array
+	(
+		'__channels' => array
+		(
+			'pear.horde.org' => array
+			(
+				'horde_dir' => '$w/horde',
+				'data_dir' => '$l/horde/data',
+			),
+		),
+		'data_dir' => '$l/horde/data',
+	)
+);
+?>
+TERMINE
+cat > "$l/horde/php/PEAR/Config.php" <<TERMINE
+<?php
+
+require_once '$INSTALLS/lib/php/PEAR/Config.php';
+
+class MaConfig extends PEAR_Config
+{
+	public function get(\$key, \$layer = null, \$channel = false)
+	{
+		switch(\$key)
+		{
+			case 'horde_dir': return '$w/horde';
+			case 'data_dir': return '$l/horde/data';
+		}
+		return parent::get(\$key, \$layer, \$channel);
+	}
+}
+
+\$GLOBALS['_PEAR_Config_instance'] = new MaConfig;
+
+?>
+TERMINE
+
+( cd "$l/horde" && patch -p0 <<TERMINE
+--- php/Horde/Imap/Client/Base.php	2012-01-04 04:19:04.000000000 +0100
++++ php/Horde/Imap/Client/Base.php	2012-01-04 04:19:31.000000000 +0100
+@@ -1186,6 +1186,9 @@
+             unset(\$options['special_use']);
+         }
+ 
++		if(\$pattern == array())
++			\$pattern = array('*');
++		
+         \$ret = \$this->_listMailboxes(
+             array_map(array('Horde_Imap_Client_Utf7imap', 'Utf8ToUtf7Imap'), \$pattern, array_fill(0, count(\$pattern), null)),
+             \$mode,
+TERMINE
+)
+
+filtrer "$l/horde/php/Horde/Icalendar.php" sed -e "/function _exportvData/,/^}/s/== 'VERSION'/== 'VERSION' || \$name == 'METHOD'/" # Leur implémentation CalDAV envoie un METHOD qui est interdit par le standard.
+
+#echo "Configurer la bête, avec un Apache avec php_value include_path de défini; suivre le manuel d'install de Horde, configurer droits et base de données." >&2
+# Faire générer la config une fois, puis chercher le bouton censé créer la base.
+# Constater que le peuplement de base ne fonctionne pas (les boutons n'apparaissent pas).
+
+( cd "$l/horde" && php -d data_dir="$l/horde/data" -d include_path=$w/horde:$l/horde/php:$INSTALLS/lib/php bin/horde-db-migrate -c "$l/horde/pear.conf" )
+
+# À FAIRE: cron alarmes.
+# À FAIRE: sécurisation: interdire les accès.
+# http://www.horde.org/apps/imp/docs/INSTALL: VFS, contacts, etc.
+
+echo "Sous Kronolith: l'adresse du calendrier doit être http://outters.eu:8080/calendars/users/gui/personnel/ (avec son / final). Le nom des agendas ne doit pas contenir d'accents." >&2
