@@ -28,6 +28,8 @@ logiciel=m4
 
 version=1.4.15
 
+version=1.4.16
+
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 
