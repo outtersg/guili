@@ -51,18 +51,12 @@ sansLdl()
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive=http://heanet.dl.sourceforge.net/sourceforge/p7zip/p7zip_${version}_src_all.tar.bz2
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = r* ]] ; then
-	obtenirEtAllerDansSvn -r ${version#r} $archive_svn
-elif [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -80,4 +74,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf "$TMP/$$"
