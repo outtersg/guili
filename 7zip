@@ -33,12 +33,20 @@ version=4.57
 version=4.65
 modifs=dlopenPourTous
 
+version=9.20.1
+modifs="dlopenPourTous sansLdl"
+
 # Modifications
 
 dlopenPourTous()
 {
 	filtrer CPP/Windows/DLL.cpp sed -e 's/_APPLE_CC_/_OH_NON_APPLE_CC_/'
 	filtrer CPP/7zip/UI/Common/LoadCodecs.cpp sed -e 's/7z.dll/7z.so/g'
+}
+
+sansLdl()
+{
+	filtrer makefile.machine sed -e 's/-ldl//g'
 }
 
 # Variables
