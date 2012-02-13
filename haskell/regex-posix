@@ -49,7 +49,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-runghc Setup configure --prefix="$dest"
+runghc Setup configure --prefix="$dest" --extra-lib-dirs="$INSTALLS/lib"
 
 echo Compilation… >&2
 runghc Setup build
