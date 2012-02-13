@@ -76,7 +76,7 @@ pge $version 2.3.0 && biblios="haskeline hashed-storage terminfo"
 pge $version 2.4.1 && biblios="haskeline hashed-storage terminfo html mtl parsec regex-compat"
 pge $version 2.4.4 && biblios="haskeline:0.6.2.2 hashed-storage:0.4.13 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.0.1 regex-compat:0.93.1"
 pge $version 2.5 && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.1.0 regex-compat:0.93.1 tar:0.3.1.0 text:0.10.0.0"
-pge $version 2.5.1 && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.1.0 regex-compat:0.93.1 tar:0.3.1.0 text:0.11.0.5" && modifs=sortieBrute 
+pge $version 2.5.1 && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.0.1 regex-compat:0.93.1 tar:0.3.1.0 text:0.11.0.5" && modifs=sortieBrute 
 
 dest=$INSTALLS/$logiciel-$version
 archive=http://darcs.net/$logiciel-$version.tar.gz
