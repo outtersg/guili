@@ -300,6 +300,38 @@ dyld105()
 	export LDFLAGS CFLAGS CXXFLAGS CPPFLAGS
 }
 
+# CMake, ImageMagick, pour leur config, teste leur petit monde en essayant de se lier à Carbon.
+putainDeLibJPEGDeMacOSX()
+{
+	# Ces trous du cul d'Apple ont cru bon créer une libJPEG.dylib à eux, qui évidemment ne sert à personne d'autre qu'à eux (les symboles à l'intérieur sont tous préfixés _cg_, comme CoreGraphics). Et avec un système de fichier insensible à la casse, cette connasse de libJPEG de merde prend le pas sur la très légitime libjpeg que l'on souhaite utiliser un peu partout.
+	case essai in
+		tentative)
+			LDFLAGS="-L/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ImageIO.framework/Versions/A/Resources $LDFLAGS"
+			export LDFLAGS
+			;;
+		test)
+			# Ou alors je lui pète la tête, à ce gros nase de CMake qui s'obstine à se lier avec Carbon. C'est pas son boulot, je me démerderai au cas par cas avec les conneries que me fait faire Apple. Putain ils font chier quand même avec leurs bourdes.
+			grep -rl 'framework Carbon' . | while read f
+			do
+				filtrer "$f" sed -e 's/-framework Carbon//g'
+			done
+			# Mais quand même il va en avoir besoin un coup à la fin.
+			filtrer bootstrap sed -e '/-o cmake/{
+s//-framework Carbon -o cmake/
+s#${cmake_ld_flags}#-L/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ImageIO.framework/Versions/A/Resources -lJPEG &#
+}'
+			;;
+		essai)
+			# Mais ce foutu machin s'obstine à se lancer dans je ne sais quelles variables d'environnement. Alors on essaie de lui dire de se compiler en indépendant.
+			LDFLAGS="`echo "$LDFLAGS" | sed -e "s#-L$INSTALLS/lib##g"`"
+			DYLD_FALLBACK_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$DYLD_FALLBACK_LIBRARY_PATH"
+			unset LD_LIBRARY_PATH
+			unset DYLD_LIBRARY_PATH
+			export DYLD_FALLBACK_LIBRARY_PATH
+			;;
+	esac
+}
+
 # Remplacement d'utilitaires.
 
 # http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
