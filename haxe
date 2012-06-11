@@ -46,6 +46,11 @@ vdate=2010.08.14 # Correspond à la 2.06
 modifs="libz interp"
 OPTIONS_CONF=()
 
+version=r4847
+vdate=2012.06.11 # Correspond à la 2.09+
+modifs="libz"
+OPTIONS_CONF=()
+
 # Modifications
 
 pge $vdate 2010 || inclure neko
