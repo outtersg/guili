@@ -25,18 +25,22 @@ if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
 logiciel=expat
+
 version=1.95.8
-dest=/usr/local/$logiciel-$version
+
+version=2.1.0
+
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-cd /tmp
+archive="http://ovh.dl.sourceforge.net/sourceforge/expat/$logiciel-$version.tar.gz"
+
 echo Obtention et décompression… >&2
-tar xzf `obtenir "http://ovh.dl.sourceforge.net/sourceforge/expat/$logiciel-$version.tar.gz"`
-cd /tmp/$logiciel-$version
+obtenirEtAllerDansVersion
 
 echo Configuration… >&2
-./configure --prefix=/usr/local/$logiciel-$version
+./configure --prefix="$dest"
 
 echo Compilation… >&2
 make
@@ -45,3 +49,5 @@ echo Installation… >&2
 sudo make install
 
 sutiliser $logiciel-$version
+
+rm -R "$TMP/$$"
