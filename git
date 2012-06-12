@@ -25,11 +25,26 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 . "$SCRIPTS/util.bash"
 
 logiciel=git
+
 version=1.7.0.6
 
 version=1.7.5.4
 
+version=1.7.10.4
+modifs=autoconfer
+inclure expat
+
+# Modifications
+
+autoconfer()
+{
+	make configure
+}
+
+# Variables
+
 archive="http://kernel.org/pub/software/scm/git/git-$version.tar.bz2"
+archive="https://github.com/git/git/tarball/v$version?name=/git-$version.tar.gz"
 
 dest="$INSTALLS/$logiciel-$version"
 
@@ -37,6 +52,8 @@ dest="$INSTALLS/$logiciel-$version"
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
+
+for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
