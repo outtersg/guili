@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 # Copyright (c) 2004-2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -31,39 +30,17 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 # Versions
 
 logiciel=ghc
-version=6.2.2
-version_demarreur=6.2.1
-type_demarreur=dmg
 
-version=6.4
-version_demarreur=6.4
-type_demarreur=tar
-modifs="staticObjects register discard"
-
-version=6.4.1
-modifs=
-
-version=6.6
-modifs=extralibs
-
-version=6.8.2
-type_demarreur=actuel
-modifs="extralibs uli"
-
-version=6.10.4
-modifs="extralibs uli"
-
-version=6.10.4.20090921
-modifs="extralibs uli"
-
-version=6.12.1
-
-if false
-then
-version=6.6.1
-type_demarreur=actuel
-modifs="extralibs pasStatic testReadline"
-fi
+v 6.2.2 && version_demarreur=6.2.1 && type_demarreur=dmg
+v 6.4 && version_demarreur=6.4 && type_demarreur=tar && modifs="staticObjects register discard"
+v 6.4.1 && modifs=
+v 6.6 && modifs=extralibs
+v 6.6.1 && type_demarreur=actuel &&	modifs="extralibs pasStatic testReadline"
+v 6.8.2 && modifs="extralibs uli"
+v 6.10.4
+v 6.10.4.20090921
+v 6.12.1 && modifs=uli && v_gmp=5.0.1
+v 7.4.2 && modifs="uli sansDoc" v_gmp=5.0.5
 
 auMoins()
 {
@@ -249,8 +226,21 @@ testReadline()
 
 uli()
 {
-	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-includes=/usr/local/include"
-	echo '#include "/usr/local/include/gmp.h"' > includes/gmp.h
+	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-includes=$INSTALLS/include"
+	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-libraries=$INSTALLS/lib"
+	
+	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-includes=$INSTALLS/include"
+	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-libraries=$INSTALLS/lib"
+	#LDFLAGS=-L$INSTALLS/lib
+	echo "#include \"$INSTALLS/include/gmp.h\"" > includes/gmp.h
+}
+
+sansDoc()
+{
+	filtrer mk/config.mk.in sed -e '/^HADDOCK_DOCS = /c\
+HADDOCK_DOCS = NO
+'
+	echo "HADDOCK_DOCS = NO" >> mk/validate.mk
 }
 
 # Pour une amorce de version sur cette machine, les fichiers .hc ayant été
@@ -373,12 +363,12 @@ dest="$INSTALLS/$logiciel-$version"
 
 # Autres nécessaires
 
-inclure dlcompat
-inclure gmp
+inclure dlcompat $v_dlcompat
+inclure gmp $v_gmp
 export LIBRARY_PATH="$INSTALLS/lib"
 export LD_LIBRARY_PATH=$LIBRARY_PATH
 export DYLD_LIBRARY_PATH=$LIBRARY_PATH
-inclure readline
+inclure readline $v_readline
 
 # Modifs
 
