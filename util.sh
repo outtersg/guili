@@ -24,7 +24,7 @@ INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$TMP" ] && TMP=/tmp
 
 mkdir -p "$TMP/$$"
-export PATH="$TMP/$$:`echo $PATH | sed -e 's/^\.://' -e 's/:\.://g'`"
+export PATH="`echo $TMP/$$:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
 export LD_LIBRARY_PATH="$INSTALLS/lib:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 export CMAKE_LIBRARY_PATH="$INSTALLS"
