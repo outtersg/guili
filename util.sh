@@ -40,7 +40,7 @@ obtenir()
 		echo "Téléchargement de ${fichier}…" >&2
 		commande=curl
 		[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
-		$commande -L -s "$1" > "$dest" || rm -f "$dest"
+		$commande -L -k -s "$1" > "$dest" || rm -f "$dest"
 	fi
 	echo "$dest"
 }
