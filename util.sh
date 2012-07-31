@@ -320,10 +320,13 @@ pgInterne()
 
 # Fonctions utilitaires dans le cadre des modifs.
 
+mac() { [ "`uname`" = Darwin ] ; }
+
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
 # Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
 libtool3264()
 {
+	mac || return 0
 	if command -v arch >&1 2> /dev/null && arch -arch x86_64 true 2> /dev/null
 	then
 		CFLAGS="$CFLAGS -arch x86_64 -arch i386"
@@ -335,6 +338,7 @@ libtool3264()
 
 libtool3264bis()
 {
+	mac || return 0
 	# Toutes les étapes incluant une génération de fichiers de dépendances (-M) plantent en multi-archis. C'est d'ailleurs ce qui nous pose problème, car certaines compils combinent génération de méta ET compil proprement dite, qui elle a besoin de son -arch multiple.
 	filtrer libtool sed -e '/func_show_eval_locale "/i\
 command="`echo "$command" | sed -e "/ -M/s/ -arch [^ ]*//g"`"
@@ -344,6 +348,7 @@ command="`echo "$command" | sed -e "/ -M/s/ -arch [^ ]*//g"`"
 # À ajouter en modif; après la compil dans l'archi cible, déterminera si celle-ci est une 64bits, et, si oui, lancera la recompil équivalente totale en 32bits, avant de combiner les produits via lipo.
 compil3264()
 {
+	mac || return 0
 	if command -v arch 2> /dev/null && arch -arch x86_64 true 2> /dev/null
 	then
 		if [ "x$1" = "x-32" ]
@@ -361,6 +366,7 @@ compil3264()
 
 compil3264bis()
 {
+	mac || return 0
 	icirel="`pwd | sed -e "s#$TMP/*##"`"
 	tmp2="$TMP/$$/compil32bits"
 	TMP="$tmp2" "$SCRIPTS/`basename "$0"`" -32
@@ -375,6 +381,7 @@ compil3264bis()
 
 dyld105()
 {
+	mac || return 0
 	# À FAIRE: ne rajouter ça que si on est en > 10.5.
 	# http://lists.apple.com/archives/xcode-users/2005/Dec/msg00524.html
 	[ -d /Developer/SDKs/MacOSX10.5.sdk ] || return 0
@@ -388,6 +395,7 @@ dyld105()
 # CMake, ImageMagick, pour leur config, teste leur petit monde en essayant de se lier à Carbon.
 putainDeLibJPEGDeMacOSX()
 {
+	mac || return 0
 	# Ces trous du cul d'Apple ont cru bon créer une libJPEG.dylib à eux, qui évidemment ne sert à personne d'autre qu'à eux (les symboles à l'intérieur sont tous préfixés _cg_, comme CoreGraphics). Et avec un système de fichier insensible à la casse, cette connasse de libJPEG de merde prend le pas sur la très légitime libjpeg que l'on souhaite utiliser un peu partout.
 	case essai in
 		tentative)
