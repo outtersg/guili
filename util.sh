@@ -234,6 +234,90 @@ inclure()
 	return $?
 }
 
+# Trouve le nom du prochain fichier disponible, en ajoutant des suffixes numériques jusqu'à en trouver un de libre.
+prochain()
+{
+	chemin="$1"
+	[ ! -e "$chemin" ] && echo "$chemin" && return
+	racineChemin="`echo "$chemin" | sed -e 's#\(\.[a-z0-9A-Z]\{1,3\}\)*$##'`"
+	suffixeChemin="`echo "$racineChemin" | sed -e 's#.#.#g'`"
+	suffixeChemin="`echo "$chemin" | sed -e "s#^$racineChemin##"`"
+	n=1
+	while [ -e "$racineChemin.$n$suffixeChemin" ]
+	do
+		n="`expr $n + 1`"
+	done
+	echo "$racineChemin.$n$suffixeChemin"
+}
+
+argVersion="$1" # Par défaut.
+
+# Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
+v()
+{
+	testerVersion "$1" $argVersion && version="$1"
+	testerVersion "$1" ppe $argVersion
+}
+
+# Teste si la version mentionnée en premier paramètre rentre (ou est plus petite ou égale, si le second paramètre vaut 'ppe') dans l'intervalle défini par la suite des arguments (ex.: testerVersion 2.3.1 >= 2.3 < 2.4 renverra vrai).
+testerVersion()
+{
+	[ "x$1" = x ] && return 0 # Sans mention de version, on dit que tout passe.
+	versionTestee="$1"
+	shift
+	plusPetitOuEgal=false
+	[ "x$1" = xppe ] && plusPetitOuEgal=true && shift
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			">=")
+				$plusPetitOuEgal || pge "$versionTestee" "$2" || return 1 # Si on teste un PPE, le >= n'est pas filtrant (la clause PPE est prioritaire).
+				shift
+				;;
+			"<")
+				pg "$2" "$versionTestee" || return 1
+				shift
+				;;
+			*) # Numéro de version précis.
+				if $plusPetitOuEgal
+				then
+					pge "$1" "$versionTestee" || return 1
+				else
+					[ "$versionTestee" = "$1" ] || return 1
+				fi
+				;;
+		esac
+		shift
+	done
+	true
+}
+
+pge() { pg -e "$1" "$2" ; }
+
+# Renvoie 0 si le premier paramètre (num de version) est plus grand que le second. Avec l'option -e, on fait du plus grand ou égal.
+pg()
+{
+	egal=
+	[ "x$1" = x-e ] && egal="-e" && shift
+	b="`echo "$2" | tr . ' '`"
+	pgInterne $egal "$1" $b
+}
+
+pgInterne()
+{
+	ouEgal=false
+	[ "x$1" = x-e ] && ouEgal=true && shift
+	a="`echo "$1" | tr . ' '`"
+	shift
+	for i in $a
+	do
+		[ -z "$1" -o "0$i" -gt "0$1" ] && return 0
+		[ "0$i" -lt "0$1" ] && return 1
+		shift
+	done
+	$ouEgal && [ -z "$1" ]
+}
+
 # Fonctions utilitaires dans le cadre des modifs.
 
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
