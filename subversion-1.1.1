@@ -37,6 +37,12 @@ version=1.2.3
 version=1.4.6
 modifs="lssl"
 
+version=1.7.2
+modifs=
+
+version=1.7.6
+modifs=destdir
+
 # Modifications
 
 lssl()
@@ -46,10 +52,17 @@ lssl()
 '
 }
 
+destdir()
+{
+	# Un APACHELIBEXECDIR = DESTDIR dans le Makefile, qui fait assez moche, et fait planter un libtool.
+	export DESTDIR="$dest/lib"
+}
+
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://subversion.tigris.org/tarballs/$logiciel-$version.tar.bz2"
+pge $version 1.6.9 && archive="http://mirrors.ircam.fr/pub/apache/subversion/subversion-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
 
