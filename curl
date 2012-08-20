@@ -40,6 +40,10 @@ version=7.21.0
 modifs=dyld105
 archis=oui
 
+version=7.23.0
+
+version=7.26.0
+
 # Modifications
 
 # Variables
@@ -114,3 +118,5 @@ fi
 sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
+
+curl http://curl.haxx.se/ca/cacert.pem > $HOME/.curl-ca-bundle.crt
