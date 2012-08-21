@@ -44,9 +44,9 @@ modifs="incdir fbsdopenssl"
 
 version=2.7
 inclure sqlite
-#modifs="incdir thrdlfbsd thrfbsd"
-#modifs="incdir fbsd"
 modifs="incdir fbsdopenssl"
+
+version=2.7.2
 
 # Modifications
 
