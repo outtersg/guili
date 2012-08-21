@@ -184,7 +184,7 @@ fbsd()
 		version="`grep 'PORTVERSION *=' < Makefile | sed -e 's/^[^=]*= *//' -e 's/ *$//'`" # Ben on prend ce qu'ils nous proposent.
 		dest="$INSTALLS/$logiciel-$version"
 		sudo /usr/bin/make PREFIX="$dest" install
-		sudo utiliser "$logiciel-$version"
+		sutiliser "$logiciel-$version"
 		exit 0
 	fi
 }
