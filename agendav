@@ -1,0 +1,290 @@
+#!/bin/sh
+# Copyright (c) 2004,2009 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+[ "x$1" = x-d ] && shift && dest="$1" && shift
+
+[ -z "$dest" ] && echo "Merci de préciser la destination via -d <destination>" >&2 && exit 1
+
+version=1.2.3
+
+version=1.2.4
+
+version=1.2.5.1
+
+archive="http://github.com/adobo/agendav/tarball/$version"
+
+echo "$dest" | grep -q '^/' || dest="`pwd`/$dest"
+[ -d "$dest" ] && echo "# Le dossier $dest existe déjà. Merci de le déplacer pour procéder à une installation propre." >&2 && exit 1
+
+obtenirEtAllerDansVersion agendav-$version.tar.gz
+pwd
+
+for i in config database caldav
+do
+	cp web/config/$i.php.template web/config/$i.php
+done
+
+vieuxphp=non # À FAIRE: détecter que le serveur web est servi par un PHP à la bonne version à cet endroit (ce peut ne pas être le PHP système, si par exemple agendav spécifiquement est desservi par un PHP CGI 5.4).
+if [ $vieuxphp = oui ]
+then
+
+# Les dates de PHP 5.3.0
+filtrer web/application/libraries/Dates.php sed -e '1a\
+require_once dirname(__FILE__) . "/OldDates.php";
+' -e 's/DateTime::createFromFormat/OldDateTime::createFromFormat/g' -e "s/DateTime::getLastErrors()/array('warning_count' => 0)/g"
+
+if pge $version 1.2.5
+then
+	ical=libs/icalcreator/iCalcreator.class.php
+else
+	ical=libs/icalcreator/iCalUtilityFunctions.class.php
+fi
+filtrer $ical sed -e '1a\
+require_once dirname(__FILE__) . "/../../web/application/libraries/OldDates.php";
+' -e 's/DateTime::createFromFormat/OldDateTime::createFromFormat/g'
+
+filtrer web/application/controllers/caldav2json.php sed -e "s/getTimestamp()/format('U')/g"
+
+cat > web/application/libraries/OldDates.php <<TERMINE
+<?php
+
+class OldDateTime
+{
+	public static function createFromFormat(\$format, \$string, \$tz)
+	{
+		\$t = strptime(\$string, preg_replace("/([a-zA-Z])/", "%\\\\1", strtr(\$format, "is", "MS")));
+		return new DateTime(sprintf("%04.4d-%02.2d-%02.2d %02.2d:%02.2d:%02.2d", \$t["tm_year"] + 1900, \$t["tm_mon"] + 1, \$t["tm_mday"], \$t["tm_hour"], \$t["tm_min"], \$t["tm_sec"]), \$tz);
+	}
+	
+	public static function add(\$d, \$a)
+	{
+		\$d2 = explode(':', \$d->format('Y:m:d:H:i:s'));
+		\$t = array('-', 'P', 'Y', 'M', 'D', 'T', 'H', 'M', 'S');
+		\$t2 = array();
+		for(\$p = 0, \$accu = 0, \$j = 0; \$p < strlen(\$a); ++\$p)
+			if((\$n = ord(\$a{\$p}) - ord('0')) >= 0 && \$n <= 9)
+				\$accu = \$accu * 10 + \$n;
+			else
+			{
+				while(\$t[\$j] != \$a{\$p})
+				{
+					\$t2[\$j] = null;
+					if(++\$j >= count(\$t))
+						DateTimeAddRemplace(\$d, \$a);
+				}
+				\$t2[\$j] = isset(\$t2[0]) ? -\$accu : \$accu;
+				\$accu = 0;
+				++\$j;
+			}
+		if(!isset(\$t2[1]))
+			DateTimeAddRemplace(\$d, \$a);
+		unset(\$t2[0]);
+		unset(\$t2[1]);
+		unset(\$t2[5]);
+		foreach(array_merge(\$t2) as \$c => \$v)
+			isset(\$v) && \$d2[\$c] += \$v;
+		\$temps = mktime(\$d2[3], \$d2[4], \$d2[5], \$d2[1], \$d2[2], \$d2[0]);
+		return new DateTime(strftime('%F %T', \$temps), \$d->getTimeZone());
+	}
+}
+TERMINE
+
+filtrer web/application/libraries/Icshelper.php sed -e "s#.start->diff(.end)->format('s')#\$end->format('U') - \$start->format('U')#" -e "s/getTimestamp()/format('U')/g" -e 's/\(\$[^-]*\)->add(\$this->CI->dates->duration2di/\1 = OldDateTime::add(\1, /g'
+
+patch -p0 <<TERMINE
+--- web/application/libraries/Icshelper.php	2012-01-13 17:30:59.000000000 +0100
++++ web/application/libraries/Icshelper.php	2012-01-13 17:33:24.000000000 +0100
+@@ -435,11 +435,9 @@
+ 			\$end->setTime(0, 0, 0);
+ 
+ 			if (!isset(\$this_event['expanded'])) {
+-				\$end->sub(new DateInterval('P1D'))->add(new
+-						DateInterval('PT1H'));
+-			} else {
+-				\$end->add(new DateInterval('PT1H'));
++				\$end = new DateTime('@'.(\$end->format('U') - 86400));
+ 			}
++			\$end = new DateTime('@'.(\$end->format('U') + 3600));
+ 
+ 			if (isset(\$this_event['expanded'])) {
+ 				\$orig_start = clone \$start;
+TERMINE
+
+fi # vieuxphp
+
+# On veut pouvoir causer en Digest.
+caldavclient=libs/caldav-client
+pge $version 1.2.5 || caldavclient=libs/davical/inc
+patch -p0 <<TERMINE
+--- $caldavclient/caldav-client-v2.php	2012-01-13 15:12:42.000000000 +0100
++++ $caldavclient/caldav-client-v2.php	2012-01-13 15:48:18.000000000 +0100
+@@ -259,7 +259,8 @@
+   *
+   * @return string The content of the response from the server
+   */
+-  function DoRequest( \$url = null ) {
++  function DoRequest( \$url = null, \$methAuth = null ) {
++	isset(\$methAuth) || \$methAuth = array('' => 0, 'digest' => 0, 'basic' => 0);
+     if(!defined("_FSOCK_TIMEOUT")){ define("_FSOCK_TIMEOUT", 10); }
+     \$headers = array();
+ 
+@@ -276,7 +277,20 @@
+       \$url = str_replace(rawurlencode(','),',',\$url);
+     }
+     \$headers[] = \$this->requestMethod." ". \$url . " HTTP/1.1";
++	foreach(\$methAuth as \$mAuth => \$pAuth) break;
++	switch(\$mAuth)
++	{
++		case 'digest':
++			\$ha1 = md5(\$this->user.':'.\$pAuth['realm'].':'.\$this->pass);
++			\$ha2 = md5(\$this->requestMethod.':'.\$url);
++			\$response = md5(\$ha1.':'.\$pAuth['nonce'].':'.\$ha2);
++			\$headers[] = 'Authorization: Digest username="'.\$this->user.'", realm="'.\$pAuth['realm'].'", nonce="'.\$pAuth['nonce'].'", uri="'.\$url.'", response="'.\$response.'"';
++			break;
++		case 'basic':
+     \$headers[] = "Authorization: Basic ".base64_encode(\$this->user .":". \$this->pass );
++			break;
++	}
++	array_shift(\$methAuth);
+     \$headers[] = "Host: ".\$this->server .":".\$this->port;
+ 
+     if ( !isset(\$this->headers['content-type']) ) \$this->headers['content-type'] = "Content-type: text/plain";
+@@ -302,9 +316,36 @@
+     list( \$this->httpResponseHeaders, \$this->httpResponseBody ) = preg_split( '{\\r?\\n\\r?\\n}s', \$response, 2 );
+     if ( preg_match( '{Transfer-Encoding: chunked}i', \$this->httpResponseHeaders ) ) \$this->Unchunk();
+ 
+-    \$this->headers = array();  // reset the headers array for our next request
+ 	\$this->ParseResponseHeaders(\$this->httpResponseHeaders);
+     \$this->ParseResponse(\$this->httpResponseBody);
++	
++	if(\$this->httpResultCode == 401 && count(\$methAuth))
++	{
++		\$headers = preg_split('/[\\r\\n]+/', \$this->httpResponseHeaders);
++		foreach(\$headers as \$header)
++		{
++			\$header = explode(': ', \$header, 2);
++			if(\$header[0] == 'WWW-Authenticate')
++			{
++				\$header = explode(' ', \$header[1], 2);
++				\$prochainesMethAuth = array_keys(\$methAuth);
++				if(\$header[0] == \$prochainesMethAuth[0])
++				{
++					\$pAuth = array();
++					foreach(explode(', ', \$header[1]) as \$param)
++					{
++						preg_match('/^([^=]*)="([^"]*)"\$/', \$param, \$resultat);
++						\$pAuth[\$resultat[1]] = \$resultat[2];
++					}
++					\$methAuth[\$prochainesMethAuth[0]] = \$pAuth;
++				}
++				break;
++			}
++		}
++		return \$this->DoRequest(\$this->request_url, \$methAuth);
++	}
++	
++    \$this->headers = array();  // reset the headers array for our next request
+     return \$response;
+   }
+TERMINE
+
+# Voire même, éviter que la bête ne se réauthentifie à chaque requête.
+patch -p0 <<TERMINE
+--- $caldavclient/caldav-client-v2.php	2012-01-27 01:41:42.000000000 +0100
++++ $caldavclient/caldav-client-v2.php	2012-01-27 01:42:37.000000000 +0100
+@@ -260,7 +260,13 @@
+   * @return string The content of the response from the server
+   */
+   function DoRequest( \$url = null, \$methAuth = null ) {
+-	isset(\$methAuth) || \$methAuth = array('' => 0, 'digest' => 0, 'basic' => 0);
++	if ( !isset(\$methAuth) ) {
++		\$methAuth = array('' => 0, 'digest' => 0, 'basic' => 0);
++		session_start();
++		if ( isset(\$_SESSION['gui_auth_digest']) ) {
++			\$methAuth = array('digest-session' => \$_SESSION['gui_auth_digest']) + \$methAuth;
++		}
++	}
+     if(!defined("_FSOCK_TIMEOUT")){ define("_FSOCK_TIMEOUT", 10); }
+     \$headers = array();
+ 
+@@ -280,6 +286,7 @@
+ 	foreach(\$methAuth as \$mAuth => \$pAuth) break;
+ 	switch(\$mAuth)
+ 	{
++		case 'digest-session':
+ 		case 'digest':
+ 			\$ha1 = md5(\$this->user.':'.\$pAuth['realm'].':'.\$this->pass);
+ 			\$ha2 = md5(\$this->requestMethod.':'.\$url);
+@@ -338,6 +345,7 @@
+ 						\$pAuth[\$resultat[1]] = \$resultat[2];
+ 					}
+ 					\$methAuth[\$prochainesMethAuth[0]] = \$pAuth;
++					\$_SESSION['gui_auth_digest'] = \$pAuth; /* À FAIRE: vider la session à la déconnexion. */
+ 				}
+ 				break;
+ 			}
+TERMINE
+
+mkdir -p "$dest"
+
+filtrer web/config/caldav.php sed \
+	-e "/config.'caldav_url'. = /s# = .*# = 'http://localhost:8080/calendars/users/%u/';#" \
+	-e "/config.'caldav_principal_url'. = /s# = .*# = 'http://localhost:8080/calendars/users/%u/';#" \
+	-e "/config.'caldav_calendar_url'. = /s# = .*# = 'http://localhost:8080/calendars/users/%s/';#" \
+	-e "/config.'public_caldav_url'. = /s# = .*# = 'http://outters.eu:8080/calendars/users/%u/';#" \
+
+filtrer web/config/config.php sed \
+	-e "/config.'log_path'. = /s# = .*# = '/tmp/';#" \
+	-e "/config.'encryption_key'. = /s# = .*# = 'jiojojczoij893:*déjkc,xlaz';#" \
+	-e "/config.'footer'. = /s# = .*# = 'Agenda de famille';#" \
+	-e "/config.'site_title'. = /s# = .*# = 'Agenda de famille';#" \
+	-e "/config.'default_date_format'. = /s# = .*# = 'dmy';#" \
+	-e "/config.'default_first_day'. = /s# = .*# = 1;#" \
+	-e "/config.'default_timezone'. = /s# = .*# = 'Europe/Paris';#" \
+
+filtrer web/config/database.php sed \
+	-e "/db.*default.*'username'. = /s# = .*# = 'agendav';#" \
+	-e "/db.*default.*'password'. = /s# = .*# = 'klaztromuzuyrm';#" \
+	-e "/db.*default.*'database'. = /s# = .*# = 'agendav';#" \
+
+tar cf - . | ( cd "$dest" && tar xf - )
+
+echo "# Pensez à configurer le serveur web pour qu'il pointe sur $dest/web/public" >&2
+#echo "# Veuillez lire http://agendav.org/doc/1.2.3/admin/installation.html: Database and tables" >&2
+#echo "# Modifiez la conf (cf. dans le fichier d'install)" >&2
+
+if pge $version 1.2.5.1
+then
+	# Agendav réclamant un PHP 5.3, il n'est pas sûr qu'il soit celui configuré par défaut dans le système; on rajoute donc au PATH tous les PHP qui auraient pu être compilés, même s'ils ne sont pas liés depuis /usr/local/bin.
+	phps="`ls -rd /usr/local/php-*[0-9] | sed -e 's#$#/bin#' | tr '\012' :`"
+	PATH="$phps:$PATH"
+	export PATH
+	./bin/agendavcli dbupdate || true
+fi
+
+# Les opérations de mise à niveau ne comportent pas de traduction; on doit donc les avoir faites en anglais, avant de passer en notre bon vieux français pour l'exploitation normale.
+filtrer "$dest/web/config/config.php" sed \
+	-e "/config.'default_language'..= /s#.= .*# = 'fr_FR';#"
