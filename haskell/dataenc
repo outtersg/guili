@@ -31,6 +31,8 @@ logiciel=dataenc
 
 version=0.13.0.2
 
+version=0.14.0.4
+
 [ "x$1" = x-v ] && version="$2" && shift && shift
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"

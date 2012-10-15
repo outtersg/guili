@@ -33,10 +33,13 @@ version=0.92
 
 version=0.93.1
 
+version=0.95.1
+
 [ "x$1" = x-v ] && version="$2" && shift && shift
 
 biblios="regex-base regex-posix"
 pge $version 0.93.1 && biblios="regex-base:0.93.2 regex-posix:0.94.2"
+pge $version 0.95.1 && biblios="regex-base:0.93.2 regex-posix:0.95.1"
 
 inclureBiblios -t haskell
 

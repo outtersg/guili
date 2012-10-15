@@ -32,7 +32,6 @@ logiciel=text
 version=0.10.0.0
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
-echo "bouh $*"
 
 biblios="deepseq:1.1.0.2"
 
