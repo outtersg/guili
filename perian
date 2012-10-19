@@ -1,0 +1,11 @@
+obtenirEtAllerDans http://perian.cachefly.net/Perian_1.2.3-src.zip
+ln -s /Users/gui/tmp/obj build
+rm -Rf ffmpeg
+#ln -s /usr/local/ffmpeg-1.0/include ffmpeg
+make > /dev/null 2>&1 
+make > /tmp/1 2>&1 
+grep Developer/usr/bin/gcc-4.2 /tmp/1 | sed -e 's# -I# -I/usr/local/include/libavcodec -I/usr/local/include -I#' | while read i
+do
+	$i
+done
+#Bon alors là dans ffmpeg on a plein de couilles, étant donné qu'il y a une expansion de je ne sais quels paramètres en -I*/*, incluant un -Iffmpeg/libavutil, dans lequel se trouve un time.h qui passe devant celui du système (en l'enlevant, la compil passe bien; tous les fichiers de ffmpeg n'ont besoin que de -Iffmpeg, car ils incluent libavutil/time.h).
