@@ -21,10 +21,8 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.bash"
-
-inclure x264
 
 logiciel=ffmpeg
 
@@ -37,10 +35,18 @@ OPTIONS_CONF=(--disable-altivec) # h264_chroma_mc8, entre autres, a une variable
 version=2005-10-29
 
 version=r6177
-modifs=
+modifs=avecX264
 OPTIONS_CONF=(--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enable-pp --enable-shared)
 
+v 0.7-rc1 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --disable-yasm)
+v 1.0 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus) && inclure yasm && inclure opus
+
 # Modifications
+
+avecX264()
+{
+	inclure x264
+}
 
 # L'édition de liens utilise un truc qui ne marche que pour 10.3… et a la bonne
 # grâce de nous le signaler.
@@ -51,19 +57,14 @@ panther()
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive_cvs="cvs://anonymous:@mplayerhq.hu:/cvsroot/$logiciel:$logiciel"
 archive_svn=svn://svn.mplayerhq.hu/$logiciel/trunk
+archive="http://www.ffmpeg.org/releases/ffmpeg-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = r* ]] ; then
-	obtenirEtAllerDansSvn -r ${version#r} $archive_svn
-elif [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -76,6 +77,6 @@ make
 
 echo Installation… >&2
 sudo make install
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
