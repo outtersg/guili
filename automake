@@ -28,8 +28,11 @@ inclure autoconf
 
 logiciel=automake
 version=1.9.5
-dest="/usr/local/$logiciel-$version"
-archive=ftp://ftp.cs.univ-paris8.fr/mirrors/ftp.gnu.org/$logiciel/$logiciel-$version.tar.bz2
+
+version=1.12.4
+
+dest="$INSTALLS/$logiciel-$version"
+archive=http://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
@@ -45,4 +48,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
