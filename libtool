@@ -29,6 +29,9 @@ logiciel=libtool
 # Historique des versions gérées
 
 version=1.5.22
+
+version=2.4.2
+
 OPTIONS_CONF=()
 
 # Modifications
