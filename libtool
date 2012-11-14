@@ -36,7 +36,7 @@ OPTIONS_CONF=()
 # Variables
 
 archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
-dest=/usr/local/$logiciel-$version
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
@@ -55,4 +55,4 @@ echo Installation… >&2
 sudo make install
 sutiliser $logiciel-$version
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
