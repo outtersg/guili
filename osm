@@ -1,0 +1,83 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.sh"
+
+inclure postgis
+inclure osm2pgsql
+
+echo "Mdp?"
+read mdp
+sudo -u postgresql psql postgres <<TERMINE
+create user osm password '$mdp';
+create database osm owner osm;
+TERMINE
+
+sudo -u postgresql psql osm <<TERMINE
+CREATE EXTENSION hstore;
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+grant select, insert, update, delete on table public.geometry_columns to osm;
+grant select on table public.spatial_ref_sys to osm;
+TERMINE
+
+curl -o /tmp/france.osm.pbf http://download.geofabrik.de/openstreetmap/europe/france.osm.pbf
+style=/tmp/temp.$$.osm2pgsql.style
+cat /usr/local/share/osm2pgsql/default.style > $style
+sed -e 's/$//' >> $style <<TERMINE
+node,way   3dshapes:*   text   delete
+node,way   AND_nosr_r   text   delete
+node,way   b5m:*        text   delete
+node,way   bak:*        text   delete
+node,way   canvec:*     text   delete
+node,way   created_by   text   delete
+node,way   dcgis:*      text   delete
+node,way   FIXME        text   delete
+node,way   geobase:*    text   delete
+node,way   gnis:*       text   delete
+node,way   kms:*        text   delete
+node,way   KSJ2:*       text   delete
+node,way   massgis:*    text   delete
+node,way   mvdgis:*     text   delete
+node,way   naptan:*     text   delete
+node,way   ngbe:*       text   delete
+node,way   nhd:*        text   delete
+node,way   NHD:*        text   delete
+node,way   note         text   delete
+node,way   note:*       text   delete
+node,way   notes        text   delete
+node,way   osak:*       text   delete
+node,way   source       text   delete
+node,way   source:*     text   delete
+node,way   sourcedb:*   text   delete
+node,way   tiger:*      text   delete
+node,way   WroclawGIS:* text   delete
+node,way   yh:*         text   delete
+node,way   rednap:*     text   delete
+node,way   ideewfs:*    text   delete
+node,way   ign:*        text   delete
+TERMINE
+osm2pgsql --slim --hstore --number-processes 2 -l -S $style -d osm -U osm /tmp/france.osm.pbf
+
+rm -Rf "$TMP/$$"
