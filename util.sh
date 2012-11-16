@@ -30,6 +30,7 @@ export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 export CMAKE_LIBRARY_PATH="$INSTALLS"
 export LDFLAGS="-L$INSTALLS/lib"
 export CPPFLAGS="-I$INSTALLS/include"
+export ACLOCAL="aclocal -I $INSTALLS/share/aclocal"
 
 obtenir()
 {
