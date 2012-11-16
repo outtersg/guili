@@ -386,10 +386,11 @@ dyld105()
 	# À FAIRE: ne rajouter ça que si on est en > 10.5.
 	# http://lists.apple.com/archives/xcode-users/2005/Dec/msg00524.html
 	[ -d /Developer/SDKs/MacOSX10.5.sdk ] || return 0
-	LDFLAGS="$LDFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
-	CFLAGS="$CFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
-	CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
-	CPPFLAGS="$CPPFLAGS -mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
+	MACOSXVERSIONFLAGS="-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk/"
+	LDFLAGS="$LDFLAGS $MACOSXVERSIONFLAGS"
+	CFLAGS="$CFLAGS $MACOSXVERSIONFLAGS"
+	CXXFLAGS="$CXXFLAGS $MACOSXVERSIONFLAGS"
+	CPPFLAGS="$CPPFLAGS $MACOSXVERSIONFLAGS"
 	export LDFLAGS CFLAGS CXXFLAGS CPPFLAGS
 }
 
