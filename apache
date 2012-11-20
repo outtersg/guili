@@ -33,25 +33,15 @@ logiciel=apache
 
 # Historique des versions gérées
 
-version=2.0.54
-#modifs=confDeveloppement
-
-version=2.1.7-beta # Qui sait utiliser APR 1.2.1, qui n'a pas http://issues.apache.org/bugzilla/show_bug.cgi?id=34332
-modifs=aprUtil
-
-version=2.1.9-beta # Il faut suivre, car les beta disparaissent des serveurs au fur et à mesure.
-
-version=2.2.3
-
-version=2.2.8
-
-version=2.2.11
-modifs="aprUtil proxy"
-
-version=2.2.15
-modifs="aprUtil proxy"
-
-version=2.2.16
+v 2.0.54 #&& modifs=confDeveloppement
+v 2.1.7-beta && v_aprutil=">= 1.2.1" # Qui sait utiliser APR 1.2.1, qui n'a pas http://issues.apache.org/bugzilla/show_bug.cgi?id=34332
+v 2.1.9-beta # Il faut suivre, car les beta disparaissent des serveurs au fur et à mesure.
+v 2.2.3
+v 2.2.8
+v 2.2.11 && modifs="proxy"
+v 2.2.15
+v 2.2.21
+v 2.2.23 && v_aprutil=">= 1.5"
 
 # Modifs
 
@@ -64,10 +54,7 @@ confDeveloppement()
 	OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-mode"
 }
 
-aprUtil()
-{
-	inclure apr-util
-}
+[ -z "$v_aprutil" ] || inclure apr-util "$v_aprutil"
 
 proxy()
 {
@@ -76,7 +63,7 @@ proxy()
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive=http://apache.crihan.fr/dist/httpd/httpd-$version.tar.bz2
 
 [ -d "$dest" -a $rempl = non ] && exit 0
@@ -102,7 +89,7 @@ else
 sutiliser "$logiciel-$version"
 fi
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
 
 echo "# Pensez à modifier le MIME des .js en text/javascript, sans quoi Drosera refuse de les déboguer." >&2
 echo "# User et Group seraient aussi à modifier." >&2

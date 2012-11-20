@@ -24,24 +24,20 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.bash"
 
-inclure apr
-
 logiciel=apr-util
 
 # Historique des versions gérées
 
-version=1.2.1
-modifs=
+v 1.2.1 && v_apr=">= 0"
+v 1.2.2
+v 1.2.7
+v 1.2.12
+v 1.3.4
+v 1.3.9
+v 1.3.12 && inclure expat # Sinon apr installe celle embarquée, qui nous cause des soucis.
+v 1.5.1 && v_apr=">= 1.4.6"
 
-version=1.2.2
-
-version=1.2.7
-
-version=1.2.12
-
-version=1.3.4
-
-version=1.3.9
+inclure apr "$v_apr"
 
 # Modifications
 
