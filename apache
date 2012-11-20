@@ -21,6 +21,11 @@
 
 set -e
 
+rempl=non
+test=non
+[ "x$1" = x-r ] && rempl=oui && shift
+[ "x$1" = x-t ] && test=oui && rempl=oui && shift
+
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.bash"
 
@@ -74,7 +79,7 @@ proxy()
 dest="/usr/local/$logiciel-$version"
 archive=http://apache.crihan.fr/dist/httpd/httpd-$version.tar.bz2
 
-[ -d "$dest" ] && exit 0
+[ -d "$dest" -a $rempl = non ] && exit 0
 
 obtenirEtAllerDans "$archive"
 
@@ -88,8 +93,14 @@ echo Compilation… >&2
 make
 
 echo Installation… >&2
+[ ! -d "$dest" ] || ( [ ! -d "$dest.remplace" ] && sudo mv "$dest" "$dest.remplace" || true )
 sudo make install
+if [ $test = oui ]
+then
+	[ -d "$dest.nouveau" ] || ( sudo mv "$dest" "$dest.nouveau" && sudo mv "$dest.remplace" "$dest" )
+else
 sutiliser "$logiciel-$version"
+fi
 
 rm -Rf /tmp/$$
 
