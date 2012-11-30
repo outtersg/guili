@@ -1,0 +1,431 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+while [ $# -gt 0 ]
+do
+	case "$1" in
+		*)
+			for i in domaine dest
+			do
+				eval test -z \$$i && eval $i="$1" && break
+			done
+			;;
+	esac
+	shift
+done
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi <domaine à gérer> <répertoire destination>
+TERMINE
+	exit 1
+}
+
+[ -z "$domaine" -o -z "$dest" ] && auSecours
+
+version=0.7
+
+version=0.7.2
+
+version=0.8.0
+
+version=0.8.1
+
+archive="http://netcologne.dl.sourceforge.net/project/roundcubemail/roundcubemail/$version/roundcubemail-$version.tar.gz"
+
+avec_agenda=non
+avec_menu=oui
+
+mkdir -p "$dest"
+
+if ( cd "$dest" && find . -type f | head -1 ) | grep -q .
+then
+	vieilleBase="`grep rcmail_config[^a-z]*db_dsnw "$dest/config/db.inc.php" | sed -e "s#.* = '##" -e "s#'.*##"`"
+	vieux="`echo "$dest" | sed -e 's#/*$##'`.`date +%Y-%m-%d`"
+	[ -e "$vieux" ] || mv "$dest" "$vieux"
+	mkdir -p "$dest"
+fi
+
+if [ -z "$vieilleBase" ]
+then
+	base="rc_`echo "$domaine" | sed -e 's/[^a-zA-Z0-9]/_/g' | cut -c 1-13`"
+	mdp="`openssl rand -base64 32 | tr -d '/+='`"
+else
+	base="`echo "$vieilleBase" | sed -e 's#^[^:/]*://##' -e 's#:.*##'`"
+	mdp="`echo "$vieilleBase" | sed -e 's#^[^:/]*://[^:]*:##' -e 's#@[^/]*/[^/]*$##'`"
+	
+	sauvegarde="$dest/../roundcube.`date +%Y-%m-%d`.sql.gz"
+	mysqldump -u"$base" -p"$mdp" "$base" | gzip > `prochain "$sauvegarde"`
+fi
+
+( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest" && tar xf - )
+
+greffonsEnManuel()
+{
+	if [ $avec_menu = oui ]
+	then
+		archive="http://www.tehinterweb.co.uk/roundcube/plugins/contextmenu.tar.gz"
+		rm -f "$INSTALL_MEM/`basename "$archive"`"
+		mkdir -p "$dest/plugins/contextmenu"
+		( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest/plugins/contextmenu" && tar xf - )
+	fi
+	
+	archive="http://crapouillou.net/~jocelyn/ressources/roundcube/automatic_addressbook-latest.tar.bz2"
+	rm -f "$INSTALL_MEM/`basename "$archive"`"
+	mkdir -p "$dest/plugins/automatic_addressbook"
+	( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest/plugins/automatic_addressbook" && tar xf - )
+	
+	archive="http://cloud.github.com/downloads/xrxca/cnw/compose_newwindow-3.00.tar.gz"
+	mkdir -p "$dest/plugins/compose_newwindow"
+	( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest/plugins/compose_newwindow" && tar xf - )
+	
+	# Finalement cet agenda ne me plaît pas: pas de prise en compte de la racine d'abonnement (tous les agendas d'un compte), et le glisser-déposer m'a fait des curiosités en transformation d'un événement jour en événement borné.
+	#filtrer config/main.inc.php sed -e "/rcmail_config.*'plugins'.*= array/s/)/'calendar', 'qtip', )/"
+	
+	if [ $avec_agenda = oui ]
+		then
+		archive="http://myroundcube.googlecode.com/files/roundcube-0.7.1-bundle-v1.2.zip"
+		mkdir -p "$dest/plugins"
+		( obtenirEtAllerDansVersion && cd plugins && tar cf - calendar qtip ) | ( cd "$dest/plugins" && tar xf - )
+		filtrer "$dest/plugins/calendar/program/backend/caldav.php" sed -e '/%u.*SESSION..usern/s/\$_SESSION\[.username.\]/preg_replace("#@.*#", "", $_SESSION["username"])/'
+	fi
+	
+	if [ $avec_menu = oui ]
+	then
+		filtrer config/main.inc.php sed -e "/rcmail_config.*'plugins'.*= array/s/)/'contextmenu', )/"
+	fi
+	
+	filtrer config/main.inc.php sed -e "/rcmail_config.*'plugins'.*= array/s/)/'automatic_addressbook', )/"
+	
+	filtrer config/main.inc.php sed -e "/rcmail_config.*'plugins'.*= array/s/)/'compose_newwindow', )/"
+	
+	if [ $avec_agenda = oui ]
+	then
+		# A FAIRE: avoir un %i remplacé par la partie identifiant de identifiant@hôte (%u, c'est tout le identifiant@hôte).
+		methodeAuth=digest # Vieille version. A-ce un jour marché?
+		methodeAuth=detect
+		sed < plugins/calendar/config.inc.php.dist > plugins/calendar/config.inc.php \
+			-e "/'backend'/s# = .*# = 'caldav';#" \
+			-e '/rcmail_config.*default_caldav_backend/i\
+$rcmail_config["default_caldav_backend"] = array("user"=>"%u","pass"=>"%p","auth"=>"'$methodeAuth'","url"=>"http://localhost:8080/calendars/users/%u/");
+' -e '//,/^[ 	);]*$/c\
+'
+	fi
+}
+
+greffonsEnAuto()
+{
+	archive="http://dev.mail4us.net/?_action=plugin.plugin_server_get_pm"
+	mkdir -p "$dest/plugins/"
+	( obtenirEtAllerDans "$archive" "rc_plugins_manager.`date +%Y-%m-%d`.zip" && tar cf - . ) | ( cd "$dest/plugins/" && tar xf - )
+	
+	filtrer config/main.inc.php sed -e '/rcmail_config.*'\''plugins'\''.*= array/{
+s/)/'\''plugin_manager'\'', )/
+a\
+//$rcmail_config["plugin_manager_show_updates"] = true;
+a\
+$rcmail_config["plugin_manager_admins"] = array("gui@gclo.fr", "guillaume@outters.eu", "gui", "guillaume");
+}'
+}
+
+cd "$dest"
+
+mkdir -p temp logs
+chown gui:www temp logs
+chmod -R g+w temp logs
+
+pge $version 0.8 || filtrer program/include/iniset.php sed -e '/mb_regex_encoding/i\
+    if(function_exists("mb_regex_encoding"))
+'
+sed < ./config/db.inc.php.dist > ./config/db.inc.php \
+	-e "/'db_dsnw'/s# = .*# = 'mysql://$base:$mdp@localhost/$base';#"
+sed < ./config/main.inc.php.dist > ./config/main.inc.php \
+	-e "/'default_port'/s# = .*# = 144;#" \
+	-e "/'default_host'/s# = .*# = 'localhost';#" \
+	-e "/'imap_auth_type'/s# = .*# = 'LOGIN';#" \
+	-e "/'smtp_server'/s# = .*# = 'localhost';#" \
+	-e "/'smtp_auth_type'/s# = .*# = 'PLAIN';#" \
+	-e "/'smtp_user'/s# = .*# = '%u';#" \
+	-e "/'smtp_pass'/s# = .*# = '%p';#" \
+	-e "/'login_autocomplete'/s# = .*# = 2;#" \
+	-e "/'skin_logo'/s# = .*# = null;#" \
+	-e "/'des_key'/s# = .*# = 'nlcL;ezio@jKJkuIllk903(+';#" \
+	-e "/'username_domain'/s# = .*# = '$domaine';#" \
+	-e "/'mail_domain'/s# = .*# = '$domaine';#" \
+	-e "/'http_received_header'/s# = .*# = true;#" \
+	-e "/'draft_autosave'/s# = .*# = 60;#" \
+	-e "/'preview_pane'/s# = .*# = true;#" \
+	-e "/'client_mimetypes'/s# = .*# = 'text/plain,text/html,text/xml,image/jpeg,image/jpg,image/gif,image/png';#" \
+	
+	-e "/'search_mods'/s# = .*# = array('*' => array('subject' => 1, 'from' => 1, 'text' => 1, 'to' => 1));  // Example: array('*' => array('subject'=>1, 'from'=>1), 'Sent' => array('subject'=>1, 'to'=>1));#" \
+	-e "/'flag_for_deletion'/s# = .*# = true;#" \
+	-e "/'identities_email_restriction'/d" \
+	-e "/'identities_level'. = /"'{
+s# = .*# = 0;#
+a\
+$rcmail_config['\''identities_email_restriction'\''] = '\''%u([-_][-a-z0-9_]*)@%d'\'';
+}'
+
+#	-e "/'plugins'] 
+#	-e "/'im_
+#	-e "/'upload_progress'/s# = .*# = true; # Avec APC
+#	-e "/'address_book_type'/s# = .*# = 'ldap';
+
+patch -p0 <<TERMINE
+--- program/steps/mail/compose.inc	2012-01-05 14:14:13.000000000 +0100
++++ program/steps/mail/compose.inc	2012-01-05 14:15:56.000000000 +0100
+@@ -1182,6 +1182,7 @@
+       \$subject = \$MESSAGE->subject;
+     else
+       \$subject = 'Re: '.\$MESSAGE->subject;
++    \$subject = preg_replace('/^(re *: *)+/i', 'Re: ', \$subject);
+   }
+   // create a forward-subject
+   else if (\$compose_mode == RCUBE_COMPOSE_FORWARD) {
+TERMINE
+
+filtrerAdrelsAlternatives()
+{
+	patch -p0 <<TERMINE
+diff -ruw /home/mariage/internet/roundcube/program/steps/settings/save_identity.inc ./program/steps/settings/save_identity.inc
+--- ./program/steps/settings/save_identity.inc	2011-06-02 14:26:59.000000000 +0200
++++ ./program/steps/settings/save_identity.inc	2012-06-11 23:53:46.000000000 +0200
+@@ -56,6 +56,39 @@
+ if (IDENTITIES_LEVEL == 1 || IDENTITIES_LEVEL == 3)
+   unset(\$save_data['email']);
+ 
++\$email_restriction = \$RCMAIL->config->get('identities_email_restriction');
++if (isset(\$email_restriction))
++{
++  // Get the pieces needed for variable replacement.
++  if (\$fu = \$RCMAIL->user->get_username())
++    list(\$u, \$d) = explode('@', \$fu);
++  else
++    \$d = \$this->mail_domain;
++
++  \$replaces = array('%d' => \$d, '%u' => \$u);
++  // Make replaces regex-resistant.
++  foreach (\$replaces as & \$replace)
++    \$replace = strtr(\$replace, array(
++      '\\\\' => '\\\\\\\\',
++      '.' => '\\\\.',
++      '(' => '\\\\(',
++      ')' => '\\\\)',
++      '$' => '\\\\$',
++      '[' => '\\\\[',
++      ']' => '\\\\]',
++      '*' => '\\\\*',
++	  '#' => '\\\\#',
++    ));
++  \$email_restriction = strtr(\$email_restriction, \$replaces);
++  if (!preg_match("#^\$email_restriction\$#", \$save_data['email']))
++  {
++    \$OUTPUT->show_message('emailformaterror', 'error', array('email' => \$save_data['email']), false);
++    rcmail_overwrite_action('edit-identity');
++    unset(\$save_data['email']);
++    return;
++  }
++}
++
+ // Validate e-mail addresses
+ foreach (array('email', 'reply-to', 'bcc') as \$item) {
+   if (\$email = \$save_data[\$item]) {
+diff -ruw program/include/iniset.php program/include/iniset.php
+--- program/include/iniset.php	2012-03-11 17:22:50.000000000 +0100
++++ program/include/iniset.php	2012-04-06 18:57:01.000000000 +0200
+@@ -74,6 +74,7 @@
+ // set internal encoding for mbstring extension
+ if (extension_loaded('mbstring')) {
+     mb_internal_encoding(RCMAIL_CHARSET);
++if(function_exists("mb_regex_encoding"))
+     @mb_regex_encoding(RCMAIL_CHARSET);
+ }
+ 
+diff -ruw program/include/rcube_user.php program/include/rcube_user.php
+--- program/include/rcube_user.php	2011-09-06 19:18:12.000000000 +0200
++++ program/include/rcube_user.php	2012-06-12 19:03:33.000000000 +0200
+@@ -552,6 +552,45 @@
+ 
+ 
+     /**
++     * Get current user's allowed email addresses regex, if any is configured
++     *
++     * @return string Regex, including its enclosing braces, or false if no restriction applies
++     */
++    function allowed_addresses()
++    {
++        \$email_restriction = \$this->rc->config->get('identities_email_restriction');
++        if (isset(\$email_restriction))
++        {
++            // Get the pieces needed for variable replacement.
++            if (\$fu = \$this->get_username())
++                list(\$u, \$d) = explode('@', \$fu);
++            else
++                \$d = \$this->rc->config->mail_domain(\$this->data['mail_host']);
++
++            \$replaces = array('%d' => \$d, '%u' => \$u);
++            // Make replaces regex-resistant.
++            foreach (\$replaces as & \$replace) {
++                \$replace = strtr(\$replace, array(
++                    '\\\\' => '\\\\\\\\',
++                    '.' => '\\\\.',
++                    '(' => '\\\\(',
++                    ')' => '\\\\)',
++                    '\$' => '\\\\\$',
++                    '[' => '\\\\[',
++                    ']' => '\\\\]',
++                    '*' => '\\\\*',
++                    '#' => '\\\\#',
++                ));
++			}
++            \$email_restriction = strtr(\$email_restriction, \$replaces);
++            return "#^\$email_restriction\$#";
++        }
++
++        return false;
++    }
++
++
++    /**
+      * Return a list of saved searches linked with this user
+      *
+      * @param int  \$type  Search type
+diff -ruw program/steps/mail/compose.inc program/steps/mail/compose.inc
+--- program/steps/mail/compose.inc	2012-01-01 20:10:53.000000000 +0100
++++ program/steps/mail/compose.inc	2012-06-12 20:00:37.000000000 +0200
+@@ -326,6 +326,17 @@
+     }
+   }
+ 
++  // Still no ID, but our account can receive mail on multiple, regex-controlled addresses. See if one matches
++  \$email_restriction = \$RCMAIL->user->allowed_addresses();
++  if (\$email_restriction) {
++    foreach (\$a_recipients as \$a_recipient) {
++      if (preg_match(\$email_restriction, \$a_recipient)) {
++        \$matching_recipient = \$a_recipient;
++        break;
++      }
++    }
++  }
++  
+   // Still no ID, use default/first identity
+   if (\$from_idx === null) {
+     \$from_idx = \$default_identity !== null ? \$default_identity : key(reset(\$MESSAGE->identities));
+@@ -334,7 +345,7 @@
+   \$ident   = \$MESSAGE->identities[\$from_idx];
+   \$from_id = \$ident['identity_id'];
+ 
+-  \$MESSAGE->compose['from_email'] = \$ident['email'];
++  \$MESSAGE->compose['from_email'] = isset(\$matching_recipient) ? \$matching_recipient : \$ident['email'];
+   \$MESSAGE->compose['from']       = \$from_id;
+ }
+ 
+@@ -536,9 +547,18 @@
+     \$select_from = new html_select(\$field_attrib);
+ 
+     // create SELECT element
+-    foreach (\$MESSAGE->identities as \$sql_arr)
++    \$identities = \$MESSAGE->identities;
++    \$from = \$MESSAGE->compose['from'];
++    while (\$sql_arr = array_shift(\$identities))
+     {
+       \$identity_id = \$sql_arr['identity_id'];
++      // add an alternative 'this identity with another email address' (equivalent to a new temporary identity cloned from this one, for just this message)
++      if (\$identity_id == \$MESSAGE->compose['from'] && \$MESSAGE->compose['from_email'] != \$sql_arr['email']) {
++          \$temp_identity = \$sql_arr;
++          \$temp_identity['email'] = \$MESSAGE->compose['from_email'];
++          \$from = \$temp_identity['identity_id'] = format_email_recipient(\$temp_identity['email'], \$temp_identity['name']); // On sending, when the _from field is not an int, it is taken as a full email address. We rely on this, using the complete address as identity id.
++          \$identities[] = \$temp_identity;
++      }
+       \$select_from->add(format_email_recipient(\$sql_arr['email'], \$sql_arr['name']), \$identity_id);
+ 
+       // add signature to array
+@@ -554,7 +574,7 @@
+       }
+     }
+ 
+-    \$out = \$select_from->show(\$MESSAGE->compose['from']);
++    \$out = \$select_from->show(\$from);
+ 
+     // add signatures to client
+     \$OUTPUT->set_env('signatures', \$a_signatures);
+diff -ruw program/steps/settings/save_identity.inc program/steps/settings/save_identity.inc
+--- program/steps/settings/save_identity.inc	2011-06-02 14:26:59.000000000 +0200
++++ program/steps/settings/save_identity.inc	2012-06-12 19:04:20.000000000 +0200
+@@ -56,6 +56,17 @@
+ if (IDENTITIES_LEVEL == 1 || IDENTITIES_LEVEL == 3)
+   unset(\$save_data['email']);
+ 
++\$email_restriction = \$RCMAIL->user->allowed_addresses();
++if (\$email_restriction) {
++  if (!preg_match(\$email_restriction, \$save_data['email']))
++  {
++    \$OUTPUT->show_message('emailformaterror', 'error', array('email' => \$save_data['email']), false);
++    rcmail_overwrite_action('edit-identity');
++    unset(\$save_data['email']);
++    return;
++  }
++}
++
+ // Validate e-mail addresses
+ foreach (array('email', 'reply-to', 'bcc') as \$item) {
+   if (\$email = \$save_data[\$item]) {
+TERMINE
+}
+
+filtrerAdrelsAlternatives
+
+# Installation des extensions.
+
+if pge $version 0.8 && false
+then
+	greffonsEnAuto
+else
+	greffonsEnManuel
+fi
+
+chmod -R g+rx plugins
+
+# Mise-à-jour de la base de données.
+
+stty -echo ; printf "Mot de passe root de la base de données? " ; read mdproot ; echo ; stty echo
+if mysql -uroot -p$mdproot -e "show databases like '$base'" | grep -q .
+then
+	./bin/update.sh
+	echo "# Veuillez faire tourner les requêtes SQL présentes dans les divers mysql.update.sql" >&2
+	echo "# Aujourd'hui (0.7.2), RC a une mdb2_schema_check censée vérifier la conformité du schéma, mais elle n'est pas utilisée (il fait un simple db_schema_check qui ne s'assure que de la présence des colonnes et tout)." >&2
+else
+	mysql -uroot -p$mdproot <<TERMINE
+CREATE DATABASE $base /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
+GRANT ALL PRIVILEGES ON $base.* TO $base@localhost IDENTIFIED BY '$mdp';
+TERMINE
+	mysql -u$base -p"$mdp" $base < SQL/mysql.initial.sql
+	mysql -u$base -p"$mdp" $base < plugins/automatic_addressbook/SQL/mysql.initial.sql
+	[ $avec_agenda = oui ] && mysql -u$base -p"$mdp" $base < plugins/calendar/SQL/mysql.sql
+	echo "# Vous devriez sans doute augmenter les tailles de chargement maximales dans le .htaccess" >&2
+fi
