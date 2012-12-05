@@ -21,25 +21,26 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
 . "$SCRIPTS/util.bash"
 
 inclure glib
 
 logiciel=atk
 
-version=1.9.0
-archive=ftp://ftp.gtk.org/pub/gtk/v2.6/$logiciel-$version.tar.bz2
+v 1.9.0
+v 2.7.2 && modifs="putainDeLibJPEGDeMacOSX"
 
-dest=/usr/local/$logiciel-$version
+archive=ftp://ftp.gtk.org/pub/gtk/v2.6/$logiciel-$version.tar.bz2
+pge $version 2 && archive="http://ftp.acc.umu.se/pub/gnome/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
+
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -54,4 +55,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
