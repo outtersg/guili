@@ -29,14 +29,13 @@ inclure expat
 
 logiciel=fontconfig
 
-version=2.3.2
-
+v 2.3.2
 # La 2.3.2 est boguée, leur FcObjectStaticName n'est pas généralisé et du coup
 # les comparaisons de chaînes par pointeur ne marchent pas partout.
+version=2005-06-28
+v 2.10.0
 
-#version=2005-06-28
-
-dest=/usr/local/$logiciel-$version
+dest=$INSTALLS/$logiciel-$version
 archive=http://www.fontconfig.org/release/$logiciel-$version.tar.gz
 archive_cvs=cvs://anonymous@cvs.freedesktop.org:/cvs/fontconfig:fontconfig
 
@@ -59,11 +58,7 @@ constantes()
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -78,4 +73,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
