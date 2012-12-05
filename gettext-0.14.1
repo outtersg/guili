@@ -26,10 +26,9 @@ if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"
 
 logiciel=gettext
 
-version=0.14.1
-
-# Dépendant d'un libiconv GNU trop récent pour Mac OS X 10.4. Il faudrait réussir à trouver une directive de compilation qui nous permettrait de choisir si l'on se cantonne à la précédente ou si l'on peut franchir le pas (sous 10.6, ça passe).
-version=0.17
+v 0.14.1
+v 0.17 # Dépendant d'un libiconv GNU trop récent pour Mac OS X 10.4. Il faudrait réussir à trouver une directive de compilation qui nous permettrait de choisir si l'on se cantonne à la précédente ou si l'on peut franchir le pas (sous 10.6, ça passe).
+v 0.18.1.1
 
 archive="http://mirror.ibcp.fr/pub/gnu/gettext/$logiciel-$version.tar.gz"
 dest="$INSTALLS/$logiciel-$version"
@@ -49,3 +48,5 @@ make
 echo Installation… >&2
 sudo make install
 sutiliser $logiciel-$version
+
+rm -Rf "$TMP/$$"
