@@ -30,6 +30,7 @@ logiciel=gc
 
 version=6.5
 version=6.7
+version=7.2d
 
 # Modifications
 
@@ -37,6 +38,7 @@ version=6.7
 
 dest="/usr/local/$logiciel-$version"
 archive=http://www.hpl.hp.com/personal/Hans_Boehm/$logiciel/${logiciel}_source/$logiciel$version.tar.gz
+pge $version 7 && archive=http://www.hpl.hp.com/personal/Hans_Boehm/gc/gc_source/gc-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
