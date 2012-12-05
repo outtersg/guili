@@ -26,23 +26,15 @@ if [ "$SCRIPTS" = "" ] ; then SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$
 
 
 logiciel=libpng
-version=1.2.5
 
-version=1.2.25
-
-version=1.2.37
-
-version=1.4.1
-modifs="compat12"
-
-version=1.4.4
-modifs="compil3264 dyld105 compat12"
-
-# Attention, la 1.5 retire des accès directs sur lesquels repose un vieux wx.
-version=1.5.2
-modifs="compil3264 dyld105"
-
-version=1.5.6
+v 1.2.5
+v 1.2.25
+v 1.2.37
+v 1.4.1 && modifs="compat12"
+v 1.4.4 && modifs="compil3264 dyld105 compat12"
+v 1.5.2 && modifs="compil3264 dyld105" # Attention, la 1.5 retire des accès directs sur lesquels repose un vieux wx.
+v 1.5.6
+v 1.5.13
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://switch.dl.sourceforge.net/sourceforge/png-mng/$logiciel-$version.tar.bz2"
