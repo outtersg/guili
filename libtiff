@@ -28,14 +28,10 @@ logiciel=libtiff
 
 # Historique des versions gérées
 
-version=3.7.2
-
-
-version=2005-05-05
-modifs=detectionGLMac
-
-version=3.9.4
-modifs="compil3264 dyld105"
+v 3.7.2
+version=2005-05-05 && modifs=detectionGLMac
+v 3.9.4 && modifs="compil3264 dyld105"
+v 4.0.3
 
 detectionGLMac()
 {
