@@ -28,11 +28,13 @@ inclure fontconfig
 
 logiciel=xft
 
-version=2.1.2
-archive=http://xlibs.freedesktop.org/release/$logiciel-$version.tar.gz
+v 2.1.2
+v 2.1.7
+v 2.3.1
 
-version=2.1.7
-archive=http://xlibs.freedesktop.org/release/libXft-$version.tar.bz2
+pge $version 2.1.2 && archive=http://xlibs.freedesktop.org/release/$logiciel-$version.tar.gz || true
+pge $version 2.1.7 && archive=http://xlibs.freedesktop.org/release/libXft-$version.tar.bz2 || true
+pge $version 2.3 && archive=http://xorg.freedesktop.org/releases/individual/lib/libXft-$version.tar.bz2 || true
 
 dest=/usr/local/$logiciel-$version
 
