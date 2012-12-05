@@ -38,6 +38,8 @@ modifspostconf=dylib
 
 version=8c
 
+version=8d
+
 # Modifications
 
 dylib()
