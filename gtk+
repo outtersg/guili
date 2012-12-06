@@ -29,29 +29,34 @@ inclure glib
 inclure libjpeg
 inclure libpng
 inclure libtiff
-inclure atk
-inclure pango
 
 logiciel=gtk+
 
-version=2.6.8
-archive=ftp://ftp.gtk.org/pub/gtk/v2.6/$logiciel-$version.tar.bz2
+v 2.6.8 && v_atk=">= 1.9" && v_pango=">= 0"|| true
+v 2.24.13 && modifs="putainDeLibJPEGDeMacOSX" && v_atk=">= 2.5.3" && v_gdk_pixbuf=">= 2.26" && v_pango=">= 1.20 < 1.30" || true
+v 3.6.2 && modifs="putainDeLibJPEGDeMacOSX" && v_atk=">= 2.5.3" && v_gdk_pixbuf=">= 2.26" && v_pango="> 1.30" || true
 
-dest=/usr/local/$logiciel-$version
+mac && optionsConf="--enable-quartz-backend --disable-x11-backend" || true
+
+[ -z "$v_atk" ] || inclure atk "$v_atk"
+[ -z "$v_pango" ] || inclure pango "$v_pango"
+[ -z "$v_gdk_pixbuf" ] || inclure gdk-pixbuf "$v_gdk_pixbuf"
+
+archive=ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2
+pge $version 2.11 && archive=ftp://ftp.gtk.org/pub/gtk/`vmaj $version`/gtk+-$version.tar.bz2 || true
+pge $version 2.20 && archive=http://ftp.gnome.org/pub/gnome/sources/gtk+/`vmaj $version`/gtk+-$version.tar.xz || true
+
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-    obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-    obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-LDFLAGS=-L/usr/local/lib ./configure --prefix="$dest" # Sans le LDFLAGS, -L/usr/X11R6/lib passe en premier, avec une fontconfig obsolète et incompatible avec celle d'/usr/local (FcObjectStaticName pas utilisée, donc les comparaisons de chaînes merdent).
+./configure --prefix="$dest" $optionsConf
 
 echo Compilation… >&2
 make
@@ -60,4 +65,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
