@@ -25,28 +25,30 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 . "$SCRIPTS/util.bash"
 
 inclure glib
-inclure xft
 
 logiciel=pango
 
-version=1.8.0
-archive=ftp://ftp.gtk.org/pub/gtk/v2.6/$logiciel-$version.tar.bz2
+v 1.8.0 && v_xft=">= 0" || true
+v 1.29.3 && modifs="putainDeLibJPEGDeMacOSX" && v_xft=">= 0" && v_cairo=">= 1.12" || true
+v 1.32.3 && modifs="putainDeLibJPEGDeMacOSX" && v_xft= && v_cairo=">= 1.12" || true
 
-dest=/usr/local/$logiciel-$version
+[ -z "$v_xft" ] || inclure xft "$v_xft"
+[ -z "$v_cairo" ] || inclure cairo "$v_cairo"
+
+archive=ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2
+pge $version 1.32 && archive=http://ftp.gnome.org/pub/GNOME/sources/pango/`vmaj $version`/$logiciel-$version.tar.xz || true
+
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" #--without-xft
 
 echo Compilation… >&2
 make
@@ -55,4 +57,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
