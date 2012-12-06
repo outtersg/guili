@@ -21,25 +21,32 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
 . "$SCRIPTS/util.bash"
 
-inclure gc
-inclure gtk+
-inclure libxml
-inclure libxslt
-inclure libsigc++
-inclure gtkmm
-inclure libpopt
+inclure glib
 
 logiciel=inkscape
 
-# Historique des versions gérées
+v 0.41 && modifs="xmlparser finite" && v_gtkmm=">= 0" && v_gtk=">= 0" && v_libxml=">= 0" && v_libxslt=">= 0" && v_sigcpp=">= 0" && v_gc=">= 0" && v_popt=">= 0" || true
+v 0.48.2 && modifs="putainDeLibJPEGDeMacOSX" && v_intltool=">= 0.22" && v_littlecms="< 2" && v_glibmm=">= 2.4" && v_gtkmm=">= 2.10 < 2.80" && v_gtk=">= 2" && v_libxml=">= 2.6.11" && v_libxslt=">= 1.0.15" && v_cairo=">= 0" && v_sigcpp=">= 2.0.12" && v_libpng=">= 1.2" && v_gsl=">= 0" && v_gc= && v_popt= || true
 
-version=0.41
-modifs="xmlparser finite"
+[ -z "$v_intltool" ] || inclure intltool "$v_intltool"
+[ -z "$v_glibmm" ] || inclure glibmm "$v_glibmm"
+[ -z "$v_gtkmm" ] || inclure gtkmm "$v_gtkmm"
+[ -z "$v_gtk" ] || inclure gtk+ "$v_gtk"
+[ -z "$v_libxml" ] || inclure libxml "$v_libxml"
+[ -z "$v_libxslt" ] || inclure libxslt "$v_libxslt"
+[ -z "$v_cairo" ] || inclure cairo "$v_cairo"
+[ -z "$v_sigcpp" ] || inclure sigc++ "$v_sigcpp"
+[ -z "$v_libpng" ] || inclure libpng "$v_libpng"
+[ -z "$v_gsl" ] || inclure gsl "$v_gsl"
+[ -z "$v_popt" ] || inclure libpopt "$v_popt"
+[ -z "$v_gc" ] || inclure gc "$v_gc"
 
-# Modifications
+archive=http://switch.dl.sourceforge.net/project/inkscape/inkscape/$version/inkscape-$version.tar.gz
 
 xmlparser()
 {
@@ -68,22 +75,27 @@ finite()
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
-archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-perl --with-python
+if 0 # mac
+then
+	cd packaging/macosx
+	#./osx-build.sh a
+	./osx-build.sh c
+	./osx-build.sh b
+	sudo ./osx-build.sh i
+else
+	mac && optionsConf="--enable-osxapp" || true
+	./configure --prefix="$dest" $optionsConf
+fi
 
 echo Compilation… >&2
 make
@@ -92,4 +104,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
