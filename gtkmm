@@ -24,29 +24,33 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.bash"
 
-inclure glibmm
-inclure atk
-
 logiciel=gtkmm
 
 # Historique des versions gérées
 
-version=2.6.3
+v 2.6.3 && v_glibmm=">= 2.6" || true
+v 2.24.2 && v_glibmm=">= 2.28 < 2.35" && v_gtk="< 2.80" || true
+v 3.0.1 && v_glibmm=">= 2.28" || true
+v 3.6.0 && v_glibmm=">= 2.34" && v_pangomm=">= 2.27.1" && v_gtk=">= 3.6" && v_cairomm=">= 1.9.2" && v_gdk_pixbuf=">= 2.22.1" && v_atkmm=">= 2.22.2" || true
 
 # Modifications
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
-archive=http://ftp.gnome.org/pub/GNOME/sources/$logiciel/2.6/$logiciel-$version.tar.bz2
+[ -z "$v_gtk" ] || inclure gtk+ "$v_gtk"
+[ -z "$v_glibmm" ] || inclure glibmm "$v_glibmm"
+[ -z "$v_pangomm" ] || inclure pangomm "$v_pangomm"
+[ -z "$v_cairomm" ] || inclure cairomm "$v_cairomm"
+[ -z "$v_gdk_pixbuf" ] || inclure gdk-pixbuf "$v_gdk_pixbuf"
+[ -z "$v_atkmm" ] || inclure atkmm "$v_atkmm"
+
+dest="$INSTALLS/$logiciel-$version"
+archive=http://ftp.gnome.org/pub/GNOME/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2
+pge $version 3.1 && archive=http://ftp.gnome.org/pub/gnome/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz || true
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -61,4 +65,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
