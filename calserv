@@ -31,7 +31,16 @@ logiciel=calserv
 version=t2.4
 modifs="fichierDeConf internap zopeInterfaceSansZope rsyncAbsolu rsyncVaChercherTonBin twistedEnodata setuptools caldavdplistDansEtc caldavdPythonpath installerMemcached"
 
-inclure kerberos
+version=t3.1
+modifs="fichierDeConf rsyncAbsolu rsyncVaChercherTonBin twistedEnodata2 caldavdplistDansEtc caldavdPythonpath installerMemcached setPete includeLocal ldapSaslInclude"
+
+version=t4.1
+modifs="fichierDeConf rsyncAbsolu rsyncVaChercherTonBin ldapSaslInclude"
+modifs="fichierDeConf rsyncAbsolu rsyncVaChercherTonBin caldavdplistDansEtc caldavdPythonpath setPete ldapSaslInclude"
+
+# La 4.2 corrige le problème de perf du REPORT: un REPORT sur une période (mettons un mois) récupérait les événements demandés, puis faisait une récup de TOUS les événements du calendrier à fin de décoration ou je ne sais quoi (inclure le décompte n / total événements calendrier?). Résultat: 4 à 8 s à obtenir une semaine sur mon agenda comptant (sur son histoire complète) quelques milliers d'événements (cf. ~/tmp/testcal). Avec la 4.2, le résultat est quasi-instantané. Le problème ne se posait pas avec les produits Apple (qui travaillent avec une base locale qu'ils ne synchronisent avec CalDAV que via Etag/Ctag), mais avec Agendav, qui fait grand usage de REPORTs. Dès lors, pour Agendav, la majeure partie du temps est passée dans le traitement PHP et JS.
+version=t4.2
+modifs="fichierDeConf rsyncAbsolu rsyncVaChercherTonBin caldavdplistDansEtc caldavdPythonpath setPete ldapSaslInclude"
 
 # Modifications
 
@@ -73,14 +82,19 @@ zopeInterfaceSansZope()
 
 rsyncAbsolu()
 {
-	filtrer run sed -e 's#\(rsync -av "\)\([^/]*\)/#\1`python -c "import os;print os.path.normpath('\'\\2\'')"`/#'
+	for f in run support/build.sh support/submit
+	do
+		[ -e "$f" ] && filtrer "$f" sed -e 's#\(rsync -av "\)\([^/]*\)/#\1`python -c "import os;print os.path.normpath('\'\\2\'')"`/#'
+	done
 }
 
 rsyncVaChercherTonBin()
 {
 	# Sur Mac OS X, on ne sait pourquoi, en préparant son déploiement, il aura mis le répertoire bin sous un usr/local plutôt que sous le répertoire nommé d'après la destination réelle (où rsync va le chercher). Sous BSD il aura bien préparé son arborescence. Pour pallier, on envoie tous les fichiers au même endroit si on en trouve aux deux.
 	# À FAIRE: ne marche pas encore des masses, pydir.py va de toute manière s'installer direct dans /usr/local/bin. Et est introuvable du coup pour Twisted aui a codé en dur qu'il était dans le répertoire inattendu.
-	filtrer run sed -e '/rsync.*bin/{
+	for f in run support/build.sh support/submit
+	do
+		[ -e "$f" ] && filtrer "$f" sed -e '/rsync.*bin/{
 i\
 transit_bin_inattendu="`python -c "import os;print os.path.normpath('\''${install}/usr/local'\'')"`/bin/"
 i\
@@ -88,6 +102,7 @@ transit_bin_attendu="`python -c "import os;print os.path.normpath('\''${install}
 i\
 [ -d "$transit_bin_inattendu" ] && mkdir -p "$transit_bin_attendu" && cp "$transit_bin_inattendu"/* "$transit_bin_attendu/"
 }'
+	done
 }
 
 twistedEnodata()
@@ -98,6 +113,18 @@ twistedEnodata()
 	filtrer run sed -e '/py_install.*Twisted/i\
 sed -e "/errno.ENODATA, /s///" -e "s/= (\\\\([^,]*\\\\))/= (\\\\1,)/" < "${twisted}/twisted/web2/dav/xattrprops.py" > "${twisted}/twisted/web2/dav/xattrprops.py.temp" && cat "${twisted}/twisted/web2/dav/xattrprops.py.temp" > "${twisted}/twisted/web2/dav/xattrprops.py"
 '
+}
+
+twistedEnodata2()
+{
+	# On essaie de remplacer ENODATA par la valeur (C) de la première chose connue et ressemblante qui compile en C. Python ne connaissant pas forcément toutes les valeurs que voit C, on va utiliser directement la valeur numérique.
+	enoqqc="`for i in ENODATA ENOATTR ; do ( echo '#include <errno.h>' ; echo '#include <stdio.h>' ; echo 'int main(int argc, char ** argv) { printf("%d\n", '$i'); return 0; }' ) | cc -x c - -o /tmp/test 2> /dev/null  && /tmp/test ; done | head -1`"
+	for f in nonpasrun support/build.sh support/submit
+	do
+		[ -e "$f" ] && filtrer "$f" sed -e '/Twisted.*;/a\
+grep -rl ENODATA "${caldav}/twisted" "${caldav}/twext" "${caldav}/txdav" | while read f ; do sed -e s/errno.ENODATA/'$enoqqc'/g < $f > $f.temp && cat $f.temp > $f ; done
+'
+	done
 }
 
 setuptools()
@@ -119,7 +146,10 @@ caldavdplistDansEtc()
 {
 	filtrer calendarserver/tools/fixcalendardata.py sed -e "s#/etc/caldavd/caldavd.plist#$dest/etc/caldavd.plist#"
 	filtrer setup.py sed -e '/caldavd.plist/s/"caldavd"/"etc"/'
-	filtrer run sed -e '/rsync/s#/caldavd/#/etc/#g'
+	for f in run support/build.sh
+	do
+		[ -e "$f" ] && filtrer "$f" sed -e '/rsync/s#/caldavd/#/etc/#g'
+	done
 }
 
 caldavdPythonpath()
@@ -131,6 +161,7 @@ caldavdPythonpath()
 s#%s#%s:%s#
 s#,)#,os.getenv("PYTHONPATH"))#
 }'
+# A FAIRE: PYTHONPATH="/usr/local/calserv-4.1/lib/python:/usr/local/python-2.7.2/lib/python2.7/site-packages::$PYTHONPATH"
 }
 
 internap()
@@ -139,101 +170,53 @@ internap()
 	filtrer run sed -e 's/internap.dl.sourceforge.net/switch.dl.sourceforge.net/g'
 }
 
+editePlist()
+{
+	f="$1"
+	shift
+	directives=
+	while [ $# -gt 1 ]
+	do
+		directives="$directives/<key>$1<\\/key>/{p=\"$2\"}"
+		shift
+		shift
+	done
+	filtrer "$f" awk "{if(p){gsub(/>.*</,\">\"p\"<\");gsub(/<[A-Za-z]*\/>/,\"<\"p\"/>\");p=\"\"}}$directives{print}"
+}
+
 fichierDeConf()
 {
-	patch -p0 <<TERMINE
---- conf/caldavd.plist	Wed Mar 24 10:03:47 2010
-+++ conf/caldavd.plist	Fri Mar 26 19:19:53 2010
-@@ -36,7 +36,7 @@
- 
-     <!-- HTTP port [0 = disable HTTP] -->
-     <key>HTTPPort</key>
--    <integer>80</integer>
-+    <integer>8080</integer>
- 
-     <!-- SSL port [0 = disable HTTPS] -->
-     <!-- (Must also configure SSLCertificate and SSLPrivateKey below) -->
-@@ -78,11 +78,11 @@
- 
-     <!-- Data root -->
-     <key>DataRoot</key>
--    <string>/Library/CalendarServer/Data/</string>
-+    <string>$db/data</string>
- 
-     <!-- Document root -->
-     <key>DocumentRoot</key>
--    <string>/Library/CalendarServer/Documents/</string>
-+    <string>$db/docs</string>
- 
-     <!-- Child aliases -->
-     <key>Aliases</key>
-@@ -133,7 +133,7 @@
-       <key>params</key>
-       <dict>
-         <key>xmlFile</key>
--        <string>/etc/caldavd/accounts.xml</string>
-+        <string>$dest/etc/caldavd-accounts.xml</string>
-       </dict>
-     </dict>
-     
-@@ -179,7 +179,7 @@
- 
-     <!-- Principals that can pose as other principals -->
-     <key>SudoersFile</key>
--    <string>/etc/caldavd/sudoers.plist</string>
-+    <string>etc/caldavd-sudoers.plist</string>
- 
-     <!-- Create "proxy access" principals -->
-     <key>EnableProxyPrincipals</key>
-@@ -250,13 +250,13 @@
- 
-     <!-- Apache-style access log -->
-     <key>AccessLogFile</key>
--    <string>/var/log/caldavd/access.log</string>
-+    <string>$dest/var/log/caldavd/access.log</string>
-     <key>RotateAccessLog</key>
-     <true/>
- 
-     <!-- Server activity log -->
-     <key>ErrorLogFile</key>
--    <string>/var/log/caldavd/error.log</string>
-+    <string>$dest/var/log/caldavd/error.log</string>
- 
-     <!-- Log levels -->
-     <key>DefaultLogLevel</key>
-@@ -264,15 +264,15 @@
- 
-     <!-- Global server stats --> 
-     <key>GlobalStatsSocket</key> 
--    <string>/var/run/caldavd-stats.sock</string> 
-+    <string>$dest/var/run/caldavd-stats.sock</string> 
- 
-     <!-- Server statistics file -->
-     <key>ServerStatsFile</key>
--    <string>/var/run/caldavd/stats.plist</string>
-+    <string>$dest/var/run/caldavd/stats.plist</string>
- 
-     <!-- Server process ID file -->
-     <key>PIDFile</key>
--    <string>/var/run/caldavd.pid</string>
-+    <string>$dest/var/run/caldavd.pid</string>
- 
- 
-     <!--
-@@ -293,10 +293,10 @@
-       -->
- 
-     <key>UserName</key>
--    <string>daemon</string>
-+    <string>www</string>
- 
-     <key>GroupName</key>
--    <string>daemon</string>
-+    <string>www</string>
- 
-     <key>ProcessType</key>
-     <string>Combined</string>
-TERMINE
+	editePlist conf/caldavd.plist \
+		HTTPPort 8080 \
+		ServerRoot "$db" \
+		UseDatabase true \
+		DataRoot "$db/data" \
+		DocumentRoot "$db/docs" \
+		ConfigRoot "$dest/etc" \
+		RunRoot "$dest/var/run" \
+		xmlFile "$dest/etc/caldavd-accounts.xml" \
+		SudoersFile etc/caldavd-sudoers.plist \
+		LogRoot "$dest/var/log/caldavd" \
+		AccessLogFile "$dest/var/log/caldavd/access.log" \
+		ErrorLogFile "$dest/var/log/caldavd/error.log" \
+		GlobalStatsSocket "$dest/var/run/caldavd-stats.sock" \
+     	ServerStatsFile "$dest/var/run/caldavd/stats.plist" \
+     	PIDFile "$dest/var/run/caldavd.pid" \
+     	UserName www \
+     	GroupName www
+	
+	# On fonctionne à l'ancienne: un fichier par événement. Certes un jour il
+	# serait bon de passer sur base de données…
+	# Cf. http://trac.calendarserver.org/browser/CalendarServer/tags/release/CalendarServer-3.1/twistedcaldav/stdconfig.py
+	false && \
+	pge $v 3.0 && filtrer conf/caldavd.plist sed -e '/Database connection/a\
+<key>UseDatabase</key> <false/>
+'
+	# Au chargement le serveur ne répond pas, et lance un "Message too long" dans ses traces.
+	# Cf. http://trac.calendarserver.org/ticket/448
+	pge $v 3.0 && filtrer conf/caldavd.plist sed -e '/Database connection/a\
+<key>UseMetaFD</key> <false/>
+'
 
 	# NOTE: guid
 	# Lorsque l'on précise à iCal de se connecter à principals/users/gui, il
@@ -248,6 +231,8 @@ TERMINE
 	# sans guid, puis j'ai récupéré celui qu'il avait généré tout seul pour le
 	# coller ici.
 	# cf. http://old.nabble.com/Debugging-caldavd-on-Linux-td13539777.html
+	adr=cuaddr && padr=mailto: && auto="<auto-schedule/>" && mlieu=proxies
+	pge $v 3 && adr=email-address && padr= && auto= && mlieu=members
 	cat > $TMP/$$/caldavd-accounts.xml <<TERMINE
 <?xml version="1.0" encoding="utf-8"?>
 
@@ -279,7 +264,7 @@ limitations under the License.
     <uid>gui</uid>
     <passwordouille>test</password>
     <name>Guillaume</name>
-    <cuaddr>mailto:guillaume.outters@free.fr</cuaddr>
+    <$adr>${padr}guillaume.outters@free.fr</$adr>
 	<!-- Cf. note dans l'installeur. -->
 	<guid>55ae0bd5-c0ce-577a-b63f-a19196aad419</guid>
   </user>
@@ -295,10 +280,10 @@ limitations under the License.
     <uid>maison</uid>
     <passwordouille>mercury</password>
     <name>La Villa des Étangs</name>
-    <auto-schedule/>
-    <proxies>
+    $auto
+    <$mlieu>
       <member type="users">gui</member>
-    </proxies>
+    </$mlieu>
   </location>
 </accounts>
 TERMINE
@@ -368,9 +353,17 @@ TERMINE
 
 installerMemcached()
 {
-	filtrer run sed -e '/rsync.*install_home.*etc/{
+	for f in run support/build.sh
+	do
+		[ -e "$f" ] && filtrer "$f" sed -e '/rsync.*install_home.*etc/{
 a\
 set +u
+a\
+shopt -s nullglob 2> /dev/null || true
+a\
+[ -z "$libevent" ] && for libevent in /tmp/libevent-* ; do true ; done
+a\
+[ -z "$memcached" ] && for memcached in /tmp/memcached-* ; do true ; done
 a\
 [ -z "$libevent" ] || rsync -av "$libevent/_root/" "'"$dest"'/"
 a\
@@ -378,6 +371,39 @@ a\
 a\
 set -u
 }'
+	done
+}
+
+setPete()
+{
+	filtrer support/build.sh sed -e '1a\
+set -e
+'
+}
+
+includeLocal()
+{
+	filtrer support/build.sh sed -e "/^find_header/,/^}/s#cc #cc  -I$INSTALLS/include #"
+}
+
+ldapSaslInclude()
+{
+	mkdir -p lib-patches/python-ldap
+	cat > lib-patches/python-ldap/recupLocal.patch <<TERMINE
+--- ./setup.cfg	2012-01-11 13:14:01.000000000 +0100
++++ ./setup.cfg	2012-01-11 13:15:21.000000000 +0100
+@@ -2,8 +2,8 @@
+ extra_objects = 
+ extra_compile_args = 
+ libs = ldap_r lber sasl2 ssl crypto
+-library_dirs = /usr/local/openldap-2.3/lib
+-include_dirs = /usr/local/openldap-2.3/include /usr/include/sasl
++library_dirs = $INSTALLS/lib
++include_dirs = $INSTALLS/include $INSTALLS/include/sasl
+ 
+ [egg_info]
+ tag_build = 
+TERMINE
 }
 
 # Variables
@@ -387,9 +413,18 @@ dest="$INSTALLS/$logiciel-$v"
 db="$HOME/var/db/caldav"
 archive_svn="http://svn.macosforge.org/repository/calendarserver/CalendarServer/trunk"
 archive_svn_tag="http://svn.macosforge.org/repository/calendarserver/CalendarServer/tags/release/CalendarServer-$v"
+archive_svn_tag="http://svn.calendarserver.org/repository/calendarserver/CalendarServer/tags/release/CalendarServer-$v"
 pvc="`python --version 2>&1 | sed -e 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/'`" # Python version courte
 
 [ -d "$dest" ] && exit 0
+
+inclure kerberos # Nécessaire en 2, en 3.1, …
+if pge $v 3
+then
+	inclure postgresql
+	inclure openldap
+	inclure sasl
+fi
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
@@ -406,12 +441,21 @@ sudo ./run -I "$dest"
 sudo mkdir -p "$dest/etc" "$dest/var/log/caldavd" "$dest/var/run" "$db/data" "$db/docs"
 sudo cp $TMP/$$/caldavd-accounts.xml $TMP/$$/caldavd-sudoers.plist "$dest/etc/"
 sudo chmod 700 "$dest/etc/"*
+sudo chmod 775 "$dest/var/log/caldavd" # postgres a besoin de créer ses fichiers sous le UserName mentionné.
+sudo chmod 775 "$dest/var/log"
+sudo chown root:www "$dest/var/log/caldavd"
+#touch "$dest/var/log/caldavd/postgres.log"
+#chown www:wheel "$dest/var/log/caldavd/postgres.log"
 sudo chown -R www:www "$db"
 sudo cp contrib/tools/fix_calendar "$dest/bin/"
 calcScripts python
-[ -f "$SCRIPTS/pydir.py" ] || sudo ln /usr/local/bin/pydir.py "$SCRIPTS/"
+[ -f "$SCRIPTS/pydir.py" ] || ( [ -f /usr/local/bin/pydir.py ] && sudo ln /usr/local/bin/pydir.py "$SCRIPTS/" ) || true # pydir n'est plus trop utilisé dans les nouvelles versions.
 
 sutiliser "$logiciel-$v"
+
+crontaber - "pg_dump.*caldav" "21-19-*-*-*" '/usr/local/bin/sudo /usr/local/bin/pg_dump -h `/usr/local/bin/sudo grep _postgres_ '"$db"'/data/Database/cluster/postmaster.pid` -U www caldav | gzip > '"$HOME"'/sauvegardes/caldav.`date +\%Y-\%m-\%d`.sql.gz'
+crontaber - "purgevieilles.php.*caldav.*sql" "39-19-*-*-*" '/usr/local/bin/php /home/gui/src/scripts/sauvegarde/purgevieilles.php -p 365:30,90:7,8:1 '"$HOME"'/sauvegardes/caldav.@d-@d-@d.sql.gz'
+
 
 rm -Rf "$TMP/$$"
 
@@ -421,3 +465,9 @@ echo "sudo $dest/bin/caldavd -f $dest/etc/caldavd.plist -X" >&2
 echo "Pour Chandler, vous activerez l'authentification Basic dans $dest/etc/caldavd.plist" >&2
 echo "Modifiez aussi le accounts.xml: ajouter des first-name et last-name à chaque compte." >&2
 # N.B.: pour certain paquets, j'ai l'impression que le schéma est le suivant (genre pydir): s'il faut télécharger, je télécharge, décompresse et patche. Sinon je décompresse juste (et oublie de patcher). J'ai eu ce problème avec un pydirector non patché qui s'est installé (et du coup serveur non fonctionnel).
+echo "Ne faudrait-il pas passer aussi http://trac.calendarserver.org/ticket/468 pour les clients très légers type jqCaldav?" >&2
+echo "Pour les anciennes données (2 -> 3): les réimporter en tant que fichiers ICS, CalServ, à son premier lancement, créera la base PostGreSQL à partir de ces fichiers." >&2
+echo "En version 4: ajouter <string>0.0.0.0</string> dans les BindAddresses de caldavd.plist: en effet, sans paramètre, il essaie de parcourir la liste de toutes les interfaces, trouve '' et '::' (IPv6), mais bind les deux comme des adresses IPv4, donc plantage pour la seconde." >&2
+echo "En version 4.2: ajouter un <key>FreeBusyIndexLowerLimitDays</key><integer>0</integer> dans caldavd.plist à la racine de la conf (avant la section FreeBusyURL, par exemple). Ils ont semble-t-il branché cette limitation sur la requête qui permet à agendav de consulter le passé." >&2
+echo "Surtout ne pas effacer le contenu du répertoire /tmp: cette saleté a besoin de ça dans son PYTHONPATH (voir le bin/caldavd). Normalement tout est recopié dans $dest, mais un PYTHONPATH épuré donne une application non fonctionnelle. Donc pour le moment on repose sur ce contenu de /tmp." >&2
+echo "Pour comprendre les pb de perfs: mkdir /tmp/pp, le lancer comme dans /usr/local/etc/rc.d/calserv en ajoutant un -p /tmp/pp, lancer des requêtes, le tuer, python -c 'import pstats;p=pstats.Stats(\"/tmp/pp/caldav-0.pstats\");p.sort_stats(\"tot\");p.print_stats()" >&2
