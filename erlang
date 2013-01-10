@@ -25,21 +25,21 @@ if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
 logiciel=erlang
+
 version=R10B-0
-
 version=R11B-1
+version=R15B03-1
 
-dest=/usr/local/$logiciel-$version
+archive=http://www.erlang.org/download/otp_src_$version.tar.gz
+
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-cd /tmp
-echo Obtention et décompression… >&2
-tar xzf `obtenir "http://www.erlang.org/download/otp_src_$version.tar.gz"`
-cd /tmp/otp_src_*
+obtenirEtAllerDansVersion
 
 echo Configuration… >&2
-./configure --prefix=/usr/local/$logiciel-$version
+./configure --prefix=$dest
 
 echo Compilation… >&2
 make
@@ -47,4 +47,6 @@ make
 echo Installation… >&2
 sudo make install
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
+
+rm -Rf "$TMP/$$"
