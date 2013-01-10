@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2004 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,22 +28,19 @@ inclure erlang
 inclure expat
 
 logiciel=ejabberd
-version=0.7
-modifs="compilMac installVarLib"
 
-version=1.1.2
-modifs=
+v 0.7 && modifs="compilMac installVarLib" || true
+v 1.1.2 && modifs= || true
+v 2.1.1 && modifs= || true
 
 archive=http://www.jabberstudio.org/files/ejabberd/$logiciel-$version.tar.gz
 archive=http://www.process-one.net/en/projects/$logiciel/download/$version/$logiciel-$version.tar.gz
-dest=/usr/local/$logiciel-$version
+archive=http://www.process-one.net/downloads/ejabberd/$version/ejabberd-$version.tgz
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
-cd /tmp
-echo Obtention et décompression… >&2
-tar xzf `obtenir "$archive"`
-cd /tmp/$logiciel-$version
+obtenirEtAllerDansVersion
 
 compilMac()
 {
@@ -64,7 +61,7 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 cd src
-./configure --prefix=/usr/local/$logiciel-$version --with-expat
+./configure --prefix=$dest --with-expat
 
 echo Compilation… >&2
 make
@@ -72,4 +69,6 @@ make
 echo Installation… >&2
 sudo make install
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
+
+rm -Rf "$TMP/$$"
