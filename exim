@@ -1,0 +1,97 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.bash"
+
+inclure db
+inclure sqlite
+inclure dovecot
+
+logiciel=exim
+
+# Historique des versions gérées
+
+version=4.77
+
+# Modifications
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+archive="http://exim.mirror.fr/exim/exim4/$logiciel-$version.tar.bz2"
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+sed < src/EDITME > Local/Makefile \
+	-e "/^BIN_DIRECTORY=/s#=.*#=$dest/bin#" \
+	-e "/^CONFIGURE_FILE=/s#=.*#=$dest/etc/exim#" \
+	-e "/^EXIM_USER=/s#=.*#=postfix#" \
+	-e "/^SPOOL_DIRECTORY=/s#=.*#=$dest/var/spool/exim#" \
+	-e "/^EXIM_MONITOR=/s#=.*#=#" \
+	-e "/^# LOOKUP_LDAP=yes/s/^# //" \
+	-e "/^# LOOKUP_PASSWD=yes/s/^# //" \
+	-e "/^# LOOKUP_SQLITE=yes/s/^# //" \
+	-e "/^# AUTH_DOVECOT=yes/s/^# //" \
+	-e "/^# SUPPORT_PAM=yes/s/^# //" \
+	-e "/^# SUPPORT_MAILDIR=yes/s/^# //" \
+	-e "/^# LDAP_LIB_TYPE=OPENLDAP2/s/^# //" \
+	-e '/^# LOOKUP_INCLUDE=/{
+a\
+LOOKUP_INCLUDES='"-I$INSTALLS/include"'
+}' \
+	-e '/^# LOOKUP_LIBS=/a\
+LOOKUP_LIBS='"-L$INSTALLS/lib -lldap -llber -lsqlite3 -ldb -lpam"'
+' \
+	-e '${
+a\
+USE_DB=yes
+a\
+CC=cc $(LOOKUP_INCLUDES)
+a\
+LDCC=cc $(LOOKUP_INCLUDES) $(LOOKUP_LIBS)
+a\
+LIBS += $(PCRE_LIBS) $(LOOKUP_LIBS)
+}'
+
+echo Compilation… >&2
+make || ( filtrer build-`uname`-`uname -m`/Makefile sed -e '/^\.if/,/^\.endif/d' && make )
+
+echo Installation… >&2
+sudo make install
+sudo mkdir -p "$dest/var/spool/exim/log"
+sudo chown -R postfix "$dest/var"
+sutiliser "$logiciel-$version"
+[ -h /usr/sbin/sendmail -o ! -e /usr/sbin/sendmail ] && sudo rm -f /usr/sbin/sendmail && sudo ln -s "$dest/bin/exim" /usr/sbin/sendmail
+
+rm -Rf "$TMP/$$"
+
+# Pour tester:
+# read mdp ; plain=`printf ^gui@gclo.fr^$mdp | tr ^ '\000' | openssl base64` ; ( sleep 1 ; echo EHLO ks389461.kimsufi.com ; sleep 1 ; echo AUTH PLAIN $plain ; sleep 1 ; echo MAIL FROM: gui@gclo.fr ; sleep 1 ; echo RCPT TO: guillaume.outters@free.fr ; sleep 2 ; echo DATA ; sleep 2 ; echo COUCOU ; echo . ; sleep 1 ; echo QUIT ; sleep 1) | telnet 176.31.96.162 25
+# Ou bien, sans les sleep, avec un sudo exim -bh 176.31.96.162 à la place du telnet.
