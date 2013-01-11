@@ -21,7 +21,7 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.bash"
 
 inclure db
@@ -31,12 +31,33 @@ logiciel=postfix
 # Historique des versions gérées
 
 version=2.5.1
+PFCCARGS=-DHAS_DB
+
+version=2.8.7
+PFCCARGS=
 
 # Modifications
 
+creeComptes()
+{
+	case `uname` in
+		FreeBSD)
+			if ! grep -q postdrop /etc/group
+			then
+				qui=postfix
+				id=4096
+				sudo pw groupadd $qui -g $id && sudo pw useradd $qui -u $id -g $id -s /coquille/vide
+				qui=postdrop
+				id=4097
+				sudo pw groupadd $qui -g $id
+			fi
+			;;
+	esac
+}
+
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive="ftp://mir1.ovh.net/ftp.postfix.org/postfix-release/official/$logiciel-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
@@ -52,19 +73,46 @@ configurer()
 	CCARGS=
 	while [ $# -ge 2 ]
 	do
-		CCARGS="$CCARGS -DDEF$1=\\\"$dest/$2\\\""
+		param="$3"
+		echo "$3" | grep -q '^/' && param="$dest$param"
+		[ -z "$1" ] || CCARGS="$CCARGS -DDEF_$1=\\\"$param\\\""
+if false
+then
+		[ "x$param" = xno ] || filtrer postfix-install sed -e '1a\
+'"$2=$param"'
+'
+fi
+		shift
 		shift
 		shift
 	done
 }
-configurer COMMAND_DIR sbin CONFIG_DIR etc/postfix DAEMON_DIR libexec/postfix DATA_DIR var/run/postfix MAILQ_PATH bin/mailq MANPAGE_DIR man NEWALIAS_PATH bin/newaliases QUEUE_DIR var/spool/postfix SENDMAIL_PATH sbin/sendmail
-make makefiles CCARGS="$CCARGS -DHAS_DB -I/usr/local/include" AUXLIBS="-R/usr/local/lib -L/usr/local/lib -ldb"
+configurer \
+	COMMAND_DIR   command_directory /sbin \
+	CONFIG_DIR    config_directory  /etc/postfix \
+	DAEMON_DIR    daemon_directory  /libexec \
+	DATA_DIR      data_directory    /var/run \
+	MAILQ_PATH    mailq_path        /bin/mailq \
+	MANPAGE_DIR   manpage_directory /man \
+	NEWALIAS_PATH newaliases_path   /bin/newaliases \
+	QUEUE_DIR     queue_directory   /var/spool/postfix \
+	SENDMAIL_PATH sendmail_path     /sbin/sendmail \
+	''            tempdir           /var/run \
+	''            html_directory    no \
+	''            mail_owner        postfix \
+	''            readme_directory  no \
+	''            setgid_group      postdrop
+
+make makefiles CCARGS="$CCARGS $PFCCARGS -I$INSTALLS/include" AUXLIBS="-R$INSTALLS/lib -L$INSTALLS/lib -ldb"
 
 echo Compilation… >&2
 make
 
 echo Installation… >&2
-sudo make install
+creeComptes
+sudo make upgrade
+sudo chown -R postfix:postfix "$dest/var/run"
 sutiliser "$logiciel-$version"
+[ -h /usr/sbin/sendmail -o ! -e /usr/sbin/sendmail ] && sudo rm -f /usr/sbin/sendmail && sudo ln -s "$dest/sbin/sendmail" /usr/sbin/sendmail
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
