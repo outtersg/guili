@@ -67,10 +67,10 @@ patch -p0 <<TERMINE
  -- Settings in this section apply to the whole server and are the default settings
  -- for any virtual hosts
  
-+log = "$dest/var/log/prosody.log"
 +pidfile = "$dest/var/run/prosody.pid";
 +prosody_user = "prosody";
 +prosody_group = "prosody";
++bosh_ports = { { interface = "127.0.0.1"; port = 5280; path = "http-bind"; } }
 +
  -- This is a (by default, empty) list of accounts that are admins
  -- for the server. Note that you must create the accounts separately
@@ -89,8 +89,9 @@ patch -p0 <<TERMINE
  
  	-- Other specific functionality
 -		--"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
+-		--"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
 +		"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
- 		--"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
++		"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
  		--"httpserver"; -- Serve static files from a directory over HTTP
  		--"groups"; -- Shared roster support
 @@ -133,7 +138,7 @@
@@ -112,6 +113,7 @@ patch -p0 <<TERMINE
  -- Set up a SOCKS5 bytestream proxy for server-proxied file transfers:
  --Component "proxy.example.com" "proxy65"
 TERMINE
+filtrer prosody.cfg.lua.install sed -E '/ = "prosody.(log|err)/s#= "#= "'"$dest"'/#'
 sudo make install
 creeCompte prosody 4110
 sudo mkdir -p "$dest/var/run" "$dest/var/log"
@@ -123,3 +125,4 @@ sutiliser "$logiciel-$version"
 rm -Rf "$TMP/$$"
 
 echo "# Pensez à faire vos sudo prosodyctl adduser gui@gclo.fr" >&2
+echo "# Si vous êtes chez OVH, virer les CNAME _xmpp et _jabber (qui font croire à GTalk et d'autres serveurs exploitant les SRV que votre serveur se trouve sur le central OVH plutôt que sur votre machine)." >&2
