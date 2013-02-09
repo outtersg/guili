@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,53 +21,69 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
 
 logiciel=icu
 
 # Historique des versions gérées
 
-version=3.4
-
-archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
-
-version=3.6
-
-archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/${logiciel}4c-${version//./_}-src.tgz
-
-version=4.4
-
-# Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
-#version=4.4.1
-
+v 3.4
+v 3.6
 # Crétin, il ne trouve même pas son fichier.
 #version=3.8.1
+v 4.4
+# Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
+#v 4.4.1
+v 50.1.2 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate"
 
-pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version/${logiciel}4c-${version//./_}-src.tgz
+versiong="`echo "$version" | tr . _`"
+archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
+pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version/${logiciel}4c-$versiong-src.tgz
 
 # Modifications
 
+moinsIPointAvantILocal()
+{
+	# Les répertoires système (CPPFLAGS) vont bien évidemment après les locaux (sinon si un ICU est déjà installé, ses include prennent le pas sur ceux à installer!). Mais comme GNU Make permet le suffixage de variables dynamiques mais pas leur préfixage, on ne pourra faire un CPPFLAGS="-I. $CPPFLAGS" dans le Makefile; on le fait donc en amont, en shell.
+	false &&
+	filtrer source/common/Makefile.in sed -e '/CPPFLAGS += -I/{
+s/+//
+s#$# $(CPPFLAGS)#
+}'
+	CPPFLAGS="-I. -I./unicode -I./.. -I../common -I../../common -I../../i18n -I./../toolutil $CPPFLAGS"
+	LDFLAGS="-L../../lib -L../../stubdata -L../lib -L../stubdata $LDFLAGS"
+	export CPPFLAGS LDFLAGS
+}
+
+toutLeMondeVeutTruncate()
+{
+	# truncate est un appel système (sous FreeBSD), mais aussi tantôt un nom de variable (statique…), tantôt une fonction, dans ICU. Alors mettons qu'on n'a pas besoin de la version système.
+	CPPFLAGS="$CPPFLAGS -D_TRUNCATE_DECLARED"
+	export CPPFLAGS
+}
+
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 cd source
-type=`uname -s`
-[ $type = Darwin ] && type=MacOSX
-./runConfigureICU $type --prefix="$dest"
+if pge $version 50
+then
+	./configure --prefix="$dest"
+else
+	type=`uname -s`
+	[ $type = Darwin ] && type=MacOSX
+	./runConfigureICU $type --prefix="$dest"
+fi
 
 echo Compilation… >&2
 make
@@ -76,4 +92,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
