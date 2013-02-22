@@ -26,21 +26,18 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=freetype
 
-version=2.1.9
-
-version=2.4.3
-modifs="dyld105"
-
-version=2.4.4
-
-version=2.4.6
+v 2.1.9
+v 2.4.3 && modifs="dyld105"
+v 2.4.4
+v 2.4.11
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
+archive=http://download.savannah.gnu.org/releases/freetype/$logiciel-$version.tar.bz2
 
 [ -d "$dest" ] && exit 0
 
-obtenirEtAllerDans "$archive"
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in compil3264 $modifs ; do $modif "$@" ; done
