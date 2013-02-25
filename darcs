@@ -1,0 +1,146 @@
+#!/bin/bash
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+# Historique des versions gérées
+
+logiciel=darcs
+version=1.0.1
+
+version=1.0.3
+
+version=1.0.4pre4
+modifs=configureSansDarcs
+
+( cd /tmp && command -v darcs ) > /dev/null \
+&& version="2005-10-04@not generate null binary" \
+&& modifs=
+
+( cd /tmp && command -v darcs ) > /dev/null \
+&& version="2005-11-03@ask-deps"
+
+version=1.0.6
+
+version=1.0.9rc2 ; modifs=
+
+version=2.0.0pre3
+
+version=2.0.0
+
+version=2.0.2
+
+version=2.1.0
+
+version=2.3.0
+
+version=2.3.1
+
+( cd /tmp && command -v darcs ) > /dev/null \
+&& version="2009-11-14@Resolve issue1224"
+
+version=2.4
+
+version=2.4.1
+
+version=2.4.4
+
+dest=$INSTALLS/$logiciel-$version
+archive=http://darcs.net/$logiciel-$version.tar.gz
+pge $version 2.3.0 && archive=http://darcs.net/releases/$logiciel-$version.tar.gz
+archive_darcs=http://darcs.net
+[[ "$version" = 2005* ]] && archive_darcs=http://darcs.net/repos/darcs
+
+inclure ghc
+
+pge $version 2.3.0 && inclure haskell/haskeline || true
+pge $version 2.3.0 && inclure haskell/hashed-storage || true
+pge $version 2.3.0 && inclure haskell/terminfo || true
+pge $version 2.4.1 && inclure haskell/html || true
+pge $version 2.4.1 && inclure haskell/mtl || true
+pge $version 2.4.1 && inclure haskell/parsec || true
+pge $version 2.4.1 && inclure haskell/regex-compat || true
+
+# Modifications
+
+configureSansDarcs()
+{
+	# Déjà vu par David Roundy, mais pas encore intégré.
+	patch -p0 << TERMINE
+--- configure      2005-09-10 21:45:09.000000000 +0200
++++ configure   2005-09-10 21:45:32.000000000 +0200
+@@ -1370,7 +1370,7 @@
+ 
+ echo "\$as_me:\$LINENO: checking the release state.." >&5
+ echo \$ECHO_N "checking the release state..... \$ECHO_C" >&6
+-if test -z "\$DARCS" || test -d "_darcs"; then
++if test ! -z "\$DARCS" && test -d "_darcs"; then
+   DARCS_VERSION_STATE=\`perl determine_release_state.pl \$DARCS_VERSION\`;
+   I_AM_IN_REPO=1
+ else
+TERMINE
+}
+
+# Boulot
+
+[ -d "$dest" ] && exit 0
+
+if [[ $version = *@* ]] ; then
+	obtenirEtAllerDansDarcs -n "${version%%@*}" -p "${version#*@}" "$archive_darcs"
+	[[ "$version" = 2005* ]] && autoconf
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+if pge $version 2.3.0
+then
+	runghc Setup configure --prefix="$dest" --flags="color terminfo curses"
+else
+	./configure --prefix="$dest"
+fi
+
+echo Compilation… >&2
+if pge $version 2.3.0
+then
+	runghc Setup build
+else
+	make
+fi
+
+echo Installation… >&2
+if pge $version 2.3.0
+then
+	sudo runghc Setup install || true
+	[ -d "$dest" ] || exit 1
+	sudo mkdir -p "$dest/bin"
+	sudo cp dist/build/darcs/darcs "$dest/bin/darcs"
+else
+	sudo make install
+fi
+
+sudo utiliser "$logiciel-$version"
