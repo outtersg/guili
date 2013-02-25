@@ -35,7 +35,11 @@ logiciel="`echo $logiciel_maj | tr '[A-Z]' '[a-z]'`"
 version_min=6.2.4-4
 version_min=6.2.5-5
 
+version_min=6.6.3-0
+
 version_min=6.6.7-7
+
+version_min=6.7.3-0
 
 version="${version_min%%-*}"
 dest="$INSTALLS/$logiciel-$version"
