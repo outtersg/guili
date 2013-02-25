@@ -1,0 +1,65 @@
+#!/bin/bash
+# Copyright (c) 2004-2005,2010 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Cycle complet à partir d'un binaire sur freebsd:
+# cd ~/tmp ; ~/src/installs/ghc demarrant ; mv ghc-6.6.1 ghc-6.6.1-includes ; ( ( export PATH=~/tmp/ghc-6.6.1-bin/bin:$PATH ; ~/src/installs/ghc demarreur localhost:tmp/ghc-6.6.1-includes && cp ghc-6.6.1/ghc-6.6.1-i386-unknown-freebsd-hc.tar.gz ~/paquets/ && cp ghc-6.6.1/ghc-6.6.1-i386-unknown-freebsd-hc.tar.gz ~/paquets/ghc-6.6.1-hc.tar.gz && mv ghc-6.6.1 ghc-reur ) && ~/src/installs/ghc demarre ) 2>&1 | tee /tmp/log.3
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+# Autres nécessaires
+
+inclure dlcompat
+inclure gmp
+export LIBRARY_PATH=/usr/local/lib
+export LD_LIBRARY_PATH=$LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$LIBRARY_PATH
+inclure readline
+
+# Versions
+
+logiciel=ghc
+version=6.12.1
+
+archive=http://haskell.org/ghc/dist/$version/$logiciel-$version-src.tar.bz2
+dest="$INSTALLS/$logiciel-$version"
+
+auMoins()
+{
+	PATH=${PATH//.:/}
+	# À FAIRE: tester le num de version
+	command -v ghc 2> /dev/null >&2 || return 1
+	pge "`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`" $1 && type_demarreur=actuel && return 0
+	return 1
+}
+
+obtenirEtAllerDans "$archive"
+
+./configure --prefix="$dest"
+# ARf, plante sur l'imcapacité à trouver h_iconv.h qu'il embarque.
+
+make
+
+sudo make install
+
+utiliser "$logiciel-$version"

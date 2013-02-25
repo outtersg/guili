@@ -1,0 +1,372 @@
+#!/bin/bash
+# Copyright (c) 2004-2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+. "$SCRIPTS/util.bash"
+
+# Autres nécessaires
+
+inclure dlcompat
+inclure gmp
+inclure readline
+
+# Versions
+
+logiciel=ghc
+version=6.2.2
+version_demarreur=6.2.1
+type_demarreur=dmg
+
+version=6.4
+version_demarreur=6.4
+type_demarreur=tar
+modifs="staticObjects register discard"
+
+version=6.4.1
+modifs=
+
+version=6.6
+modifs=extralibs
+
+version=6.8.2
+type_demarreur=c
+modifs=extralibs
+
+auMoins()
+{
+	PATH=${PATH//.:/}
+	# À FAIRE: tester le num de version
+	command -v ghc 2> /dev/null >&1 && type_demarreur=actuel && return 0
+	return 1
+}
+
+! auMoins 6.4 \
+&& v2=6.0.1 \
+&& modifs=
+
+! auMoins 6 \
+&& v2=5.04.3 \
+&& modifs=
+
+! auMoins 5 \
+&& v2=4.08.2 \
+&& modifs=
+
+false && \
+! auMoins 4.2.0 \
+&& v2=0.29 \
+&& modifs="vieuxSource v029"
+
+versionVoulue=$version
+! [ -z "$v2" -o $v2 == $version ] && version=$v2 && recommencer=1 # Si on doit compiler une vieille version pour celle voulue, on se laisse une note comme quoi il faudra reprendre pour la nouvelle version.
+
+nomArchive()
+{
+	suffixe=gz
+	pge $1 4.08.2 && suffixe=bz2
+	# Attention, l'archive (dès la 0.29) ne passe pas sur le tar d'un fBSD 6.2
+	# (voir la fin de ./ghc-0.29/ghc/lib/Jmake.inc5).
+	echo "http://www.haskell.org/$logiciel/dist/$1/$logiciel-$1-src.tar.$suffixe"
+}
+
+archive="`nomArchive $version`"
+
+case "$type_demarreur"
+in
+	c)
+		inclure make
+		inclure nhc98
+		;;
+	dmg)
+		archive_demarreur=http://www.haskell.org/ghc/dist/$version_demarreur/MacOSX/GHC.$version_demarreur.dmg
+		modifs="$modifs avecDemarreurDMG avecDemarreurMalFoutu"
+		;;
+	tar)
+		archive_demarreur=http://www.haskell.org/ghc/dist/$version_demarreur/MacOSX/ghc-$version_demarreur-darwin-bootstrap-tiger.tar.bz2
+		modifs="$modifs avecDemarreurTar"
+		;;
+	*)
+		export GHC="/usr/local/bin/ghc"
+		;;
+esac
+
+dest=/usr/local/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+# Modifs
+
+avecDemarreurDMG()
+{
+	pushd /tmp
+	echo Mise en place du démarreur… >&2
+	demarreur=`obtenir "$archive_demarreur"`
+	hdid "$demarreur" > /tmp/$$/hdid.temp
+	periph=`grep Apple_partition_scheme < /tmp/$$/hdid.temp | cut -d ' ' -f 1`
+	montage=`grep Apple_HFS < /tmp/$$/hdid.temp | awk 'NR == 1' | cut -f 3-`
+	
+	rm -Rf /tmp/$$/démarreur ; mkdir /tmp/$$/démarreur
+	cd /tmp/$$/démarreur
+	gunzip -c "$montage/GHC"*".pkg/Contents/Archive.pax.gz" | pax -r
+	hdiutil detach $periph
+	# Quelques bidouilles pour que ghc retrouve son framework qui n'est pas à un
+	# emplacement standard.
+	filtrer usr/local/bin/ghc sed -e 's=/usr/local/=/tmp/'$$'/démarreur/usr/local/=g' -e '/^exec/s=GHCBIN=GHCBIN -I/tmp/'$$'/démarreur/include='
+	cat > /tmp/$$/ld <<- TERMINE
+	#!/bin/sh
+	/usr/bin/ld -F/tmp/$$/démarreur/Library/Frameworks "\$@"
+	TERMINE
+	chmod a+x /tmp/$$/ld
+	mkdir -p /tmp/$$/démarreur/include
+	ln -s /tmp/$$/démarreur/Library/Frameworks/HaskellSupport.framework/Headers /tmp/$$/démarreur/include/HaskellSupport
+	
+	export HOME=/tmp/$$/démarreur
+	export PATH="/tmp/$$:$PATH"
+	export CFLAGS="-F/tmp/$$/démarreur/Library/Frameworks"
+	export GHC=/tmp/$$/démarreur/usr/local/bin/ghc
+	popd
+}
+
+avecDemarreurTar()
+{
+	pushd /tmp
+	obtenirEtAllerDans "$archive_demarreur"
+	export PATH="`pwd`/bin:$PATH"
+	export LD_LIBRARY_PATH="`pwd`/lib:$PATH"
+	export GHC="`pwd`/bin/ghc"
+	filtrer bin/ghc sed -e '/^#!/a\
+SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; ou="${SCRIPTS%/bin}"
+' -e 's=/opt/local=$ou=g' -e '/^exec/s=$= -I$ou/lib/ghc-6.4/imports -I$ou/lib/ghc-6.4/include='
+	filtrer lib/ghc-6.4/package.conf sed -e "s=/opt/local=`pwd`=g"
+	for i in ghc-asm ghc-split
+	do
+		filtrer lib/ghc-6.4/$i sed -e '/^#!.*perl/c\
+#!/usr/bin/perl
+'
+	done
+	popd
+}
+
+avecDemarreurMalFoutu()
+{
+	# On trifouille aussi les Makefiles intermédiaires (génèrant les binaires
+	# finaux, mais utilisant les bibliothèques de notre amorce).
+	filtrer ./ghc/compiler/Makefile sed -e '/^	echo exec/s=^\(	echo exec [^ ]*\)=\1 -I/tmp/'$$'/démarreur/include='
+	filtrer ./ghc/utils/hsc2hs/hsc2hs.sh sed -e 's=$HSC2HS_EXTRA=$HSC2HS_EXTRA -I/tmp/'$$'/démarreur/include='
+	for i in ./libraries/unix/cbits/Makefile hslibs/posix/Makefile hslibs/posix/cbits/Makefile ; do filtrer "$i" sed -e '/^SRC_CC_OPTS/{
+x
+s/./a/
+x
+t-)
+i\
+SRC_CC_OPTS += -I/tmp/'$$'/démarreur/include
+h
+:-)
+}' ; done
+	# Oh et puis finalement on a toutes les biblios nécessaires, pas besoin du
+	# HaskellSupport.framework
+	filtrer configure sed -e '/^HaveFrameworkHaskellSupport=NO$/h' -e '/^if/{
+x
+s/.//g
+x
+t-)
+b
+:-)
+s/^if/if false \&\&/
+}'
+}
+
+staticObjects()
+{
+	filtrer ghc/rts/GC.c sed -e '/^static.*static_objects/s/^static *//'
+	filtrer ghc/rts/Profiling.c sed -e '/^static.*total_prof_ticks/s/^static *//'
+}
+
+register()
+{
+	# GHC génère, pour des bouts de code style "gloc = fonction()", avec la
+	# fonction en externe, des choses comme "(type)gloc = (type)fonction()".
+	# gcc 4.0, chez Apple en tout cas, semble en interne le voir comme un
+	# "*(type *)&gloc = (type)fonction()". L'inconvénient, c'est qu'à quelques
+	# endroits, GHC voudrait du register, et gcc ne sait pas lui refuser. Du
+	# coup on se retrouve avec un &(registre PPC) du plus mauvais effet.
+	
+	cat > /tmp/$$/register.temp <<- TERMINE
+	#!/bin/sh
+	params()
+	{
+		suffixe=.hc
+		while [ \$# -gt 0 ]
+		do
+			case "\$1" in
+				-o) shift ; sortie="\$1" ;;
+				*.hc|*.p_hc|*.thr_hc|*.thr_p_hc|*.debug_hc) sed -e 's/(.*)\(R.*=.*(.*);\)/\1/' < "\$1" > "\$1.temp" && cat "\$1.temp" > "\$1" ;;
+			esac
+			shift
+		done
+	}
+	params "\$@"
+	gcc "\$@" > "\$sortie"
+	TERMINE
+	chmod a+x /tmp/$$/register.temp
+	filtrer ghc/rts/Makefile sed -e '/Compiling the cmm files/a\
+PrimOps_HC_OPTS += -pgmc /tmp/'"$$"'/register.temp
+'
+}
+
+discard()
+{
+	# Pour empêcher que gcc n'enmêle des blocs de code PPC qui doivent rester
+	# séparés, GHC intercale une fonction bidon, laisse gcc générer l'assembleur
+	# puis vire dans le .s l'appel à la fonction. Cependant, le fait de l'avoir
+	# déclarée génère une sorte de dyld_stub_discard qui, elle, attend une
+	# présence. On s'en occupe.
+	# On l'inclue dans libHSrts, pour que les programmes compilés y aient
+	# également droit.
+	
+	echo "void __DISCARD__() {}" > ghc/rts/discard.c
+}
+
+extralibs()
+{
+	# On fait se décompresser l'archive des extralibs, car on sait qu'elle ira
+	# se placer au bon endroit, autrement dit là où GHC s'est extrait.
+	( obtenirEtAllerDans "${archive//-src/-src-extralibs}" )
+}
+
+hcFiles()
+{
+	( obtenirEtAllerDans http://www.haskell.org/ghc/dist/$version/ghc-$version-hc-files.tar.gz ; tar cf - . ) | tar xf -
+}
+
+vieuxSource()
+{
+	# Fichiers prégénérés par un lex foireux
+	rm -f ./glafp-utils/verbatim/verbatim.c
+	rm -f literate/lit-deatify.c
+}
+
+startup()
+{
+	[ -f STARTUP ] && sh < STARTUP
+	cd ghc
+	PARAMS_MAKE=(all)
+}
+
+v029()
+{
+	# Modifs nécessaires à la compil sur une FreeBSD 6.2 de kimsufi:
+	# gcc 3.4.6
+	# gnu make 3.81
+	# gnu tar 1.19
+	
+	# Boucle infinie; cf. http://www.dcs.gla.ac.uk/mail-www/glasgow-haskell-bugs/msg00220.html
+	filtrer ghc/utils/parallel/Jmakefile sed -e '/qp2ap.pl/s/PerlCmd,qp2ap[^,]*/PerlCmd,qp2ap/'
+	filtrer ghc/runtime/storage/SMap.lc sed -e '/ifdef HAVE_VADVISE/,/endif/d'
+	filtrer ghc/runtime/storage/SMstatic.lc sed -e '/SMinternal/{
+i\
+#define INTLIKE_closures Brontoglouc
+a\
+#undef INTLIKE_closures
+}'
+	# Problème: l'assembleur crée des fonctions bidons, du genre __gcc__. Le
+	# mangler s'embrouille sur freebsd/gcc, où les fonctions sont généralement
+	# préfixées d'un _ dans le passage de C à asm… sauf celles-ci, qui restent à
+	# deux _.
+	filtrer ghc/driver/ghc-asm.lprl sed -e '/}__std/{
+p
+s//}_std/
+}'
+	# En fait, le mangler n'arrive même pas à lire le code généré par un as
+	# récent. On utilise donc un plus récent.
+	
+	( obtenirEtAllerDans "`nomArchive $versionVoulue`" ; cat driver/mangler/ghc-asm.lprl ) > ghc/driver/ghc-asm.lprl
+	filtrer ghc/driver/ghc-asm.lprl grep -v TARGETPLATFORM # Une affectation gênante, car elle écrase une variable parfaitement définie par notre appelant.
+	filtrer ghc/driver/ghc-asm.lprl grep -v '&mangle_asm'
+	filtrer ghc/driver/ghc-asm.lprl grep -v 'exit(0)'
+	filtrer ghc/driver/ghc-asm.lprl sed -e '/mini_mangle_asm /d' -e '/sub mangle_asm/i\
+sub mini_mangle_asm { &mangle_asm(@_); }
+'
+	filtrer ghc/runtime/Jmakefile sed -e '/SUBDIRS/s/ *gmp */ /'
+	# Version pourrie
+	rm -f ghc/utils/ugen/lex.c
+	( cd ghc/utils/ugen && flex -olex.c lex.l )
+	filtrer ghc/utils/ugen/yyerror.c grep -v yylineno
+	chmod u+w configure
+	filtrer configure sed -e "/cpp.*> conftest.pl/s#'.*'#'if(/conftest.c/) { s@conftest.c@@ ; s@-v@@ ; print \"\$_\" }'#" # Problème dans leur détection du cpp utilisé: ne marche pas avec gcc 3 (ils s'attendent à trouver la commande cpp, gcc3 préfère un cc1 -E).
+	# De même, l'option -traditional est passée directement à cpp; or celui-
+	# ci attend en fait un -traditional-cpp, et ça, c'est gcc qui le sait, pas
+	# nous.
+	filtrer configure sed -e '/gcc -v -E conftest.c/h' -e '/RAWCPP=/s/ -traditional//' -e '/RAWCPP=/{
+x
+s/gcc/gcc -traditional/
+p
+x
+}'
+	# mkdependC laisse passer des lignes bizarres dans nos Makefiles (<built-in>, <command-line>).
+	filtrer glafp-utils/scripts/mkdependC.prl sed -e '/depend = /i\
+next line if /<.*>/;
+'
+	# Des prédéclarations invalides en C récent.
+	filtrer glafp-utils/etags/etags.c grep -v 'char[^=]*index.*;'
+}
+
+# Version à récupérer
+
+if [[ $version = *-* ]] ; then
+	obtenirEtAllerDansCvs -d $version $archive_cvs
+else
+	obtenirEtAllerDans "$archive"
+fi
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+#./configure --prefix=/usr/local/$logiciel-$version --with-ghc='/tmp/$$/démarreur/usr/local/bin/ghc -pgmP "gcc3 -E -traditional"' --with-gcc=gcc3
+if [ $type_demarreur = c ]
+then
+	if pge $version 6
+	then
+		chmod u+x distrib/hc-build
+		./distrib/hc-build --prefix=/usr/local/$logiciel-$version
+	else
+		export JMAKECPP="`command -v cpp`"
+		./configure --prefix=/usr/local/$logiciel-$version --with-hc=c --disable-profiling
+		startup
+	fi
+else
+	./configure --prefix=/usr/local/$logiciel-$version --with-ghc=$GHC
+fi
+
+echo Compilation… >&2
+make "${PARAMS_MAKE[@]}"
+
+echo Installation… >&2
+sudo make install
+for biblio in /usr/local/$logiciel-$version/lib/$logiciel-$version/libHS*.a ; do sudo ranlib $biblio ; done
+
+sudo utiliser $logiciel-$version
+rm -Rf /tmp/$$
+
+[ -z "$recommencer" ] || "$SCRIPTS/`basename $0`" # Travaillant en deux passes, on invoque la seconde.
