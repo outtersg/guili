@@ -212,6 +212,6 @@ make
 echo Installation… >&2
 sudo make install
 
-sudo utiliser $logiciel-$version.$rustine
+sutiliser $logiciel-$version
 
 rm -Rf "$TMP/$$"
