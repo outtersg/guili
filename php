@@ -194,7 +194,7 @@ display_errors = Off
 date.timezone = Europe/Paris
 magic_quotes_gpc = 0
 TERMINE
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 echo Configuration d\'Apache… >&2
 varap()
