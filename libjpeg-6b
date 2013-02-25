@@ -47,18 +47,17 @@ pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$version.tar.gz"
 
 obtenirEtAllerDans "$archive"
 
-echo Correction… >&2
-[ "x$modifs" = x ] || $modifs
+# Modifications
 
-echo Configuration… >&2
-./configure --prefix="$dest" $OPTIONS_CONF
-cat >> Makefile << TERMINE
+dylib()
+{
+	cat >> Makefile << TERMINE
 
 libjpeg.dylib: \$(LIBOBJECTS)
 	\$(RM) \$@
-	cc -dynamiclib -flat_namespace -Wl,-compatibility_version -Wl,$version_biblio.0.0 -Wl,-current_version -Wl,$version_biblio.0.0 -o \$@ \$^ -install_name \$(libdir)/\$@
+	cc \$(LDFLAGS) -dynamiclib -flat_namespace -Wl,-compatibility_version -Wl,$version_biblio.0.0 -Wl,-current_version -Wl,$version_biblio.0.0 -o \$@ \$^ -install_name \$(libdir)/\$@
 TERMINE
-filtrer Makefile sed -e '/^install-lib:/a\
+	filtrer Makefile sed -e '/^install-lib:/a\
 \	mkdir -p \$(libdir)
 ' -e '/^install-headers:/a\
 \	mkdir -p \$(includedir)
@@ -68,14 +67,36 @@ a\
 a\
 \	mkdir -p \$(mandir)
 }'
-[ "`uname -s`" = Darwin ] && filtrer Makefile sed -e '/^all:/s/$/ libjpeg.dylib/' -e '/^install-lib:/{
+	[ "`uname -s`" = Darwin ] && filtrer Makefile sed -e '/^all:/s/$/ libjpeg.dylib/' -e '/^install-lib:/{
 s/$/ libjpeg.dylib/
 a\
 \	\$(INSTALL_LIB) libjpeg.dylib \$(libdir)/\$(binprefix)libjpeg.dylib
 }'
+}
+
+# Variables
+
+vnum="`echo "$version" | sed -e 's/[^0-9]//g'`"
+dest="$INSTALLS/$logiciel-$version"
+archive="http://freshmeat.net/redir/$logiciel/5665/url_tgz/jpegsrc.v$version.tar.gz"
+pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$version.tar.gz"
+
+# Constitution
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDans "$archive"
+
+echo Correction… >&2
+for modif in true $modifs; do $modif "$@" ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" $OPTIONS_CONF
+for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 pge $vnum 8 || sudo make install-lib
