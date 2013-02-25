@@ -101,6 +101,6 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 pge $vnum 8 || sudo make install-lib
 sudo make install
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
