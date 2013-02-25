@@ -31,7 +31,7 @@ version=2.1.9
 version=2.4.4
 modifs="dyld105"
 
-dest=$INSTALLS/$logiciel-$version
+dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
 
 [ -d "$dest" ] && exit 0
@@ -52,4 +52,4 @@ echo Installation… >&2
 sudo make install
 sudo utiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+rm -Rf "$TMP/$$"
