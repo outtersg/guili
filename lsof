@@ -57,4 +57,4 @@ echo Installation… >&2
 sudo mkdir -p "$dest/bin"
 sudo cp lsof "$dest/bin/"
 
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
