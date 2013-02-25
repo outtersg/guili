@@ -29,6 +29,7 @@ logiciel=freetype
 version=2.1.9
 
 version=2.4.4
+modifs="dyld105"
 
 dest=$INSTALLS/$logiciel-$version
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
@@ -37,11 +38,15 @@ archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.t
 
 obtenirEtAllerDans "$archive"
 
+echo Correction… >&2
+for modif in compil3264 $modifs ; do $modif "$@" ; done
+
 echo Configuration… >&2
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
 make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
