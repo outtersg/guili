@@ -74,6 +74,9 @@ version=5.2.11
 version=5.2.13
 ajouterModif libpng14
 ajouterModif detectionIconvOuLibiconv
+ajouterModif mesBibliosDAbord
+
+version=5.2.15
 
 if [ "$1" = 4 ]
 then
@@ -143,6 +146,14 @@ detectionIconvOuLibiconv()
 		echo "char $i();int main(int argc, char ** argv) { $i(); return 0; }" > "$TMP/$$/testiconv.c"
 		cc -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" -liconv 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" && break
 	done
+}
+
+# apxs d'Apache 2.2.3 tel qu'installé sur une de mes bécanes me fournit un
+# chemin incomplet (juste /usr/lib; apparemment ça lui a suffi pour compiler).
+# On force donc notre $INSTALLS/lib à passer devant.
+mesBibliosDAbord()
+{
+	filtrer configure sed -e "s#MH_BUNDLE_FLAGS=\"#MH_BUNDLE_FLAGS=\"-L$INSTALLS/lib #"
 }
 
 # Variables
