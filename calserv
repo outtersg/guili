@@ -411,7 +411,7 @@ sudo cp contrib/tools/fix_calendar "$dest/bin/"
 calcScripts python
 [ -f "$SCRIPTS/pydir.py" ] || sudo ln /usr/local/bin/pydir.py "$SCRIPTS/"
 
-sudo utiliser "$logiciel-$v"
+sutiliser "$logiciel-$v"
 
 rm -Rf "$TMP/$$"
 
