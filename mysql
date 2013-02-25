@@ -83,7 +83,7 @@ TERMINE
 echo Installation… >&2
 sudo make install
 sudo cp my.cnf "$dest/"
-sudo utiliser "$logiciel-$version"
+sutiliser "$logiciel-$version"
 
 #mysql_install_db --datadir="$HOME/var/mysql"
 # Pour une machine déjà installée:
