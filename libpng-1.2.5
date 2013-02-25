@@ -82,3 +82,5 @@ echo Installation… >&2
 sudo mkdir -p "$dest" && sudo make install
 pge 1.2.5 $version && [ "`uname -s`" = Darwin ] && sudo rm -f "$INSTALLS/lib/libpng.dylib" && sudo ln -s "$dest/lib/libpng.3.$version.dylib" "$INSTALLS/lib/libpng.dylib" # Ces couillons ont merdé leur Makefile, avec deux suffixes différents pour les biblios mais l'un est vide (d'où les libpng. qui traînent).
 sudo utiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
