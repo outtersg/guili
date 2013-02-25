@@ -33,6 +33,7 @@ version=1.2.25
 version=1.2.37
 
 version=1.4.1
+modifs="compat12"
 
 version=1.4.3
 
@@ -40,11 +41,19 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://switch.dl.sourceforge.net/sourceforge/png-mng/$logiciel-$version.tar.bz2"
 pge $version 1.2.25 && archive="ftp://ftp.simplesystems.org/pub/libpng/png/src/$logiciel-$version.tar.bz2"
 
+# Pour être invocable par des trucs qui ne connaissaient que la 1.2.
+compat12()
+{
+	filtrer png.h sed -e '/png_set_expand_gray_1_2_4_to_8/i\
+#define png_set_gray_1_2_4_to_8 png_set_expand_gray_1_2_4_to_8
+'
+}
+
 [ -d "$dest" ] && exit 0
 
-cd /tmp
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
+for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
 if pge $version 1.2.25
@@ -58,9 +67,11 @@ LDFLAGS=-L. -L$(ZLIBLIB) -lpng -lz
 ' -e 's=-dynamiclib=-dynamiclib -install_name $(DL)/$@='
 cp scripts/makefile.macosx Makefile
 fi
+for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo mkdir -p "$dest" && sudo make install
