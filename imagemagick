@@ -41,6 +41,9 @@ version_min=6.6.7-7
 
 version_min=6.7.3-0
 
+version_min=6.7.5-6
+modifs=putainDeLibJPEGDeMacOSX
+
 version="${version_min%%-*}"
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_min.tar.bz2
@@ -48,6 +51,8 @@ archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_
 [ -d "$dest" ] && exit 0
 
 obtenirEtAllerDans "$archive"
+
+for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
