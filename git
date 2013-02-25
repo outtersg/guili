@@ -27,6 +27,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 logiciel=git
 version=1.7.0.6
 
+version=1.7.5.4
+
 archive="http://kernel.org/pub/software/scm/git/git-$version.tar.bz2"
 
 dest="$INSTALLS/$logiciel-$version"
