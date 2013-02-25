@@ -80,6 +80,6 @@ echo | ocaml doc/install.ml # Un mot-de-passe CVS à taper.
 
 echo Installation… >&2
 sudo sh -c "mkdir -p '$dest/bin' '$dest/lib/haxe' && cp 'bin/$logiciel' '$dest/bin/' && cp -R 'std' '$dest/lib/haxe/'"
-sudo utiliser $logiciel-$version
+sutiliser $logiciel-$version
 
 rm -Rf "$TMP/$$"
