@@ -34,6 +34,7 @@ version=4.3.1
 version=5.0.1
 
 dest="$INSTALLS/$logiciel-$version"
+archive="http://ftp.sunet.se/pub/gnu/$logiciel/$logiciel-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
 
@@ -156,7 +157,7 @@ lipoenfler()
 }
 
 echo Obtention et décompression… >&2
-obtenirEtAllerDans "http://ftp.sunet.se/pub/gnu/$logiciel/$logiciel-$version.tar.bz2"
+obtenirEtAllerDansVersion
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
