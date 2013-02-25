@@ -21,7 +21,7 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.bash"
 
 logiciel=curl
@@ -35,6 +35,10 @@ version=7.17.0
 version=7.18.0
 version=7.19.5
 version=7.20.1
+
+version=7.21.0
+modifs=dyld105
+archis=oui
 
 # Modifications
 
@@ -50,14 +54,63 @@ obtenirEtAllerDansVersion
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
-echo Configuration… >&2
-./configure --prefix="$dest"
+if [ "$archis" = oui -a "`sysctl -n hw.optional.x86_64`" = 1 ]
+then
+	cp -R . ../$logiciel-$version-x86_64
+	cp -R . ../$logiciel-$version-i386
+	cd ../$logiciel-$version-x86_64
+	export CFLAGS="-arch x86_64"
+	export LDFLAGS="$LDFLAGS -arch x86_64"
+	./configure --prefix="$dest"
+	make
+	sudo make install
+	sudo rm -Rf "$dest.x86_64"
+	sudo mv "$dest" "$dest.x86_64"
+	cd ../$logiciel-$version-i386
+	export CFLAGS="-arch i386"
+	export LDFLAGS="-arch i386"
+	./configure --prefix="$dest"
+	make
+	sudo make install
+	cd "$dest"
+	for i in . "$dest.x86_64"
+	do
+		i="$i/bin/curl-config"
+		sed -e 's/-arch i386//g' -e 's/-arch x86_64//g' < "$i" > "$TMP/$$/temp.filtrer" && sudo sh -c "cat $TMP/$$/temp.filtrer > $i"
+	done
+	diff -rq . "$dest.x86_64" 2> /dev/null | sed -e 's/^Files //' -e 's/ and .*differ//' | while read i
+	do
+		if [ ! -L "$i" ]
+		then
+			nom="`basename "$i"`"
+			suffixe=$nom
+			[[ "$nom" = *.* ]] && suffixe=".${nom##*.}"
+			case "$suffixe" in
+				.h)
+					diff -D __x86_64__ "$i" "$dest.x86_64/$i" > "$TMP/$$/temp.diffD" || true
+					sudo sh -c "cat $TMP/$$/temp.diffD > $i"
+					;;
+				*.la|curl-config)
+					true
+					;;
+				*)
+					lipo -create "$i" "$dest.x86_64/$i" -output "$TMP/$$/temp.lipo$suffixe" && sudo sh -c "cat $TMP/$$/temp.lipo$suffixe > $i"
+					;;
+			esac
+		fi
+	done
+	sudo rm -Rf "$dest.x86_64"
+else
+	echo Configuration… >&2
+	./configure --prefix="$dest"
+	
+	echo Compilation… >&2
+	make
+	
+	echo Installation… >&2
+	sudo make install
+fi
 
-echo Compilation… >&2
-make
-
-echo Installation… >&2
-sudo make install
 sudo utiliser $logiciel-$version
 
 rm -Rf /tmp/$$
