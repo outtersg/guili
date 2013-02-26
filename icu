@@ -38,7 +38,8 @@ archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/${l
 
 version=4.4
 
-version=4.4.1
+# Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
+#version=4.4.1
 
 # Crétin, il ne trouve même pas son fichier.
 #version=3.8.1
