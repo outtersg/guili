@@ -69,6 +69,9 @@ sutiliser "$logiciel-$version"
 echo "Auto-démarrage…" >&2
 creeCompte -s /bin/sh -d "$HOME/var/postgresql" postgresql 4100
 case `uname` in
+	Darwin)
+		# Rien. On démarrera à la main.
+		;;
 	FreeBSD)
 		bdd="$HOME/var/db/pgsql"
 		filtrer contrib/start-scripts/freebsd sed -e "/^prefix=/s#=.*#=$INSTALLS#" -e "/^PGDATA=/s#=.*#=$bdd#" -e "/^PGUSER=/s#=.*#=postgresql#"
