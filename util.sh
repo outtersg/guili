@@ -266,8 +266,17 @@ prochain()
 	echo "$racineChemin.$n$suffixeChemin"
 }
 
-argVersion="$1" # Par défaut.
-echo "$argVersion" | grep -q '[^ ><=0-9.]' && argVersion= || true
+# Obtient la version majeure (x.x) d'une version longue (x.x.x).
+vmaj()
+{
+	echo "$1" | sed -e 's/^\([^.]*.[^.]*\).*$/\1/'
+}
+
+if echo "$1" | grep -q '^\(\(\(>=\|<\) \)*[0-9.]* *\)*$' && [ ! -z "$1" ]
+then
+	argVersion="$1"
+	shift
+fi
 
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
 v()
