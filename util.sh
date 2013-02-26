@@ -252,6 +252,7 @@ prochain()
 }
 
 argVersion="$1" # Par défaut.
+echo "$argVersion" | grep -q '[^ ><=0-9.]' && argVersion= || true
 
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
 v()
