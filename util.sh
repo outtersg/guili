@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2003-2005,2008 Guillaume Outters
+# Copyright (c) 2003-2005,2008,2011-2012 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
