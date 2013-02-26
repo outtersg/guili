@@ -25,13 +25,12 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 . "$SCRIPTS/util.sh"
 
 logiciel=gmp
-version=4.1.4
 
-version=4.2.2
-
-version=4.3.1
-
-version=5.0.1
+v 4.1.4
+v 4.2.2
+v 4.3.1
+v 5.0.1
+v 5.0.5
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://ftp.sunet.se/pub/gnu/$logiciel/$logiciel-$version.tar.bz2"
