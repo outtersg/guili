@@ -319,7 +319,42 @@ pgInterne()
 	$ouEgal && [ -z "$1" ]
 }
 
-# Fonctions utilitaires dans le cadre des modifs.
+### Fonctions utilitaires dans le cadre des modifs. ###
+
+listeIdComptesBsd()
+{
+	( cut -d : -f 3 < /etc/group ; cut -d : -f 3 < /etc/passwd ; cut -d : -f 4 < /etc/passwd ) | sort -n
+}
+creeCompte()
+{
+	cc_ou=
+	cc_qui=$1
+	cc_id=$2
+	cc_coquille=/coquille/vide
+	[ "x$1" = x-s ] && shift && cc_coquille="$1" && shift || true
+	[ "x$1" = x-d ] && shift && cc_ou="$1" && shift || true
+	case `uname` in
+		FreeBSD)
+			if ! grep -q "^$cc_qui:" /etc/passwd
+			then
+				if [ -z "$cc_id" ]
+				then
+					cc_id=`listeIdComptesBsd | grep -v ..... | tail -1`
+					cc_id=`expr $cc_id + 1`
+				else
+					if listeIdComptesBsd | grep -q "^$cc_id$"
+					then
+						echo "# Le numéro $cc_id (choisi pour le compte $cc_qui) est déjà pris." >&2
+						exit 1
+					fi
+				fi
+				sudo pw groupadd $cc_qui -g $cc_id
+				sudo pw useradd $cc_qui -u $cc_id -g $cc_id -s $cc_coquille
+				[ -z "$cc_ou" ] || sudo pw usermod $cc_qui -d "$cc_ou"
+			fi
+			;;
+	esac
+}
 
 mac() { [ "`uname`" = Darwin ] ; }
 
