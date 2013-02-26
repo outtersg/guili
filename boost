@@ -28,9 +28,8 @@ inclure icu
 
 logiciel=boost
 
-version=1.45.0
-modifs="sanspch dyld105 dyld105bis" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
-modifspostconfig="python105"
+v 1.45.0 && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
+v 1.52.0 && true # On laisse les modifs actuelles.
 
 # Modifications
 
@@ -44,7 +43,10 @@ sanspch()
 
 dyld105bis()
 {
-	filtrer tools/build/v2/tools/darwin.jam sed -e "/-dynamiclib/s##-dynamiclib $LDFLAGS#"
+	filtrer tools/build/v2/tools/darwin.jam sed \
+	  -e "/-dynamiclib/s##-dynamiclib $LDFLAGS#" \
+	  -e "s#-isysroot [^ ]*#$MACOSXVERSIONFLAGS#g" \
+	  -e "s#-mmacosx-version-min=[^ ]*#$MACOSXVERSIONFLAGS#g"
 }
 
 python105()
