@@ -66,6 +66,11 @@ avec_menu=oui
 
 mkdir -p "$dest"
 
+mdp()
+{
+	openssl rand -base64 32 | tr -d '/+='
+}
+
 if ( cd "$dest" && find . -type f | head -1 ) | grep -q .
 then
 	vieilleBase="`grep rcmail_config[^a-z]*db_dsnw "$dest/config/db.inc.php" | sed -e "s#.* = '##" -e "s#'.*##"`"
@@ -77,7 +82,7 @@ fi
 if [ -z "$vieilleBase" ]
 then
 	base="rc_`echo "$domaine" | sed -e 's/[^a-zA-Z0-9]/_/g' | cut -c 1-13`"
-	mdp="`openssl rand -base64 32 | tr -d '/+='`"
+	mdp="`mdp`"
 else
 	base="`echo "$vieilleBase" | sed -e 's#^[^:/]*://##' -e 's#:.*##'`"
 	mdp="`echo "$vieilleBase" | sed -e 's#^[^:/]*://[^:]*:##' -e 's#@[^/]*/[^/]*$##'`"
