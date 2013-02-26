@@ -172,7 +172,7 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 versionApache=
 `apxs -q SBINDIR`/`apxs -q TARGET` -v | grep version | grep -q 'Apache/2' && versionApache=2
-psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-pgsql)
+psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-pgsql --with-pdo-pgsql)
 [ $cgi = oui ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-apxs$versionApache)
 [ $cgi = oui ] && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-fpm) || true
 [ -z "$v_icu" ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-intl) || true
