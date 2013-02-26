@@ -26,6 +26,7 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 
 inclure postgis
 inclure osm2pgsql
+inclure mapnik
 
 echo "Mdp?"
 read mdp
