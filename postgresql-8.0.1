@@ -70,7 +70,7 @@ echo "Auto-démarrage…" >&2
 creeCompte -s /bin/sh -d "$HOME/var/postgresql" postgresql 4100
 case `uname` in
 	FreeBSD)
-		bdd="$HOME/var/postgresql"
+		bdd="$HOME/var/db/pgsql"
 		filtrer contrib/start-scripts/freebsd sed -e "/^prefix=/s#=.*#=$INSTALLS#" -e "/^PGDATA=/s#=.*#=$bdd#" -e "/^PGUSER=/s#=.*#=postgresql#"
 		sudo cp contrib/start-scripts/freebsd "$INSTALLS/etc/rc.d/postgresql"
 		sudo chmod u+x "$INSTALLS/etc/rc.d/postgresql"
