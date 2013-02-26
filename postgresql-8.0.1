@@ -29,14 +29,27 @@ version=8.0.1
 
 version=8.0.3
 
-dest="/usr/local/$logiciel-$version"
-archive=ftp://ftp.fu-berlin.de/unix/databases/$logiciel/v$version/$logiciel-$version.tar.bz2
-jar=http://jdbc.postgresql.org/download/postgresql-8.0-310.jdbc3.jar
-compil=/tmp/$logiciel
+version=9.1.2
+modifs=bsdAvecPythonThreade
+
+bsdAvecPythonThreade()
+{
+	filtrer configure sed -e '/freebsd.*)$/,/;;/d'
+}
+
+dest="$INSTALLS/$logiciel-$version"
+archive=http://ftp.postgresql.org/pub/source/v$version/postgresql-$version.tar.bz2
+pge $version 9 || jar=http://jdbc.postgresql.org/download/postgresql-8.0-310.jdbc3.jar
 
 [ -d "$dest" ] && exit 0
 
-obtenirEtAllerDans "$archive"
+obtenirEtAllerDansVersion
+
+echo Corrections… >&2
+for modif in true $modifs
+do
+	"$modif"
+done
 
 echo Configuration… >&2
 ./configure --prefix="$dest" --enable-thread-safety --with-python --with-perl --with-pam --with-rendezvous --with-openssl
@@ -46,7 +59,7 @@ make
 
 echo Installation… >&2
 sudo make install
-sudo cp `obtenir "$jar"` "$dest/lib/postgresql.jar"
+pge $version 9 || sudo cp `obtenir "$jar"` "$dest/lib/postgresql.jar"
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf "$TMP/$$"
