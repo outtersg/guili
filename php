@@ -69,6 +69,7 @@ v 5.2.15
 v 5.2.17
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
+v 5.4.11 && v_icu=">= 50" || true
 
 if [ "x$1" = xcgi ]
 then
@@ -77,6 +78,8 @@ then
 else
 	cgi=non
 fi
+
+[ -z "$v_icu" ] || inclure icu "$v_icu"
 
 # Modifs
 
@@ -172,6 +175,7 @@ versionApache=
 psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-pgsql)
 [ $cgi = oui ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-apxs$versionApache)
 [ $cgi = oui ] && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-fpm) || true
+[ -z "$v_icu" ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-intl) || true
 # gettext: pour Horde
 # ssl: pour Horde IMP
 ./configure --prefix="$dest" --with-iconv --with-zlib-dir=$INSTALLS --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
