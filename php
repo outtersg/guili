@@ -38,51 +38,44 @@ OPTIONS_CONF=()
 
 # Historique des versions gérées
 
-version=5.0.3
-version=5.0.4
+v 4.4.7
+v 5.0.3
+v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
 # mais, n'incluant pas iconv.h, il ne voit pas qu'iconv et libiconv sont les
 # mêmes. La version 5.1 corrige ça. Pour compiler la 5.0.x, on peut contourner
 # en ajoutant un #define HAVE_ICONV 1 dans ext/iconv/php_have_libiconv.h.
-version=2005-04-16
-version=2005-08-22
+v 5.0.9.1.2005-04-16
+v 5.0.9.2.2005-08-22
 # La 2005-08-22 crashe avec Apache 2.0.54, dèl'appel.
-version=2005-08-29
+v 5.0.9.3.2005-08-29
 # La 2005-08-29 explose sur la recréation du cache de l'album (httpd-2.1.7).
-version=2005-09-20
-version=2005-09-23
-ajouterModif php34617
-version=5.1.4
-retirerModif php34617
+v 5.0.9.4.2005-09-20
+v 5.0.9.5.2005-09-23 && ajouterModif php34617
+v 5.1.4 && retirerModif php34617
 # Apache 2.2.3
-version=5.2.0
-version=5.2.1
-ajouterModif pourTrouverApache
-version=5.2.3
+v 5.2.0
+v 5.2.1 && ajouterModif pourTrouverApache
+v 5.2.3
 # Crétin de 5.2.3, son test pour gd lance une commande ld -L(rien du tout) et échoue.
-version=2007-07-29
-
-version=5.2.5
-
-version=5.2.8
-
+v 5.2.3.1.2007-07-29
+v 5.2.5
+v 5.2.8
 # Chier, tombé en plein sur http://bugs.php.net/bug.php?id=48276 (les cookies étaient générés expirant en l'an 0, et Drupal voyait toutes ses dates en 0 lors des filtrages et affichages.
-#version=5.2.10
+#v 5.2.10
+v 5.2.11
+v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
+v 5.2.15
+v 5.2.17
+v 5.4.5 && retirerModif libpng14 || true
+v 5.4.10 || true
 
-version=5.2.11
-
-version=5.2.13
-ajouterModif libpng14
-ajouterModif detectionIconvOuLibiconv
-ajouterModif mesBibliosDAbord
-
-version=5.2.15
-
-if [ "$1" = 4 ]
+if [ "x$1" = xcgi ]
 then
-
-version=4.4.7
-
+	cgi=oui
+	shift
+else
+	cgi=non
 fi
 
 # Modifs
@@ -118,7 +111,7 @@ TERMINE
 
 pourTrouverApache()
 {
-	export PATH=/usr/local/sbin:/usr/local/bin:$PATH
+	export PATH=$INSTALLS/sbin:$INSTALLS/bin:$PATH
 }
 
 libpng14()
@@ -144,7 +137,7 @@ detectionIconvOuLibiconv()
 	for i in libiconv iconv
 	do
 		echo "char $i();int main(int argc, char ** argv) { $i(); return 0; }" > "$TMP/$$/testiconv.c"
-		cc -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" -liconv 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" && break
+		cc -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" -liconv 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" && break || continue
 	done
 }
 
@@ -158,12 +151,13 @@ mesBibliosDAbord()
 
 # Variables
 
-dest=/usr/local/$logiciel-$version
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
 if [[ "$version" = *-* ]] ; then
-	obtenirEtAllerDansCvs -d "$version" cvs://cvsread:phpfi@cvs.php.net:/repository:php-src
+	version_cvs="`echo "$version" | sed -e 's/.*[.]//'`"
+	obtenirEtAllerDansCvs -d "$version_cvs" cvs://cvsread:phpfi@cvs.php.net:/repository:php-src
 	./buildconf
 else
 	obtenirEtAllerDans "http://fr.php.net/get/$logiciel-$version.tar.bz2/from/this/mirror" "$logiciel-$version.tar.bz2"
@@ -176,7 +170,11 @@ echo Configuration… >&2
 versionApache=
 `apxs -q SBINDIR`/`apxs -q TARGET` -v | grep version | grep -q 'Apache/2' && versionApache=2
 psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-pgsql)
-./configure --prefix="$dest" --with-apxs$versionApache --with-iconv --with-zlib-dir=/usr/local --enable-exif --with-gd --with-jpeg-dir=/usr/local --with-png-dir=/usr/local --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --disable-mbregex --enable-sysvsem --enable-sysvshm "${OPTIONS_CONF[@]}"
+[ $cgi = oui ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-apxs$versionApache)
+[ $cgi = oui ] && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-fpm) || true
+# gettext: pour Horde
+# ssl: pour Horde IMP
+./configure --prefix="$dest" --with-iconv --with-zlib-dir=$INSTALLS --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
 
 echo Compilation… >&2
 make
@@ -194,6 +192,24 @@ display_errors = Off
 date.timezone = Europe/Paris
 magic_quotes_gpc = 0
 TERMINE
+
+# Pour un PHP en mode CGI, on ne se permet pas de devenir le PHP par défaut de l'OS.
+if [ $cgi = oui ]
+then
+	if [ -e "sapi/fpm/init.d.php-fpm.in" -a -d /usr/local/etc/rc.d ]
+	then
+		sed < "sapi/fpm/init.d.php-fpm.in" > "sapi/fpm/init.d.php-fpm" -e "s#@sbindir@#$dest/sbin#g" -e "s#@sysconfdir@#$dest/etc#g" -e "s#@localstatedir@#$dest/var#g"
+		chmod u+x "sapi/fpm/init.d.php-fpm"
+		sudo cp "sapi/fpm/init.d.php-fpm" /usr/local/etc/rc.d/php-fpm
+		if [ ! -e "$dest/etc/php-fpm.conf" ]
+		then
+			sed < "$dest/etc/php-fpm.conf.default" > php-fpm.conf -e 's/^;pid =/pid =/'
+			sudo cp php-fpm.conf "$dest/etc/php-fpm.conf"
+		fi
+	fi
+	exit
+fi
+
 sutiliser "$logiciel-$version"
 
 echo Configuration d\'Apache… >&2
@@ -224,3 +240,5 @@ TERMINE
 fi | sudo tee "$conf" > /dev/null
 [ "$1" = 4 ] && cat "$conf" | sed -e '/^#LoadModule.*php4/s/#//' -e '/^LoadModule.*php5/s/^/#/' -e 's/^Listen 80$/Listen 8080/' | sudo tee "${conf%.conf}.php4.conf" > /dev/null
 rm /tmp/mod.$$.temp
+
+echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
