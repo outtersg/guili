@@ -47,6 +47,7 @@ TERMINE
 }
 
 [ -z "$domaine" -o -z "$dest" ] && auSecours
+echo "$dest" | grep -q ^/ || dest="`pwd`/$dest"
 
 version=0.7
 
@@ -55,6 +56,8 @@ version=0.7.2
 version=0.8.0
 
 version=0.8.1
+
+version=0.8.5
 
 archive="http://netcologne.dl.sourceforge.net/project/roundcubemail/roundcubemail/$version/roundcubemail-$version.tar.gz"
 
@@ -96,7 +99,7 @@ greffonsEnManuel()
 	fi
 	
 	archive="http://crapouillou.net/~jocelyn/ressources/roundcube/automatic_addressbook-latest.tar.bz2"
-	rm -f "$INSTALL_MEM/`basename "$archive"`"
+	#rm -f "$INSTALL_MEM/`basename "$archive"`" # Le greffon n'est plus distribué. Il semble avoir été remplacé par toute la machinerie CardDAV, qu'il serait bon d'intégrer un jour. En attendant, on repose encore sur lui.
 	mkdir -p "$dest/plugins/automatic_addressbook"
 	( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest/plugins/automatic_addressbook" && tar xf - )
 	
@@ -211,7 +214,8 @@ TERMINE
 
 filtrerAdrelsAlternatives()
 {
-	patch -p0 <<TERMINE
+	> $TMP/$$/filtrerAdrelsAlternatives.patch
+	cat >> $TMP/$$/filtrerAdrelsAlternatives.patch <<TERMINE
 diff -ruw /home/mariage/internet/roundcube/program/steps/settings/save_identity.inc ./program/steps/settings/save_identity.inc
 --- ./program/steps/settings/save_identity.inc	2011-06-02 14:26:59.000000000 +0200
 +++ ./program/steps/settings/save_identity.inc	2012-06-11 23:53:46.000000000 +0200
@@ -318,24 +322,6 @@ diff -ruw program/include/rcube_user.php program/include/rcube_user.php
 diff -ruw program/steps/mail/compose.inc program/steps/mail/compose.inc
 --- program/steps/mail/compose.inc	2012-01-01 20:10:53.000000000 +0100
 +++ program/steps/mail/compose.inc	2012-06-12 20:00:37.000000000 +0200
-@@ -326,6 +326,17 @@
-     }
-   }
- 
-+  // Still no ID, but our account can receive mail on multiple, regex-controlled addresses. See if one matches
-+  \$email_restriction = \$RCMAIL->user->allowed_addresses();
-+  if (\$email_restriction) {
-+    foreach (\$a_recipients as \$a_recipient) {
-+      if (preg_match(\$email_restriction, \$a_recipient)) {
-+        \$matching_recipient = \$a_recipient;
-+        break;
-+      }
-+    }
-+  }
-+  
-   // Still no ID, use default/first identity
-   if (\$from_idx === null) {
-     \$from_idx = \$default_identity !== null ? \$default_identity : key(reset(\$MESSAGE->identities));
 @@ -334,7 +345,7 @@
    \$ident   = \$MESSAGE->identities[\$from_idx];
    \$from_id = \$ident['identity_id'];
@@ -396,6 +382,55 @@ diff -ruw program/steps/settings/save_identity.inc program/steps/settings/save_i
  foreach (array('email', 'reply-to', 'bcc') as \$item) {
    if (\$email = \$save_data[\$item]) {
 TERMINE
+	if pge $version 0.8.5
+	then
+		cat >> $TMP/$$/filtrerAdrelsAlternatives.patch <<TERMINE
+--- program/steps/mail/compose.inc	2013-01-26 18:44:27.000000000 +0100
++++ program/steps/mail/compose.inc	2013-01-26rogram/steps/mail/compose.inc	2013-01-26 18:45:09.000000000 +0100
+@@ -344,6 +344,17 @@
+     }
+   }
+ 
++  // Still no ID, but our account can receive mail on multiple, regex-controlled addresses. See if one matches
++  \$email_restriction = \$RCMAIL->user->allowed_addresses();
++  if (\$email_restriction) {
++    foreach (\$a_recipients as \$a_recipient) {
++      if (preg_match(\$email_restriction, \$a_recipient)) {
++        \$matching_recipient = \$a_recipient;
++        break;
++      }
++    }
++  }
++
+   \$ident   = \$MESSAGE->identities[\$from_idx !== null ? \$from_idx : \$default_identity];
+   \$from_id = \$ident['identity_id'];
+ 
+TERMINE
+	else
+		cat >> $TMP/$$/filtrerAdrelsAlternatives.patch <<TERMINE
+--- program/steps/mail/compose.inc	2013-01-26 18:44:27.000000000 +0100
++++ program/steps/mail/compose.inc	2013-01-26rogram/steps/mail/compose.inc	2013-01-26 18:45:09.000000000 +0100
+@@ -326,6 +326,17 @@
+     }
+   }
+ 
++  // Still no ID, but our account can receive mail on multiple, regex-controlled addresses. See if one matches
++  \$email_restriction = \$RCMAIL->user->allowed_addresses();
++  if (\$email_restriction) {
++    foreach (\$a_recipients as \$a_recipient) {
++      if (preg_match(\$email_restriction, \$a_recipient)) {
++        \$matching_recipient = \$a_recipient;
++        break;
++      }
++    }
++  }
++  
+   // Still no ID, use default/first identity
+   if (\$from_idx === null) {
+     \$from_idx = \$default_identity !== null ? \$default_identity : key(reset(\$MESSAGE->identities));
+TERMINE
+	fi
+	patch -p0 < $TMP/$$/filtrerAdrelsAlternatives.patch
 }
 
 filtrerAdrelsAlternatives
