@@ -56,7 +56,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" $optionsConf
+./configure --prefix="$dest" $optionsConf  # Attention à ce que le LDFLAGS soit bien défini: sans, -L/usr/X11R6/lib passe en premier, avec une fontconfig obsolète et incompatible avec celle d'/usr/local (FcObjectStaticName pas utilisée, donc les comparaisons de chaînes merdent).
 
 echo Compilation… >&2
 make
