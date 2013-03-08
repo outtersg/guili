@@ -36,11 +36,13 @@ version=0.6.2.1
 version=0.6.2.2
 
 version=0.6.4.7
+version=0.7.0.3
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
 biblios="utf8-string terminfo"
 pge $version 0.6.2.2 && biblios="utf8-string:0.3.6 terminfo:0.3.1.2 mtl:1.1.0.2"
 pge $version 0.6.4.7 && biblios="utf8-string:0.3.7 terminfo:0.3.2.5 mtl:2.1.2"
+pge $version 0.7.0.3 && biblios="utf8-string:0.3.7 terminfo:0.3.2.5 mtl:2.1.2"
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv

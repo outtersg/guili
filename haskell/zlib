@@ -33,6 +33,8 @@ version=0.5.2.0
 
 version=0.5.4.0
 
+version=0.5.4.1
+
 [ "x$1" = x-v ] && version="$2" && shift && shift
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"

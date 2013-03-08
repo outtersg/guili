@@ -30,9 +30,11 @@ SCRIPTS="$SCRIPTS/.."
 logiciel=deepseq
 
 version=1.1.0.2
+version=1.3.0.1
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
 pge $version 1.1.0.2 && biblios="array:0.3.0.3"
+pge $version 1.3.0.1 && biblios="array:0.4.0.1"
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv

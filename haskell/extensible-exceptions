@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2009 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,15 +23,13 @@ set -e
 
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 SCRIPTS="$SCRIPTS/.."
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-logiciel=tar
+logiciel=extensible-exceptions
 
-version=0.3.1.0
-
-version=0.4.0.1
+v 0.1.1.4 || true
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
 
@@ -58,3 +56,5 @@ runghc Setup build
 
 echo Installation… >&2
 sudo runghc Setup install
+
+rm -Rf $TMP/$$

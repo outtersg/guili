@@ -39,7 +39,7 @@ version=0.95.1
 
 biblios="regex-base regex-posix"
 pge $version 0.93.1 && biblios="regex-base:0.93.2 regex-posix:0.94.2"
-pge $version 0.95.1 && biblios="regex-base:0.93.2 regex-posix:0.95.1"
+pge $version 0.95.1 && biblios="regex-base:0.93.2 regex-posix:0.95.2"
 
 inclureBiblios -t haskell
 

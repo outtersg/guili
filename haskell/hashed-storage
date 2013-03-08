@@ -52,7 +52,7 @@ version=0.5.10
 pge $version 0.3.7 && biblios="mmap zlib binary dataenc"
 pge $version 0.4.11 && biblios="mmap:0.4.1 zlib:0.5.2.0 binary:0.5.0.2 dataenc:0.13.0.2 mtl:1.1.0.2"
 pge $version 0.5.4 && biblios="mmap:0.5.7 zlib:0.5.2.0 binary:0.5.0.2 dataenc:0.13.0.2 mtl:1.1.0.2"
-pge $version 0.5.10 && biblios="mmap:0.5.8 zlib:0.5.4.0 binary:0.6.2.0 dataenc:0.14.0.4 mtl:2.1.2"
+pge $version 0.5.10 && biblios="mmap:0.5.8 zlib:0.5.4.1 binary:0.6.2.0 dataenc:0.14.0.4 mtl:2.1.2 extensible-exceptions:0.1.1.4"
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv

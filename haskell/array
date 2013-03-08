@@ -30,6 +30,7 @@ SCRIPTS="$SCRIPTS/.."
 logiciel=array
 
 version=0.3.0.3
+version=0.4.0.1
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
 
