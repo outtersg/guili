@@ -40,7 +40,8 @@ v 6.8.2 && modifs="extralibs uli"
 v 6.10.4
 v 6.10.4.20090921
 v 6.12.1 && modifs=uli && v_gmp=5.0.1
-v 7.4.2 && modifs="uli sansDoc" v_gmp=5.0.5
+v 7.4.2 && modifs="uli sansDoc" && v_gmp=5.0.5
+v 7.6.2 && v_gmp=5.1.1
 
 auMoins()
 {
