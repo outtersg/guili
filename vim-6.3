@@ -56,7 +56,8 @@ corr()
 		i=$((n + 1))
 		while [ $((--i)) -gt 0 ]
 		do
-			mv "`obtenir "$ou/${version%.*}/${version%.*}.$(printf "%3.3d" $i)"`" ./
+			iFormate="`printf "%3.3d" "$i"`"
+			mv "`obtenir "$ou/${version%.*}/${version%.*}.$iFormate"`" ./
 		done
 		tar czf "$mem" "${version%.*}".*
 	fi
