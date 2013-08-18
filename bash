@@ -39,11 +39,9 @@ modifs=completionUTF8MAC
 version=4.1.0
 modifs=completionUTF8MACreadline60
 
-version=4.1.2
-modifs=
-
-version=4.1.7
-modifs=
+v 4.1.2 && modifs=
+v 4.1.7
+v 4.2.45
 
 dest=$INSTALLS/$logiciel-$version
 
