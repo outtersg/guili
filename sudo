@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +22,7 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 logiciel=sudo
 
@@ -33,8 +33,6 @@ version=1.6.9p13
 version=1.8.3p1
 
 # Modifications
-
-OPTIONS_CONF=()
 
 # Variables
 
@@ -49,7 +47,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest"
 
 echo Compilation… >&2
 make
