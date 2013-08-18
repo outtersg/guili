@@ -39,12 +39,24 @@ modifspostconf="dyld105postconf"
 version=1.0.0e
 modifs=perlredir
 
+v 1.0.1e && modifs="perlredir docItem" || true
+
 # Modifications
 
 perlredir()
 {
 	# Le traiteur assembleur en Perl s'emmêle les pinceaux lorsque la sortie standard est un SSH.
 	filtrer crypto/perlasm/x86_64-xlate.pl sed -e '/$stddev!=$outdev/s//& || (!$stddev \&\& !defined($outdev))/'
+}
+
+# Perl 5.18.0 est un peu trop méchant (plus strict sur certains points).
+# https://github.com/openembedded/oe-core/blob/master/meta/recipes-connectivity/openssl/openssl-1.0.1e/openssl-fix-doc.patch
+docItem()
+{
+	find . -name \*.pod -print0 | xargs -0 grep -l '^=item [0-9]' | while read f
+	do
+		filtrer "$f" sed -e 's#^=item \([0-9]\)#=item Z<>\1#'
+	done
 }
 
 dyld105postconf()
