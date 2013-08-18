@@ -67,7 +67,7 @@ corr()
 	i=0
 	while [ $((++i)) -le $n ]
 	do
-		patch -f -p0 < "${version%.*}.$(printf "%3.3d" $i)" || true # Un peu de rustines indigestes Windows.
+		patch -f -p0 < "${version%.*}.`printf "%3.3d" $i`" || true # Un peu de rustines indigestes Windows.
 	done
 }
 
