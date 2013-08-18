@@ -1,7 +1,4 @@
-#!/bin/bash
-
-shopt -s nullglob
-shopt -s extglob
+#!/bin/sh
 
 prefixe=/usr/local
 
@@ -22,15 +19,30 @@ allerUtiliser()
 {
 	local i
 	local j
-	i="${1%/}"
-	cd "$prefixe/${i%%/*}"
-	j="${1//@/a}"
-	#j="${j////@}" # Bash 3.0
-	j="`echo "$j" | tr / @`"
-	j="${j%%*([^@])}"
-	j="${j//+([^@])/..}"
-	i="$i/"
-	utiliser "${j//@//}${1%%/*}" "${i#*/}"*
+	local k
+	# Juste le nom de l'app.
+	i="`echo "$1" | sed -e 's#/.*##'`"
+	cd "$prefixe/$i"
+	# Le nom de tout ce qui est après l'app (avec le / reporté à la fin).
+	k="`echo "$1" | sed -e 's#^[^/]*##' -e 's#$#/#' -e 's#^/##'`"
+	# Les .. correspondant à tout ce qui est après l'app.
+	j="`echo "$1" | sed -e 's#^[^/]*##' -e 's#/[^/]*#..@#g' -e 's#@#/#g'`"
+	utiliserEtoile "$j$i" "$k"
+}
+
+racine()
+{
+	echo "$1" | sed -e 's#-[^-]*[0-9.][0-9.]*.*$##'
+}
+
+utiliserEtoile()
+{
+	if stat -f "%N" "$2"* 2> /dev/null > /dev/null
+	then
+		utiliser "$1" "$2"*
+	else
+		utiliser "$1"
+	fi
 }
 
 utiliser()
@@ -46,9 +58,8 @@ utiliser()
 		# partager.
 		if [ -L "$prefixe/$1" ]
 		then
-			a="`ls -l "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
-			a="${a##*-> }"
-			if [ "${a%%-*([^-])+([0-9])*([^-])*(-*([^-]))}" = "${ou%%-*([^-])+([0-9])*([^-])*(-*([^-]))}" ] # Même racine, mettons version plus ancienne, on écrase.
+			a="`readlink "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
+			if [ "`racine "$a"`" = "`racine "$ou"`" ] # Même racine, mettons version plus ancienne, on écrase.
 			then
 				rm "$prefixe/$1"
 			elif [ -d "$prefixe/`dirname "$1"`/$a" ] # La destination est un répertoire, on peut l'utiliser.
@@ -64,7 +75,7 @@ utiliser()
 		fi
 		if [ -d "$1" -a -d "$prefixe/$1" -a ! -L "$prefixe/$1" ]
 		then
-			utiliser "../$ou" "$1"/*
+			utiliserEtoile "../$ou" "$1/"
 		elif [ \( ! -e "$prefixe/$1" \) ]
 		then
 			ln -s "$ou/$1" "$prefixe/$1"
