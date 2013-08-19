@@ -111,26 +111,28 @@ envoi()
 	aqui="$3"
 	dequiauth="`echo "$dequi" | sed -e 's/-[^@]*@/@/'`"
 	plain=`printf ^$dequiauth^$mdp | tr ^ '\000' | openssl base64`
-	(
-		sleep 1
-		echo EHLO ks389461.kimsufi.com
-		sleep 1
-		[ $auth = oui ] && echo AUTH PLAIN $plain && sleep 1
+	mkfifo /tmp/temp.$$.fifo
+	cat /tmp/temp.$$.fifo | (
+		grep -q ESMTP
+		echo EHLO `hostname`
+		grep -q "250 "
+		[ $auth = oui ] && echo AUTH PLAIN $plain && grep -q "235 "
 		echo MAIL FROM: $dequiauth
-		sleep 1
+		grep -q "250 "
 		echo RCPT TO: $aqui
-		sleep 2
+		grep -q "250 "
 		echo DATA
-		sleep 2
+		grep -q "354 "
 		echo Subject: essai de Guillaume $quoi
 		echo From: $dequiaffiche
 		echo
 		echo COUCOU DE $dequi
 		echo .
-		sleep 1
+		grep -q "250 "
 		echo QUIT
-		sleep 1
-	) | telnet $adr 25
+		grep -q "221 "
+	) | tee -a /dev/tty | telnet $adr 25 | tee -a /dev/tty > /tmp/temp.$$.fifo
+	rm /tmp/temp.$$.fifo
 	# Ou bien, sans les sleep, avec un sudo exim -bh 176.31.96.162 à la place du telnet.
 }
 envoi Oui1 gclo-envoyant@gclo.fr guillaume-destinataire@outters.eu
