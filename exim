@@ -97,11 +97,12 @@ exit 0
 
 # Pour tester:
 read mdp
+adrip="`ifconfig | grep inet | cut -d ' ' -f 2 | head -1`"
 envoi()
 {
 	auth=oui
 	[ "x$1" = x--sans-auth ] && shift && auth=non
-	adr=176.31.96.162
+	adr=$adrip
 	[ "x$1" = x--localhost ] && shift && adr=127.0.0.1
 	dequiaffiche=
 	[ "x$1" = x-f ] && shift && dequiaffiche="$1" && shift
