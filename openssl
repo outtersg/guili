@@ -39,7 +39,7 @@ modifspostconf="dyld105postconf"
 version=1.0.0e
 modifs=perlredir
 
-v 1.0.1e && modifs="perlredir docItem" || true
+v 1.0.1e && modifs="perlredir sansdoc" || true
 
 # Modifications
 
@@ -57,6 +57,24 @@ docItem()
 	do
 		filtrer "$f" sed -e 's#^=item \([0-9]\)#=item Z<>\1#'
 	done
+}
+
+docItemComplet()
+{
+	rustineDocItemComplet="`obtenir http://rt.openssl.org/Ticket/Attachment/36986/20049/ openssl.bogue3057.diff`"
+	patch -p1 < "$rustineDocItemComplet" || true
+
+	rustineDocItemComplet="`obtenir http://dl.dropboxusercontent.com/u/8224157/public/tmp/openssl-1.0.1c-pod_syntax_error.patch`"
+	patch -p1 < "$rustineDocItemComplet" || true
+
+	rustineDocItemComplet="`obtenir "http://pkgs.fedoraproject.org/cgit/openssl.git/plain/openssl-1.0.1e-backports.patch?id2=HEAD" openssl.bogueqqc.diff`"
+	patch -p1 < "$rustineDocItemComplet" || true
+}
+
+sansdoc()
+{
+	# Cette petite histoire de l'incompat entre les docs d'OpenSSL et Perl 5.18 m'échaude furieusement, après les deux tentatives docItem et docItemComplet on a encore un gruyère. On zappe donc tout, merde.
+	filtrer Makefile.org sed -e '/^install: /s/install_docs//g'
 }
 
 dyld105postconf()
