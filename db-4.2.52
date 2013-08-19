@@ -37,12 +37,11 @@ archive="http://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
 
 version=4.5.20
 
-archive="http://download.oracle.com/berkeley-db/db-$version.tar.gz"
-
 v 5.0.21
 v 5.2.36
 v 5.3.15
 
+archive="http://download.oracle.com/berkeley-db/db-$version.tar.gz"
 dest="$INSTALLS/$logiciel-$version"
 
 [ -d "$dest" ] && exit 0
