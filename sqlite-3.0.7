@@ -27,15 +27,10 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=sqlite
 
-version=3.0.7
-options=
-
-version=3.6.4
-options=
-
-version=3.6.23.1
-modifs=foutuTclPourLePointH
-options=
+v 3.0.7 || true
+v 3.6.4 || true
+v 3.6.23.1 && modifs=foutuTclPourLePointH || true
+v 3.7.17 && modifs= || true
 
 # Modifications
 
@@ -53,6 +48,8 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://www.sqlite.org/$logiciel-$version.tar.gz"
 version_="`echo "$version" | tr . _`"
 pge "$version" 3.6.24 && archive="http://www.sqlite.org/sqlite-amalgamation-$version_.zip"
+version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
+pge $version 3.7 && archive="http://www.sqlite.org/2013/sqlite-autoconf-$version0.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
@@ -63,7 +60,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-if pge $version 3.6.24
+if pge $version 3.6.24 && ! pge $version 3.7
 then
 	true
 else
@@ -71,7 +68,7 @@ else
 fi
 
 echo Compilation… >&2
-if pge $version 3.6.24
+if pge $version 3.6.24 && ! pge $version 3.7
 then
 	cc -c sqlite3.c -o sqlite3.o && ar rcs libsqlite3.a sqlite3.o #&& gcc -shared -o sqlite3.so sqlite3.o
 else
@@ -79,7 +76,7 @@ else
 fi
 
 echo Installation… >&2
-if pge $version 3.6.24
+if pge $version 3.6.24 && ! pge $version 3.7
 then
 	sudo mkdir -p "$dest/lib" "$dest/include"
 	sudo cp libsqlite3.a "$dest/lib/"
