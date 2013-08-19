@@ -32,7 +32,8 @@ logiciel=exim
 
 # Historique des versions gérées
 
-version=4.77
+v 4.77
+v 4.80.1
 
 # Modifications
 
