@@ -140,7 +140,7 @@ obtenirEtAllerDansGit()
 		esac
 		git clone $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
-		[ -z "$v" ] || git checkout "$v"
+		[ -z "$v" ] || git checkout "`echo $v | sed -e 's/.*\.//g'`"
 		[ -z "$v" ] || ( cd .. && tar czf "$a" "$l-$v" )
 	fi
 }
