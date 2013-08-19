@@ -155,8 +155,6 @@ obtenirEtAllerDansVersion()
 			if [ -z "$v" ]
 			then
 				v="`date +%Y-%m-%d`"
-			else
-				git checkout "$v"
 			fi
 			;;
 		*@*)
