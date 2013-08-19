@@ -39,6 +39,8 @@ modifs=putainDeLibJPEGDeMacOSX
 version=2.8.6
 modifs=putainDeLibJPEGDeMacOSX
 
+v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
+
 # Modifications
 
 # CMake, pour sa config, teste son petit monde en essayant de se lier à Carbon.
@@ -71,6 +73,25 @@ s#${cmake_ld_flags}#-L/System/Library/Frameworks/ApplicationServices.framework/V
 			export DYLD_FALLBACK_LIBRARY_PATH
 			;;
 	esac
+}
+
+# Ce crétin de CMake embarque des bibliothèques complètes (cURL) et s'étonne ensuite de péter lorsque le .h de la biblio est inclus avant le sien.
+etToiAlors()
+{
+	# Les includes ne sont nécessaires que pour compiler CMake lui-même; on inclut donc explicitement les répertoires requis pour *cette* compilation, répertoires qui sont temporaires, plutôt qu'un -I.: ainsi on s'assure que si CMake a des velléités de mémorisation, il ne nous ressortira pas un beau jour de nulle part un -I. dans les applis qu'on lui demande de compiler.
+	mkdir -p Utilities/cmcurl/etToiAlors
+	tiens="-IetToiAlors/.."
+	CPPFLAGS="$tiens $CPPFLAGS"
+	CXXFLAGS="$tiens $CXXFLAGS"
+	CFLAGS="$tiens $CFLAGS"
+	export CPPFLAGS CXXFLAGS CFLAGS
+}
+
+havefchdir()
+{
+	filtrer Utilities/cmlibarchive/libarchive/archive_platform.h sed -e '/define ARCHIVE_PLATFORM_H_INCLUDED/a\
+#include "config_freebsd.h"
+'
 }
 
 # Variables
