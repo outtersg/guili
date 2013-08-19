@@ -49,6 +49,8 @@ modifs=makefile
 makefile()
 {
 	filtrer Makefile sed -e '/^CFLAGS/s/$/ -fpic/' -e '/^all: /s/$/ libstemmer.so/'
+	filtrer Makefile sed -e '/^all: /s/ libstemmer.o//'
+	filtrer Makefile sed -e '/^all: /s/ stemwords//'
 	cat >> Makefile <<TERMINE
 libstemmer.so: \$(snowball_sources:.c=.o)
 	gcc -shared -o \$@ \$^
