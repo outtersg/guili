@@ -136,10 +136,10 @@ envoi()
 	rm /tmp/temp.$$.fifo
 	# Ou bien, sans les sleep, avec un sudo exim -bh 176.31.96.162 à la place du telnet.
 }
-envoi Oui1 gclo-envoyant@gclo.fr guillaume-destinataire@outters.eu
-envoi -f gclouille-envoyant@gclo.fr OuiMais1 gclo-envoyant@gclo.fr guillaume-destinataire@outters.eu # Oui, mais From forcé à ce qui est réécrit.
-envoi Oui2 gclo-envoyant@gclo.fr guillaumealabarbefleurie@hotmail.com
-envoi --sans-auth Non1 gclo@gclo.fr guillaume-destinataire@outters.eu # Interne non authentifié interdit
-envoi --sans-auth Oui3 guillaume.outters@free.fr guillaume-destinataire@outters.eu # Externe vers interne: sans auth
-envoi --sans-auth Non2 guillaume.outters@free.fr guillaumealabarbefleurie@hotmail.com # Relai interdit
-envoi --sans-auth --localhost Oui4 root guillaume-destinataire@outters.eu # Externe vers interne: sans auth
+envoi Oui1 gui-envoyant@gclo.fre guillaume-destinataire@outters.eue
+envoi -f guidouille-envoyant@gclo.fre OuiMais1 gui-envoyant@gclo.fre guillaume-destinataire@outters.eue # Oui, mais From forcé à ce qui est réécrit.
+envoi Oui2 gui-envoyant@gclo.fre guillaume@outters.eu
+envoi --sans-auth Non1 gui@gclo.fre guillaume-destinataire@outters.eue # Interne non authentifié interdit
+envoi --sans-auth Oui3 guillaume@outters.eu guillaume-destinataire@outters.eue # Externe vers interne: sans auth
+envoi --sans-auth Non2 guillaume@outters.eu guillaume@outters.eu # Relai interdit
+envoi --sans-auth --localhost Oui4 root guillaume-destinataire@outters.eue # Externe vers interne: sans auth
