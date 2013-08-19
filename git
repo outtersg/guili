@@ -26,19 +26,24 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=git
 
-version=1.7.0.6
+v 1.7.0.6
+v 1.7.5.4
+v 1.7.10.4 && modifs=autoconfer && v_expat=">= 0" || true
+v 1.8.3.2 && modifs=sansConfigurer && v_expat= || true
 
-version=1.7.5.4
-
-version=1.7.10.4
-modifs=autoconfer
-inclure expat
+[ -z "$v_expat" ] || include expat "$v_expat"
 
 # Modifications
 
 autoconfer()
 {
 	make configure
+}
+
+sansConfigurer()
+{
+	sansConfigure=1
+	prefixeMake="prefix=$dest OPENSSLDIR=$INSTALLS"
 }
 
 # Variables
@@ -56,13 +61,16 @@ obtenirEtAllerDansVersion
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ -z "$sansConfigure" ]
+then
 ./configure --prefix="$dest"
+fi
 
 echo Compilation… >&2
-make
+make $prefixeMake
 
 echo Installation… >&2
-sudo make install
+sudo make $prefixeMake install
 sutiliser $logiciel-$version
 
 rm -Rf "$TMP/$$"
