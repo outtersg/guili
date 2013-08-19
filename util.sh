@@ -28,8 +28,12 @@ export PATH="`echo $TMP/$$:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/
 export LD_LIBRARY_PATH="$INSTALLS/lib:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 export CMAKE_LIBRARY_PATH="$INSTALLS"
-export LDFLAGS="-L$INSTALLS/lib"
-export CPPFLAGS="-I$INSTALLS/include"
+CPPFLAGS="-I$INSTALLS/include"
+CFLAGS="-I$INSTALLS/include"
+CXXFLAGS="-I$INSTALLS/include"
+LDFLAGS="-L$INSTALLS/lib"
+PKG_CONFIG_PATH="$INSTALLS/lib/pkgconfig"
+export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH
 export ACLOCAL="aclocal -I $INSTALLS/share/aclocal"
 
 obtenir()
