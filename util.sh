@@ -252,6 +252,21 @@ inclure()
 	return $?
 }
 
+prerequis()
+{
+	echo "$prerequis" | tr ' :' '\012 ' | while read requis versionRequis
+	do
+		case "$requis" in
+			*\(\))
+				"$requis" $versionRequis
+				;;
+			*)
+				inclure "$requis" "$versionRequis"
+				;;
+		esac
+	done
+}
+
 # Trouve le nom du prochain fichier disponible, en ajoutant des suffixes numériques jusqu'à en trouver un de libre.
 prochain()
 {
