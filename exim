@@ -98,6 +98,20 @@ exit 0
 # Pour tester:
 read mdp
 adrip="`ifconfig | grep inet | cut -d ' ' -f 2 | head -1`"
+lisRes()
+{
+	grep --max-count=1 "$1" > /tmp/temp.$$.rep
+	grep -q "^5" < /tmp/temp.$$.rep && echo QUIT && touch /tmp/temp.$$.rate && exit 0 || true
+}
+cause()
+{
+	if [ -z "$chut" ]
+	then
+		tee -a /dev/tty
+	else
+		tee -a /tmp/temp.$$.trace
+	fi
+}
 envoi()
 {
 	auth=oui
@@ -113,15 +127,16 @@ envoi()
 	dequiauth="`echo "$dequi" | sed -e 's/-[^@]*@/@/'`"
 	plain=`printf ^$dequiauth^$mdp | tr ^ '\000' | openssl base64`
 	mkfifo /tmp/temp.$$.fifo
+	rm -f /tmp/temp.$$.rate
 	cat /tmp/temp.$$.fifo | (
 		grep -q ESMTP
 		echo EHLO `hostname`
 		grep -q "250 "
 		[ $auth = oui ] && echo AUTH PLAIN $plain && grep -q "235 "
-		echo MAIL FROM: $dequiauth
-		grep -q "250 "
+		echo "MAIL FROM:<$dequi>"
+		lisRes "[25]50 "
 		echo RCPT TO: $aqui
-		grep -q "250 "
+		lisRes "[25]50 "
 		echo DATA
 		grep -q "354 "
 		echo Subject: essai de Guillaume $quoi
@@ -132,9 +147,14 @@ envoi()
 		grep -q "250 "
 		echo QUIT
 		grep -q "221 "
-	) | tee -a /dev/tty | telnet $adr 25 | tee -a /dev/tty > /tmp/temp.$$.fifo
+	) | cause | telnet $adr 25 2>&1 | cause > /tmp/temp.$$.fifo
 	rm /tmp/temp.$$.fifo
-	# Ou bien, sans les sleep, avec un sudo exim -bh 176.31.96.162 à la place du telnet.
+	echo "$quoi" | cut -d ' ' -f 1 | tr -d '\012'
+	oui=Oui
+	[ -e /tmp/temp.$$.rate ] && oui=Non || true
+	couleur='@[0;31m'
+	echo "$quoi" | grep -q "^$oui" && couleur='@[0;32m' || true
+	echo ": $couleur$oui"'@[0m' | tr @ '\033'
 }
 envoi Oui1 gui-envoyant@gclo.fre guillaume-destinataire@outters.eue
 envoi -f guidouille-envoyant@gclo.fre OuiMais1 gui-envoyant@gclo.fre guillaume-destinataire@outters.eue # Oui, mais From forcé à ce qui est réécrit.
