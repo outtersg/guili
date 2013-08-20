@@ -33,7 +33,9 @@ logiciel=exim
 # Historique des versions gérées
 
 v 4.77
-v 4.80.1
+v 4.80.1 && prerequis="pcre"
+
+prerequis
 
 # Modifications
 
