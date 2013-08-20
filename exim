@@ -162,4 +162,7 @@ envoi Oui2 gui-envoyant@gclo.fre guillaume@outters.eu
 envoi --sans-auth Non1 gui@gclo.fre guillaume-destinataire@outters.eue # Interne non authentifié interdit
 envoi --sans-auth Oui3 guillaume@outters.eu guillaume-destinataire@outters.eue # Externe vers interne: sans auth
 envoi --sans-auth Non2 guillaume@outters.eu guillaume@outters.eu # Relai interdit
-envoi --sans-auth --localhost Oui4 root guillaume-destinataire@outters.eue # Externe vers interne: sans auth
+envoi --sans-auth --localhost Oui4 fournil@outters.eue guillaume-destinataire@outters.eue # Du moment qu'il est référencé dans outters.eue.automates, ça passe (serveur PHP émettant).
+envoi --sans-auth --localhost Non3 fourmil@outters.eue guillaume-destinataire@outters.eue # Un serveur local qui n'est pas inscrit se fait jeter.
+echo "COUCOU de `id`" | mail -s "essai de Guillaume Oui5" guillaume@outters.eu # Juste parce que l'utilisateur courant a été autorisé dans ici.la.automates.
+echo "COUCOU de `id`" | mail -s "essai de Guillaume Oui6" guillaume@outters.eue
