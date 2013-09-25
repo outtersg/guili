@@ -29,11 +29,11 @@ inclure expat
 
 logiciel=fontconfig
 
-v 2.3.2
+v 2.3.2 || true
 # La 2.3.2 est boguée, leur FcObjectStaticName n'est pas généralisé et du coup
 # les comparaisons de chaînes par pointeur ne marchent pas partout.
 version=2005-06-28
-v 2.10.0
+v 2.10.0 || true
 v 2.10.2 || true
 
 dest=$INSTALLS/$logiciel-$version
