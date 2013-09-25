@@ -120,6 +120,8 @@ envoi()
 	[ "x$1" = x--sans-auth ] && shift && auth=non
 	adr=$adrip
 	[ "x$1" = x--localhost ] && shift && adr=127.0.0.1
+	fichier=
+	[ "x$1" = x--fichier ] && shift && fichier="$1" && shift
 	dequiaffiche=
 	[ "x$1" = x-f ] && shift && dequiaffiche="$1" && shift
 	quoi="$1"
@@ -141,10 +143,15 @@ envoi()
 		lisRes "[25]50 "
 		echo DATA
 		grep -q "354 "
-		echo Subject: essai de Guillaume $quoi
-		echo From: $dequiaffiche
-		echo
-		echo COUCOU DE $dequi
+		if [ -z "$fichier" ]
+		then
+			echo Subject: essai de Guillaume $quoi
+			echo From: $dequiaffiche
+			echo
+			echo COUCOU DE $dequi
+		else
+			cat "$fichier"
+		fi
 		echo .
 		grep -q "250 "
 		echo QUIT
