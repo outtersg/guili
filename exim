@@ -172,13 +172,22 @@ envoi()
 	echo "$quoi" | grep -q "^$oui" && couleur='@[0;32m' || true
 	echo ": $couleur$oui"'@[0m' | tr @ '\033'
 }
-envoi Oui1 gui-envoyant@gclo.fre guillaume-destinataire@outters.eue
-envoi -f guidouille-envoyant@gclo.fre OuiMais1 gui-envoyant@gclo.fre guillaume-destinataire@outters.eue # Oui, mais From forcé à ce qui est réécrit.
-envoi Oui2 gui-envoyant@gclo.fre guillaume@outters.eu
-envoi --sans-auth Non1 gui@gclo.fre guillaume-destinataire@outters.eue # Interne non authentifié interdit
-envoi --sans-auth Oui3 guillaume@outters.eu guillaume-destinataire@outters.eue # Externe vers interne: sans auth
-envoi --sans-auth Non2 guillaume@outters.eu guillaume@outters.eu # Relai interdit
-envoi --sans-auth --localhost Oui4 fournil@outters.eue guillaume-destinataire@outters.eue # Du moment qu'il est référencé dans outters.eue.automates, ça passe (serveur PHP émettant).
-envoi --sans-auth --localhost Non3 fourmil@outters.eue guillaume-destinataire@outters.eue # Un serveur local qui n'est pas inscrit se fait jeter.
-echo "COUCOU de `id`" | mail -s "essai de Guillaume Oui5" guillaume@outters.eu # Juste parce que l'utilisateur courant a été autorisé dans ici.la.automates.
-echo "COUCOU de `id`" | mail -s "essai de Guillaume Oui6" guillaume@outters.eue
+chut=1
+dlemis=gclo.fr
+dlrecu=outters.eu
+externe=guillaume.outters@free.fr
+envoi Oui1 gui-envoyant@$dlemis guillaume-destinataire@$dlrecu
+envoi -f guidouille-envoyant@$dlemis OuiMais1 gui-envoyant@$dlemis guillaume-destinataire@$dlrecu # Oui, mais From forcé à ce qui est réécrit.
+envoi --sans-auth Non1 gui@$dlemis guillaume-destinataire@$dlrecu # Interne non authentifié interdit
+envoi --sans-auth Oui2 $externe guillaume-destinataire@$dlrecu # Externe vers interne: sans auth
+envoi --sans-auth --localhost Oui3 fournil@$dlrecu guillaume-destinataire@$dlrecu # Du moment qu'il est référencé dans $dlrecu.automates, ça passe (serveur PHP émettant).
+# À FAIRE: tester avec une redirection (mathilde-logistique -> externe, par exemple; vérifier DKIM); et en sens inverse.
+envoi --sans-auth --localhost Non2 fourmil@$dlrecu guillaume-destinataire@$dlrecu # Un serveur local qui n'est pas inscrit se fait jeter.
+echo "COUCOU de `id`" | mail -s "essai de Guillaume Oui4" guillaume@$dlrecu
+( echo "From: fournil@$dlrecu" ; echo "Subject: essai de Guillaume Oui5" ; echo ; echo "COUCOU de `id`" ; echo . ) | sendmail guillaume@$dlrecu # gui est autorisé à envoyer sous le nom fournil@$dlemis
+( echo "From: Fournil <fournil@$dlrecu>" ; echo "Subject: essai de Guillaume Oui6" ; echo ; echo "COUCOU de `id`" ; echo . ) | sendmail guillaume@$dlrecu # le même avec un From un poil plus complexe.
+( echo "From: Fournil <fourmille@$dlrecu>" ; echo "Subject: essai de Guillaume Non3" ; echo ; echo "COUCOU de `id`" ; echo . ) | sendmail guillaume@$dlrecu # Mais interdit si on ne figure pas dans la liste des autorisés!
+envoi Oui41 gui-envoyant@$dlemis $externe
+envoi --sans-auth Non40 $externe $externe # Relai interdit
+echo "COUCOU de `id`" | mail -s "essai de Guillaume Oui42" $externe # Juste parce que l'utilisateur courant a été autorisé dans ici.la.automates.
+( echo "From: Fournil <fournil@$dlrecu>" ; echo "Subject: essai de Guillaume Oui43" ; echo ; echo "COUCOU de `id`" ; echo . ) | sendmail $externe # test sendmail en externe.
