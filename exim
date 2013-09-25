@@ -33,11 +33,18 @@ logiciel=exim
 # Historique des versions gérées
 
 v 4.77
-v 4.80.1 && prerequis="pcre"
+v 4.80.1 && modifs="paf" && prerequis="pcre"
 
 prerequis
 
 # Modifications
+
+paf()
+{
+	cp $HOME/src/projets/paf/paf.c Local/ || true
+	echo "LOCAL_SCAN_SOURCE=Local/paf.c" >> Local/Makefile
+	echo "LOCAL_SCAN_HAS_OPTIONS=yes" >> Local/Makefile
+}
 
 # Variables
 
