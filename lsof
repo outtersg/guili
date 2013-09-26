@@ -26,12 +26,10 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=lsof
 
-version=4.82
-modifs=paslirelaconf
-
-version=4.84
-
-version=4.85
+v 4.82 && modifs=paslirelaconf || true
+v 4.84 || true
+v 4.85 || true
+v 4.87 || true
 
 # Modifications
 
