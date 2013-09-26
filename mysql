@@ -43,9 +43,8 @@ OPTIONS_CONF=()
 version=5.1.50
 OPTIONS_CONF=()
 
-version=5.5.18
-OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF)
-modifs="poumReadline cheminsInstallDb"
+v 5.5.18 && OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF) && modifs="poumReadline cheminsInstallDb" || true
+v 5.5.32 && OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF) && modifs="poumReadline cheminsInstallDb" || true
 
 inclure cmake # depuis la 5.5.18 pour sûr.
 
