@@ -28,24 +28,63 @@ logiciel=screen
 
 # Historique des versions gérées
 
-version=2008-04-30
+version=2008-04-30.cvs
+modifs="sansStropts getutentx"
+
+version=4.0.3
+
+version=20130710.c2cd05962664c80f8ae063d6bf7a21084e0c2f37.git
+modifs="sansutmp"
 
 # Modifs
+
+sansStropts()
+{
+	chmod -R u+w .
+	grep -rl stropts . | while read f
+	do
+		filtrer "$f" sed -e '/stropts/d'
+	done
+	cat >> config.h.in <<TERMINE
+#include <string.h>
+TERMINE
+}
+
+getutentx()
+{
+	filtrer utmp.c sed -e 's/ifndef GETUTENT/if 0/' -e 's/ifndef UTMP_HELPER/if 1/' -e 's/ifdef GETUTENT/if 1/' -e '/ut_exit/d'
+	filtrer os.h sed -e 's#define .*UTMPX_FILE#define UTMPFILE "/var/run/utmp"#' -e 's@define.*ut_time.*@define ut_time ut_tv.tv_sec@' # ftp://ftp2.za.freebsd.org/pub/FreeBSD/ports/sysutils/screen/files/patch-os.h
+}
+
+sansutmp()
+{
+	echo "#undef UTMPOK" >> acconfig.h
+	filtrer config.h.in grep -v '^#define UTMPOK'
+	echo '#undef UTMPFILE' >> os.h
+	echo '#define UTMPFILE "/tmp/utmp"' >> os.h
+	#filtrer utmp.cI
+}
 
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
 archive_cvs="cvs://anonymous@cvs.savannah.gnu.org:/sources/screen:screen"
+archive_git="git://git.savannah.gnu.org/screen.git"
+archive="http://ftp.gnu.org/gnu/screen/screen-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
 obtenirEtAllerDansVersion
+[ ! -d src ] || cd src
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-cd src
+if [ ! -e configure ]
+then
+	./autogen.sh
+fi
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
