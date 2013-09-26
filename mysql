@@ -76,6 +76,7 @@ cheminsInstallDb()
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://mirrors.ircam.fr/pub/mysql/Downloads/MySQL-$vmaj/$logiciel-$version.tar.gz
+archive=http://mirrors.dotsrc.org/mysql/Downloads/MySQL-$vmaj/$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
