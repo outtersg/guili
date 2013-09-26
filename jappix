@@ -55,7 +55,9 @@ archive="http://download.jappix.org/jappixorg/jappix-$version-nemesis-alpha-1.zi
 
 mkdir -p "$dest"
 
-( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest" && tar xf - )
+(
+( obtenirEtAllerDansVersion && tar cf - . || echo "BOUH $?" >&3 ) | ( cd "$dest" && tar xf - )
+) 3>&1 | ! grep -q BOUH
 
 cd "$dest"
 
