@@ -1,0 +1,146 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=phantomjs
+
+# Historique des versions gérées
+
+v 1.9.2 && prerequis="freetype fontconfig" && modifs="miens compatibleJpegMien asiatiques" || true
+
+# Modifications
+
+miens()
+{
+	filtrer src/qt/preconfig.sh sed -E -e '/-qt-(libjpeg|libpng|zlib)/s/^/#/'
+	rm -Rf src/qt/src/3rdparty/zlib* src/qt/src/3rdparty/lib* # Pour ne pas être tenté.
+}
+
+compatibleJpegMien()
+{
+	# libjpeg se sert de TRUE et FALSE comme de clés d'un enum; qt définit TRUE et FALSE à true et false. Et un booléen comme clé d'enum, ça ne marche pas.
+	# D'autre part on ne peut dire à libjpeg d'utiliser un simple bool (avec HAVE_BOOLEAN), car alors la taille de la structure jpeg_decompress_info change, et le bzero interne à libjpeg écrabouille plus d'octets qu'il ne devrait (ceci dit, depuis la version 9, libjpeg inclut un mécanisme qui nous permet de nous rendre compte de l'erreur assez rapidement, ouf).
+	patch -p0 <<TERMINE
+--- src/qt/src/gui/image/qjpeghandler.cpp	2013-09-05 23:36:02.000000000 +0200
++++ src/qt/src/gui/image/qjpeghandler.cpp	2013-09-23 17:57:26.000000000 +0200
+@@ -68,7 +68,11 @@
+ #if defined(Q_OS_UNIXWARE)
+ #  define HAVE_BOOLEAN  // libjpeg under Unixware seems to need this
+ #endif
++#undef TRUE
++#undef FALSE
+ #include <jpeglib.h>
++#define B_TRUE TRUE
++#define B_FALSE FALSE
+ #ifdef const
+ #  undef const          // remove crazy C hackery in jconfig.h
+ #endif
+@@ -157,11 +161,7 @@
+     } else {
+         src->bytes_in_buffer = num_read;
+     }
+-#if defined(Q_OS_UNIXWARE)
+     return B_TRUE;
+-#else
+-    return true;
+-#endif
+ }
+ 
+ static void qt_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
+@@ -489,11 +489,7 @@
+     dest->next_output_byte = dest->buffer;
+     dest->free_in_buffer = max_buf;
+ 
+-#if defined(Q_OS_UNIXWARE)
+     return B_TRUE;
+-#else
+-    return true;
+-#endif
+ }
+ 
+ static void qt_term_destination(j_compress_ptr cinfo)
+@@ -584,13 +580,8 @@
+ 
+ 
+         int quality = sourceQuality >= 0 ? qMin(sourceQuality,100) : 75;
+-#if defined(Q_OS_UNIXWARE)
+         jpeg_set_quality(&cinfo, quality, B_TRUE /* limit to baseline-JPEG values */);
+         jpeg_start_compress(&cinfo, B_TRUE);
+-#else
+-        jpeg_set_quality(&cinfo, quality, true /* limit to baseline-JPEG values */);
+-        jpeg_start_compress(&cinfo, true);
+-#endif
+ 
+         row_pointer[0] = new uchar[cinfo.image_width*cinfo.input_components];
+         int w = cinfo.image_width;
+@@ -751,11 +742,7 @@
+         err.error_exit = my_error_exit;
+ 
+         if (!setjmp(err.setjmp_buffer)) {
+-    #if defined(Q_OS_UNIXWARE)
+             (void) jpeg_read_header(&info, B_TRUE);
+-    #else
+-            (void) jpeg_read_header(&info, true);
+-    #endif
+ 
+             int width = 0;
+             int height = 0;
+TERMINE
+}
+
+asiatiques()
+{
+	# Qt se compile avec un appel dans ses destructeurs aux instances d'encodages chinois, coréen, japonais et thaïlandais, mais n'inclut pas les bibliothèques qui les définissent. On les ajoute donc à notre PhantomJS directement.
+	cat >> src/phantomjs.pro <<TERMINE
+LIBS += -L../src/qt/plugins/codecs -lqcncodecs -lqjpcodecs -lqkrcodecs -lqtwcodecs
+TERMINE
+}
+
+# Variables
+
+archive="https://phantomjs.googlecode.com/files/phantomjs-$version-source.zip"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+
+echo Compilation… >&2
+echo y | ./build.sh
+make
+
+echo Installation… >&2
+sudo mkdir -p "$dest/bin"
+sudo cp bin/phantomjs "$dest/bin/"
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
