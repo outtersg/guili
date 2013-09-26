@@ -28,20 +28,18 @@ inclure db
 inclure apr
 inclure apr-util
 inclure gettext
-inclure neon
 
 logiciel=subversion
 
-version=1.2.3
+v 1.2.3 && prerequis=neon || true
+v 1.4.6 && modifs="lssl" || true
+v 1.7.2 && modifs= || true
+v 1.7.6 && modifs=destdir || true
+v 1.7.10 && modifs=destdir || true
+v 1.8.0 && modifs= && prerequis="serf=1.2.1 pkgconfig" || true # La détection de serf est faite via pkgconfig.
+v 1.8.3 || true # La détection de serf est faite via pkgconfig.
 
-version=1.4.6
-modifs="lssl"
-
-version=1.7.2
-modifs=
-
-version=1.7.6
-modifs=destdir
+prerequis
 
 # Modifications
 
