@@ -49,9 +49,10 @@ TERMINE
 [ -z "$domaine" -o -z "$dest" ] && auSecours
 echo "$dest" | grep -q ^/ || dest="`pwd`/$dest"
 
-v 0.9.1
+v 0.9.1 && petitnom=nemesis && vbis=alpha-1 || true
+v 0.9.3 && vbis=alpha-3 || true
 
-archive="http://download.jappix.org/jappixorg/jappix-$version-nemesis-alpha-1.zip"
+archive="http://download.jappix.org/jappixorg/jappix-$version-$petitnom-$vbis.zip"
 
 mkdir -p "$dest"
 
