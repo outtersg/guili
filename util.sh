@@ -99,6 +99,7 @@ obtenirEtAllerDans()
 		fichier="$1"
 		archive=`obtenir "$1"`
 	fi
+	[ -f "$archive" ] || exit 1
 	case "$fichier" in
 		*.tar.gz|*.tgz|*.tar.Z) dec="tar xzf" ; liste="tar tzf" ;;
 		*.tar) dec="tar xf" ; liste="tar tf" ;;
