@@ -67,6 +67,7 @@ v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
 v 5.2.17
+v 5.3.13 && retirerModif libpng14 || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && v_icu=">= 50" || true
