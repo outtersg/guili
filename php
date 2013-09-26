@@ -178,7 +178,7 @@ psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CON
 [ -z "$v_icu" ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-intl) || true
 # gettext: pour Horde
 # ssl: pour Horde IMP
-./configure --prefix="$dest" --with-iconv --with-zlib-dir=$INSTALLS --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest" --with-iconv --with-zlib-dir=$INSTALLS --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
 
 echo Compilation… >&2
 make
