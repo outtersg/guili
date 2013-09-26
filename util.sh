@@ -46,6 +46,7 @@ obtenir()
 		commande=curl
 		[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
 		$commande -L -k -s "$1" > "$dest" || rm -f "$dest"
+		[ -e "$dest" ] || return 1
 	fi
 	echo "$dest"
 }
