@@ -166,6 +166,7 @@ obtenirEtAllerDansVersion()
 			version="$vn"
 			;;
 		#*-*) obtenirEtAllerDansCvs -d "$version" "$archive_cvs" ;; # Trop de numéros de version utilisent le tiret.
+		*-*.cvs) obtenirEtAllerDansCvs -d "`echo "$version" | sed -e 's/.cvs//'`" "$archive_cvs" ;; # Trop de numéros de version utilisent le tiret.
 		r*) obtenirEtAllerDansSvn "-$version" "$archive_svn" ;;
 		t*) obtenirEtAllerDansSvn "-$version" "$archive_svn_tag" ;;
 		*) obtenirEtAllerDans "$archive" "$@" ;;
