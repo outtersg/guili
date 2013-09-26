@@ -94,7 +94,7 @@ then
 	sudo ./osx-build.sh i
 else
 	mac && optionsConf="--enable-osxapp" || true
-	./configure --prefix="$dest" $optionsConf
+	./configure --prefix="$dest" $optionsConf --with-perl --with-python
 fi
 
 echo Compilation… >&2
