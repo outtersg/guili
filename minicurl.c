@@ -26,7 +26,9 @@
 #include <netdb.h>
 #include <stdlib.h>
 #include <strings.h>
+#include <string.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 #define FINI -3
 
@@ -93,28 +95,51 @@ void obtenir(char * url, int mode)
 {
 	int moi, sortie;
 	int z, t;
-	char * debut, * fin, * requete;
+	char * debut, * fin, * requete, * hoteReel, * deuxPoints;
 	struct hostent * infos;
 	struct sockaddr_in adresse;
 	struct bloc b;
+	char * proxy = getenv("ALL_PROXY");
 	
 	/* Chaussette. */
 	
 	moi = socket(AF_INET, SOCK_STREAM, 0);
 	
-	/* Adresse. */
+	/* Hôte. */
 	
 	for(fin = url, z = 3; z > 0; ++fin)
 		if(*fin == '/')
 			if(--z == 1)
 				debut = fin + 1;
 	--fin;
+	
+	/* Découpage. */
+	
+	hoteReel = proxy ? proxy : debut;
+	for(deuxPoints = hoteReel; *deuxPoints && *deuxPoints != ':'; ++deuxPoints) {}
+	if(!*deuxPoints)
+		deuxPoints = NULL;
+	
 	*fin = 0;
-	infos = gethostbyname(debut);
+	if(deuxPoints)
+		*deuxPoints = 0;
+	
+	infos = gethostbyname(proxy ? proxy : debut);
+	if(!infos)
+	{
+		write(2, "# Hote ", 7);
+		write(2, proxy ? proxy : debut, strlen(proxy ? proxy : debut));
+		write(2, " introuvable.\n", 14);
+		exit(1);
+	}
 	adresse.sin_family = infos->h_addrtype;
 	bcopy(infos->h_addr_list[0], &adresse.sin_addr, infos->h_length);
 	
-	adresse.sin_port = htons(80);
+	adresse.sin_port = htons(deuxPoints ? atoi(deuxPoints + 1) : 80);
+	
+	if(deuxPoints)
+		*deuxPoints = ':';
+	*fin = '/';
 	
 	/* Connexion. */
 	
@@ -122,14 +147,18 @@ void obtenir(char * url, int mode)
 	
 	/* Demande. */
 	
-	requete = alloca(strlen(fin + 1) + 5 + 11 + 6 + strlen(debut) + 2 + 13 + 2);
-	strcpy(requete, "GET /");
-	strcat(requete, fin + 1);
+	requete = alloca(4 + strlen(proxy ? url : fin) + 11 + 6 + strlen(debut) + 2 + 13 + 19 + 2);
+	strcpy(requete, "GET ");
+	strcat(requete, proxy ? url : fin);
 	strcat(requete, " HTTP/1.1\r\n");
 	strcat(requete, "Host: ");
+	*fin = 0;
 	strcat(requete, debut);
+	*fin = '/';
 	strcat(requete, "\r\n");
-	strcat(requete, "Accept: */*\r\n\r\n");
+	strcat(requete, "Accept: */*\r\n");
+	strcat(requete, "Connection: close\r\n");
+	strcat(requete, "\r\n");
 	write(moi, requete, strlen(requete));
 	
 	*fin = '/';
@@ -187,7 +216,7 @@ int main(int argc, char ** argv)
 	while(*++argv)
 		if(strcmp(*argv, "-O") == 0)
 			mode = 1;
-		else if(strcmp(*argv, "-s") != 0 && strcmp(*argv, "-L") != 0)
+		else if(strcmp(*argv, "-s") != 0 && strcmp(*argv, "-L") != 0 && strcmp(*argv, "-k") != 0)
 			break;
 		
 	obtenir(&argv[0][0], mode);
