@@ -77,12 +77,12 @@ liste7z()
 
 dezipe()
 {
-	command -v unzip && unzip -qq -o "$@" || de7z "$@"
+	command -v unzip > /dev/null 2>&1 && unzip -qq -o "$@" || de7z "$@"
 }
 
 listeZip()
 {
-	command -v unzip && unzip -qq -l "$1" | sed -e 's/  */	/g' | cut -f 4- || liste7z "$@"
+	command -v unzip > /dev/null 2>&1 && unzip -qq -l "$1" | sed -e 's/  */	/g' | cut -f 4- || liste7z "$@"
 }
 
 # Téléchargege $1 et va dans le dossier obtenu en décompressant.
