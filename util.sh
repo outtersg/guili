@@ -258,7 +258,7 @@ inclure()
 
 prerequis()
 {
-	echo "$prerequis" | tr ' :' '\012 ' | sed -e 's/\([<>=]\)/ \1/' | while read requis versionRequis
+	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | while read requis versionRequis
 	do
 		case "$requis" in
 			*\(\))
