@@ -150,9 +150,10 @@ obtenirEtAllerDansGit()
 # Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {
-	case "$version" in
+	[ -z "$versionComplete" ] && versionComplete="$version" || true
+	case "$versionComplete" in
 		*.git)
-			v="`echo "$version" | sed -e 's/.git//'`"
+			v="`echo "$versionComplete" | sed -e 's/.git//'`"
 			obtenirEtAllerDansGit "$archive_git" "$v"
 			if [ -z "$v" ]
 			then
@@ -160,8 +161,8 @@ obtenirEtAllerDansVersion()
 			fi
 			;;
 		*@*)
-			vn="`echo "$version" | sed -e 's/@.*//'`"
-			vp="`echo "$version" | sed -e 's/^[^@]*@//'`"
+			vn="`echo "$versionComplete" | sed -e 's/@.*//'`"
+			vp="`echo "$versionComplete" | sed -e 's/^[^@]*@//'`"
 			obtenirEtAllerDansDarcs -n "$vn" -p "$vp" "$archive_darcs"
 			version="$vn"
 			;;
@@ -301,8 +302,9 @@ fi
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
 v()
 {
-	testerVersion "$1" $argVersion && version="$1"
-	testerVersion "$1" ppe $argVersion
+	v="`echo "$1" | sed -e 's/@.*//'`"
+	testerVersion "$v" $argVersion && version="$v" && versionComplete="$1"
+	testerVersion "$v" ppe $argVersion
 }
 
 # Teste si la version mentionnée en premier paramètre rentre (ou est plus petite ou égale, si le second paramètre vaut 'ppe') dans l'intervalle défini par la suite des arguments (ex.: testerVersion 2.3.1 >= 2.3 < 2.4 renverra vrai).
