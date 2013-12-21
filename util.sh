@@ -511,6 +511,8 @@ dyld105()
 # CMake, ImageMagick, pour leur config, teste leur petit monde en essayant de se lier à Carbon.
 putainDeLibJPEGDeMacOSX()
 {
+	[ -z "$dejaAppelePutainDeLibJPEGDeMacOSX" ] || return 0
+	dejaAppelePutainDeLibJPEGDeMacOSX=1
 	mac || return 0
 	# Ces trous du cul d'Apple ont cru bon créer une libJPEG.dylib à eux, qui évidemment ne sert à personne d'autre qu'à eux (les symboles à l'intérieur sont tous préfixés _cg_, comme CoreGraphics). Et avec un système de fichier insensible à la casse, cette connasse de libJPEG de merde prend le pas sur la très légitime libjpeg que l'on souhaite utiliser un peu partout.
 	case essai in
@@ -532,7 +534,7 @@ s#${cmake_ld_flags}#-L/System/Library/Frameworks/ApplicationServices.framework/V
 			;;
 		essai)
 			# Mais ce foutu machin s'obstine à se lancer dans je ne sais quelles variables d'environnement. Alors on essaie de lui dire de se compiler en indépendant.
-			LDFLAGS="`echo "$LDFLAGS" | sed -e "s#-L$INSTALLS/lib##g"`"
+			[ "x$1" = xprudemment ] || LDFLAGS="`echo "$LDFLAGS" | sed -e "s#-L$INSTALLS/lib##g"`"
 			DYLD_FALLBACK_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$DYLD_FALLBACK_LIBRARY_PATH"
 			unset LD_LIBRARY_PATH
 			unset DYLD_LIBRARY_PATH
@@ -540,6 +542,9 @@ s#${cmake_ld_flags}#-L/System/Library/Frameworks/ApplicationServices.framework/V
 			;;
 	esac
 }
+
+# Sous Mavericks, cette foutue lib nous pollue systématiquement: gcc, ld, nm, etc., y sont liés, car ceux d'/usr/bin sont de simples lanceurs qui font un xcodebuild -find xxx (allant chercher le vrai exécutable dans le bon SDK pour la plateforme de l'ordi). On appelle donc systématiquement notre putaineDeLigJPEGDeMacOSX.
+mac && putainDeLibJPEGDeMacOSX prudemment || true
 
 # Remplacement d'utilitaires.
 
