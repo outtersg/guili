@@ -27,20 +27,13 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 # Historique des versions gérées
 
 logiciel=libjpeg
-version=6b
-version_biblio=63 # Pour AquaScribus, entre autres
 
-version=8a
-
-version=8b
-modifs="compil3264 dyld105"
-modifspostconf=dylib
-
-version=8c
-
-version=8d
-
-version=9
+v 6.2 && version_biblio=63 || true # version_biblio pour AquaScribus, entre autres.
+v 8.1 || true
+v 8.2 && modifs="compil3264 dyld105" && modifspostconf=dylib || true
+v 8.3 || true
+v 8.4 || true
+v 9 || true
 
 # Modifications
 
@@ -73,10 +66,18 @@ a\
 
 # Variables
 
-vnum="`echo "$version" | sed -e 's/[^0-9]//g'`"
+vnum="`echo "$version" | sed -e 's/[^0-9].*//'`"
+vMinEnAlpha()
+{
+	vmin="`echo "$1" | sed -e 's/.*[.]//'`"
+	vminoctalval="`expr "$vmin" + 96`"
+	vminoctal="`printf '%3.3o' "$vminoctalval"`"
+	echo @ | tr @ \\$vminoctal
+}
+valpha="$vnum`vMinEnAlpha "$version"`"
 dest="$INSTALLS/$logiciel-$version"
-archive="http://freshmeat.net/redir/$logiciel/5665/url_tgz/jpegsrc.v$version.tar.gz"
-pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$version.tar.gz"
+archive="http://freshmeat.net/redir/$logiciel/5665/url_tgz/jpegsrc.v$valpha.tar.gz"
+pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$valpha.tar.gz"
 
 # Constitution
 
