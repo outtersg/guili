@@ -41,6 +41,8 @@ version=7.3.353
 
 version=7.3.1242
 
+v 7.4.52 && modifs="corr mavericks" || true
+
 archive=ftp://ftp.vim.org/pub/vim/unix/$logiciel-${version%.*}.tar.bz2
 
 dest=$INSTALLS/$logiciel-$version
@@ -69,6 +71,29 @@ corr()
 	do
 		patch -f -p0 < "${version%.*}.`printf "%3.3d" $i`" || true # Un peu de rustines indigestes Windows.
 	done
+}
+
+mavericks()
+{
+	mac || return 0
+	pge `uname -r` 13 || return 0
+	# http://codepad.org/Mzsik2R8
+	patch -p0 <<TERMINE
+diff src/os_unix.c src/os_unix.c
+--- src/os_unix.c
++++ src/os_unix.c
+@@ -18,6 +18,10 @@
+  * changed beyond recognition.
+  */
+ 
++#if defined(__APPLE__)
++#include <AvailabilityMacros.h>
++#endif
++
+ /*
+  * Some systems have a prototype for select() that has (int *) instead of
+  * (fd_set *), which is wrong. This define removes that prototype. We define
+TERMINE
 }
 
 [ -d "$dest" ] && exit 0
