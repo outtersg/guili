@@ -47,6 +47,7 @@ inclureBiblios -t haskell
 # Boulot
 
 [ -d "$dest/lib/$logiciel-$version" ] && exit 0
+[ -d "$dest/lib/ghc-$ghcv/$logiciel-$version" ] && exit 0
 
 obtenirEtAllerDansVersion
 
