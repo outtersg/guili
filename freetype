@@ -30,6 +30,7 @@ v 2.1.9
 v 2.4.3 && modifs="dyld105"
 v 2.4.4
 v 2.4.11
+v 2.4.12
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
