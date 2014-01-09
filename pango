@@ -28,12 +28,12 @@ inclure glib
 
 logiciel=pango
 
-v 1.8.0 && v_xft=">= 0" || true
-v 1.29.3 && modifs="putainDeLibJPEGDeMacOSX" && v_xft=">= 0" && v_cairo=">= 1.12" || true
-v 1.32.3 && modifs="putainDeLibJPEGDeMacOSX" && v_xft= && v_cairo=">= 1.12" || true
+v 1.8.0 && prerequis="xft" || true
+v 1.29.3 && modifs="putainDeLibJPEGDeMacOSX" && prerequis="xft cairo >= 1.12" || true
+v 1.32.3 && modifs="putainDeLibJPEGDeMacOSX" && prerequis="cairo >= 1.12" || true
+v 1.35.3 && modifs= && prerequis="cairo >= 1.12" || true
 
-[ -z "$v_xft" ] || inclure xft "$v_xft"
-[ -z "$v_cairo" ] || inclure cairo "$v_cairo"
+prerequis
 
 archive=ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2
 pge $version 1.32 && archive=http://ftp.gnome.org/pub/GNOME/sources/pango/`vmaj $version`/$logiciel-$version.tar.xz || true
