@@ -28,7 +28,8 @@ logiciel=opus
 
 # Historique des versions gérées
 
-version=1.0.1
+v 1.0.1 && modifs="compil3264 dyld105" || true
+v 1.0.2
 
 # Modifications
 
@@ -46,9 +47,11 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
+for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
