@@ -28,7 +28,8 @@ calcScripts "$0"
 
 logiciel=pixman
 
-version=0.28.0
+v 0.28.0 || true
+v 0.30.2 || true
 
 archive=http://cairographics.org/releases/$logiciel-$version.tar.gz
 
