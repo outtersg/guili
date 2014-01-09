@@ -256,6 +256,36 @@ inclure()
 	return $?
 }
 
+preCFlag()
+{
+	CPPFLAGS="$* $CPPFLAGS"
+	CFLAGS="$* $CFLAGS"
+	CXXFLAGS="$* $CXXFLAGS"
+	export CPPFLAGS CFLAGS CXXFLAGS
+}
+
+preChemine()
+{
+	preCFlag "-I$1/include"
+	LDFLAGS="-L$1/lib $LDFLAGS"
+	export LDFLAGS
+}
+
+reglagesCompilPrerequis()
+{
+	dossierRequis=
+	for peutEtreDossierRequis in "$INSTALLS/$1-"*
+	do
+		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#$INSTALLS/$1-##"`"
+		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" || true
+	done
+	preChemine "$dossierRequis"
+	PATH="$dossierRequis/bin:$PATH" # Pour les machins du genre xml2-config, etc.
+	PKG_CONFIG_PATH="$dossierRequis/lib/pkgconfig:$PKG_CONFIG_PATH"
+	ACLOCAL="`echo "$ACLOCAL" | sed -e "s#aclocal#aclocal -I $dossierRequis/share/aclocal #"`"
+	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH PKG_CONFIG_PATH ACLOCAL
+}
+
 prerequis()
 {
 	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | while read requis versionRequis
