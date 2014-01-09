@@ -25,10 +25,10 @@ if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"
 . "$SCRIPTS/util.bash"
 
 logiciel=pkgconfig
-version=0.15.0
-dest=/usr/local/$logiciel-$version
 
-version=0.23
+v 0.15.0 || true
+v 0.23 || true
+v 0.28 || true
 
 archive="http://www.freedesktop.org/software/pkgconfig/releases/$logiciel-$version.tar.gz"
 pge $version 0.23 && archive="http://pkgconfig.freedesktop.org/releases/pkg-config-$version.tar.gz"
@@ -44,6 +44,8 @@ echo Configuration… >&2
 ./configure --prefix=/usr/local/$logiciel-$version
 
 echo Correction… >&2
+# La modif suivante était nécessaire pour que certains paquets daignent cesser de surcharger mon PATH; malheureusement elle m'empêche aussi d'utiliser (proprement) mon PATH pour surcharger /usr/local.
+true ||
 filtrer main.c sed -e '/getenv.*PKG_CONFIG_PATH/a\
 add_search_dir("/usr/local/lib/pkgconfig");
 '
