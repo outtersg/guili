@@ -42,7 +42,9 @@ OPTIONS_CONF=(--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enabl
 
 v 0.7-rc1 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --disable-yasm)
 v 1.0 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus) && inclure yasm && inclure opus
-v 1.0.1
+v 1.0.1 && prerequis="lame" OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus --enable-libmp3lame)
+
+prerequis
 
 # Modifications
 
