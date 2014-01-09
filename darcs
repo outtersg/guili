@@ -109,12 +109,8 @@ sortieBrute()
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *@* ]] ; then
-	obtenirEtAllerDansDarcs -n "${version%%@*}" -p "${version#*@}" "$archive_darcs"
+obtenirEtAllerDansVersion
 	[[ "$version" = 2005* ]] && autoconf
-else
-	obtenirEtAllerDans "$archive"
-fi
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
