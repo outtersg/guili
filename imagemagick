@@ -24,29 +24,23 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-inclure libjpeg
-inclure libtiff
-inclure libpng
-inclure freetype
+prerequis="libjpeg libtiff libpng freetype" 
 
 logiciel_maj=ImageMagick
 logiciel="`echo $logiciel_maj | tr '[A-Z]' '[a-z]'`"
 
-version_min=6.2.4-4
-version_min=6.2.5-5
+v 6.2.4.4 || true
+v 6.2.5.5 || true
+v 6.6.3.0 || true
+v 6.6.7.7 || true
+v 6.7.3.0 || true
+v 6.7.5.6 && modifs=putainDeLibJPEGDeMacOSX || true
+v 6.8.3.3 || true
+v 6.8.7.3 && modifs= && prerequis="$prerequis cairo pango" || true
 
-version_min=6.6.3-0
+prerequis
 
-version_min=6.6.7-7
-
-version_min=6.7.3-0
-
-version_min=6.7.5-6
-modifs=putainDeLibJPEGDeMacOSX
-
-version_min=6.8.3-3
-
-version="${version_min%%-*}"
+version_min="`echo "$version" | sed -e 's/\.\([^.]*\)$/-\1/'`"
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_min.tar.bz2
 archive=http://mirror.checkdomain.de/imagemagick/$logiciel_maj-$version_min.tar.bz2
