@@ -27,10 +27,7 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 inclure libjpeg
 inclure libpng
 inclure readline
-inclure icu # Pour la 5.1
-inclure libxml
 inclure curl
-inclure mysql
 
 logiciel=php
 
@@ -38,7 +35,7 @@ OPTIONS_CONF=()
 
 # Historique des versions gérées
 
-v 4.4.7
+v 4.4.7 && prerequis="mysql libxml" || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -52,10 +49,10 @@ v 5.0.9.3.2005-08-29
 # La 2005-08-29 explose sur la recréation du cache de l'album (httpd-2.1.7).
 v 5.0.9.4.2005-09-20
 v 5.0.9.5.2005-09-23 && ajouterModif php34617
-v 5.1.4 && retirerModif php34617
+v 5.1.4 && retirerModif php34617 && prerequis="$prerequis icu" || true
 # Apache 2.2.3
-v 5.2.0
-v 5.2.1 && ajouterModif pourTrouverApache
+v 5.2.0 && ajouterModif pasDUsrLocalEnDur || true
+v 5.2.1 || true #&& ajouterModif pourTrouverApache
 v 5.2.3
 # Crétin de 5.2.3, son test pour gd lance une commande ld -L(rien du tout) et échoue.
 v 5.2.3.1.2007-07-29
@@ -66,11 +63,11 @@ v 5.2.8
 v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
-v 5.2.17
-v 5.3.13 && retirerModif libpng14 || true
+v 5.2.17 && prerequis="mysql < 5.5.20 libxml < 2.8 icu" || true
+v 5.3.13 && retirerModif libpng14 && prerequis="mysql libxml icu" || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
-v 5.4.11 && v_icu=">= 50" || true
+v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
 
 if [ "x$1" = xcgi ]
 then
@@ -80,7 +77,7 @@ else
 	cgi=non
 fi
 
-[ -z "$v_icu" ] || inclure icu "$v_icu"
+prerequis
 
 # Modifs
 
@@ -113,8 +110,16 @@ diff -ru Zend/zend_execute_API.c Zend/zend_execute_API.c
 TERMINE
 }
 
+pasDUsrLocalEnDur()
+{
+	# Gros cons! Pourquoi est-ce que vous allez chercher les trucs en dur dans /usr/local à défaut /usr, alors que vous avez un PATH qui sert à ça?
+	mesChemins="`echo "$PATH" | tr : '\012' | sed -e '/\/bin$/!d' -e 's#/bin$##' | tr '\012' ' '`"
+	filtrer configure sed -e "s#/usr/local /usr#$mesChemins#g"
+}
+
 pourTrouverApache()
 {
+	# À ne pas utiliser. Le PATH ne doit pas écraser celui donné par prerequis.
 	export PATH=$INSTALLS/sbin:$INSTALLS/bin:$PATH
 }
 
