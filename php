@@ -70,6 +70,7 @@ v 5.3.13 && retirerModif libpng14 && prerequis="mysql libxml icu" || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
+v 5.5.7 || true
 
 if [ "x$1" = xcgi ]
 then
