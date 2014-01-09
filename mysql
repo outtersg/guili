@@ -45,6 +45,7 @@ OPTIONS_CONF=()
 
 v 5.5.18 && OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF) && modifs="poumReadline cheminsInstallDb" || true
 v 5.5.32 && OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF) && modifs="poumReadline cheminsInstallDb" || true
+v 5.6.15 && modifs="$modifs inclusionsEnOrdre" || true
 
 inclure cmake # depuis la 5.5.18 pour sûr.
 
@@ -55,6 +56,12 @@ vmaj="`echo $version | sed -e 's#^\([^.]*.[^.]*\).*#\1#'`"
 poumReadline()
 {
 	rm -Rf include/readline # Leur version intégrée possède une définition pour laquelle dans mysql.cc ils disent justement « comme cette définition n'existe pas dans readline, on la définit ici » et du coup doublon et boum. On utilise une vraie readline, mais leur include intégré passe devant nos CPPFLAGS, il faut donc le faire sauter.
+}
+
+inclusionsEnOrdre()
+{
+	# Évidemment ils n'ont jamais songé qu'on pouvait avoir installé une vieille version (ou une nouvelle des biblios externes intégrées), et que le CFLAGS ferait prendre le pas à leurs include sur les include embarqués.
+	preCFlag "-I. -I./include -I../include -I../../include -I`pwd`/extra/yassl/include"
 }
 
 cheminsInstallDb()
