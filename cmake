@@ -41,6 +41,8 @@ modifs=putainDeLibJPEGDeMacOSX
 
 v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
 
+v 2.8.12 && modifs="etToiAlors havefchdir" || true
+
 # Modifications
 
 # CMake, pour sa config, teste son petit monde en essayant de se lier à Carbon.
