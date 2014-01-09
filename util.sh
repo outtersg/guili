@@ -288,7 +288,8 @@ reglagesCompilPrerequis()
 
 prerequis()
 {
-	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | while read requis versionRequis
+	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' > $TMP/$$/temp.prerequis
+	while read requis versionRequis
 	do
 		case "$requis" in
 			*\(\))
@@ -296,9 +297,10 @@ prerequis()
 				;;
 			*)
 				inclure "$requis" "$versionRequis"
+				reglagesCompilPrerequis "$requis" "$versionRequis"
 				;;
 		esac
-	done
+	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
 }
 
 # Trouve le nom du prochain fichier disponible, en ajoutant des suffixes numériques jusqu'à en trouver un de libre.
