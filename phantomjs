@@ -28,7 +28,7 @@ logiciel=phantomjs
 
 # Historique des versions gérées
 
-v 1.9.2 && prerequis="freetype fontconfig" && modifs="miens compatibleJpegMien asiatiques" || true
+v 1.9.2 && prerequis="freetype fontconfig" && modifs="miens compatibleJpegMien asiatiques noproxy" || true
 
 # Modifications
 
@@ -116,6 +116,12 @@ asiatiques()
 	cat >> src/phantomjs.pro <<TERMINE
 LIBS += -L../src/qt/plugins/codecs -lqcncodecs -lqjpcodecs -lqkrcodecs -lqtwcodecs
 TERMINE
+}
+
+noproxy()
+{
+    remplacant=`obtenir 'https://qt.gitorious.org/qt/qtbase/raw/175c69108a5b3c81d32b775f01d1e811289c89c6:src/network/kernel/qnetworkproxy_generic.cpp'`
+    cat "$remplacant" > src/qt/src/network/kernel/qnetworkproxy_generic.cpp
 }
 
 # Variables
