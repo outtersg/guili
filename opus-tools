@@ -29,6 +29,7 @@ logiciel=opus-tools
 # Historique des versions gérées
 
 v 0.1.5 && inclure opus && inclure ogg
+v 0.1.6 && inclure opus && inclure ogg
 
 # Modifications
 
