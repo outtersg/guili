@@ -198,6 +198,9 @@ make
 echo Installation… >&2
 sudo make install
 sudo sh -c "cat > '$dest/lib/php.ini'" <<TERMINE
+; Pour charger les JPEG de 50 Mpixels, il faut bien ça (collages de deux photos).
+memory_limit = 256M
+
 upload_max_filesize = 256M;
 post_max_size = 256M
 mbstring.internal_encoding = UTF-8;
