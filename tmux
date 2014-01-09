@@ -28,7 +28,7 @@ logiciel=tmux
 
 # Historique des versions gérées
 
-v 1.8 && prerequis="libevent" && modifs="bonneLibevent" || true
+v 1.8 && prerequis="libevent" && modifs="bonneLibevent surMac" || true
 
 prerequis
 
@@ -40,6 +40,14 @@ bonneLibevent()
 	# On repère une libevent explicitement 2.0, et on ajoute son lib en tête de LDFLAGS, pour qu'elle soit prise en priorité sur la pourrie de DCS.
 	LDFLAGS="-L$INSTALLS/`ls -l $INSTALLS/lib/libevent-2.0.so | sed -e 's#.*/\(libevent-[0-9.]*/\)#\1#' -e 's#/.*##'`/lib $LDFLAGS"
 	export LDFLAGS
+}
+
+surMac()
+{
+	if mac
+	then
+		filtrer osdep-darwin.c sed -e 's/bsdshortinfo/bsdinfo/g' -e 's/_SHORTBSDINFO/BSDINFO/g' -e 's/pbsi_/pbi_/g'
+	fi
 }
 
 # Variables
