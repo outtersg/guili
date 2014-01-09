@@ -67,7 +67,8 @@ v 2.4.4 && biblios="haskeline:0.6.2.2 hashed-storage:0.4.13 terminfo:0.3.1.2 htm
 v 2.5 && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.1.0 regex-compat:0.93.1 tar:0.3.1.0 text:0.10.0.0" || true
 v 2.5.1 && modifs=sortieBrute && biblios="haskeline:0.6.2.2 hashed-storage:0.5.4 terminfo:0.3.1.2 html:1.0.1.2 mtl:1.1.0.2 parsec:3.0.1 regex-compat:0.93.1 tar:0.3.1.0 text:0.11.0.5" || true
 v 2.8.2 && biblios="haskeline:0.6.4.7 hashed-storage:0.5.10 mtl:2.1.2 parsec:3.1.3 random:1.0.1.1 regex-compat:0.95.1 tar:0.3.2.0 text:0.11.2.3 vector:0.10.0.1" || true
-v 2.8.4 && biblios="haskeline:0.7.0.3 hashed-storage:0.5.10 mtl:2.1.2 parsec:3.1.3 random:1.0.1.1 regex-compat:0.95.1 tar:0.4.0.1 text:0.11.2.3 vector:0.10.0.1" || true
+v 2.8.4 && biblios="haskeline:0.7.0.3 hashed-storage:0.5.10 html:1.0.1.2 mtl:2.1.2 parsec:3.1.3 random:1.0.1.1 regex-compat:0.95.1 tar:0.4.0.1 text:0.11.2.3 vector:0.10.0.1" || true
+v 2.8.4.678@"resolve issue2343" && modifs= && biblios="$biblios base16-bytestring:0.1.1.5 data-ordlist:0.4.5 cryptohash:0.8.4 hashable:1.2.1.0" || true
 
 dest=$INSTALLS/$logiciel-$version
 archive=http://darcs.net/$logiciel-$version.tar.gz
