@@ -28,11 +28,10 @@ calcScripts "$0"
 
 logiciel=cairo
 
-version=1.12.8 && v_pixman=">= 0.22" && v_glib=">= 0" && v_libpng=">= 0"
+v 1.12.8 && prerequis="pixman >= 0.22 glib libpng" || true
+v 1.12.14 && prerequis="pixman >= 0.30 glib libpng" || true
 
-[ -z "$v_pixman" ] || inclure pixman "$v_pixman"
-[ -z "$v_libpng" ] || inclure libpng "$v_libpng"
-[ -z "$v_glib" ] || inclure glib "$v_glib"
+prerequis
 
 archive=http://cairographics.org/releases/cairo-$version.tar.xz
 
