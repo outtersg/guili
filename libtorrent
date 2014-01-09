@@ -26,8 +26,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=libtorrent
 
-version=0.15.4
-modifs="dyld105"
+v 0.15.4 && modifs="boostfs2 dyld105"
+v 0.16.0 && modifs="dyld105 putainDeLibJPEGDeMacOSX boostRoot"
 
 inclure openssl
 
@@ -35,6 +35,26 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://libtorrent.googlecode.com/files/libtorrent-rasterbar-$version.tar.gz"
 
 # Modifications
+
+# Ne marche pas. Il faudrait plutôt requérir un boot < 1.46 (en 1.45, le FS 2 était paraît-il le défaut).
+boostfs2()
+{
+	# http://stackoverflow.com/questions/9864871/libtorrent-rasterbar-compiling-examples
+	filtrer CMakeLists.txt sed -e '/DBOOST_DISABLE_EXCEPTION/a\
+add_definitions(-DBOOST_FILESYSTEM_VERSION=2)
+'
+	CFLAGS="$CFLAGS -DBOOST_FILESYSTEM_VERSION=2"
+	CPPFLAGS="$CPPFLAGS -DBOOST_FILESYSTEM_VERSION=2"
+	CXXFLAGS="$CXXFLAGS -DBOOST_FILESYSTEM_VERSION=2"
+	filtrer configure sed -e '/HAVE_BOOST_FILESYSTEM/a\
+$as_echo "#define BOOST_FILESYSTEM_VERSION 2" >>confdefs.h
+'
+}
+
+boostRoot()
+{
+	export BOOST_ROOT="$INSTALLS"
+}
 
 [ -d "$dest" ] && exit 0
 
