@@ -31,7 +31,7 @@ logiciel=libtiff
 v 3.7.2
 version=2005-05-05 && modifs=detectionGLMac
 v 3.9.4 && modifs="compil3264 dyld105"
-v 4.0.3
+v 4.0.3 && modifs="$modifs jpeg9"
 
 detectionGLMac()
 {
@@ -234,6 +234,27 @@ detectionGLMac()
  
 TERMINE
 	autoconf
+}
+
+jpeg9()
+{
+	# libjpeg9 définit TRUE et FALSE comme valeurs d'un enum; si elles sont déjà définies, ça fout le boxon.
+	cat > /tmp/hop.c <<TERMINE
+#include <sys/types.h>
+#include <stdio.h>
+#define TRUE 1
+#include <jmorecfg.h>
+TERMINE
+	cc -c -o /tmp/hop.o -I$INSTALLS/include /tmp/hop.c 2> /dev/null >&2 && return
+	for i in jpeg ojpeg
+	do
+		filtrer libtiff/tif_${i}.c sed -e '/include "jpeglib.h"/{
+i\
+#undef TRUE
+i\
+#undef FALSE
+}'
+	done
 }
 
 # Variables
