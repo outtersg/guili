@@ -35,7 +35,8 @@ v 3.6
 v 4.4
 # Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
 #v 4.4.1
-v 50.1.2 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate"
+v 50.1.2 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
+v 52.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
 
 versiong="`echo "$version" | tr . _`"
 archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
