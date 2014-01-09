@@ -29,8 +29,10 @@ calcScripts "$0"
 logiciel=fonttools
 
 v 2.4 && modifs=retrouvePython || true
+v 2.4.0.1.57032a0544db2dcf07dac9f78643e8e67437138e.git || true
 
 archive=http://netcologne.dl.sourceforge.net/project/fonttools/$version/fonttools-$version.tar.gz
+archive_git=git://git.code.sf.net/p/fonttools/code
 
 dest=$INSTALLS/$logiciel-$version
 
