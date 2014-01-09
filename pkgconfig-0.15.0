@@ -56,3 +56,5 @@ make
 echo Installation… >&2
 sudo make install
 sutiliser $logiciel-$version
+
+rm -Rf $TMP/$$
