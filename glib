@@ -29,13 +29,15 @@ inclure gettext
 
 logiciel=glib
 
-v 2.2.3
-v 2.6.5
-v 2.12.12
-v 2.22.5 && modifs=micMacGnuIconv
-v 2.34.3 && modifs=putainDeLibJPEGDeMacOSX && v_libffi=">= 3"
+v 2.2.3 || true
+v 2.6.5 || true
+v 2.12.12 && modifs="micMacGnuIconv pasBesoinDeCarbon" || true
+v 2.22.5 || true
+v 2.34.3 && modifs=pasBesoinDeCarbon && prerequis="libffi >= 3" || true
+v 2.36.4 && prerequis="libffi >= 3" || true
+v 2.38.1 || true
 
-[ -z "$v_libffi" ] || inclure libffi "$v_libffi"
+prerequis
 
 archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
@@ -49,6 +51,12 @@ dest=$INSTALLS/$logiciel-$version
 micMacGnuIconv()
 {
 	filtrer glib/gconvert.c grep -v 'error GNU libiconv'
+}
+
+pasBesoinDeCarbon()
+{
+	# N'a pas vraiment besoin de Carbon, qui nous gonfle
+	filtrer configure sed -e '/framework.Carbon/s/^/true #/'
 }
 
 obtenirEtAllerDansVersion
