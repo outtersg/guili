@@ -28,6 +28,8 @@ inclure libjpeg
 inclure libpng
 inclure readline
 inclure curl
+inclure zlib
+inclure iconv-gnu # Depuis Mavericks, même sur Mac OS X, il nous faut recompiler iconv (donc GNU). Dommage, on perd la conversion utf8-mac. On aura uconv pour ça (ICU).
 
 logiciel=php
 
@@ -146,7 +148,7 @@ detectionIconvOuLibiconv()
 	for i in libiconv iconv
 	do
 		echo "char $i();int main(int argc, char ** argv) { $i(); return 0; }" > "$TMP/$$/testiconv.c"
-		cc -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" -liconv 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" && break || continue
+		cc $CFLAGS $LDFLAGS -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" -liconv 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" && break || continue
 	done
 }
 
@@ -182,9 +184,13 @@ psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CON
 [ $cgi = oui ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-apxs$versionApache)
 [ $cgi = oui ] && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-fpm) || true
 [ -z "$v_icu" ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-intl) || true
+for i in "$INSTALLS" /usr ""
+do
+	stat "$i/lib/libz."* > /dev/null 2>&1 && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-zlib-dir=$i) && break
+done
 # gettext: pour Horde
 # ssl: pour Horde IMP
-./configure --prefix="$dest" --with-iconv --with-zlib-dir=$INSTALLS --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
 
 echo Compilation… >&2
 make
