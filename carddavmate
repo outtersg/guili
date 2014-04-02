@@ -1,0 +1,99 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
+. "$SCRIPTS/util.sh"
+
+logiciel=carddavmate
+
+v 0.11.1 && modifs="config" || true
+
+archive=http://www.inf-it.com/CardDavMATE_$version.zip
+
+config()
+{
+	filtrer config.js sed \
+		-e "s/'us'/'fr'/g" \
+		-e 's/en_US/fr_FR/g' \
+		-e '/^var globalCollectionSort=/c\
+var globalCollectionSort=["first","last"];
+' \
+		-e '/^var globalCollectionDisplay=/c\
+var globalCollectionDisplay=["first"," last"];
+' \
+		-e '/^var globalCollectionStoreFN=/c\
+var globalContactStoreFN=["prefix"," first"," last"];
+' \
+		-e '/^var globalCollectionDisplayOrg=/c\
+var globalCollectionDisplayOrg=false;
+' \
+		-e 's#^[/]*var globalUseJqueryAuth.*#var globalUseJqueryAuth=true;#' -e 's#^var globalNetworkCheckSettings.*#var globalNetworkCheckSettings={ href: "http://gclo.fr/sync/card.php/addressbooks/", hrefLabel: null, crossDomain: true, additionalResources: [], forceReadOnly: null, withCredentials: false, showHeader: true, settingsAccount: true, checkContentType: true, syncInterval: 60000, timeOut: 30000, lockTimeOut: 10000, delegation: false, ignoreAlarms: false, backgroundCalendars: [] }#';
+}
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi <répertoire destination>
+TERMINE
+	exit 1
+}
+
+analyserParametres()
+{
+	vars="dest"
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			*)
+				[ -z "$vars" ] && auSecours
+				for i in $vars
+				do
+					eval $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+}
+
+analyserParametres "$@"
+
+[ -z "$dest" ] && auSecours
+echo "$dest" | grep -q ^/ || dest="`pwd`/$dest"
+
+echo Obtention… >&2
+( obtenirEtAllerDansVersion > /dev/null && tar cf - . ) | ( mkdir -p "$dest" && cd "$dest" && tar xf - )
+
+cd "$dest"
+
+# Récupération des dépendances.
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+rm -Rf $TMP/$$
