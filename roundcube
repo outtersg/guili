@@ -365,6 +365,30 @@ diff -ruw program/steps/mail/compose.inc program/steps/mail/compose.inc
  
      // add signatures to client
      \$OUTPUT->set_env('signatures', \$a_signatures);
+--- ./program/steps/mail/compose.inc	2014-04-12 22:22:10.000000000 +0200
++++ ./program/steps/mail/compose.inc	2014-04-12 22:07:08.000000000 +0200
+@@ -588,6 +576,21 @@
+ 
+     \$out = \$select_from->show(\$from);
+ 
++    global \$RCMAIL;
++    // If email address is post-verified, we can allow it to be modified.
++    if(\$RCMAIL->config->get('identities_email_restriction'))
++    {
++      foreach (\$MESSAGE->identities as \$identity)
++        if (\$identity['identity_id'] == \$MESSAGE->compose['from'])
++        {
++          \$displayed_from = \$identity['name'].' <'.\$MESSAGE->compose['from_email'].'>';
++          \$field_attrib['class'] = 'from_address';
++          \$input_from = new html_inputfield(\$field_attrib);
++          \$out = \$input_from->show(\$displayed_from);
++          break;
++        }
++    }
++
+     // add signatures to client
+     \$OUTPUT->set_env('signatures', \$a_signatures);
+   }
 diff -ruw program/steps/settings/save_identity.inc program/steps/settings/save_identity.inc
 --- program/steps/settings/save_identity.inc	2011-06-02 14:26:59.000000000 +0200
 +++ program/steps/settings/save_identity.inc	2012-06-12 19:04:20.000000000 +0200
