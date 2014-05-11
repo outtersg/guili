@@ -98,7 +98,8 @@ greffonsEnManuel()
 	if [ $avec_menu = oui ]
 	then
 		archive="http://www.tehinterweb.co.uk/roundcube/plugins/contextmenu.tar.gz"
-		rm -f "$INSTALL_MEM/`basename "$archive"`"
+		archive="https://github.com/JohnDoh/Roundcube-Plugin-Context-Menu/archive/v0.8.0.tar.gz" # Pour RC 0.8.5.
+		#rm -f "$INSTALL_MEM/`basename "$archive"`"
 		mkdir -p "$dest/plugins/contextmenu"
 		( obtenirEtAllerDansVersion && tar cf - . ) | ( cd "$dest/plugins/contextmenu" && tar xf - )
 	fi
