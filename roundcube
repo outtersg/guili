@@ -75,7 +75,7 @@ if ( cd "$dest" && find . -type f | head -1 ) | grep -q .
 then
 	vieilleBase="`grep rcmail_config[^a-z]*db_dsnw "$dest/config/db.inc.php" | sed -e "s#.* = '##" -e "s#'.*##"`"
 	vieux="`echo "$dest" | sed -e 's#/*$##'`.`date +%Y-%m-%d`"
-	[ -e "$vieux" ] || mv "$dest" "$vieux"
+	mv "$dest" "`prochain "$vieux"`"
 	mkdir -p "$dest"
 fi
 
