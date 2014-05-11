@@ -108,15 +108,20 @@ obtenirEtAllerDans()
 		*.7z|*.xz) dec="de7z" ; liste="liste7z" ;;
 	esac
 	$liste "$archive" | sed -e 's=^./==' -e 's=^/==' -e 's=/.*$==' | sort -u > "$TMP/$$/listeArchive"
-	if [ `wc -l < "$TMP/$$/listeArchive"` -gt 1 ] # Si le machin se décompresse en plusieurs répertoires, on va s'en créer un pour contenir le tout.
-	then
+	case `wc -l < "$TMP/$$/listeArchive" | awk '{print $1}'` in
+		0)
+			return 1
+			;;
+		1) # Si l'archive se décompresse en un seul répertoire racine, on prend ce dernier comme conteneur.
+			$dec "$archive"
+			cd "`cat "$TMP/$$/listeArchive"`"
+			;;
+		*) # Si le machin se décompresse en plusieurs répertoires, on va s'en créer un pour contenir le tout.
 		dossier=`mktemp -d "$TMP/XXXXXX"`
 		cd "$dossier"
 		$dec "$archive"
-	else # Sinon, il a déjà son propre conteneur.
-		$dec "$archive"
-		cd "`cat "$TMP/$$/listeArchive"`"
-	fi
+			;;
+	esac
 }
 
 obtenirEtAllerDansGit()
