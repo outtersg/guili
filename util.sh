@@ -145,7 +145,7 @@ obtenirEtAllerDansGit()
 				urlGit="`echo "$archive_git" | sed -e 's/@[^@]*//'`"
 				;;
 		esac
-		git clone $brancheGit "$urlGit" "$l-$v"
+		GIT_SSL_NO_VERIFY=true git clone $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
 		[ -z "$v" ] || ( v2="`echo "$v" | sed -e 's/.*[.-]//g'`" ; git checkout "$v2" )
 		[ -z "$v" ] || ( cd .. && tar czf "$a" "$l-$v" )
