@@ -40,6 +40,8 @@ version=1.0.0e
 modifs=perlredir
 
 v 1.0.1e && modifs="perlredir sansdoc" || true
+v 1.0.1g || true
+v 1.0.1h || true
 
 # Modifications
 
