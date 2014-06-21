@@ -1,0 +1,19 @@
+diff -ruw /tmp/cdm/main.js /home/gui/internet/carddavmate/main.js
+--- main.js	2013-07-26 12:18:56.000000000 +0200
++++ main.js	2014-05-28 12:36:18.000000000 +0200
+@@ -139,11 +139,15 @@
+ 		if(typeof isCalDAVAvaible!='undefined' && isCalDAVAvaible!=null)
+ 			setCalendarNumber();
+ 		
++		/* C'est bien gentil de recharger à intervalles réguliers, mais quand je suis en édition, ça m'explose tout: il recharge la collection, me faisant perdre mon écran d'édition (et tout ce que j'y avais tapé et pas enregistré), me remet sur la première fiche de la liste actuelle, sans pour autant me remettre en consultation (donc toutes mes entrées sont grisées): je n'ai plus qu'à éditer la fiche actuelle, annuler, recréer ou rééditer celle que je voulais, et croiser les doigts pour qu'un intempestif rechargement n'intervienne pas.
++		 * Et puis je suis suffisamment prudent pour ne pas éditer à deux endroits à la fois (donc ne pas avoir besoin de rechargement auto).
++		 * À FAIRE: ne désactiver que quand on est en édition (ou en ajout à un groupe: quand le rechargement survient pendant que la coche de validation s'affiche sur le groupe, ça peut aussi foutre la grouille.
+ 		globalCollectionIntervalID=setInterval(function() {
+ 		if((typeof isCardDAVAvaible!='undefined' && isCardDAVAvaible!=null && isCardDAVAvaible && (globalCardDAVInitLoad || globalCardDAVCollectionSync)) || (typeof isCalDAVAvaible!='undefined' && isCalDAVAvaible!=null && isCalDAVAvaible && (globalCalDAVInitLoad || globalCalDAVCollectionSync)) || !globalWindowFocus)
+ 			return false;
+ 		loadNextApplication(false);
+ 		}, globalAccountSettings[0].syncInterval);
++		*/
+ 			
+ 	}
+ 	if(typeof isCardDAVAvaible!='undefined' && isCardDAVAvaible!=null && !globalCardDAVCollectionSync && globalResourceCardDAVList.collections.length>0)

@@ -1,0 +1,48 @@
+diff -ruw /tmp/cdm/index.html /home/gui/internet/carddavmate/index.html
+--- index.html	2013-07-26 12:18:56.000000000 +0200
++++ index.html	2014-05-28 12:33:12.000000000 +0200
+@@ -239,9 +240,9 @@
+ 							<td data-type="%add"><input class="op" type="image" src="images/op_add.svg" alt="+" /></td>
+ 							<td data-size="small">
+ 								<select data-type="phone_type" onchange="if($(':selected', this).attr('data-type')==':custom') {$(this).parent().find('span[data-type=custom_span]').css('display','inline'); $(this).parent().find('[data-type=custom_value]').focus().trigger('change')} else $(this).parent().find('span[data-type=custom_span]').css('display','none');">
+-									<option data-type="work">work</option>
+-									<option data-type="home">home</option>
+ 									<option data-type="cell">mobile</option>
++									<option data-type="home">home</option>
++									<option data-type="work">work</option> <!-- On ne veut pas de work en premier pour un carnet perso. On le recase ici. -->
+ 									<option data-type="cell,work">work mobile</option>
+ 									<option data-type="cell,home">home mobile</option>
+ 									<option data-type="main">main</option>
+@@ -266,8 +267,8 @@
+ 							<td data-type="%add"><input class="op" type="image" src="images/op_add.svg" alt="+" /></td>
+ 							<td data-size="small">
+ 								<select data-type="email_type" onchange="if($(':selected', this).attr('data-type')==':custom') {$(this).parent().find('span[data-type=custom_span]').css('display','inline'); $(this).parent().find('[data-type=custom_value]').focus().trigger('change')} else $(this).parent().find('span[data-type=custom_span]').css('display','none');">
+-									<option data-type="internet,work">work</option>
+ 									<option data-type="home,internet">home</option>
++									<option data-type="internet,work">work</option> <!-- On ne veut pas de work en premier pour un carnet perso. On le recase ici. -->
+ 									<option data-type=":mobileme:,internet">mobileMe</option>
+ 									<option data-type=":_$!<other>!$_:,internet">other</option>
+ 									<option data-type=":custom">» custom</option>
+@@ -354,10 +355,10 @@
+ 								</select><span data-type="custom_span" style="position: relative; margin-left: -134px; margin-top: 0px; vertical-align: top; display: none; z-index: 1;"><input data-type="custom_value" type="text" class="ss" placeholder="custom" value="" /><img data-type="invalid" style="z-index: 2; margin-top: 1px; margin-left: -16px; vertical-align: top; display: none;" src="images/error_b.svg" alt="invalid" /></span>
+ 							</td>
+ 						</tr>
+-						<tr>
++						<tr style="display: none;"> <!-- Les écrans au boulot sont un peu justes; si je veux ne pas avoir à défiler pour avoir le bouton "Enregistrer", il me faut faire quelques menus sacrifices. -->
+ 							<td data-type="profile_txt" colspan="5" class="attr_desc">Profile</td>
+ 						</tr>
+-						<tr data-type="%profile" data-id="0">
++						<tr data-type="%profile" data-id="0" style="display: none;">
+ 							<td data-type="%del"><input class="op" type="image" src="images/op_del.svg" alt="-" /></td>
+ 							<td data-type="%add"><input class="op" type="image" src="images/op_add.svg" alt="+" /></td>
+ 							<td data-size="small">
+@@ -384,8 +385,8 @@
+ 							<td data-type="%add"><input class="op" type="image" src="images/op_add.svg" alt="+" /></td>
+ 							<td data-size="small">
+ 								<select data-type="address_type" onchange="if($(':selected', this).attr('data-type')==':custom') {$(this).parent().find('span[data-type=custom_span]').css('display','inline'); $(this).parent().find('[data-type=custom_value]').focus().trigger('change')} else $(this).parent().find('span[data-type=custom_span]').css('display','none');">
+-									<option data-type="work">work</option>
+ 									<option data-type="home">home</option>
++									<option data-type="work">work</option> <!-- On ne veut pas de work en premier pour un carnet perso. On le recase ici. -->
+ 									<option data-type=":_$!<other>!$_:">other</option>
+ 									<option data-type=":custom">» custom</option>
+ 								</select><span data-type="custom_span" style="position: relative; margin-left: -134px; margin-top: 0px; vertical-align: top; display: none; z-index: 1;"><input data-type="custom_value" type="text" class="ss" placeholder="custom" value="" /><img data-type="invalid" style="z-index: 2; margin-top: 1px; margin-left: -16px; vertical-align: top; display: none;" src="images/error_b.svg" alt="invalid" /></span>

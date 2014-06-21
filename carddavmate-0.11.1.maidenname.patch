@@ -1,0 +1,172 @@
+diff -ruw /tmp/cdm/addressbook.js /home/gui/internet/carddavmate/addressbook.js
+--- addressbook.js	2013-07-26 12:18:56.000000000 +0200
++++ addressbook.js	2014-05-28 12:34:38.000000000 +0200
+@@ -770,6 +770,19 @@
+ 			tmp=tmp.replace(vcard_element[0],'\r\n');
+ 		}
+ 
++		// X-MAIDENNAME attribute
++		var x_maidennameArr=[];
++		while((vcard_element=tmp.match(vCard.pre['contentline_X-MAIDENNAME']))!=null)
++		{
++			// parsed (contentline_parse) = [1]->"group.", [2]->"name", [3]->";param;param", [4]->"value"
++			parsed=vcard_element[0].match(vCard.pre['contentline_parse']);
++
++			x_maidennameArr[x_maidennameArr.length]=parsed[4];
++
++			// remove the processed parameter
++			tmp=tmp.replace(vcard_element[0],'\r\n');
++		}
++
+ 		// NICKNAME attribute
+ 		var nicknameArr=[];
+ 		while((vcard_element=tmp.match(vCard.pre['contentline_NICKNAME']))!=null)
+@@ -810,7 +823,7 @@
+ 		}
+ 
+ 		// Search data (displayvalue+categories+orgs+emails)
+-		inputContact.searchvalue=(nArr.join(' ')+' '+nicknameArr.join(' ')+' '+categoriesArr.join(' ')+' '+orgArr.join(' ')+' '+telArr.join(' ')+' '+emailArr.join(' ')).multiReplace(globalSearchTransformAlphabet);
++		inputContact.searchvalue=(nArr.join(' ')+' '+x_maidennameArr.join(' ')+' '+nicknameArr.join(' ')+' '+categoriesArr.join(' ')+' '+orgArr.join(' ')+' '+telArr.join(' ')+' '+emailArr.join(' ')).multiReplace(globalSearchTransformAlphabet);
+ 
+ 		// update search data here because contact is re-added only if displayvalue or isorg is changed
+ 		//  note: simple .text(value) causes problems in Webkit based browsers (adds additional closing tag :-( ...)
+diff -ruw /tmp/cdm/data_process.js /home/gui/internet/carddavmate/data_process.js
+--- data_process.js	2013-07-26 12:18:56.000000000 +0200
++++ data_process.js	2014-05-28 12:35:29.000000000 +0200
+@@ -242,6 +242,26 @@
+ 	process_elem=process_elem.replace('##:::##value##:::##',utc);
+ 	vCardText+=process_elem;
+ 
++// X-MAIDENNAME
++	if((value=tmpvCardEditorRef.find('[data-type="x_maidenname"]').val())!='')
++	{
++		if(vCard.tplM['contentline_X-MAIDENNAME']!=null && (process_elem=vCard.tplM['contentline_X-MAIDENNAME'][0])!=undefined)
++		{
++			// replace the object and related objects' group names (+ append the related objects after the processed)
++			parsed=('\r\n'+process_elem).match(RegExp('\r\n((?:'+vCard.re['group']+'\\.)?)','m'));
++			if(parsed[1]!='')	// if group is present, replace the object and related objects' group names
++				process_elem=('\r\n'+process_elem).replace(RegExp('\r\n'+parsed[1].replace('.','\\.'),'mg'),'\r\nitem'+(groupCounter++)+'.').substring(2);
++		}
++		else
++		{
++			process_elem=vCard.tplC['contentline_X-MAIDENNAME'];
++			process_elem=process_elem.replace('##:::##group_wd##:::##','');
++			process_elem=process_elem.replace('##:::##params_wsc##:::##','');
++		}
++		process_elem=process_elem.replace('##:::##value##:::##',vcardEscapeValue(value));
++		vCardText+=process_elem;
++	}
++
+ // NICKNAME
+ 	if((value=tmpvCardEditorRef.find('[data-type="nickname"]').val())!='')
+ 	{
+@@ -1389,6 +1409,41 @@
+ 		}
+ 
+ 		// ------------------------------------------------------------------------------------- //
++		// X-MAIDENNAME -> TODO: what to do if present more than once?
++		vcard_element=vcard.match(vCard.pre['contentline_X-MAIDENNAME']);
++		if(vcard_element!=null)
++		{
++			if(vcard_element.length!=1)	// if the X-MAIDENNAME attribute is present more than once, vCard is considered invalid
++				return false;
++
++			// parsed (contentline_parse) = [1]->"group.", [2]->"name", [3]->";param;param", [4]->"value"
++			parsed=vcard_element[0].match(vCard.pre['contentline_parse']);
++
++			tmpvCardEditorRef.find('[data-type="x_maidenname"]').val(vcardUnescapeValue(parsed[4])).change();
++
++			// values not directly supported by the editor (old values are kept intact)
++			vCard.tplM['contentline_X-MAIDENNAME'][0]=vCard.tplC['contentline_X-MAIDENNAME'];
++			vCard.tplM['contentline_X-MAIDENNAME'][0]=vCard.tplM['contentline_X-MAIDENNAME'][0].replace(/##:::##group_wd##:::##/g,parsed[1]);
++			vCard.tplM['contentline_X-MAIDENNAME'][0]=vCard.tplM['contentline_X-MAIDENNAME'][0].replace(/##:::##params_wsc##:::##/g,parsed[3]);
++
++			// remove the processed parameter
++			vcard=vcard.replace(vcard_element[0],'\r\n');
++
++			// find the corresponding group data (if exists)
++			if(parsed[1]!='')
++			{
++				re=parsed[1].replace('.','\\..*')+'\r\n';
++				while((vcard_element_related=vcard.match(RegExp('\r\n'+re,'im')))!=null)
++				{
++					// append the parameter to its parent
++					vCard.tplM['contentline_X-MAIDENNAME'][0]+=vcard_element_related[0].substr(2);
++					// remove the processed parameter
++					vcard=vcard.replace(vcard_element_related[0],'\r\n');
++				}
++			}
++		}
++
++		// ------------------------------------------------------------------------------------- //
+ 		// NICKNAME -> TODO: what to do if present more than once?
+ 		vcard_element=vcard.match(vCard.pre['contentline_NICKNAME']);
+ 		if(vcard_element!=null)
+diff -ruw /tmp/cdm/index.html /home/gui/internet/carddavmate/index.html
+--- index.html	2013-07-26 12:18:56.000000000 +0200
++++ index.html	2014-05-28 12:33:12.000000000 +0200
+@@ -194,7 +194,8 @@
+ 									</tr>
+ 									<tr>
+ 										<td><input data-type="middle" type="text" class="hs" placeholder="MiddleName" value="" /></td>
+-										<td><input data-type="nickname" type="text" class="hs" placeholder="NickName" value="" /></td>
++										<!--<td><input data-type="nickname" type="text" class="hs" placeholder="NickName" value="" /></td>-->
++										<td><input data-type="x_maidenname" type="text" class="hs" placeholder="NickName" value="" /></td>
+ 									</tr>
+ 									<tr>
+ 										<td><input data-type="prefix" type="text" class="hs" placeholder="Prefix" value="" /></td>
+diff -ruw /tmp/cdm/interface.js /home/gui/internet/carddavmate/interface.js
+--- interface.js	2013-07-26 12:18:56.000000000 +0200
++++ interface.js	2014-05-28 12:35:01.000000000 +0200
+@@ -242,7 +242,7 @@
+ 	$('[data-type^="date_"]').prop('disabled', disabled || readonly);
+ 
+ 	// family name, given name, and organization name
+-	var typeList = new Array('family','given','middle','nickname','prefix','suffix','ph_firstname','ph_lastname','date_bday','date_anniversary','tags','title','department','org');
++	var typeList = new Array('family','given','middle','x_maidenname', 'nickname','prefix','suffix','ph_firstname','ph_lastname','date_bday','date_anniversary','tags','title','department','org');
+ 	for(i=0;i<typeList.length;i++)
+ 		$('[id=vcard_editor]').find('[data-type="'+typeList[i]+'"]').prop('readonly',readonly);
+ 
+diff -ruw /tmp/cdm/localization.js /home/gui/internet/carddavmate/localization.js
+--- localization.js	2013-07-26 12:18:56.000000000 +0200
++++ localization.js	2014-05-28 12:36:42.000000000 +0200
+@@ -1894,6 +1894,7 @@
+ 	pholderGiven: 'Prénom',
+ 	pholderFamily: 'Nom',
+ 	pholderMiddle: 'Second prénom',
++	pholderXMaidenname: 'Nom de jeune fille',
+ 	pholderNickname: 'Surnom',
+ 	pholderPhGiven: 'Prénom phonétique',
+ 	pholderPhFamily: 'Nom phonétique',
+diff -ruw /tmp/cdm/main.js /home/gui/internet/carddavmate/main.js
+--- main.js	2013-07-26 12:18:56.000000000 +0200
++++ main.js	2014-05-28 12:36:18.000000000 +0200
+@@ -937,6 +941,7 @@
+ 	$('[data-type="given"]').attr('placeholder',localization[globalInterfaceLanguage].pholderGiven);
+ 	$('[data-type="family"]').attr('placeholder',localization[globalInterfaceLanguage].pholderFamily);
+ 	$('[data-type="middle"]').attr('placeholder',localization[globalInterfaceLanguage].pholderMiddle);
++	$('[data-type="x_maidenname"]').attr('placeholder',localization[globalInterfaceLanguage].pholderXMaidenname);
+ 	$('[data-type="nickname"]').attr('placeholder',localization[globalInterfaceLanguage].pholderNickname);
+ 	$('[data-type="ph_firstname"]').attr('placeholder',localization[globalInterfaceLanguage].pholderPhGiven);
+ 	$('[data-type="ph_lastname"]').attr('placeholder',localization[globalInterfaceLanguage].pholderPhFamily);
+diff -ruw /tmp/cdm/vcard_rfc_regex.js /home/gui/internet/carddavmate/vcard_rfc_regex.js
+--- vcard_rfc_regex.js	2013-07-26 12:18:56.000000000 +0200
++++ vcard_rfc_regex.js	2014-05-28 12:30:35.000000000 +0200
+@@ -135,6 +135,8 @@
+ vCard.pre['contentline_FN']=RegExp('\r\n'+vCard.re['contentline_FN'],'mi');
+ vCard.re['contentline_N']='(?:'+vCard.re['group']+'\\.)?N(?:;'+vCard.re['text-param']+')*:'+vCard.re['text-value']+'(?:,'+vCard.re['text-value']+')*'+'(?:;'+vCard.re['text-value']+'(?:,'+vCard.re['text-value']+')*){0,4}'+vCard.re['CRLF'];
+ vCard.pre['contentline_N']=RegExp('\r\n'+vCard.re['contentline_N'],'mi');
++vCard.re['contentline_X-MAIDENNAME']='(?:'+vCard.re['group']+'\\.)?X-MAIDENNAME(?:;'+vCard.re['text-param']+')*:'+vCard.re['text-value']+vCard.re['CRLF'];	// RFC BUG? -> refers to 'text-list' instead of 'text-value'
++vCard.pre['contentline_X-MAIDENNAME']=RegExp('\r\n'+vCard.re['contentline_X-MAIDENNAME'],'mi');
+ vCard.re['contentline_NICKNAME']='(?:'+vCard.re['group']+'\\.)?NICKNAME(?:;'+vCard.re['text-param']+')*:'+vCard.re['text-value']+vCard.re['CRLF'];	// RFC BUG? -> refers to 'text-list' instead of 'text-value'
+ vCard.pre['contentline_NICKNAME']=RegExp('\r\n'+vCard.re['contentline_NICKNAME'],'mi');
+ vCard.re['contentline_PHOTO']='(?:'+vCard.re['group']+'\\.)?PHOTO(?:(?:(?:;'+vCard.re['img-inline-param']+')*:'+vCard.re['img-inline-value']+')|(?:(?:;'+vCard.re['img-refer-param']+')*:'+vCard.re['img-refer-value']+'))'+vCard.re['CRLF'];
+@@ -239,6 +241,8 @@
+ vCard.tplM['contentline_CATEGORIES']=null;
+ vCard.tplC['contentline_NOTE']='##:::##group_wd##:::##NOTE##:::##params_wsc##:::##:##:::##value##:::##\r\n';
+ vCard.tplM['contentline_NOTE']=null;
++vCard.tplC['contentline_X-MAIDENNAME']='##:::##group_wd##:::##X-MAIDENNAME##:::##params_wsc##:::##:##:::##value##:::##\r\n';
++vCard.tplM['contentline_X-MAIDENNAME']=null;
+ vCard.tplC['contentline_NICKNAME']='##:::##group_wd##:::##NICKNAME##:::##params_wsc##:::##:##:::##value##:::##\r\n';
+ vCard.tplM['contentline_NICKNAME']=null;
+ vCard.tplC['contentline_BDAY']='##:::##group_wd##:::##BDAY##:::##params_wsc##:::##:##:::##value##:::##\r\n';

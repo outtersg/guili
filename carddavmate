@@ -28,7 +28,7 @@ calcScripts "$0"
 
 logiciel=carddavmate
 
-v 0.11.1 && modifs="config" || true
+v 0.11.1 && modifs="config adaptations" || true
 
 archive=http://www.inf-it.com/CardDavMATE_$version.zip
 
@@ -50,6 +50,14 @@ var globalContactStoreFN=["prefix"," first"," last"];
 var globalCollectionDisplayOrg=false;
 ' \
 		-e 's#^[/]*var globalUseJqueryAuth.*#var globalUseJqueryAuth=true;#' -e 's#^var globalNetworkCheckSettings.*#var globalNetworkCheckSettings={ href: "http://gclo.fr/sync/card.php/addressbooks/", hrefLabel: null, crossDomain: true, additionalResources: [], forceReadOnly: null, withCredentials: false, showHeader: true, settingsAccount: true, checkContentType: true, syncInterval: 60000, timeOut: 30000, lockTimeOut: 10000, delegation: false, ignoreAlarms: false, backgroundCalendars: [] }#';
+}
+
+adaptations()
+{
+	for i in carddavmate-0.11.1.maidenname.patch carddavmate-0.11.1.presentation.patch carddavmate-0.11.1.rechargementintempestif.patch
+	do
+		patch -p0 < "$SCRIPTS/$i"
+	done
 }
 
 auSecours()
