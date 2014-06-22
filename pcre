@@ -28,7 +28,8 @@ logiciel=pcre
 
 # Historique des versions gérées
 
-version=8.21
+v 8.21 || true
+v 8.35 || true
 
 # Modifications
 
@@ -36,6 +37,7 @@ version=8.21
 
 dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/$logiciel-$version.tar.bz2"
+archive="http://skylink.dl.sourceforge.net/project/pcre/pcre/$version/pcre-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
 
