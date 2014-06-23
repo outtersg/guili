@@ -30,8 +30,22 @@ logiciel=xdebug
 
 v 2.1.0
 v 2.2.1
+v 2.2.5 && modifs="quelphp" || true
+
+params="$*"
+monPhp="$INSTALLS"
 
 # Modifications
+
+quelphp()
+{
+	case "$params" in
+		*-d*)
+			PATH="`echo "xxx $params" | sed -e 's/.* -d //g'`/bin:$PATH"
+			monPhp="`php-config --prefix`"
+			;;
+	esac
+}
 
 # Variables
 
@@ -49,10 +63,10 @@ cd xdebug-$version
 phpize
 ./configure --enable-xdebug
 make
-sudo cp modules/xdebug.so "$INSTALLS/lib/"
+sudo cp modules/xdebug.so "$monPhp/lib/"
 ini="`php --ini | grep Loaded | cut -d : -f 2 | sed -e 's/^ *//' -e 's/ *$//'`"
 grep -v 'zend_extension=.*xdebug' < "$ini" > "$TMP/$$/temp.filtrer"
-echo "zend_extension=\"$INSTALLS/lib/xdebug.so\"" >> "$TMP/$$/temp.filtrer"
+echo "zend_extension=\"$monPhp/lib/xdebug.so\"" >> "$TMP/$$/temp.filtrer"
 sudo sh -c "cat $TMP/$$/temp.filtrer > $ini"
 
 cd debugclient
