@@ -34,6 +34,8 @@ version=1.2.4
 
 version=1.2.5.1
 
+v 1.2.6.2 || true
+
 archive="http://github.com/adobo/agendav/tarball/$version"
 
 echo "$dest" | grep -q '^/' || dest="`pwd`/$dest"
@@ -134,6 +136,11 @@ patch -p0 <<TERMINE
 TERMINE
 
 fi # vieuxphp
+
+methodeAuth=CURLAUTH_DIGEST
+
+if ! pge $version 1.2.6 # En 1.2.6, l'authentification Digest est gérée par une biblio.
+then
 
 # On veut pouvoir causer en Digest.
 caldavclient=libs/caldav-client
@@ -248,13 +255,25 @@ patch -p0 <<TERMINE
  			}
 TERMINE
 
+else # ! pge 1.2.6
+
+	patch -p0 < "$SCRIPTS/agendav_1.2.6.2_non_volatile_digest.patch"
+	methodeAuth="'non_volatile_digest'"
+
+fi # 1.2.6
+
 mkdir -p "$dest"
 
+local=http://localhost:8080/calendars/users
+public=http://outters.eu:8080/calendars/users
+local=http://gclo.fr/sync/cal.php/calendars
+public=http://gclo.fr/sync/cal.php/calendars
 filtrer web/config/caldav.php sed \
-	-e "/config.'caldav_url'. = /s# = .*# = 'http://localhost:8080/calendars/users/%u/';#" \
-	-e "/config.'caldav_principal_url'. = /s# = .*# = 'http://localhost:8080/calendars/users/%u/';#" \
-	-e "/config.'caldav_calendar_url'. = /s# = .*# = 'http://localhost:8080/calendars/users/%s/';#" \
-	-e "/config.'public_caldav_url'. = /s# = .*# = 'http://outters.eu:8080/calendars/users/%u/';#" \
+	-e "/config.'caldav_url'. = /s# = .*# = '$local/%u/';#" \
+	-e "/config.'caldav_principal_url'. = /s# = .*# = '$local/%u/';#" \
+	-e "/config.'caldav_calendar_url'. = /s# = .*# = '$local/%s/';#" \
+	-e "/config.'public_caldav_url'. = /s# = .*# = '$public/%u/';#" \
+	-e "/config.'caldav_http_auth_method'. = /s# = .*# = $methodeAuth;#" \
 
 filtrer web/config/config.php sed \
 	-e "/config.'log_path'. = /s# = .*# = '/tmp/';#" \

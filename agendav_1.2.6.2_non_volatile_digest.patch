@@ -1,0 +1,165 @@
+diff -ru libs/caldav-client/caldav-client.php libs/caldav-client/caldav-client.php
+--- libs/caldav-client/caldav-client.php	2012-10-15 09:54:01.000000000 +0200
++++ libs/caldav-client/caldav-client.php	2014-06-21 00:00:44.000000000 +0200
+@@ -94,6 +94,10 @@
+       $this->user = $user;
+       $this->pass = $pass;
+       $this->headers = array();
++      $this->nonVolatileDigest = isset($options['auth']) && $options['auth'] == 'non_volatile_digest';
++      if ( $this->nonVolatileDigest ) {
++          $options['auth'] = CURLAUTH_DIGEST;
++      }
+ 
+       if ( preg_match( '#^(https?)://([a-z0-9.-]+)(:([0-9]+))?(/.*)$#', $base_url, $matches ) ) {
+           $this->server = $matches[2];
+@@ -274,6 +278,7 @@
+       $lines = preg_split('/[\r\n]+/', $headers);
+       $this->httpResultCode = preg_replace('/^[\S]+ (\d+).+$/', '\1',
+               $lines[0]);
++      $this->responseHeaders = $lines;
+   }
+ 
+   /**
+@@ -332,7 +337,7 @@
+    *
+    * @return string The content of the response from the server
+    */
+-  function DoRequest( $url = null ) {
++  function DoRequest( $url = null, $retryForAuth = false ) {
+       if (is_null($url)) {
+           $url = $this->full_url;
+       }
+@@ -350,6 +355,11 @@
+       } else {
+           curl_setopt($this->ch, CURLOPT_NOBODY, FALSE);
+       }
++      
++      if ($this->nonVolatileDigest) // In case of an application-level handled auth, we do not provide cURL with the authentication, but create it from scratch.
++          $this->headers = $this->_digestHeaders($url, $retryForAuth) + $this->headers;
++      else
++          curl_setopt($this->ch, CURLOPT_USERPWD, $this->user . ':' . $this->pass);
+ 
+       // Headers
+       if (!isset($this->headers['content-type'])) $this->headers['content-type'] = "Content-type: text/plain";
+@@ -359,9 +369,6 @@
+       curl_setopt($this->ch, CURLOPT_HTTPHEADER,
+               array_values($this->headers));
+ 
+-      curl_setopt($this->ch, CURLOPT_USERPWD, $this->user . ':' .
+-              $this->pass);
+-
+       // Request body
+       curl_setopt($this->ch, CURLOPT_POSTFIELDS, $this->body);
+ 
+@@ -388,6 +395,10 @@
+       // Parse response
+       $this->ParseResponseHeaders($this->httpResponseHeaders);
+       $this->ParseResponse($this->httpResponseBody);
++      
++      if ( $this->nonVolatileDigest && !$retryForAuth && $info['http_code'] == 401 ) {
++          return $this->DoRequest($url, $this->httpResponseHeaders);
++      }
+ 
+       //TODO debug
+ 
+@@ -400,6 +411,87 @@
+ 
+       return $response;
+   }
++  
++  protected function _digestHeaders($url, $rejectionInfo)
++  {
++        // First source of Digest data is found in the latest received WWW-Authenticate header (it even overrides session stored data).
++      
++      if ( $rejectionInfo ) {
++          $lines = preg_split('/[\r\n]+/', $rejectionInfo);
++          foreach ($lines as $line) {
++              $headerParts = explode(': ', $line, 2);
++              if ( $headerParts[0] == 'WWW-Authenticate' ) {
++                  $authParts = explode(' ', $headerParts[1], 2);
++                  if ( $authParts[0] == 'Digest' ) {
++                      $authData = array('nc' => 2);
++                      foreach (preg_split('/, */', $authParts[1]) as $param) {
++                          preg_match('/^([^=]*)="([^"]*)"$/', $param, $paramSplit);
++                          $authData[$paramSplit[1]] = $paramSplit[2];
++                      }
++                      $this->_storeDigestInfo($authData);
++                      break;
++                  }
++              }
++          }
++      }
++      
++      // Then try the non-volatile storage (session, APC, whatever is available).
++      
++      if ( !isset($authData) ) {
++          $authData = $this->_retrieveDigestInfo();
++      }
++      
++      // We need to get a nonce first.
++      if ( !isset($authData) || !isset($authData['nonce']) ) {
++          return array();
++      }
++
++      $uri = preg_replace('#http[^:]*://[^/]*#', '', $url);
++      $ha1 = md5($this->user.':'.$authData['realm'].':'.$this->pass);
++      $ha2 = md5($this->requestMethod.':'.$uri);
++      if ( isset($authData['qop']) ) { // @todo Handle qop auth-int.
++          $cnonce = $nc = $authData['nc'];
++          $haQop = $nc.':'.$cnonce.':'.$authData['qop'].':';
++      } else {
++          $haQop = '';
++      }
++      $response = md5($ha1.':'.$authData['nonce'].':'.$haQop.$ha2);
++
++      $header = 'Authorization: Digest username="'.$this->user.'", realm="'.$authData['realm'].'", nonce="'.$authData['nonce'].'", uri="'.$uri.'", response="'.$response.'"'.(isset($authData['qop']) ? ', cnonce="'.$cnonce.'", nc="'.$nc.'"' : '').(isset($authData['opaque']) ? ', opaque="'.$authData['opaque'].'"' : '');
++      if ( isset($authData['qop']) ) {
++          $header .= ', qop="'.$authData['qop'].'"';
++      }
++      
++      return array('nv_auth_digest' => $header);
++  }
++  
++  protected function _storeDigestInfo($authData)
++  {
++        $inSession = isset($_SESSION);
++      if ( !$inSession ) {
++          session_start();
++      }
++      $_SESSION['nv_auth_digest'] = $authData;
++      if ( !$inSession ) {
++          session_write_close();
++          unset($_SESSION);
++      }
++  }
++  
++  protected function _retrieveDigestInfo()
++  {
++        $inSession = isset($_SESSION);
++      if ( !$inSession ) {
++          session_start();
++      }
++      ++$_SESSION['nv_auth_digest']['nc'];
++      $return = $_SESSION['nv_auth_digest'];
++      if ( !$inSession ) {
++          session_write_close();
++          unset($_SESSION);
++      }
++      return $return;
++  }
+ 
+   /**
+    * Send an OPTIONS request to the server
+diff -ru web/application/libraries/Caldav.php web/application/libraries/Caldav.php
+--- web/application/libraries/Caldav.php	2012-10-15 09:54:01.000000000 +0200
++++ web/application/libraries/Caldav.php	2014-06-19 09:21:48.000000000 +0200
+@@ -35,7 +35,8 @@
+ 
+         // Empty string or FALSE
+         if ($this->http_auth_method != CURLAUTH_BASIC &&
+-                 $this->http_auth_method != CURLAUTH_DIGEST) {
++                 $this->http_auth_method != CURLAUTH_DIGEST &&
++                 $this->http_auth_method != 'non_volatile_digest') {
+             $this->http_auth_method = CURLAUTH_BASIC | CURLAUTH_DIGEST;
+         }
+ 
