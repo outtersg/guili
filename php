@@ -191,7 +191,7 @@ do
 done
 # gettext: pour Horde
 # ssl: pour Horde IMP
-./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip "${OPTIONS_CONF[@]}"
 
 echo Compilation… >&2
 make
