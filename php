@@ -71,6 +71,8 @@ v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
 v 5.5.7 || true
+v 5.5.8 || true
+v 5.5.14 || true
 
 if [ "x$1" = xcgi ]
 then
@@ -262,3 +264,4 @@ fi | sudo tee "$conf" > /dev/null
 rm /tmp/mod.$$.temp
 
 echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
+echo "Ou, pour une 5.5, d'activer le ZOP (zend_extension=\"/usr/local/php-5.5.8/lib/php/extensions/no-debug-non-zts-20121212/opcache.so\")." >&2
