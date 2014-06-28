@@ -1,0 +1,184 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
+. "$SCRIPTS/util.sh"
+
+logiciel=baikal
+
+v 0.2.6.5.58c58c08170004e2fb91cc2bf64acc5419589c5f.git && modifs="deps bonneRacine" || true
+v 0.2.7 && modifs="bonneRacine peruser cachecal" || true
+
+archive=http://baikal-server.com/get/baikal-regular-$version.tgz
+archive_git="git://github.com/jeromeschneider/Baikal"
+
+deps()
+{
+	# Le composer veut une version récente de PHP.
+	curl -sS https://getcomposer.org/installer | /usr/local/php-5.5.8/bin/php -- --install-dir=.
+	/usr/local/php-5.5.8/bin/php composer.phar install
+}
+
+bonneRacine()
+{
+	patch -p0 <<TERMINE
+--- /tmp/baikal-regular/Core/Frameworks/Flake/Framework.php	2014-02-03 21:46:11.000000000 +0100
++++ Core/Frameworks/Flake/Framework.php	2014-03-15 14:30:38.000000000 +0100
+@@ -155,6 +155,25 @@
+ 			\$sDirName = "/";
+ 		}
+ 		
++		\$racine = \$_SERVER['SCRIPT_NAME'];
++		\$php = isset(\$_SERVER['SCRIPT_NAME']) ? basename(\$_SERVER['SCRIPT_NAME']) : 'index.php';
++		if((\$tailleRacine = strpos(\$racine, '/'.\$php)) === false)
++			\$racine = '';
++		else
++			\$racine = substr(\$racine, 0, \$tailleRacine);
++		
++		\$uri = \$_SERVER['REQUEST_URI'];
++		if(strncmp(\$uri, \$racine, \$tailleRacine) == 0)
++		    \$uri = substr(\$uri, \$tailleRacine);
++		else
++			\$racine = '';
++		\$uri = preg_replace('@[#?].*@', '', \$uri);
++		\$uri = trim(\$uri, '/');
++		\$uri = explode('/', \$uri);
++		
++		\$sDirName = "\$racine/";
++		(\$sDirName == '//') && \$sDirName = '/';
++		
+ 		\$sBaseUrl = self::rmBeginSlash(self::rmProjectContext(\$sDirName));
+ 		define("PROJECT_BASEURI", self::prependSlash(\$sBaseUrl));	# SabreDAV needs a "/" at the beginning of BASEURL
+ 
+@@ -164,6 +183,7 @@
+ 		\$sHttpBaseUrl = self::rmQuery(\$sHttpBaseUrl);
+ 		\$sHttpBaseUrl = self::rmScriptName(\$sHttpBaseUrl, \$sScript);
+ 		\$sHttpBaseUrl = self::rmProjectContext(\$sHttpBaseUrl);
++		\$sHttpBaseUrl = \$sDirName;
+ 		define("PROJECT_URI", \$sProtocol . "://" . \$_SERVER["HTTP_HOST"] . \$sHttpBaseUrl);
+ 		unset(\$sScript); unset(\$sDirName); unset(\$sBaseUrl); unset(\$sProtocol); unset(\$sHttpBaseUrl);
+ 
+TERMINE
+}
+
+peruser()
+{
+	# On veut que notre client puisse ajouter des X-CALENDARSERVER-PERUSER (iCal s'en sert pour stocker la transparence des événements "jour entier", par exemple; ou bien une alarme attachée à un événement). On croise les doigts pour que ça puisse être géré de façon transparente côté serveur, une fois rentré (le client se démerde pour interpréter le caca qu'il nous rentre).
+	filtrer vendor/sabre/dav/lib/Sabre/CalDAV/Plugin.php sed -e '/case.*VTIMEZONE/a\
+case "X-CALENDARSERVER-PERUSER":
+'
+}
+
+cachecal()
+{
+	# Une fois récupérée la liste des événements de la page à afficher (mois, semaine), Baïkal va chercher les détails un par un. Trop long.
+	patch -p0 < "$SCRIPTS/baikal-0.2.7.cacheCal.patch"
+}
+
+mysql=non
+while [ $# -gt 0 ]
+do
+	case "$1" in
+		--mysql) mysql=oui ;;
+		*)
+			for i in dest
+			do
+				eval test -z \$$i && eval $i="$1" && break
+			done
+			;;
+	esac
+	shift
+done
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi <répertoire destination>
+TERMINE
+	exit 1
+}
+
+[ -z "$dest" ] && auSecours
+echo "$dest" | grep -q ^/ || dest="`pwd`/$dest"
+
+echo Obtention… >&2
+( obtenirEtAllerDansVersion > /dev/null && tar cf - . ) | ( mkdir -p "$dest" && cd "$dest" && tar xf - )
+
+cd "$dest"
+
+# Récupération des dépendances.
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+chown -R gui:www Specific
+find Specific -type d -exec chmod g+rwx {} \;
+find Specific -type f -exec chmod g+rw {} \;
+
+rm Specific/ENABLE_INSTALL
+
+cat > Specific/config.system.php <<TERMINE
+<?php
+define("PROJECT_TIMEZONE", 'Europe/Paris');
+define("BAIKAL_CARD_ENABLED", TRUE);
+define("BAIKAL_CAL_ENABLED", TRUE);
+define("BAIKAL_DAV_AUTH_TYPE", 'Digest');
+define("BAIKAL_ADMIN_ENABLED", TRUE);
+define("BAIKAL_ADMIN_AUTOLOCKENABLED", FALSE);
+define("BAIKAL_ADMIN_PASSWORDHASH", '5bf73f90ee7c5d53ac125a933797798d');<?php
+TERMINE
+
+cat > Specific/config.system.php <<TERMINE
+<?php
+define("BAIKAL_PATH_SABREDAV", PROJECT_PATH_FRAMEWORKS . "SabreDAV/lib/Sabre/");
+define("BAIKAL_AUTH_REALM", 'BaikalDAV');
+define("BAIKAL_CARD_BASEURI", PROJECT_BASEURI . "card.php/");
+define("BAIKAL_CAL_BASEURI", PROJECT_BASEURI . "cal.php/");
+define("BAIKAL_ENCRYPTION_KEY", 'db092dd19b74a5e0fba3091c19e4d15d');
+define("BAIKAL_CONFIGURED_VERSION", '0.2.7');
+TERMINE
+if [ $mysql = oui ]
+then
+	cat >> Specific/config.system.php <<TERMINE
+define("PROJECT_SQLITE_FILE", "");
+define("PROJECT_DB_MYSQL", TRUE);
+define("PROJECT_DB_MYSQL_HOST", 'localhost');
+define("PROJECT_DB_MYSQL_DBNAME", 'baikal_gclo_fr');
+define("PROJECT_DB_MYSQL_USERNAME", 'baikal_gclo_fr');
+define("PROJECT_DB_MYSQL_PASSWORD", 'jla67mlk12nb');
+TERMINE
+else
+	cat >> Specific/config.system.php <<TERMINE
+define("PROJECT_SQLITE_FILE", PROJECT_PATH_SPECIFIC . "db/db.sqlite");
+define("PROJECT_DB_MYSQL", FALSE);
+define("PROJECT_DB_MYSQL_HOST", '');
+define("PROJECT_DB_MYSQL_DBNAME", '');
+define("PROJECT_DB_MYSQL_USERNAME", '');
+define("PROJECT_DB_MYSQL_PASSWORD", '');
+TERMINE
+fi
+
+rm -Rf $TMP/$$

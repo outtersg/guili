@@ -1,0 +1,125 @@
+diff -ruw /tmp/baikal-regular/vendor/sabre/dav/lib/Sabre/CalDAV/Backend/PDO.php ./vendor/sabre/dav/lib/Sabre/CalDAV/Backend/PDO.php
+--- ./vendor/sabre/dav/lib/Sabre/CalDAV/Backend/PDO.php	2013-10-02 20:38:26.000000000 +0200
++++ ./vendor/sabre/dav/lib/Sabre/CalDAV/Backend/PDO.php	2014-06-23 17:23:23.000000000 +0200
+@@ -381,6 +381,7 @@
+      * @return array|null
+      */
+     public function getCalendarObject($calendarId,$objectUri) {
++	    if(isset($this->_cache) && isset($this->_cache[$objectUri])) return $this->_cache[$objectUri];
+ 
+         $stmt = $this->pdo->prepare('SELECT id, uri, lastmodified, etag, calendarid, size, calendardata FROM '.$this->calendarObjectTableName.' WHERE calendarid = ? AND uri = ?');
+         $stmt->execute(array($calendarId, $objectUri));
+@@ -400,6 +404,27 @@
+ 
+     }
+ 
++    public function cacheCalendarObjects($calendarId,$objectUris) {
++        if(!$objectUris) return;
++
++        $stmt = $this->pdo->prepare('SELECT id, uri, lastmodified, etag, calendarid, size, calendardata FROM '.$this->calendarObjectTableName." WHERE calendarid = ? AND uri in ('".implode("','", $objectUris)."')");
++        $stmt->execute(array($calendarId));
++
++        $this->_cache = array();
++        foreach($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
++            $this->_cache[$row['uri']] = array(
++                'id'           => $row['id'],
++                'uri'          => $row['uri'],
++                'lastmodified' => $row['lastmodified'],
++                'etag'         => '"' . $row['etag'] . '"',
++                'calendarid'   => $row['calendarid'],
++                'size'         => (int)$row['size'],
++				'calendardata' => $row['calendardata'],
++            );
++        }
++
++    }
++
+ 
+     /**
+      * Creates a new calendar object.
+diff -ruw /tmp/baikal-regular/vendor/sabre/dav/lib/Sabre/CalDAV/Calendar.php ./vendor/sabre/dav/lib/Sabre/CalDAV/Calendar.php
+--- ./vendor/sabre/dav/lib/Sabre/CalDAV/Calendar.php	2013-10-02 20:38:26.000000000 +0200
++++ ./vendor/sabre/dav/lib/Sabre/CalDAV/Calendar.php	2014-06-23 16:42:27.000000000 +0200
+@@ -97,6 +97,11 @@
+ 
+     }
+ 
++	public function cacheChildren($urisToCache)
++	{
++	    $this->caldavBackend->cacheCalendarObjects($this->calendarInfo['id'], $urisToCache);
++	}
++
+     /**
+      * Returns a calendar object
+      *
+diff -ruw /tmp/baikal-regular/vendor/sabre/dav/lib/Sabre/CalDAV/Plugin.php ./vendor/sabre/dav/lib/Sabre/CalDAV/Plugin.php
+--- ./vendor/sabre/dav/lib/Sabre/CalDAV/Plugin.php	2013-10-02 20:38:26.000000000 +0200
++++ ./vendor/sabre/dav/lib/Sabre/CalDAV/Plugin.php	2014-06-23 17:26:07.000000000 +0200
+@@ -590,6 +590,12 @@
+ 
+             $nodePaths = $node->calendarQuery($parser->filters);
+ 
++			$urisToCache = array();
++            foreach($nodePaths as $path) {
++                $urisToCache[] = $this->server->getRequestUri() . '/' . $path;
++            }
++			$this->server->preparePropertiesForPaths($urisToCache);
++
+             foreach($nodePaths as $path) {
+ 
+                 list($properties) =
+diff -ruw /tmp/baikal-regular/vendor/sabre/dav/lib/Sabre/DAV/ObjectTree.php ./vendor/sabre/dav/lib/Sabre/DAV/ObjectTree.php
+--- ./vendor/sabre/dav/lib/Sabre/DAV/ObjectTree.php	2013-10-02 20:38:26.000000000 +0200
++++ ./vendor/sabre/dav/lib/Sabre/DAV/ObjectTree.php	2014-06-23 17:15:56.000000000 +0200
+@@ -40,6 +40,25 @@
+ 
+     }
+ 
++	public function prepareNodeForPath($path)
++	{
++        $path = trim($path,'/');
++
++        if (strlen($path)) {
++			list($parentName, $baseName) = URLUtil::splitPath($path);
++			if ($parentName==="") {
++			    // If we are the parent, then we are responsible for fetching all of our children at once. Return ourself.
++				return array($this->rootNode, $baseName);
++			} else {
++				// Do not know how to handle that. We should have one level of indirection more, so that the tree gets the parent node and the parent node returns itself with its child's URI.
++				if(strpos($baseName, '/') !== false)
++					return null;
++				$parent = $this->getNodeForPath($parentName);
++				return array($parent, $baseName);
++			}
++		}
++	}
++	
+     /**
+      * Returns the INode object for the requested path
+      *
+diff -ruw /tmp/baikal-regular/vendor/sabre/dav/lib/Sabre/DAV/Server.php ./vendor/sabre/dav/lib/Sabre/DAV/Server.php
+--- ./vendor/sabre/dav/lib/Sabre/DAV/Server.php	2013-10-02 20:38:26.000000000 +0200
++++ ./vendor/sabre/dav/lib/Sabre/DAV/Server.php	2014-06-23 17:22:12.000000000 +0200
+@@ -1438,6 +1443,22 @@
+ 
+     }
+ 
++	public function preparePropertiesForPaths($urisToCache)
++	{
++		$todos = array();
++		foreach($urisToCache as $uri)
++			if(($return = $this->tree->prepareNodeForPath($uri)))
++			{
++				list($handler, $uri) = $return;
++				$oid = spl_object_hash($handler);
++				if(!isset($todos[$oid]))
++					$todos[$oid] = array('handler' => $handler, 'uris' => array());
++				$todos[$oid]['uris'][] = $uri;
++			}
++		foreach($todos as $todo)
++			$todo['handler']->cacheChildren($todo['uris']);
++	}
++	
+     /**
+      * Returns a list of properties for a given path
+      *
