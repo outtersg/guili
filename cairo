@@ -30,6 +30,7 @@ logiciel=cairo
 
 v 1.12.8 && prerequis="pixman >= 0.22 glib libpng" || true
 v 1.12.14 && prerequis="pixman >= 0.30 glib libpng" || true
+v 1.12.16 && prerequis="pixman >= 0.30 glib libpng" || true
 
 prerequis
 
