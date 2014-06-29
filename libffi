@@ -29,6 +29,7 @@ logiciel=libffi
 # Historique des versions gérées
 
 v 3.0.11
+v 3.1 || true
 
 # Modifications
 
