@@ -24,18 +24,16 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.bash"
 
-inclure pkgconfig
-inclure gettext
-
 logiciel=glib
 
-v 2.2.3 || true
+v 2.2.3 && prerequis="gettext" || true
 v 2.6.5 || true
 v 2.12.12 && modifs="micMacGnuIconv pasBesoinDeCarbon" || true
 v 2.22.5 || true
-v 2.34.3 && modifs=pasBesoinDeCarbon && prerequis="libffi >= 3" || true
-v 2.36.4 && prerequis="libffi >= 3" || true
+v 2.34.3 && modifs=pasBesoinDeCarbon && prerequis="gettext libffi >= 3" || true
+v 2.36.4 || true
 v 2.38.1 || true
+v 2.40.0 && modifs="pasBesoinDeCarbon sansDtrace" || true
 
 prerequis
 
@@ -59,13 +57,19 @@ pasBesoinDeCarbon()
 	filtrer configure sed -e '/framework.Carbon/s/^/true #/'
 }
 
+sansDtrace()
+{
+	# La 2.40 a du code dtrace, mais sur mon FreeBSD 8.2, ça ne compile pas vraiment.
+	optionsConfigure="$optionsConfigure --disable-dtrace"
+}
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $optionsConfigure
 
 echo Compilation… >&2
 make
