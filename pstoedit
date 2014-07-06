@@ -28,22 +28,27 @@ logiciel=pstoedit
 
 # Historique des versions gérées
 
-version=3.40
+v 3.40 && prerequis="libemf" || true
+v 3.62 && modifs="sansLdl" || true
 
-dest=/usr/local/$logiciel-$version
-archive=http://www.geocities.com/wglunz/$logiciel/$logiciel-$version.tar.gz
+prerequis
+
+dest=$INSTALLS/$logiciel-$version
+archive=http://cznic.dl.sourceforge.net/project/pstoedit/pstoedit/$version/pstoedit-$version.tar.gz
 
 # Modifications
+
+sansLdl()
+{
+	# dlopen est désormais embarquée dans tous les systèmes modernes.
+	filtrer src/Makefile.in sed -e 's/ -ldl//g'
+}
 
 # Boulot
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -58,4 +63,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
