@@ -551,6 +551,26 @@ s#${cmake_ld_flags}#-L/System/Library/Frameworks/ApplicationServices.framework/V
 # Sous Mavericks, cette foutue lib nous pollue systématiquement: gcc, ld, nm, etc., y sont liés, car ceux d'/usr/bin sont de simples lanceurs qui font un xcodebuild -find xxx (allant chercher le vrai exécutable dans le bon SDK pour la plateforme de l'ordi). On appelle donc systématiquement notre putaineDeLigJPEGDeMacOSX.
 mac && putainDeLibJPEGDeMacOSX prudemment || true
 
+ldlOptionnel()
+{
+	# Les BSD embarquent dlopen en standard; Linux veut du -ldl. Certains Makefiles codent en dur ce -ldl Linux.
+	
+	cat > /tmp/testDlopen.c <<TERMINE
+void * dlopen(const char *path, int mode);
+int main(int argc, char ** argv)
+{
+dlopen("coucou", 0);
+return 0;
+}
+TERMINE
+	cc -o /tmp/testDlopen /tmp/testDlopen.c 2> /dev/null || return 0 # Si plantage de compilation, -ldl est nécessaire, alors on le laisse dans les Makefiles.
+	
+	for i in "$@"
+	do
+		filtrer "$i" sed -e 's/-ldl//g'
+	done
+}
+
 # Remplacement d'utilitaires.
 
 # http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
