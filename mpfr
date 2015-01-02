@@ -1,0 +1,76 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=mpfr
+
+# Historique des versions gérées
+
+v 3.1.2 && modifs="fbsd8" || true
+
+prerequis
+
+# Modifications
+
+fbsd8()
+{
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=161344
+	# Lors du chargement des biblios partagées, le chargeur calcule l'adresse des fonctions après leur relocation. Cependant cette initialisation était faite trop tôt sous les premières versions de FreeBSD 8: on avait (grosso modo): chargement, appel du code d'initialisation, relocation, calcul des adresses. Si le code d'initialisation cherchait à obtenir l'adresse d'une fonction pour s'y référer plus tard, elle récupérait l'adresse avant relocation.
+	# mpfr se sert de ce type de pointeurs pour mémoriser une référence à son implémentation du calcul de pi. Résultat: SEGFAULT à la moindre invocation à pi.
+	# Utilisation: entre autres, GCC, et dans sa propre compil encore: un truc du genre "double log_ten = log(10.);" déclenche une alerte "un élément de l'initialisation n'est pas une constante". Afin de peaufiner le message, GCC essaie de calculer les paramètres constants. Pour cela il fait appel à son implémentation interne de log(), qui repose sur mpfr_log. Et dans celle-ci, va savoir pourquoi, il y a besoin de pi.
+	# chercher sur internet: mpfr freebsd 161344
+	case `uname -s` in
+		FreeBSD)
+			if pge 8.2 `uname -v | cut -d ' ' -f 2 | sed -e 's/-.*//'` ; then
+				OPTIONS_CONF="$OPTIONS_CONF --disable-shared"
+			fi
+			;;
+	esac
+}
+
+# Variables
+
+archive="http://www.mpfr.org/mpfr-current/mpfr-$version.tar.bz2"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" $OPTIONS_CONF
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
