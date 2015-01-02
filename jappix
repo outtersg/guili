@@ -51,8 +51,10 @@ echo "$dest" | grep -q ^/ || dest="`pwd`/$dest"
 
 v 0.9.1 && petitnom=nemesis && vbis=alpha-1 || true
 v 0.9.3 && vbis=alpha-3 || true
+v 1.1.2 && petitnom=primo && vbis= || true
 
 archive="http://download.jappix.org/jappixorg/jappix-$version-$petitnom-$vbis.zip"
+archive="https://download.jappix.org/$version/jappix-$version-$petitnom.zip"
 
 mkdir -p "$dest"
 
@@ -62,6 +64,8 @@ mkdir -p "$dest"
 
 cd "$dest"
 
+if ! pge $version 1
+then
 patch -p0 <<TERMINE
 --- ./css/pageengine.css	2013-02-07 10:10:57.000000000 +0100
 +++ ./css/pageengine.css	2013-02-07 10:13:43.000000000 +0100
@@ -81,6 +85,7 @@ patch -p0 <<TERMINE
  #page-engine .chat .list {
  	bottom: 93px;
 TERMINE
+fi
 
 dossiers=". conf access avatars cache backgrounds logos logs music send share updates"
 (
