@@ -1,0 +1,87 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=gcc
+
+# Si on a déjà une version système qui convient, pas la peine de compiler.
+
+vsysteme="`command -v gcc > /dev/null && gcc -v 2>&1 | grep 'gcc version' | sed -e 's/.*gcc version //' -e 's/ .*//'`"
+[ ! -z "$vsysteme" ] && testerVersion $vsysteme $argVersion && return 0 || true
+
+# Historique des versions gérées
+
+v 4.2.4 || true
+v 4.3.6 || true
+v 4.4.7 || true
+v 4.5.4 || true
+v 4.7.4 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
+v 4.8.3 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
+v 4.9.2 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
+
+[ -z "$version" ] && echo "# Aucune règle pour compiler $logiciel $argVersion" >&2 && exit 1 || true
+prerequis
+
+# Modifications
+
+logarithme()
+{
+	# Pour historique (à ne pas utiliser). Je croyais initialement qu'il s'agissait d'un problème GCC. En fait une incompat entre MPFR (en biblio partagée) et FBSD 8.2. Cf. l'install mpfr.
+	# https://gcc.gnu.org/bugzilla/show_bug.cgi?format=multiple&id=55997
+	filtrer libstdc++-v3/include/bits/random.tcc sed -e 's/std::log(2.0L)/0.693147/'
+}
+
+# Variables
+
+archive="http://mirror.bbln.org/gcc/releases/gcc-$version/gcc-$version.tar.bz2"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+if false ; then
+	cd /tmp/gcc-$version
+	echo "VOUS ENTREZ DANS BASH. AMUSEZ-VOUS"
+	bash
+else
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" --enable-languages=c,c++ # fortran me plante à la gueule sur FreeBSD, en 4.7 et en 4.9 (Segmentation fault quand le gfortran intermédiaire est appelé dans un configure intermédiaire), donc merde pour Fortran. À voir si ça n'est pas résolu avec mpfr en disable-shared, mais de toute façon on s'en fout de Fortran.
+
+fi
+
+echo Compilation… >&2
+make -j 4
+
+echo Installation… >&2
+sudo make install
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
