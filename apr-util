@@ -28,16 +28,16 @@ logiciel=apr-util
 
 # Historique des versions gérées
 
-v 1.2.1 && v_apr=">= 0"
+v 1.2.1 && prerequis="apr >= 0" || true
 v 1.2.2
 v 1.2.7
 v 1.2.12
 v 1.3.4
 v 1.3.9
-v 1.3.12 && inclure expat # Sinon apr installe celle embarquée, qui nous cause des soucis.
-v 1.5.1 && v_apr=">= 1.4.6"
+v 1.3.12 && prerequis="apr expat" # Sinon apr installe l'expat embarquée, qui nous cause des soucis.
+v 1.5.1 && prerequis="apr >= 1.4.6 expat" || true
 
-inclure apr "$v_apr"
+prerequis
 
 # Modifications
 
