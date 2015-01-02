@@ -29,7 +29,8 @@ logiciel=opus
 # Historique des versions gérées
 
 v 1.0.1 && modifs="compil3264 dyld105" || true
-v 1.0.2
+v 1.0.2 || true
+v 1.1 || true
 
 # Modifications
 
