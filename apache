@@ -34,14 +34,16 @@ logiciel=apache
 # Historique des versions gérées
 
 v 2.0.54 #&& modifs=confDeveloppement
-v 2.1.7-beta && v_aprutil=">= 1.2.1" # Qui sait utiliser APR 1.2.1, qui n'a pas http://issues.apache.org/bugzilla/show_bug.cgi?id=34332
+v 2.1.7-beta && prerequis="apr-util >= 1.2.1" || true # Qui sait utiliser APR 1.2.1, qui n'a pas http://issues.apache.org/bugzilla/show_bug.cgi?id=34332
 v 2.1.9-beta # Il faut suivre, car les beta disparaissent des serveurs au fur et à mesure.
 v 2.2.3
 v 2.2.8
 v 2.2.11 && modifs="proxy"
 v 2.2.15
 v 2.2.21
-v 2.2.23 && v_aprutil=">= 1.5"
+v 2.2.23 && prerequis="apr-util >= 1.5" || true
+
+prerequis
 
 # Modifs
 
@@ -53,8 +55,6 @@ confDeveloppement()
 	done
 	OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-mode"
 }
-
-[ -z "$v_aprutil" ] || inclure apr-util "$v_aprutil"
 
 proxy()
 {
