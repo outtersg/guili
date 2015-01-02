@@ -26,6 +26,10 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=binutils
 
+case `uname` in
+	Darwin) exit 0 ;; # Sous Mac OS X, le strip de binutils explose tous les exécutables. Sans doute n'est-il adapté qu'à l'ELF.
+esac
+
 # Historique des versions gérées
 
 v 2.24 || true
