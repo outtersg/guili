@@ -29,6 +29,7 @@ logiciel=casperjs
 # Historique des versions gérées
 
 v 1.0.99.1 && v_archive=1.1-beta1 && prerequis="phantomjs" || true
+v 1.0.99.3 && v_archive=1.1-beta3 && prerequis="phantomjs" || true
 
 # Modifications
 
