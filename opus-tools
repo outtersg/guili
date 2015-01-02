@@ -32,6 +32,8 @@ v 0.1.5 && prerequis="opus ogg" || true
 v 0.1.6 || true
 v 0.1.9 && prerequis="opus ogg flac" || true
 
+prerequis
+
 # Modifications
 
 # Variables
