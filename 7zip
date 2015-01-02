@@ -46,7 +46,7 @@ dlopenPourTous()
 
 sansLdl()
 {
-	filtrer makefile.machine sed -e 's/-ldl//g'
+	ldlOptionnel makefile.machine
 }
 
 # Variables
