@@ -40,8 +40,7 @@ archive=http://cznic.dl.sourceforge.net/project/pstoedit/pstoedit/$version/pstoe
 
 sansLdl()
 {
-	# dlopen est désormais embarquée dans tous les systèmes modernes.
-	filtrer src/Makefile.in sed -e 's/ -ldl//g'
+	ldlOptionnel src/Makefile.in
 }
 
 # Boulot
