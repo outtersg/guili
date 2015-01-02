@@ -30,6 +30,17 @@ dest=/usr/local/$logiciel-$version
 
 [ -d "$dest" -o -f "/usr/include/dlfcn.h" ] && exit 0 # Depuis Tiger, on a ce qu'il faut en dl*.
 
+# Test plus poussé.
+cat > "$TMP/testdl.c" <<TERMINE
+#include <dlfcn.h>
+void * dlopen(const char * path, int mode);
+int main(int argc, char ** argv) { dlopen("/tmp/bloug", 0000); }
+TERMINE
+if cc -o "$TMP/testdl" "$TMP/testdl.c" 2> /dev/null || cc -o "$TMP/testdl" -ldl "$TMP/testdl.c" 2> /dev/null
+then
+	exit 0
+fi
+
 cd /tmp
 echo Obtention et décompression… >&2
 tar xzf `obtenir "http://ovh.dl.sourceforge.net/sourceforge/fink/$logiciel-$version.tar.gz"`
