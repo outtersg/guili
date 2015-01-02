@@ -1,0 +1,127 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
+. "$SCRIPTS/util.sh"
+
+logiciel=llvm
+[ "`basename "$0"`" = clang ] && logiciel=clang || true
+
+# Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
+
+v 3.3 || true
+v 3.4.2 && modifs="stdcppPasTropEnDur" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
+v 3.5.0 && modifs="strtoll stdcppPasTropEnDur" || true # A un petit problème avec strtoll.
+
+suffixe=xz
+pge $version 3.5 || suffixe=gz
+archive=http://llvm.org/releases/$version/llvm-$version.src.tar.$suffixe
+
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+obtenirEtAllerDansVersion
+integrer()
+{
+	ici="`pwd`"
+	( obtenirEtAllerDans "$2" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
+}
+vmaj="`echo "$version" | sed -e 's/\([^.]*\.[^.]*\).*/\1/'`"
+vrt="$version"
+pge $version 3.4 && pge 3.5 $version && vrt=$vmaj || true
+vdb=$vrt # Suit le même numérotage: unifié en 3.4 pour les 3.4.x, sinon avec le numéro de révision.
+if [ "`basename "$0"`" = clang ] ; then
+integrer tools/clang          http://llvm.org/releases/$version/cfe-$version.src.tar.$suffixe
+integrer projects/compiler-rt http://llvm.org/releases/$vrt/compiler-rt-$vrt.src.tar.$suffixe
+integrer projects/libcxx      http://llvm.org/releases/$version/libcxx-$version.src.tar.$suffixe
+! pge $version 3.5 || integrer projects/libcxxabi http://llvm.org/releases/$version/libcxxabi-$version.src.tar.$suffixe
+! pge $version 3.5 || integrer tools/lldb           http://llvm.org/releases/$vdb/lldb-$vdb.src.tar.$suffixe
+fi
+
+strtoll()
+{
+	# Sous FreeBSD 8.2, strtoull est déclarée dans stdlib.h (qu'on ne peut inclure, car durant la compil c'est celui interne qui surcharge), et définie dans libc (ce qui n'est pas détecté, donc on se raccroche à une biblio qu'on sait ajoutée par le configure).
+	filtrer configure sed -e 's/"-lz/"-lc -lz/'
+	for i in lib/TableGen/TGLexer.cpp utils/unittest/googletest/src/gtest-internal-inl.h
+	do
+		[ -e "$i" ] && filtrer "$i" sed -e '/namespace/i\
+extern "C" { long long strtoll(const char * nptr, char ** endptr, int base); unsigned long long strtoull(const char * nptr, char ** endptr, int base); }
+' || true
+	done
+}
+
+stdcppPasTropEnDur()
+{
+	# clang code en dur les chemins dans lesquels il cherche ses include système pour lib(std)c++ (cf. lib/Driver/ToolChains.cpp).
+	patch -p0 <<TERMINE
+--- ./tools/clang/lib/Driver/ToolChains.cpp	2014-12-15 19:36:49.000000000 +0100
++++ ./tools/clang/lib/Driver/ToolChains.cpp	2014-12-15 19:49:40.000000000 +0100
+@@ -2560,10 +2560,23 @@
+ 
+   switch (GetCXXStdlibType(DriverArgs)) {
+   case ToolChain::CST_Libcxx:
++			addSystemInclude(DriverArgs, CC1Args, getDriver().SysRoot+"/usr/local/include/c++/v1");
+     addSystemInclude(DriverArgs, CC1Args,
+                      getDriver().SysRoot + "/usr/include/c++/v1");
+     break;
+   case ToolChain::CST_Libstdcxx:
++			if(GCCInstallation.isValid())
++			{
++				StringRef LibDir = GCCInstallation.getParentLibPath();
++				//const Multilib &Multilib = GCCInstallation.getMultilib();
++				//const std::string GCCMultiarchTriple = getMultiarchTriple(GCCInstallation.getTriple(), getDriver().SysRoot);
++				//const std::string TargetMultiarchTriple = getMultiarchTriple(getTriple(), getDriver().SysRoot);
++				//StringRef TripleStr = GCCInstallation.getTriple().str();
++				const GCCVersion &Version = GCCInstallation.getVersion();
++				
++				addSystemInclude(DriverArgs, CC1Args, LibDir.str()+"/../include/c++/"+Version.Text);
++				return;
++			}
+     addSystemInclude(DriverArgs, CC1Args,
+                      getDriver().SysRoot + "/usr/include/c++/4.2");
+     addSystemInclude(DriverArgs, CC1Args,
+TERMINE
+}
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+# Souci sous FreeBSD 8: en créant un clang via gcc, le clang généré est incapable de créer un nouveau clang (>= 3.5) car il est fait appel à <cmath>; et pour celui-ci, soit on utilise les en-têtes clang (mais alors ils déclarent std::log2 comme un appel à log2, qui est déclarée en #if 0 dans le math.h de FreeBSD 8), soit on prend ceux de GCC (qui utilisent un __builtin_log2, embarqué par GCC, mais les include comportent des directives non reconnues de clang). Le clang généré arrive par contre à se lier à la libstdc++, si l'on avait les bons .h on pourrait faire quelque chose (un .c compilé en clang -o 1 -lstdc++ 1.c est capable d'utiliser coshl pourvu qu'on la lui ait définie en haut, sans inclusion).
+#pge $version 3.5 && OPTIONS_CONF="$OPTIONS_CONF --enable-libcpp" && CXX="clang -stdlib=libc++" && export CXX || true
+pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
+./configure --prefix="$dest" --enable-optimized $OPTIONS_CONF
+
+echo Compilation… >&2
+make -j 4
+
+echo Installation… >&2
+sudo make install
+sutiliser "$logiciel-$version"
+
+rm -Rf $TMP/$$
