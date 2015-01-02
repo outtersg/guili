@@ -30,8 +30,10 @@ logiciel=cmus
 
 prerequis=ncurses # ncurses GNU pour le support des caractères multi-octets.
 v 2.5.0 || true
+v 2.5.1 || true
 
 archive=http://netcologne.dl.sourceforge.net/project/cmus/cmus-v$version.tar.bz2
+pge $version 2.5.1 && archive="https://github.com/cmus/cmus/archive/v$version.tar.gz" || true
 
 dest=$INSTALLS/$logiciel-$version
 
