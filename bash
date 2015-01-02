@@ -42,6 +42,7 @@ modifs=completionUTF8MACreadline60
 v 4.1.2 && modifs=
 v 4.1.7
 v 4.2.45
+v 4.3.25 || true
 
 dest=$INSTALLS/$logiciel-$version
 
