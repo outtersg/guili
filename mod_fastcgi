@@ -29,12 +29,22 @@ logiciel=mod_fastcgi
 # Historique des versions gérées
 
 v 2.4.6
+v 2.4.7 && modifs="ap_log_24" || true
 
 # Modifications
+
+ap_log_24()
+{
+	# Inspiré de http://lists.freebsd.org/pipermail/freebsd-apache/2013-May/003133.html.
+	filtrer ./fcgi.h sed -e 's/__FILE__,__LINE__/APLOG_MARK/g' -e '/define ap_select/a\
+#define unixd_config ap_unixd_config
+'
+}
 
 # Variables
 
 archive="http://www.fastcgi.com/dist/$logiciel-$version.tar.gz"
+archive="https://github.com/ByteInternet/libapache-mod-fastcgi/archive/upstream/2.4.7_0910052141.tar.gz"
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
