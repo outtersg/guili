@@ -472,12 +472,14 @@ command="`echo "$command" | sed -e "/ -M/s/ -arch [^ ]*//g"`"
 }
 
 # À ajouter en modif; après la compil dans l'archi cible, déterminera si celle-ci est une 64bits, et, si oui, lancera la recompil équivalente totale en 32bits, avant de combiner les produits via lipo.
+EN_32=non
+[ "x$1" = x-32 ] && EN_32=oui
 compil3264()
 {
 	mac || return 0
 	if command -v arch 2> /dev/null && arch -arch x86_64 true 2> /dev/null
 	then
-		if [ "x$1" = "x-32" ]
+		if [ "$EN_32" = oui ]
 		then
 			CFLAGS="$CFLAGS -arch i386"
 			CXXFLAGS="$CXXFLAGS -arch i386"
