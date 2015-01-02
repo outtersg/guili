@@ -47,6 +47,7 @@ prerequis
 dest="$INSTALLS/$logiciel-$version"
 archive=http://apache.miroir-francais.fr/apr/$logiciel-$version.tar.bz2
 archive="http://apache.multidist.com/apr/apr-util-$version.tar.bz2"
+archive="http://mir2.ovh.net/ftp.apache.org/dist/apr/$logiciel-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
