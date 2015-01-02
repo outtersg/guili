@@ -43,10 +43,24 @@ OPTIONS_CONF=(--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enabl
 v 0.7-rc1 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --disable-yasm)
 v 1.0 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus) && inclure yasm && inclure opus
 v 1.0.1 && prerequis="lame" OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus --enable-libmp3lame)
+v 2.5 && modifs="monCc" prerequis="opus lame >= 3.98.3 binutils" || true
+v 2.5.2 || true
 
 prerequis
 
 # Modifications
+
+monCc()
+{
+	# binutils: http://lists.freebsd.org/pipermail/freebsd-questions/2012-February/238956.html; mais même avec ça ça ne passe pas, on fait donc un export CC=/usr/bin/gcc (sur mon FreeBSD: /usr/local/bin/gcc == 4.9, /usr/bin/gcc == 4.2). La 4.2 est la plus stable (la 4.9 se vautre fréquemment en SEGFAULT), donc on fera le gros de la compil en 4.2 avec le CC=…, et de temps à autre quand on aura des plantages 64 bits, on lancera le make, faisant un ps auxww | grep cc, on repérera la ligne qui tourne avant qu'elle ne plante, et on la relancera en remplaçant l'/usr/bin/gcc par gcc. Puis make jusqu'au prochain plantage pour continuer en 4.2, etc.
+	if [ ! -z "$CC" ] ; then
+		filtrer configure sed -e '/^host_cc_default=/c\
+host_cc_default="'"$CC"'"
+' -e '/^cc_default=/c\
+cc_default="'"$CC"'"
+'
+	fi
+}
 
 avecX264()
 {
@@ -78,7 +92,7 @@ echo Configuration… >&2
 ./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
 
 echo Compilation… >&2
-make
+make -j 4
 
 echo Installation… >&2
 sudo make install
