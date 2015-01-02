@@ -42,6 +42,7 @@ v 2.2.11 && modifs="proxy"
 v 2.2.15
 v 2.2.21
 v 2.2.23 && prerequis="apr-util >= 1.5" || true
+v 2.4.10 && modifs="proxy dAbordInclusionsLocales modules24" || true
 
 prerequis
 
@@ -59,6 +60,25 @@ confDeveloppement()
 proxy()
 {
 	OPTIONS_CONF="$OPTIONS_CONF --enable-proxy --enable-proxy-http"
+}
+
+modules24()
+{
+	# La 2.4 est vachement plus modulaire, et demande d'activer explicitement certains modules autrefois standard.
+	OPTIONS_CONF="$OPTIONS_CONF --enable-headers --enable-rewrite"
+}
+
+dAbordInclusionsLocales()
+{
+	# Par défaut, en 2.4.10 en tout cas, la compil se fait en $CFLAGS $ALL_INCLUDES, ce dernier comprenant les includes "locaux" au répertoire de compil. Du coup, si dans CFLAGS on a /usr/local/include dans lequel on a un autre Apache, ce dernier verra ses .h utilisé au lieu de ceux de l'Apache en train de compiler.
+	for i in ./build/rules.mk.in ./server/Makefile.in
+	do
+		filtrer "$i" sed -e 's#$(ALL_CPPFLAGS) $(ALL_INCLUDES)#$(ALL_INCLUDES) $(ALL_CPPFLAGS)#g' -e 's#\($(MOD_INCLUDES)\) \(.*$(EXTRA_INCLUDES)\)#\2 \1#g' # On fait passer ALL_CPPFLAGS (notre /usr/local) derrière ALL_INCLUDES (dans lequel il concatène les chemins de tous les modules compilés en ce moment); et on vire MOD_INCLUDES, qui vaut le --prefix, qui servira sans doute pour les modules qui seront compilés après coup, sauf que pour le moment on ne veut pas qu'il aille soit placé devant.
+	done
+	# De plus certaines de nos variables globales sont redondantes (reprennent le contenu de CPPFLAGS).
+	CFLAGS=
+	CXXFLAGS=
+	export CFLAGS CXXFLAGS
 }
 
 # Variables
