@@ -28,7 +28,8 @@ logiciel=leptonica
 
 # Historique des versions gérées
 
-v 1.69
+v 1.69 && prerequis="libjpeg < 9" || true
+v 1.71 || true
 
 # Modifications
 
@@ -38,6 +39,8 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://www.leptonica.org/source/leptonica-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
