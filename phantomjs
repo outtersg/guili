@@ -28,7 +28,9 @@ logiciel=phantomjs
 
 # Historique des versions gérées
 
-v 1.9.2 && prerequis="freetype fontconfig" && modifs="miens compatibleJpegMien asiatiques noproxy" || true
+v 1.9.2 && prerequis="freetype fontconfig" && modifs="miens compatibleJpegMien asiatiques noproxy lz" || true
+v 1.9.7 || true
+v 1.9.8 || true
 
 # Modifications
 
@@ -124,9 +126,17 @@ noproxy()
     cat "$remplacant" > src/qt/src/network/kernel/qnetworkproxy_generic.cpp
 }
 
+lz()
+{
+	# Sur mon FreeBSD, la libz est compilée en biblio partagée, à lier.
+	LDFLAGS="$LDFLAGS -lz"
+	export LDFLAGS
+}
+
 # Variables
 
 archive="https://phantomjs.googlecode.com/files/phantomjs-$version-source.zip"
+archive="https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-$version-source.zip"
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
