@@ -122,7 +122,7 @@ cat > store/conf/hosts.xml <<TERMINE
 	<pubsub>pubsub.$domaine</pubsub>
 	<vjud>vjud.$domaine</vjud>
 	<anonymous>anonymous.$domaine</anonymous>
-	<bosh>http://localhost:5280/http-bind</bosh>
+	<bosh>http://$domaine:5280/http-bind</bosh>
 	<bosh_main></bosh_main>
 	<bosh_mini></bosh_mini>
 	<static></static>
