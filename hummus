@@ -29,8 +29,10 @@ calcScripts "$0"
 logiciel=hummus
 
 v 3.0.0.99.1.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 3.9.4 libjpeg 8.3 freetype zlib" || true # Il faudrait un moyen pour que le numéro de version de libjpeg soit calculé depuis le libjpeg embarqué par le libtiff choisi.
+v 3.2 || true
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
+archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe).
 
 v_simple="`echo "$version" | sed -e 's/[.][^.]*.git$//'`"
 dest=$INSTALLS/$logiciel-$v_simple
