@@ -1,0 +1,76 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
+calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
+calcScripts "$0"
+. "$SCRIPTS/util.sh"
+
+logiciel=libexecinfo
+
+v 1.1 && modifs="charetoile" || true
+
+archive="ftp://ftp.tw.freebsd.org/pub/FreeBSD/FreeBSD/distfiles/libexecinfo-$version.tar.bz2"
+
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+charetoile()
+{
+	patch -p0 <<TERMINE
+--- execinfo.c	2004-07-19 07:21:09.000000000 +0200
++++ execinfo.c	2014-11-20 14:18:49.000000000 +0100
+@@ -78,7 +78,7 @@
+     rval = malloc(clen);
+     if (rval == NULL)
+         return NULL;
+-    (char **)cp = &(rval[size]);
++    cp = (char *)&(rval[size]);
+     for (i = 0; i < size; i++) {
+         if (dladdr(buffer[i], &info) != 0) {
+             if (info.dli_sname == NULL)
+TERMINE
+}
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+
+echo Compilation… >&2
+/usr/bin/make
+mkdir lib include
+cp execinfo.h include/
+cp libexecinfo.so.1 libexecinfo.so libexecinfo.a lib/
+
+echo Installation… >&2
+sudo mkdir "$dest"
+sudo cp -R lib include "$dest/"
+sutiliser "$logiciel-$version"
+
+rm -Rf $TMP/$$
