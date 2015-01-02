@@ -31,10 +31,14 @@ logiciel=lame
 version=3.97
 
 version=3.98.4
+v 3.99.5 || true
+
+v_maj="`echo "$version" | sed -e 's#^\([^.]*\.[^.]*\).*$#\1#'`"
 
 OPTIONS_CONF=()
 
 archive="http://mesh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.gz"
+archive="http://freefr.dl.sourceforge.net/project/lame/lame/$v_maj/lame-$version.tar.gz"
 
 # Modifications
 
