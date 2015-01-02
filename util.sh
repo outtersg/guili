@@ -403,6 +403,12 @@ pgInterne()
 	$ouEgal && [ -z "$1" ]
 }
 
+# Renvoie les versions pour un logiciel donnée, triées par version croissante.
+versions()
+{
+	find "$INSTALLS/" -maxdepth 1 -name "$1-*" | sed -e 's/\(.*\)-\(.*\)/\2..\1-\2/' | sort -t . -n | sed -e 's/.*\.\.//'
+}
+
 ### Fonctions utilitaires dans le cadre des modifs. ###
 
 listeIdComptesBsd()
