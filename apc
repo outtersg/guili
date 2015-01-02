@@ -25,6 +25,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 . "$SCRIPTS/util.sh"
 
 v 3.1.9 && modifs="lock" || true
+v 3.1.13 && modifs= || true
 v 3.1.14 && modifs= || true
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
