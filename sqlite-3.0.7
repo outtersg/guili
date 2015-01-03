@@ -70,7 +70,12 @@ fi
 echo Compilation… >&2
 if pge $version 3.6.24 && ! pge $version 3.7
 then
-	cc -c sqlite3.c -o sqlite3.o && ar rcs libsqlite3.a sqlite3.o #&& gcc -shared -o sqlite3.so sqlite3.o
+	if uname | grep -q Linux
+	then
+		cc -fPIC -c sqlite3.c -o sqlite3.o && ar rcs libsqlite3.a sqlite3.o && gcc -shared -o libsqlite3.so sqlite3.o
+	else
+	cc -c sqlite3.c -o sqlite3.o && ar rcs libsqlite3.a sqlite3.o && gcc -shared -o libsqlite3.so sqlite3.o
+	fi
 else
 	make
 fi
