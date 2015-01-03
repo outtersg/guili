@@ -28,11 +28,19 @@ logiciel=tesseract
 
 # Historique des versions gérées
 
-v 3.02.02 && prerequis="leptonica" || true
+v 3.02.02 && modifs="libpthread" && prerequis="leptonica" || true
 
 prerequis
 
 # Modifications
+
+libpthread()
+{
+	if [ `uname` = FreeBSD ]
+	then
+		LDFLAGS="$LDFLAGS -lpthread"
+	fi
+}
 
 # Variables
 
