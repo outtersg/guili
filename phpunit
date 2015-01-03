@@ -28,6 +28,8 @@ logiciel=phpunit
 
 v 3.3.17 && modifs="php_bin libBin" || true
 v 3.4.12 || true
+v 4.1.4 && modifs="php53" || true
+v 4.3.5 || true
 
 # Modifications
 
@@ -51,16 +53,40 @@ libBin()
 	filtrer bin/phpunit sed -e "s#set_include_path(dirname(__FILE__) . PATH_SEPARATOR#set_include_path(dirname(__FILE__) . '/../lib/php' . PATH_SEPARATOR#"
 }
 
+php53()
+{
+	mv bin/phpunit bin/phpunit.phar
+	dernierPhp="`versions php | tail -1`"
+	cat > bin/phpunit <<TERMINE
+#!/bin/sh
+PATH="$dernierPhp/bin:\$PATH"
+export PATH
+$dest/bin/phpunit.phar "\$@"
+TERMINE
+	chmod a+x bin/phpunit
+}
+
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://pear.phpunit.de/get/PHPUnit-$version.tgz"
+pge $version 4 && archive="https://phar.phpunit.de/phpunit-$version.phar" || true
 
 [ -d "$dest" ] && exit 0
 
 echo Obtention et décompression… >&2
+if pge $version 4
+then
+	cd $TMP/$$
+	mkdir bin
+	cd bin
+	cp "`obtenir "$archive"`" ./phpunit
+	chmod a+x phpunit
+	cd ..
+else
 obtenirEtAllerDansVersion
 cd PHPUnit-$version
+fi
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
