@@ -28,9 +28,9 @@ logiciel=prosody
 
 # Historique des versions gérées
 
-v 0.8.2 && modifs="maCompil" && v_libidn=">= 1.11" || true
+v 0.8.2 && modifs="maCompil" && prerequis="libidn >= 1.11" || true
 
-[ -z "$v_libidn" ] || inclure libidn "$v_libidn"
+prerequis
 
 # Modifications
 
