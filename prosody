@@ -29,6 +29,7 @@ logiciel=prosody
 # Historique des versions gérées
 
 v 0.8.2 && modifs="maCompil" && prerequis="libidn >= 1.11" || true
+v 0.9.6 && prerequis="libidn >= 1.24" || true
 
 prerequis
 
@@ -84,16 +85,6 @@ patch -p0 <<TERMINE
  
  	-- Nice to have
  		"legacyauth"; -- Legacy authentication. Only used by some old clients and bots.
-@@ -59,7 +64,7 @@
- 		--"admin_telnet"; -- Opens telnet console interface on localhost port 5582
- 
- 	-- Other specific functionality
--		--"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
--		--"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
-+		"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
-+		"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
- 		--"httpserver"; -- Serve static files from a directory over HTTP
- 		--"groups"; -- Shared roster support
 @@ -133,7 +138,7 @@
  -- You need to add a VirtualHost entry for each domain you wish Prosody to serve.
  -- Settings under each VirtualHost entry apply *only* to that host.
@@ -113,6 +104,43 @@ patch -p0 <<TERMINE
  -- Set up a SOCKS5 bytestream proxy for server-proxied file transfers:
  --Component "proxy.example.com" "proxy65"
 TERMINE
+if pge $version 0.9
+then
+
+	patch -p0 <<TERMINE
+--- prosody.cfg.lua.install	2013-01-11 17:38:35.000000000 +0100
++++ prosody.cfg.lua.install	2013-01-11 18:10:10.000000000 +0100
+@@ -64,11 +64,11 @@
+ 		--"admin_telnet"; -- Opens telnet console interface on localhost port 5582
+ 	
+ 	-- HTTP modules
+-		--"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
++		"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
+ 		--"http_files"; -- Serve static files from a directory over HTTP
+ 
+ 	-- Other specific functionality
+-		--"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
++		"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
+ 		--"groups"; -- Shared roster support
+ 		--"announce"; -- Send announcement to all online users
+ 		--"welcome"; -- Welcome users who register accounts
+TERMINE
+else
+	patch -p0 <<TERMINE
+--- prosody.cfg.lua.install	2013-01-11 17:38:35.000000000 +0100
++++ prosody.cfg.lua.install	2013-01-11 18:10:10.000000000 +0100
+@@ -59,7 +64,7 @@
+ 		--"admin_telnet"; -- Opens telnet console interface on localhost port 5582
+ 
+ 	-- Other specific functionality
+-		--"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
+-		--"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
++		"posix"; -- POSIX functionality, sends server to background, enables syslog, etc.
++		"bosh"; -- Enable BOSH clients, aka "Jabber over HTTP"
+ 		--"httpserver"; -- Serve static files from a directory over HTTP
+ 		--"groups"; -- Shared roster support
+TERMINE
+fi
 filtrer prosody.cfg.lua.install sed -E '/ = "prosody.(log|err)/s#= "#= "'"$dest"'/#'
 sudo make install
 creeCompte prosody 4110
