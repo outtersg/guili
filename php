@@ -71,6 +71,7 @@ v 5.3.28 || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
+v 5.4.33 || true
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
