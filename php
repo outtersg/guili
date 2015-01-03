@@ -67,6 +67,7 @@ v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && aj
 v 5.2.15
 v 5.2.17 && prerequis="mysql < 5.5.20 libxml < 2.8 icu" || true
 v 5.3.13 && retirerModif libpng14 && prerequis="mysql libxml icu" || true
+v 5.3.28 || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
