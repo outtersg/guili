@@ -46,13 +46,30 @@ version=2.7
 inclure sqlite
 modifs="incdir fbsdopenssl"
 
-version=2.7.2
+v 2.7.2 && modifs="incdirbourrin fbsdopenssl" || true
 
 # Modifications
 
 incdir()
 {
 	filtrer setup.py sed -e "/inc_dirs = /s#\$# + ['$INSTALLS/include']#"
+}
+
+incdirfinal()
+{
+	# Notre $INSTALLS/include doit être inclus, certes, mais à la fin. Sinon par exemple l'expat de notre $INSTALLS prendra le pas (pour les includes) sur celui embarqué par Python, et on va avoir des conflits. Donc on essaie de trouver la variable à laquelle se rajouter pour modifier l'inc_dirs *par la fin*.
+	filtrer setup.py sed -e '/add_dir_to_list.*usr.local.include/{
+h
+s#/usr/local/include#'"$INSTALLS/include"'#
+p
+x
+}'
+}
+
+incdirbourrin()
+{
+	# De toute façon le Makefile.pre.in fait passer les CFLAGS devant tout le monde. Il faut donc qu'on y indique, dans cet ordre, les include des biblios embarquées par Python, puis notre CFLAGS "local".
+	CFLAGS="-I`pwd`/Modules/expat $CFLAGS"
 }
 
 thrdlfbsd()
