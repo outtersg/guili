@@ -176,7 +176,7 @@ if [[ "$version" = *-* ]] ; then
 	obtenirEtAllerDansCvs -d "$version_cvs" cvs://cvsread:phpfi@cvs.php.net:/repository:php-src
 	./buildconf
 else
-	obtenirEtAllerDans "http://fr.php.net/get/$logiciel-$version.tar.bz2/from/this/mirror" "$logiciel-$version.tar.bz2"
+	obtenirEtAllerDans "http://de2.php.net/get/$logiciel-$version.tar.bz2/from/this/mirror" "$logiciel-$version.tar.bz2"
 fi
 
 echo Correction… >&2
