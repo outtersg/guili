@@ -26,11 +26,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=phpunit
 
-version=3.3.17
-modifs="php_bin libBin"
-
-version=3.4.12
-modifs="php_bin libBin"
+v 3.3.17 && modifs="php_bin libBin" || true
+v 3.4.12 || true
 
 # Modifications
 
@@ -72,3 +69,5 @@ echo Installation… >&2
 sudo cp -R . "$dest"
 
 sutiliser $logiciel-$version
+
+rm -Rf $TMP/$$
