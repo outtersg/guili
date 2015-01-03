@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,23 +21,22 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
 
 logiciel=tar
 
 # Historique des versions gérées
 
-version=1.19
+v 1.19 || true
 
 # Modifications
 
-OPTIONS_CONF=()
-
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.cs.univ-paris8.fr/mirrors/ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
+archive="http://ftp.gnu.org/gnu/tar/tar-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
@@ -47,7 +46,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest"
 
 echo Compilation… >&2
 make
@@ -56,4 +55,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
