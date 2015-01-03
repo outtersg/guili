@@ -75,6 +75,7 @@ v 5.4.33 || true
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
+v 5.6.3 || true
 
 if [ "x$1" = xcgi ]
 then
@@ -189,6 +190,7 @@ psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CON
 [ $cgi = oui ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-apxs$versionApache)
 [ $cgi = oui ] && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-fpm) || true
 [ -z "$v_icu" ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-intl) || true
+pge $version 5.6 && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-phpdbg) || true
 for i in "$INSTALLS" /usr ""
 do
 	stat "$i/lib/libz."* > /dev/null 2>&1 && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-zlib-dir=$i) && break
