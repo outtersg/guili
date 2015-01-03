@@ -36,7 +36,7 @@ version=0.29.6
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive=http://www.webdav.org/$logiciel/$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
@@ -56,4 +56,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
