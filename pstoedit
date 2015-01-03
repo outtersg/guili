@@ -28,7 +28,7 @@ logiciel=pstoedit
 
 # Historique des versions gérées
 
-v 3.40 && prerequis="libemf" || true
+v 3.40 && prerequis="libemf ghostscript" || true
 v 3.62 && modifs="sansLdl" || true
 
 prerequis
