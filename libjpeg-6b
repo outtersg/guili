@@ -69,7 +69,7 @@ a\
 vnum="`echo "$version" | sed -e 's/[^0-9].*//'`"
 vMinEnAlpha()
 {
-	vmin="`echo "$1" | sed -e 's/.*[.]//'`"
+	vmin="`echo "$1" | sed -e 's/^[^.]*[.]*//'`"
 	vminoctalval="`expr "$vmin" + 96`"
 	vminoctal="`printf '%3.3o' "$vminoctalval"`"
 	echo @ | tr @ \\$vminoctal
