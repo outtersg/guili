@@ -104,12 +104,20 @@ make
 plugins=
 pge $version 5.1.50 && pge 5.2 $version && plugins='plugin-load=innodb=ha_innodb_plugin.so'
 cat <<TERMINE > my.cnf
+# https://mariadb.com/blog/starting-mysql-low-memory-virtual-machines
+# http://www.tocker.ca/2014/03/10/configuring-mysql-to-use-minimal-memory.html
+
 [mysqld]
 datadir=$HOME/var/mysql
+performance_schema = off # LE truc dont se passer sur petites machines en 5.6 (bouffe d'office 350 Mo de RAM).
+innodb_buffer_pool_size = 8M
+innodb_log_buffer_size = 1M
+key_buffer_size = 10K
 $plugins
 
 [server]
-bind-address=127.0.0.1
+bind-address = 127.0.0.1
+max_connections = 20
 TERMINE
 
 echo Installation… >&2
@@ -126,3 +134,5 @@ sutiliser "$logiciel-$version"
 #sudo mysql_upgrade -uroot -p
 
 rm -Rf "$TMP/$$"
+
+echo "# Si vous passez de la 5.5 à la 5.6, n'oubliez pas de recréer les tables oubliées par l'installeur officiel. Sinon votre $HOME/var/mysql/`hostname`.err va se remplir de traces. Cf. http://dba.stackexchange.com/questions/54608/innodb-error-table-mysql-innodb-table-stats-not-found-after-upgrade-to-mys" >&2
