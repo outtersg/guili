@@ -35,9 +35,17 @@ racine()
 	echo "$1" | sed -e 's#-[^-]*[0-9.][0-9.]*.*$##'
 }
 
+statn()
+{
+	case `uname` in
+		FreeBSD) stat "$@" ;;
+		*) stat -f "%N" "$@" ;;
+	esac
+}
+
 utiliserEtoile()
 {
-	if stat -f "%N" "$2"* 2> /dev/null > /dev/null
+	if statn "$2"* 2> /dev/null > /dev/null
 	then
 		utiliser "$1" "$2"*
 	else
