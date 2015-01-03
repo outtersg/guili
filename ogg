@@ -73,8 +73,11 @@ uint()
 #modifs=dyld105
 #for i in ao/libao-1.1.0 ogg/libogg-1.2.2 vorbis/libvorbis-1.3.2 vorbis/vorbis-tools-1.4.0
 
+#modifs=dyld105
+#for i in ao/libao-1.1.0 ogg/libogg-1.3.0 vorbis/libvorbis-1.3.3 vorbis/vorbis-tools-1.4.0
+
 modifs=dyld105
-for i in ao/libao-1.1.0 ogg/libogg-1.3.0 vorbis/libvorbis-1.3.3 vorbis/vorbis-tools-1.4.0
+for i in ao/libao-1.2.0 ogg/libogg-1.3.2 vorbis/libvorbis-1.3.4 vorbis/vorbis-tools-1.4.0
 do
 
 logiciel=${i#*/}
