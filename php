@@ -68,6 +68,7 @@ v 5.2.15
 v 5.2.17 && prerequis="mysql < 5.5.20 libxml < 2.8 icu" || true
 v 5.3.13 && retirerModif libpng14 && prerequis="mysql libxml icu" || true
 v 5.3.28 || true
+v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
@@ -170,6 +171,16 @@ detectionIconvOuLibiconv()
 mesBibliosDAbord()
 {
 	filtrer configure sed -e "s#MH_BUNDLE_FLAGS=\"#MH_BUNDLE_FLAGS=\"-L$INSTALLS/lib #"
+}
+
+tcpinfo()
+{
+	filtrer sapi/fpm/fpm/fpm_sockets.c sed -e '/include.*tcp.h/{
+i\
+#define __tcpi_sacked tcpi_sacked
+i\
+#define __tcpi_unacked tcpi_unacked
+}'
 }
 
 # Variables
