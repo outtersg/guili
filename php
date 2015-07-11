@@ -73,6 +73,9 @@ v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
 v 5.4.11 && prerequis="mysql libxml icu >= 50" || true
 v 5.4.33 || true
+v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfault.
+v 5.4.39 || true
+v 5.4.41 || true
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
