@@ -80,6 +80,8 @@ v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
+v 5.6.4 || true
+v 5.6.10 && prerequis="libxml icu >= 50 libjpegturbo" || true
 
 if [ "x$1" = xcgi ]
 then
@@ -236,6 +238,7 @@ memory_limit = 256M
 upload_max_filesize = 256M;
 post_max_size = 256M
 mbstring.internal_encoding = UTF-8;
+always_populate_raw_post_data = -1;
 
 error_reporting = -1
 log_errors = On
