@@ -37,7 +37,7 @@ OPTIONS_CONF=()
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="mysql libxml" || true
+v 4.4.7 && prerequis="mysql libxml" && ajouterModif readlineNcurses || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -88,6 +88,12 @@ fi
 prerequis
 
 # Modifs
+
+readlineNcurses()
+{
+	# readline n'est pas naturellement liée à ncurses, mais plante sans.
+	filtrer configure sed -e 's/-lreadline/-lreadline -lncurses/g'
+}
 
 php34617()
 {
