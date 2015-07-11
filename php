@@ -76,7 +76,7 @@ v 5.4.33 || true
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
-v 5.6.3 || true
+v 5.6.3 && ajouterModif haveLibReadline || true
 
 if [ "x$1" = xcgi ]
 then
@@ -89,6 +89,11 @@ fi
 prerequis
 
 # Modifs
+
+haveLibReadline()
+{
+	filtrer sapi/phpdbg/phpdbg.h sed -e 's/ifdef LIBREADLINE/ifdef HAVE_LIBREADLINE/g'
+}
 
 readlineNcurses()
 {
