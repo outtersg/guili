@@ -257,7 +257,7 @@ then
 		sudo cp "sapi/fpm/init.d.php-fpm" /usr/local/etc/rc.d/php-fpm
 		if [ ! -e "$dest/etc/php-fpm.conf" ]
 		then
-			sed < "$dest/etc/php-fpm.conf.default" > php-fpm.conf -e 's/^;pid =/pid =/' -e 's/^user = .*/user = www/' -e 's/^group = .*/group = www/'
+			sed < "$dest/etc/php-fpm.conf.default" > php-fpm.conf -e 's/^;pid =/pid =/' -e 's/^user = .*/user = www/' -e 's/^group = .*/group = www/' -e 's/^pm.max_children = .*/pm.max_children = 20/'
 			sudo cp php-fpm.conf "$dest/etc/php-fpm.conf"
 		fi
 	fi
