@@ -32,11 +32,19 @@ esac
 
 # Historique des versions gérées
 
-v 2.24 || true
+v 2.24 && modifs="sbrk" || true
 
 prerequis
 
 # Modifications
+
+sbrk()
+{
+	# https://sourceware.org/bugzilla/show_bug.cgi?id=16644
+	case `uname` in
+		Darwin) OPTIONS_CONF="$OPTIONS_CONF --disable-werror" ;;
+	esac
+}
 
 # Variables
 
@@ -51,7 +59,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
