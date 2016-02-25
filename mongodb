@@ -1,0 +1,112 @@
+#!/bin/sh
+# Copyright (c) 2004 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=mongodb
+
+v 3.0.3 && modifs="strtoll fadvise leger" && prerequis="scons" || true
+
+archive="https://fastdl.mongodb.org/src/mongodb-src-r$version.tar.gz"
+
+strtoll()
+{
+	[ `uname -s` = FreeBSD ] || return 0
+	# Sous FreeBSD 8.2, strtoull est déclarée dans stdlib.h (qu'on ne peut inclure, car durant la compil c'est celui interne qui surcharge), et définie dans libc (ce qui n'est pas détecté, donc on se raccroche à une biblio qu'on sait ajoutée par le configure).
+	#filtrer configure sed -e 's/"-lz/"-lc -lz/'
+	for i in src/mongo/db/json.cpp src/mongo/util/text.cpp src/third_party/s2/base/strtoint.cc src/third_party/s2/s2cellid.cc src/third_party/s2/strings/split.cc src/third_party/s2/strings/strutil.cc
+	do
+		[ -e "$i" ] && filtrer "$i" sed -e '/#include/{
+x
+s/./a/
+x
+t
+i\
+extern "C" { long long strtoll(const char * nptr, char ** endptr, int base); unsigned long long strtoull(const char * nptr, char ** endptr, int base); }
+h
+}' || true
+	done
+}
+
+fadvise()
+{
+	# Il semble qu'il y ait une mauvaise détection du posix_fadvise.
+	if [ `uname -s` = FreeBSD ] && ! pge `uname -r | cut -d - -f 1` 10.0
+	then
+		for f in src/third_party/wiredtiger/src/block/block_write.c src/third_party/wiredtiger/src/block/block_read.c src/third_party/wiredtiger/src/os_posix/os_open.c
+		do
+			filtrer "$f" sed -e 's/HAVE_POSIX_FADVISE/OH_REALLY_I_HAVE_POSIX_FADVISE/g'
+		done
+		for f in src/third_party/wiredtiger/src/os_posix/os_fallocate.c
+		do
+			filtrer "$f" sed -e 's/HAVE_POSIX_FALLOCATE/OH_REALLY_I_HAVE_POSIX_FALLOCATE/g'
+		done
+	fi
+}
+
+leger()
+{
+	# Par défaut il compile avec toutes les infos de diagnostic. Bonjour le strip à la fin!
+	filtrer SConstruct grep -v ggdb
+}
+
+dest="$INSTALLS/$logiciel-$version"
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+if false
+then
+cd $TMP/mongodb-src-r$version
+echo "À VOUS DE JOUER"
+export dest
+bash
+else
+
+echo Obtention et décompression… >&2
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif "$@" ; done
+
+echo Configuration… >&2
+
+echo Compilation… >&2
+outils="mongoperf"
+[ `uname -s` = Linux ] || outils="$outils mongosniff" # Sous Linux, mongosniff n'est pas fourni, car dépendant d'une biblio (libpcap) incompatible GPL.
+scons --propagate-shell-environment core $outils
+for modif in true $modifspostcompil ; do $modif "$@" ; done
+
+echo Installation… >&2
+# Leur install, c'est de la gnognote. Ça relance tout le processus de configure / build, pour finir par une simple copie de fichiers.
+# Bon sinon pour info c'est --prefix="$dest" install
+sudo mkdir -p "$dest/bin"
+( cd build/`uname -s | tr '[A-Z]' '[a-z]'`*/normal/mongo && sudo cp mongo mongod mongos $outils "$dest/bin/" )
+
+fi
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
