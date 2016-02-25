@@ -36,12 +36,24 @@ v 1.4.6 && modifs="lssl" || true
 v 1.7.2 && modifs= || true
 v 1.7.6 && modifs=destdir || true
 v 1.7.10 && modifs=destdir || true
-v 1.8.0 && modifs= && prerequis="serf=1.2.1 pkgconfig" || true # La détection de serf est faite via pkgconfig.
+v 1.8.0 && modifs= && prerequis="serf >= 1.2.1 pkgconfig sqlite" || true # La détection de serf est faite via pkgconfig.
 v 1.8.3 || true # La détection de serf est faite via pkgconfig.
+v 1.8.11 || true
+v 1.8.15 || true
+v 1.9.1 && modifs="moiDAbord" || true
 
 prerequis
 
 # Modifications
+
+moiDAbord()
+{
+    # Lors de l'install, ce crétin, sous Linux, essaie de se relier à lui-même. Manque de bol, il utilise les chemins qu'on lui a fournis en priorité sur les siens. Du coup il essaie de lier ses bibliothèques avec celles d'une vieille version qui a le malheur d'être installée dans le PATH.
+
+	pwd="`pwd`"
+	LDFLAGS="`ls -d "$pwd/subversion/"libsvn_* | sed -e 's/^/-L/' -e 's#$#/.libs#' | tr '\012' ' '` $LDFLAGS"
+    export LD_FLAGS
+}
 
 lssl()
 {
@@ -74,7 +86,7 @@ echo Configuration… >&2
 ./configure --prefix="$dest" --with-ssl
 
 echo Compilation… >&2
-make
+make -j 3
 
 echo Installation… >&2
 sudo make install
