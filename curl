@@ -45,6 +45,8 @@ version=7.23.0
 version=7.26.0
 
 v 7.38.0 || true
+v 7.39.0 || true
+v 7.43.0 || true
 
 # Modifications
 
