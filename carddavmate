@@ -29,6 +29,7 @@ calcScripts "$0"
 logiciel=carddavmate
 
 v 0.11.1 && modifs="config adaptations" || true
+v 0.12.0 && modifs="config adaptations0012" || true
 
 archive=http://www.inf-it.com/CardDavMATE_$version.zip
 
@@ -55,6 +56,14 @@ var globalCollectionDisplayOrg=false;
 adaptations()
 {
 	for i in carddavmate-0.11.1.maidenname.patch carddavmate-0.11.1.presentation.patch carddavmate-0.11.1.rechargementintempestif.patch
+	do
+		patch -p0 < "$SCRIPTS/$i"
+	done
+}
+
+adaptations0012()
+{
+	for i in carddavmate-0.12.0.maidenname.patch carddavmate-0.12.0.presentation.patch
 	do
 		patch -p0 < "$SCRIPTS/$i"
 	done
@@ -103,5 +112,10 @@ cd "$dest"
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
+
+if [ -e cache_update.sh ]
+then
+	./cache_update.sh
+fi
 
 rm -Rf $TMP/$$
