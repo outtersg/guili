@@ -28,7 +28,7 @@ calcScripts "$0"
 
 logiciel=libexecinfo
 
-v 1.1 && modifs="charetoile" || true
+v 1.1 && modifs="seulementBsd charetoile" || true
 
 archive="ftp://ftp.tw.freebsd.org/pub/FreeBSD/FreeBSD/distfiles/libexecinfo-$version.tar.bz2"
 
@@ -39,6 +39,14 @@ dest=$INSTALLS/$logiciel-$version
 prerequis
 
 obtenirEtAllerDansVersion
+
+seulementBsd()
+{
+	case `uname` in
+		FreeBSD) true ;;
+		*) exit 0 ;;
+	esac
+}
 
 charetoile()
 {
