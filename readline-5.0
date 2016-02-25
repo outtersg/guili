@@ -25,17 +25,12 @@ if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
 logiciel=readline
-version=5.0
-modifs=darwin8aussi
 
-version=5.2.14
-modifs=darwin89aussi
-
-version=6.1.2
-modifs=
-
-version=6.2.1
-modifs=
+v 5.0 && modifs=darwin8aussi || true
+v 5.2.14 && modifs=darwin89aussi || true
+v 6.1.2 && modifs= || true
+v 6.2.1 || true
+v 6.3.8 || true
 
 dest=$INSTALLS/$logiciel-$version
 
@@ -80,3 +75,5 @@ echo Installation… >&2
 sudo make install
 
 sutiliser $logiciel-$version.$rustine
+
+rm -Rf $TMP/$$
