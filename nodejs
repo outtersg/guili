@@ -28,15 +28,57 @@ calcScripts "$0"
 
 logiciel=nodejs
 
-v 0.10.33 || true
+v 0.10.33 && prerequis="libexecinfo" || true
+v 0.12.4 && prerequis="libexecinfo" && modifs="pthreadtInt doubleResult neReconstruisPasTout" || true
+v 5.3.0 && prerequis="libexecinfo" && modifs="cstds neReconstruisPasTout" || true
 
 archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
+
+cstds()
+{
+	# FILE est utilisé sans être déclaré.
+	filtrer deps/v8/src/base/platform/platform.h sed -e '/include <vector>/a\
+#include <cstdio>
+'
+	filtrer deps/v8/src/log-utils.h sed -e '/#include "src\/allocation/{
+i\
+#include <cstdio>
+i\
+#include <cstdarg>
+}'
+}
+
+pthreadtInt()
+{
+	filtrer deps/v8/src/base/platform/platform-posix.cc sed -e '/return static_cast<int>.pthread_self...;/s/pthread_self/(int64_t)pthread_self/'
+}
+
+doubleResult()
+{
+	filtrer deps/v8/src/base/platform/platform-freebsd.cc sed -e '/GetSharedLibraryAddresses/,/^}/{
+s/> result/> retour/
+s/return result/return retour/
+s/result.push_back/retour.push_back/
+}'
+}
+
+neReconstruisPasTout()
+{
+	filtrer Makefile sed -e '/^install:/s/:.*/:/'
+}
 
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
 prerequis
+
+if true
+then
+	cd "$TMP/node-v$version"
+	echo "EN AVANT, FAITES-VOUS PLAISIR" >&2
+	bash
+else
 
 obtenirEtAllerDansVersion
 
@@ -47,9 +89,12 @@ echo Configuration… >&2
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
-make
+MAKE="make -j 3" make
+
+fi
 
 echo Installation… >&2
+# Bon, de toute façon cet abruti recompile tout. Le make précédent est donc inutile.
 sudo make install
 sutiliser "$logiciel-$version"
 
