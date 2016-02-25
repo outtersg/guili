@@ -36,6 +36,8 @@ modifs=dlopenPourTous
 version=9.20.1
 modifs="dlopenPourTous sansLdl"
 
+v 15.09 || true
+
 # Modifications
 
 dlopenPourTous()
