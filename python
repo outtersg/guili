@@ -47,6 +47,8 @@ inclure sqlite
 modifs="incdir fbsdopenssl"
 
 v 2.7.2 && modifs="incdirbourrin fbsdopenssl" || true
+v 2.7.9 && modifs="incdirbourrin" || true
+v 3.4.3 && modifs="incdirbourrin" || true
 
 # Modifications
 
@@ -70,6 +72,8 @@ incdirbourrin()
 {
 	# De toute façon le Makefile.pre.in fait passer les CFLAGS devant tout le monde. Il faut donc qu'on y indique, dans cet ordre, les include des biblios embarquées par Python, puis notre CFLAGS "local".
 	CFLAGS="-I`pwd`/Modules/expat $CFLAGS"
+	# Python fait le lien final de la façon suivante: cc $LDFLAGS -L. -lpython2.7 -o python python.o. Du coup, si un python, de même version majeure, était déjà installé, ce sera lui qui sera lié de préférence à la libpython tout juste générée dans .. On se permet donc de rappeler au Make que son dossier local est prioritaire sur tout.
+	LDFLAGS="-L. $LDFLAGS"
 }
 
 thrdlfbsd()
@@ -281,6 +285,7 @@ free(lp);
 # Variables
 
 archive="http://www.python.org/ftp/$logiciel/$version/Python-$version.tar.bz2"
+pge "$version" 2.7.9 && archive="http://www.python.org/ftp/$logiciel/$version/Python-$version.tar.xz" || true
 dest="$INSTALLS/$logiciel-$version"
 vm="`echo "$version" | sed -e 's/^\([0-9]*\.[0-9]*\).*$/\1/'`"
 
@@ -292,7 +297,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" $OPTIONS_CONF
+./configure --prefix="$dest" --enable-shared $OPTIONS_CONF
 
 echo Compilation… >&2
 make
@@ -300,5 +305,12 @@ make
 echo Installation… >&2
 sudo make install
 sutiliser $logiciel-$version
+
+echo Biblios standard… >&2
+if ! pge $version 3
+then
+	curl -O 'https://bootstrap.pypa.io/ez_setup.py'
+	sudo python ez_setup.py
+fi
 
 rm -Rf /tmp/$$
