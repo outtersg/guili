@@ -20,12 +20,13 @@
 # SOFTWARE.
 
 INSTALL_MEM="$HOME/tmp/paquets"
-[ -z "$INSTALLS" ] && INSTALLS=/usr/local
-[ -z "$TMP" ] && TMP=/tmp
+[ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
+[ -z "$TMP" ] && TMP=/tmp || true
+[ -z "$SANSSU" ] && SANSSU=0 || true
 
 mkdir -p "$TMP/$$"
-export PATH="`echo $TMP/$$:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
-export LD_LIBRARY_PATH="$INSTALLS/lib:$LD_LIBRARY_PATH"
+export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
+export LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 export CMAKE_LIBRARY_PATH="$INSTALLS"
 CPPFLAGS="-I$INSTALLS/include"
