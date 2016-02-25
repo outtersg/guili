@@ -42,6 +42,8 @@ v 6.10.4.20090921
 v 6.12.1 && modifs=uli && v_gmp=5.0.1
 v 7.4.2 && modifs="uli sansDoc" && v_gmp=5.0.5
 v 7.6.2 && v_gmp=5.1.1
+v 7.8.3 || true
+v 7.10.1 && modifs="$modifs preInstallLibs" || true
 
 auMoins()
 {
@@ -242,6 +244,12 @@ sansDoc()
 HADDOCK_DOCS = NO
 '
 	echo "HADDOCK_DOCS = NO" >> mk/validate.mk
+}
+
+preInstallLibs()
+{
+	# En 7.10, il installe ghc-pkg et tente de s'en servir; sauf qu'il a au préalable installé les biblios utilisées par ghc-pkg, mais à un endroit inacessible. Chapeau!
+	preInstallLibs=oui
 }
 
 # Pour une amorce de version sur cette machine, les fichiers .hc ayant été
@@ -821,8 +829,26 @@ echo Compilation… >&2
 make "${PARAMS_MAKE[@]}"
 
 echo Installation… >&2
+if [ ! -z "$preInstallLibs" ]
+then
+	sudo make install || true
+	echo "# Il est normal, enfin maîtrisé, que l'install ait planté ici. On relance la bonne install de suite." >&2
+	LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH"
+	export LD_LIBRARY_PATH
+	( cd "$dest/lib" && sudo ln -s */*/*.so */*/*.dylib ./ )
+	cat > makePreInstallLibs <<TERMINE
+#!/bin/sh
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+make "\$@"
+TERMINE
+	chmod a+x makePreInstallLibs
+	sudo ./makePreInstallLibs install
+else
 sudo make install
 for biblio in /usr/local/$logiciel-$version/lib/$logiciel-$version/libHS*.a ; do sudo ranlib $biblio ; done
+fi
 
 sutiliser $logiciel-$version
 rm -Rf /tmp/$$
