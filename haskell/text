@@ -29,19 +29,18 @@ SCRIPTS="$SCRIPTS/.."
 
 logiciel=text
 
-version=0.10.0.0
-version=0.11.2.3
+v 0.10.0.0 && prerequis="haskell/deepseq 1.1.0.2" || true
+v 0.11.2.3 && prerequis="haskell/deepseq 1.3.0.1" || true
+v 1.2.0.4  && prerequis="haskell/deepseq 1.4.1.1" || true
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
-
-biblios="deepseq:1.1.0.2"
-pge $version 0.11.2.3 && biblios="deepseq:1.3.0.1"
+echo "$argVersion" | tr -d '[0-9].' | grep -q ^$ && version="$argVersion" || true
 
 ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv
 archive=http://hackage.haskell.org/packages/archive/$logiciel/$version/$logiciel-$version.tar.gz
 
-inclureBiblios -t haskell
+prerequis
 
 # Modifications
 
@@ -49,6 +48,7 @@ inclureBiblios -t haskell
 
 [ -d "$dest/lib/$logiciel-$version" ] && exit 0
 [ -d "$dest/lib/ghc-$ghcv/$logiciel-$version" ] && exit 0
+ghc-pkg list | grep -q "^[ 	]*$logiciel-$version$" && exit 0 || true
 
 obtenirEtAllerDansVersion
 

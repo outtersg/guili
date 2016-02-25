@@ -27,11 +27,9 @@ SCRIPTS="$SCRIPTS/.."
 
 # Historique des versions gérées
 
-logiciel=mtl
+logiciel=digest
 
-v 1.1.0.2 && prerequis="" || true
-v 2.1.2 && prerequis="haskell/transformers 0.3.0.0" || true
-v 2.2 && prerequis="" || true
+version=0.1.1.5
 
 [ "x$1" = x-v ] && version="$2" && shift && shift
 
@@ -39,14 +37,14 @@ ghcv="`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`"
 dest=$INSTALLS/ghc-$ghcv
 archive=http://hackage.haskell.org/packages/archive/$logiciel/$version/$logiciel-$version.tar.gz
 
-prerequis
+inclureBiblios -t haskell
 
 # Modifications
 
 # Boulot
 
-[ -d "$dest/lib/ghc-$ghcv/$logiciel-$version" ] && exit 0
 [ -d "$dest/lib/$logiciel-$version" ] && exit 0
+[ -d "$dest/lib/ghc-$ghcv/$logiciel-$version" ] && exit 0
 
 obtenirEtAllerDansVersion
 
