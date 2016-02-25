@@ -43,7 +43,7 @@ echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
 echo Configuration… >&2
-./configure --prefix=/usr/local/$logiciel-$version
+./configure --prefix="$dest"
 
 echo Correction… >&2
 # La modif suivante était nécessaire pour que certains paquets daignent cesser de surcharger mon PATH; malheureusement elle m'empêche aussi d'utiliser (proprement) mon PATH pour surcharger /usr/local.
