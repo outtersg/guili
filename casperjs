@@ -30,6 +30,7 @@ logiciel=casperjs
 
 v 1.0.99.1 && v_archive=1.1-beta1 && prerequis="phantomjs" || true
 v 1.0.99.3 && v_archive=1.1-beta3 && prerequis="phantomjs" || true
+v 1.0.99.4 && v_archive=1.1-beta4 && prerequis="phantomjs" || true
 
 # Modifications
 
@@ -53,8 +54,8 @@ echo Compilation… >&2
 
 echo Installation… >&2
 sudo mkdir -p "$dest"
-chmod a+rx bin modules
-sudo cp -R bin modules "$dest/"
+chmod a+rx bin modules tests
+sudo cp -R bin modules tests "$dest/"
 sutiliser "$logiciel-$version"
 sudo cp package.json "$dest/"
 
