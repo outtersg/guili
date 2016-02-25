@@ -82,6 +82,7 @@ v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
 v 5.6.10 && prerequis="libxml icu >= 50 libjpegturbo" || true
+v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
 
 if [ "x$1" = xcgi ]
 then
@@ -94,6 +95,12 @@ fi
 prerequis
 
 # Modifs
+
+doubleEgalEnShDansLeConfigure()
+{
+	# Ces tests ne passent pas (sh sous FreeBSD 8); en particulier, la détection de la demande de compil de phpdbg échoue.
+	filtrer configure sed -e '/ test.*==/s/==/=/g'
+}
 
 haveLibReadline()
 {
@@ -224,17 +231,20 @@ do
 done
 # gettext: pour Horde
 # ssl: pour Horde IMP
-./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir=$INSTALLS --with-png-dir=$INSTALLS --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets "${OPTIONS_CONF[@]}" #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
+
+fi
 
 echo Compilation… >&2
-make
+make -j 4
 
 echo Installation… >&2
 sudo make install
 sudo sh -c "cat > '$dest/lib/php.ini'" <<TERMINE
 ; Pour charger les JPEG de 50 Mpixels, il faut bien ça (collages de deux photos).
 memory_limit = 256M
-
+; Durée de session: 3 jours (pour le Fournil, qui propose de retenir la session).
+session.gc_maxlifetime = 259200
 upload_max_filesize = 256M;
 post_max_size = 256M
 mbstring.internal_encoding = UTF-8;
