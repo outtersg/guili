@@ -1,0 +1,73 @@
+#!/bin/bash
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.bash"
+
+logiciel=rspamd
+
+# Historique des versions gérées
+
+#v 1.0.4 && prerequis="cmake libevent glib gmime luajit sqlite" || true
+v 1.0.4 && prerequis="cmake libevent glib gmime lua sqlite" && modifs="sansLuaJit" || true
+
+# Modifications
+
+sansLuaJit()
+{
+	# Il plante chez moi.
+	OPTIONS="$OPTIONS -DENABLE_LUAJIT=OFF"
+	# Problème avec lua: la biblio est statique, et cmake génère un Makefile qui l'utilise via un (ou deux, d'ailleurs) /usr/local/lib/liblua.a, plutôt que conventionnellement par un -llua. Il faudra donc aller dans le dossier dans /tmp/, dans build, relancer make VERBOSE=1, repérer la commande pourrie, et la relancer à la main en ayant remplacé les occurrences. Et ce pour chaque exécutable lié. De plus à la fin il faudra renommer les deux exécutables de xxx-version en xxx, pour que l'install les trouve.
+	echo -e '\033[0;31mAttention, vous devrez sans doute lier à la main (cf. fichier d'\''install)\033[0m'
+}
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+#archive="https://github.com/vstakhov/rspamd/archive/$version.tar.gz" # https://github.com/vstakhov/rspamd/issues/335
+archive="https://rspamd.com/downloads/rspamd-$version.tar.xz"
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX="$dest" -DENABLE_HIREDIS=OFF $OPTIONS
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sudo mkdir -p "$dest/var/log/rspamd" "$dest/var/run/rspamd" "$dest/var/lib/rspamd"
+sudo chown postfix:postfix "$dest/var/lib/rspamd"
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
