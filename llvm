@@ -30,10 +30,12 @@ logiciel=llvm
 [ "`basename "$0"`" = clang ] && logiciel=clang || true
 
 # Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
+# Chemin de compilation pour un Mac OS X 10.6 (clang 3.5svn): gcc 4.9.2, clang 3.6 sans lldb (et libcxx et libcxxabi sont ignorées) #, clang 3.6.
 
 v 3.3 || true
 v 3.4.2 && modifs="stdcppPasTropEnDur" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
 v 3.5.0 && modifs="strtoll stdcppPasTropEnDur" || true # A un petit problème avec strtoll.
+v 3.6.0 && modifs="strtoll stdcppPasTropEnDur sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
 
 suffixe=xz
 pge $version 3.5 || suffixe=gz
@@ -60,7 +62,8 @@ integrer tools/clang          http://llvm.org/releases/$version/cfe-$version.src
 integrer projects/compiler-rt http://llvm.org/releases/$vrt/compiler-rt-$vrt.src.tar.$suffixe
 integrer projects/libcxx      http://llvm.org/releases/$version/libcxx-$version.src.tar.$suffixe
 ! pge $version 3.5 || integrer projects/libcxxabi http://llvm.org/releases/$version/libcxxabi-$version.src.tar.$suffixe
-! pge $version 3.5 || integrer tools/lldb           http://llvm.org/releases/$vdb/lldb-$vdb.src.tar.$suffixe
+# Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
+#! pge $version 3.5 || integrer tools/lldb           http://llvm.org/releases/$vdb/lldb-$vdb.src.tar.$suffixe
 fi
 
 strtoll()
@@ -106,6 +109,48 @@ stdcppPasTropEnDur()
                       getDriver().SysRoot + "/usr/include/c++/4.2");
      addSystemInclude(DriverArgs, CC1Args,
 TERMINE
+}
+
+sansCodecvt()
+{
+	# La compil présume la présence d'un Mac OS X un peu trop récent, même sur de vieux OS.
+	filtrer tools/lldb/include/lldb/Host/Editline.h sed -e '/include.*codecvt/d' -e 's/define LLDB_EDITLINE_USE_WCHAR 1/define LLDB_EDITLINE_USE_WCHAR 0/'
+}
+
+pathMax()
+{
+	filtrer tools/lldb/source/Host/common/FileSpec.cpp sed -e "`grep -n '#include' < tools/lldb/source/Host/common/FileSpec.cpp | tail -1 | cut -d : -f 1`{"'
+a\
+#if !defined(PATH_MAX)
+a\
+#define PATH_MAX 1024
+a\
+#endif
+}'
+}
+
+ocloexec()
+{
+	grep -rq O_CLOEXEC /usr/include 2> /dev/null || filtrer tools/lldb/source/Host/posix/PipePosix.cpp sed -e 's/O_CLOEXEC/0/g'
+}
+
+gccframework()
+{
+	# Si l'on compile mettons un LLVM 3.6 sur un Mac OS X 10.6 sur lequel on a recompilé un GCC 4.9, LLVM ayant quelques spécificités pour Mac du genre se lier à CoreFoundation, et GCC n'ayant pas de chemin de framework par défaut, il va falloir indiquer à ce dernier ce que le (llvm-)gcc livré par Apple fait en standard.
+	CPPFLAGS="$CPPFLAGS -F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks"
+	LDFLAGS="$LDFLAGS -F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks"
+	export CPPFLAGS LDFLAGS
+}
+
+complications()
+{
+	# LLVM_HAS_VARIADIC_TEMPLATES est utilisé si l'on compile avec un LLVM récent. Sur nos installs qui compilent avec un GCC 4.9, ça devrait pouvoir passer aussi. Et l'alternative figurant dans le code source est un truc hyper complexe utilisant des constructions qui paraissent invalides, donc mieux vaut essayer de faire propre. On considère qu'on est toujours en LLVM_HAS_VARIADIC_TEMPLATES.
+	# Cf. aussi http://llvm.org/viewvc/llvm-project?view=revision&revision=229324
+	# Note: ceci n'est peut-être plus nécessaire maintenant que l'on a un GCC avec https://github.com/gcc-mirror/gcc/commit/96d7f12983e561307f222a6d75627a3d7298ab35
+	filtrer include/llvm/ADT/SmallVector.h sed -e 's/LLVM_HAS_VARIADIC_TEMPLATES/1/g'
+	
+	# Bon alors là ça ne passe pas. Les Blocks, côté GCC, bof bof. On préfère laisser de côté lldb pour le moment, et revenir le compiler une fois qu'on aura un clang fonctionnel.
+	#filtrer tools/lldb/source/Host/macosx/Host.mm sed -e 's/_handler (source, ^{/_handler_f (source, [](dispatch_source_t source){/'
 }
 
 echo Correction… >&2
