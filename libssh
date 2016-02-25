@@ -28,8 +28,8 @@ logiciel=libssh
 
 # Historique des versions gérées
 
-version=1.4.2
-modifs=
+v 1.4.2 || true
+v 1.4.3 || true
 
 # Modifications
 
