@@ -26,7 +26,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 v 3.1.9 && modifs="lock" || true
 v 3.1.13 && modifs= || true
-v 3.1.14 && modifs= || true
+v 3.1.13 && modifs= || true
+#v 3.1.14 && modifs= || true # Retirée de la "vente" par Rasmus, pour une question de fuite mémoire.
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
 
