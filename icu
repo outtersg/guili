@@ -37,6 +37,7 @@ v 4.4
 #v 4.4.1
 v 50.1.2 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
 v 52.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
+v 55.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate ldlproot" || true
 
 versiong="`echo "$version" | tr . _`"
 archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
@@ -62,6 +63,12 @@ toutLeMondeVeutTruncate()
 	# truncate est un appel système (sous FreeBSD), mais aussi tantôt un nom de variable (statique…), tantôt une fonction, dans ICU. Alors mettons qu'on n'a pas besoin de la version système.
 	CPPFLAGS="$CPPFLAGS -D_TRUNCATE_DECLARED"
 	export CPPFLAGS
+}
+
+ldlproot()
+{
+	# Le sudo make install fait un bout de compil. C'est gentil, mais étant donné que sudo vide l'environnement, il ne verra aucune de nos variables d'env surchargées. On doit donc les coder en dur dans le Makefile.
+	filtrer icudefs.mk sed -e "s#\\\$\\\$\\\$(LDLIBRARYPATH_ENVVAR)#$LD_LIBRARY_PATH#g"
 }
 
 # Variables
