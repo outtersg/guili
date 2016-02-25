@@ -28,7 +28,10 @@ logiciel=poppler
 
 # Historique des versions gérées
 
+v 0.22.5 && modifs="llongmax" || true
 v 0.24.4 && modifs="llongmax" || true
+v 0.32.0 && modifs="llongmax" && prerequis="libopenjp2" || true
+v 0.34.0 || true
 
 # Modifications
 
@@ -61,9 +64,12 @@ i\
 # Variables
 
 archive="http://poppler.freedesktop.org/poppler-$version.tar.xz"
+pge $version 0.24 || archive="http://poppler.freedesktop.org/poppler-$version.tar.gz"
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
