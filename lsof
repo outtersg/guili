@@ -30,6 +30,7 @@ v 4.82 && modifs=paslirelaconf || true
 v 4.84 || true
 v 4.85 || true
 v 4.87 || true
+v 4.88 || true
 
 # Modifications
 
