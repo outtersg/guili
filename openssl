@@ -43,6 +43,9 @@ v 1.0.1e && modifs="perlredir sansdoc" || true
 v 1.0.1g || true
 v 1.0.1h || true
 v 1.0.1j || true
+v 1.0.2c || true
+v 1.0.2d || true
+v 1.0.2f || true
 
 # Modifications
 
