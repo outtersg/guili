@@ -30,8 +30,39 @@ logiciel=lua
 
 v 5.1.5 && modifs=fpic || true
 v 5.2.1 && modifs=fpic || true
+v 5.3.1 && modifs="fpic log2" || true
 
 # Modifications
+
+detecteLog2()
+{
+	# FreeBSD 8 déclare un log2 mais ne l'implémente pas.
+	cat > /tmp/log2.c <<TERMINE
+#include <math.h>
+
+int main(int argc, char ** argv)
+{
+	double n;
+	n = log2(567.22);
+}
+TERMINE
+	cc -lm -o /tmp/log2 /tmp/log2.c 2> /dev/null
+}
+
+definisLog2()
+{
+	detecteLog2 || for i in "$@"
+	do
+		filtrer "$i" sed -e '/include.*math.h/a\
+#define log2(n) (log(n) / log(2))
+'
+	done
+}
+
+log2()
+{
+	definisLog2 src/lmathlib.c
+}
 
 fpic()
 {
