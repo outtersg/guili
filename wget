@@ -26,12 +26,15 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=wget
 
-version=1.12
+v 1.12 || true
+v 1.16.3 && prerequis="gnutls" || true
 
 dest=$INSTALLS/$logiciel-$version
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDans "$archive"
 
