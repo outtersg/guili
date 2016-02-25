@@ -24,12 +24,11 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-inclure icu
-
 logiciel=boost
 
-v 1.45.0 && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
+v 1.45.0 && prerequis="icu" && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis optionsBjam" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
 v 1.52.0 && true # On laisse les modifs actuelles.
+v 1.57.0 && modifs="" || true
 
 # Modifications
 
@@ -43,6 +42,7 @@ sanspch()
 
 dyld105bis()
 {
+	mac || return 0
 	filtrer tools/build/v2/tools/darwin.jam sed \
 	  -e "/-dynamiclib/s##-dynamiclib $LDFLAGS#" \
 	  -e "s#-isysroot [^ ]*#$MACOSXVERSIONFLAGS#g" \
@@ -54,12 +54,20 @@ python105()
 	filtrer project-config.jam sed -e '/python/s/2.6/2.5/g' # Python 2.5 est à la fois sur 10.6 et 10.5.
 }
 
+pourMac()
+{
+	mac || return 0
+	optionsBjam="address-model=32_64 architecture=combined macosx-version=10.5"
+}
+
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://switch.dl.sourceforge.net/project/$logiciel/$logiciel/$version/${logiciel}_`echo $version | tr . _`.tar.bz2"
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
@@ -72,9 +80,10 @@ echo Configuration… >&2
 for modif in true $modifspostconfig ; do $modif ; done
 
 echo Compilation… >&2
-./bjam -j4 address-model=32_64 architecture=combined macosx-version=10.5
+# Ici il faudrait vérifier que l'ulimit n'est pas trop basse. En outre, alors que GCC 4.2 arrive à tourner sur une petite machine à 512 Mo de RAM (et à peu près autant en swap) en -j4, GCC 4.9 bouffe jusqu'à 1 Go par compil. Donc une seconde passe en -j1.
+./bjam -j4 $optionsBjam
 
 echo Installation… >&2
-sudo ./bjam address-model=32_64 architecture=combined macosx-version=10.5 install
+sudo ./bjam $optionsBjam install
 
 sutiliser $logiciel-$version
