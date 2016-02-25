@@ -28,7 +28,8 @@ logiciel=lcms
 
 # Historique des versions gérées
 
-version=1.16
+v 1.16 || true
+v 2.7 || true
 
 OPTIONS_CONF=()
 
@@ -37,9 +38,12 @@ OPTIONS_CONF=()
 # Variables
 
 archive="http://www.littlecms.com/$logiciel-$version.tar.gz"
-dest=/usr/local/$logiciel-$version
+archive="http://cznic.dl.sourceforge.net/project/lcms/lcms/$version/lcms2-$version.tar.gz";
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -56,4 +60,4 @@ echo Installation… >&2
 sudo make install
 sutiliser $logiciel-$version
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
