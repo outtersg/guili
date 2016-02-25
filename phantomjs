@@ -28,25 +28,106 @@ logiciel=phantomjs
 
 # Historique des versions gérées
 
-v 1.9.2 && prerequis="freetype fontconfig" && modifs="miens compatibleJpegMien asiatiques noproxy lz" || true
+v 1.9.2 && prerequis="freetype fontconfig libpng libjpeg icu" && modifs="miens compatibleJpegMien asiatiques noproxy debogageEtProxy freetype2 lz" || true
 v 1.9.7 || true
 v 1.9.8 || true
+v 2.0.0 && prerequis="$prerequis bison ruby" && modifs="miensSqlite compatibleJpegMien debogageEtProxy" && qb="/qtbase" || true
+v 2.1.1 && modifs="viaGit miens pipe2 statfs procinfo icuSansDl compatibleJpegMien debogageEtProxy lz" || true
+
+echo "NOTE: en 1.9.8, sur certains systèmes, PhantomJS a du mal à comprendre qu'il doit compiler les modules qu'il embarque. Il faudra donc peut-être que vous le fassiez à la main, à savoir: remplacer le obtenirEtAller suivi des modifs par un bash, de là faire en manuel un make, constater que ça plante, aller dans le répertoire WebKit/qt, faire un make, aller dans qt/gui, faire un make, et revenir faire le make principal. N'était-ce pas à cause du manque de bison et ruby?" >&2
+echo "NOTE: en 2, Qt5 essaye de compiler des fichiers *AllInOne.cpp, ce qui plante sur les machines moins bien dotées. On peut tout d'abord essayer de relancer l'installation (en effet le make compile en parallèle; quand deux AllInOne.cpp se compilent en même temps, l'un plante, libérant la mémoire, et make, passant en \"Waiting for other tasks to complete\", va permettre à l'autre de se terminer. Finalement, un par un, on parvient à nos fins). Sinon on peut essayer de procéder manuellement, en récupérant la commande de compil, et en l'exécutant à la main par étapes: remplacer le -c par d'abord -E, puis -S, puis l'assemblage du .s en -c. N.B.: seul le répertoire et le nom change entre les différents AllInOne, les options de compil sont les mêmes. On peut donc faire un lanceur réutilisable pour tous). Pour le plus gros (Inspector, semble-t-il), on monte à 1 Go de SIZE" >&2
 
 # Modifications
 
+icuSansDl()
+{
+	# Bizarre, la première fois ça passe bien, mais quand on relance une compile, le -ldl suivant fait péter.
+	filtrer src/qt/qtbase/src/3rdparty/icu_dependency.pri sed -e 's/-ldl//g'
+}
+
+procinfo()
+{
+	( cd src/qt/qtbase && git checkout src/corelib/io/qlockfile_unix.cpp )
+	filtrer src/qt/qtbase/src/corelib/io/qlockfile_unix.cpp sed -e 's@defined(__GLIBC__) && defined(__FreeBSD_kernel__)@HAVE_NO_GETPROC@'
+	patch -p0 <<TERMINE
+--- src/qt/qtbase/src/corelib/io/qlockfile_unix.cpp	2016-02-04 15:29:11.000000000 +0100
++++ src/qt/qtbase/src/corelib/io/qlockfile_unix.cpp	2016-02-04 16:20:19.000000000 +0100
+@@ -56,6 +56,13 @@
+ #   include <cstdio>
+ #elif defined(Q_OS_BSD4) && !defined(Q_OS_IOS)
+ #   include <sys/user.h>
++# if defined(__GLIBC__) && defined(__FreeBSD_kernel__)
++#  define HAVE_NO_GETPROC 1
++# elif defined(__FreeBSD__) && __FreeBSD__ < 9
++#  define HAVE_NO_GETPROC 1
++# else
++#  define HAVE_NO_GETPROC 0
++# endif
+ # if HAVE_NO_GETPROC
+ #   include <sys/cdefs.h>
+ #   include <sys/param.h>
+TERMINE
+}
+
+statfs()
+{
+    # Linux a changé la signification de bsize (Block Size) en "Optimal transfer block size", et ajouter ("since Linux 2.6") un f_frsize censé être le nouveau bsize. Mais bon on n'a pas ça côté FreeBSD (8), donc basta. On espère que sous Linux le changement ne changera rien (que la valeur est la même).
+    filtrer src/qt/qtbase/src/corelib/io/qstorageinfo_unix.cpp sed -e 's/f_frsize/f_bsize/g'
+}
+
+pipe2()
+{
+	( cd src/qt/qtbase && git checkout src/3rdparty/forkfd/forkfd.c )
+    patch -p0 <<TERMINE
+--- src/qt/qtbase/src/3rdparty/forkfd/forkfd.c	2016-02-03 17:24:01.000000000 +0100
++++ src/qt/qtbase/src/3rdparty/forkfd/forkfd.c	2016-02-03 17:24:19.000000000 +0100
+@@ -59,7 +59,7 @@
+ #  define HAVE_WAITID   1
+ #endif
+ 
+-#if defined(__FreeBSD__)
++#if defined(__FreeBSD__) && __FreeBSD__ >= 10
+ #  define HAVE_PIPE2    1
+ #endif
+ 
+TERMINE
+}
+
+viaGit()
+{
+    [ -d src/qt/qtbase/.git ] || git clone -b phantomjs https://github.com/Vitallium/qtbase.git src/qt/qtbase
+    [ -d src/qt/qtwebkit/.git ] || git clone -b phantomjs https://github.com/Vitallium/qtwebkit.git src/qt/qtwebkit
+}
+
+freetype2()
+{
+	CPPFLAGS="`echo "$CPPFLAGS" | sed -e 's#\(-I[^ ]*freetype[^ ]*\)#\1/freetype2#g'` -I$INSTALLS/include/freetype2"
+	export CPPFLAGS
+}
+
 miens()
 {
+	# Si on le laisse compiler avec ses versions jpeg embarquées, cet abruti utilise en priorité les .cpp locaux mais les .h d'/usr/local. D'où incohérences sur les tailles de struct, et Bus error dans l'exécutable résultant.
+    pge $version 2 && OPTIONS_CONF="$OPTIONS_CONF --qt-config=-system-libjpeg --qt-config=-system-libpng --qt-config=-system-zlib" || true
 	filtrer src/qt/preconfig.sh sed -E -e '/-qt-(libjpeg|libpng|zlib)/s/^/#/'
-	rm -Rf src/qt/src/3rdparty/zlib* src/qt/src/3rdparty/lib* # Pour ne pas être tenté.
+	rm -Rf src/qt$qb/src/3rdparty/zlib* src/qt$qb/src/3rdparty/lib* # Pour ne pas être tenté.
+}
+
+miensSqlite()
+{
+    OPTIONS_CONF="$OPTIONS_CONF --qtdeps=system"
+	filtrer src/qt/preconfig.sh sed -E -e '/-qt-(sql-sqlite)/s/^/#/'
+	rm -Rf src/qt$qb/src/3rdparty/sqlite* # Pour ne pas être tenté.
 }
 
 compatibleJpegMien()
 {
 	# libjpeg se sert de TRUE et FALSE comme de clés d'un enum; qt définit TRUE et FALSE à true et false. Et un booléen comme clé d'enum, ça ne marche pas.
 	# D'autre part on ne peut dire à libjpeg d'utiliser un simple bool (avec HAVE_BOOLEAN), car alors la taille de la structure jpeg_decompress_info change, et le bzero interne à libjpeg écrabouille plus d'octets qu'il ne devrait (ceci dit, depuis la version 9, libjpeg inclut un mécanisme qui nous permet de nous rendre compte de l'erreur assez rapidement, ouf).
+	[ ! -e src/qt/qtbase/.git ] || ( cd src/qt/qtbase && git checkout src/gui/image/qjpeghandler.cpp )
 	patch -p0 <<TERMINE
---- src/qt/src/gui/image/qjpeghandler.cpp	2013-09-05 23:36:02.000000000 +0200
-+++ src/qt/src/gui/image/qjpeghandler.cpp	2013-09-23 17:57:26.000000000 +0200
+--- src/qt$qb/src/gui/image/qjpeghandler.cpp	2013-09-05 23:36:02.000000000 +0200
++++ src/qt$qb/src/gui/image/qjpeghandler.cpp	2013-09-23 17:57:26.000000000 +0200
 @@ -68,7 +68,11 @@
  #if defined(Q_OS_UNIXWARE)
  #  define HAVE_BOOLEAN  // libjpeg under Unixware seems to need this
@@ -59,57 +140,27 @@ compatibleJpegMien()
  #ifdef const
  #  undef const          // remove crazy C hackery in jconfig.h
  #endif
-@@ -157,11 +161,7 @@
-     } else {
-         src->bytes_in_buffer = num_read;
-     }
--#if defined(Q_OS_UNIXWARE)
-     return B_TRUE;
--#else
--    return true;
--#endif
- }
- 
- static void qt_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
-@@ -489,11 +489,7 @@
-     dest->next_output_byte = dest->buffer;
-     dest->free_in_buffer = max_buf;
- 
--#if defined(Q_OS_UNIXWARE)
-     return B_TRUE;
--#else
--    return true;
--#endif
- }
- 
- static void qt_term_destination(j_compress_ptr cinfo)
-@@ -584,13 +580,8 @@
- 
- 
-         int quality = sourceQuality >= 0 ? qMin(sourceQuality,100) : 75;
--#if defined(Q_OS_UNIXWARE)
-         jpeg_set_quality(&cinfo, quality, B_TRUE /* limit to baseline-JPEG values */);
-         jpeg_start_compress(&cinfo, B_TRUE);
--#else
--        jpeg_set_quality(&cinfo, quality, true /* limit to baseline-JPEG values */);
--        jpeg_start_compress(&cinfo, true);
--#endif
- 
-         row_pointer[0] = new uchar[cinfo.image_width*cinfo.input_components];
-         int w = cinfo.image_width;
-@@ -751,11 +742,7 @@
-         err.error_exit = my_error_exit;
- 
-         if (!setjmp(err.setjmp_buffer)) {
--    #if defined(Q_OS_UNIXWARE)
-             (void) jpeg_read_header(&info, B_TRUE);
--    #else
--            (void) jpeg_read_header(&info, true);
--    #endif
- 
-             int width = 0;
-             int height = 0;
 TERMINE
+    filtrer src/qt$qb/src/gui/image/qjpeghandler.cpp sed -e 's/defined(Q_OS_UNIXWARE)/1/' -e '/(.*TRUE/s/TRUE/B_TRUE/g' -e 's/B_B_/B_/g'
+    filtrer src/qt$qb/src/gui/image/qjpeghandler.cpp grep -v 'define HAVE_BOOLEAN'
+    filtrer src/qt$qb/src/gui/image/qjpeghandler.cpp sed \
+        -e '/cinfo/s/true/TRUE/g'
+
+    if [ -e "src/qt/qtwebkit/Source/WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h" ]
+    then
+        filtrer src/qt/qtwebkit/Source/WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.h sed -e '/include .*jpeglib.h/{
+i\
+#undef TRUE
+i\
+#undef FALSE
+}'
+        filtrer src/qt/qtwebkit/Source/WebCore/platform/image-decoders/jpeg/JPEGImageDecoder.cpp sed \
+            -e '/jpeg_/s/true/TRUE/g' \
+            -e '/m_info/s/true/TRUE/g' \
+            -e '/m_info/s/false/FALSE/g' \
+            -e '/boolean fill_input_buffer/,/^}/s/false/FALSE/g' \
+            -e 's/m_info.do_fancy_upsampling = doFancyUpsampling();/m_info.do_fancy_upsampling = doFancyUpsampling() ? TRUE : FALSE;/'
+    fi
 }
 
 asiatiques()
@@ -122,8 +173,32 @@ TERMINE
 
 noproxy()
 {
-    remplacant=`obtenir 'https://qt.gitorious.org/qt/qtbase/raw/175c69108a5b3c81d32b775f01d1e811289c89c6:src/network/kernel/qnetworkproxy_generic.cpp'`
-    cat "$remplacant" > src/qt/src/network/kernel/qnetworkproxy_generic.cpp
+	remplacant=`obtenir 'https://qt.gitorious.org/qt/qtbase/raw/175c69108a5b3c81d32b775f01d1e811289c89c6:src/network/kernel/qnetworkproxy_generic.cpp'`
+	cat "$remplacant" > src/qt/src/network/kernel/qnetworkproxy_generic.cpp
+}
+
+debogageEtProxy()
+{
+    # https://github.com/ariya/phantomjs/pull/12810
+	for i in src/3rdparty/webkit qtwebkit
+	do
+		f="src/qt/$i/Source/WebKit/qt/WebCoreSupport/InspectorServerQt.cpp"
+		if [ -e "$f" ]
+		then
+    patch -p0 <<TERMINE
+--- $f
++++ $f
+@@ -87,6 +87,7 @@
+         return;
+ 
+     m_tcpServer = new QTcpServer();
++    m_tcpServer->setProxy(QNetworkProxy::NoProxy);
+     m_tcpServer->listen(QHostAddress::Any, port);
+     connect(m_tcpServer, SIGNAL(newConnection()), SLOT(newConnection()));
+ }
+TERMINE
+		fi
+	done
 }
 
 lz()
@@ -137,12 +212,19 @@ lz()
 
 archive="https://phantomjs.googlecode.com/files/phantomjs-$version-source.zip"
 archive="https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-$version-source.zip"
+pge $version 2.1 && archive="https://github.com/ariya/phantomjs/archive/$version.zip" || true
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
 prerequis
 
+if false ; then
+    cd /tmp/phantomjs-$version
+    echo "Vas-y" >&2
+    bash
+    exit 0
+fi
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
@@ -151,7 +233,12 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 
 echo Compilation… >&2
-echo y | ./build.sh
+if pge $version 2.1
+then
+    echo y | ./build.py $OPTIONS_CONF --qt-config "$CPPFLAGS $CFLAGS $LDFLAGS"
+else
+echo y | ./build.sh $OPTIONS_CONF --qt-config "$CPPFLAGS $CFLAGS $LDFLAGS" # Lorsque $INSTALLS vaut /usr/local, build.sh (et son qmake) arrive à détecter les OpenSSL et autres qui y évoluent. Par contre si on a tout compilé en local local ($HOME/local), le --qt-config est nécessaire. On lui passe tout en vrac, lui fera le ménage pour trier les -L, -I, etc.
+fi
 make
 
 echo Installation… >&2
