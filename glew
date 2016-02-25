@@ -26,11 +26,9 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=glew
 
-version=1.5.7
-modifs="dyld105"
-
-version=1.6.0
-modifs="dyld105"
+v 1.5.7 && modifs="pre32 dyld105" || true
+v 1.6.0 && modifs="pre32 dyld105" || true
+v 1.12.0 && prerequis="mesa" && modifs="pre32 dyld105 bsdAveugle" || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://freefr.dl.sourceforge.net/project/$logiciel/$logiciel/$version/$logiciel-$version.tgz"
@@ -39,7 +37,10 @@ archive="http://freefr.dl.sourceforge.net/project/$logiciel/$logiciel/$version/$
 
 pre32()
 {
-	command -v arch 2> /dev/null && arch -arch x86_64 true 2> /dev/null && filtrer Makefile sed -e '/^LIB.LDFLAGS =/s/$/ -arch x86_64 -arch i386/' -e '/^CFLAGS =/s/$/ -arch x86_64 -arch i386/' -e '/STRIP/d'
+	if command -v arch 2> /dev/null
+	then
+		arch -arch x86_64 true 2> /dev/null && filtrer Makefile sed -e '/^LIB.LDFLAGS =/s/$/ -arch x86_64 -arch i386/' -e '/^CFLAGS =/s/$/ -arch x86_64 -arch i386/' -e '/STRIP/d'
+	fi
 }
 
 dyld105()
@@ -47,11 +48,31 @@ dyld105()
 	filtrer Makefile sed -e '/^LIB.LDFLAGS =/s/$/ -mmacosx-version-min=10.5/'
 }
 
+bsdAveugle()
+{
+	case `uname` in
+		FreeBSD)
+			if false
+			then
+				for i in auto/src/glxew_head.h include/GL/glxew.h
+				do
+					filtrer "$i" grep -v '#include <X11'
+				done
+			else
+				grep -rl '#[ 	]*include.*glxew.h' . | while read i
+				do
+					filtrer "$i" grep -v '#[ 	]*include.*glxew.h'
+				done
+			fi
+			;;
+	esac
+}
+
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
-for modif in pre32 $modifs ; do $modif "$@" ; done
+for modif in true $modifs ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
