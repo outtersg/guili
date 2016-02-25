@@ -27,6 +27,12 @@ calcScripts "$0"
 . "$SCRIPTS/util.sh"
 
 logiciel=ncurses
+case `basename "$0"` in
+	ncursesw)
+		logiciel=ncursesw
+		OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
+		;;
+esac
 
 v 5.9 && modifs=pointeurs || true
 
@@ -48,7 +54,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --enable-widec
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
