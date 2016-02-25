@@ -28,7 +28,9 @@ logiciel=gdal
 
 # Historique des versions gérées
 
-version=1.9.2
+v 1.9.2 && prerequis="libjpeg < 9" || true
+
+prerequis
 
 # Modifications
 
