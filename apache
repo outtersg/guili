@@ -41,6 +41,7 @@ v 2.2.8
 v 2.2.11 && modifs="proxy"
 v 2.2.15
 v 2.2.21
+v 2.2.29 || true
 v 2.2.23 && prerequis="apr-util >= 1.5" || true
 v 2.4.10 && modifs="proxy dAbordInclusionsLocales modules24" || true
 
