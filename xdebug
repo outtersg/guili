@@ -33,7 +33,6 @@ v 2.2.1
 v 2.2.5 && modifs="quelphp" || true
 
 params="$*"
-monPhp="$INSTALLS"
 
 # Modifications
 
@@ -42,7 +41,6 @@ quelphp()
 	case "$params" in
 		*-d*)
 			PATH="`echo "xxx $params" | sed -e 's/.* -d //g'`/bin:$PATH"
-			monPhp="`php-config --prefix`"
 			;;
 	esac
 }
@@ -59,6 +57,7 @@ obtenirEtAllerDansVersion
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
+monPhp="`php-config --prefix`"
 cd xdebug-$version
 phpize
 ./configure --enable-xdebug
