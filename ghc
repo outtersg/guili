@@ -40,10 +40,11 @@ v 6.8.2 && modifs="extralibs uli"
 v 6.10.4
 v 6.10.4.20090921
 v 6.12.1 && modifs=uli && v_gmp=5.0.1
-v 7.4.2 && modifs="uli sansDoc" && v_gmp=5.0.5
-v 7.6.2 && v_gmp=5.1.1
+v 7.4.2 && modifs="uli sansDoc mesCompilos" && v_gmp=5.0.5 || true
+v 7.6.2 && modifs="uli sansDoc runghcLie mesCompilos" && v_gmp=5.1.1 || true
 v 7.8.3 || true
-v 7.10.1 && modifs="$modifs preInstallLibs" || true
+v 7.8.4 || true
+v 7.10.1 && modifs="$modifs preInstallLibs mesCompilos" || true
 
 auMoins()
 {
@@ -227,6 +228,15 @@ testReadline()
 	filtrer libraries/readline/configure sed -e 's/char rl_readline_version ()/extern int rl_readline_version/' -e 's/rl_readline_version ()/return rl_readline_version/'
 }
 
+decom()
+{
+	# Ben pourquoi mon actuel sur Mac ne veut-il pas de guillemets dans les commentaires?
+	for i in libraries/binary/src/Data/Binary/Builder/*.hs
+	do
+		filtrer "$i" grep -v '^-- '
+	done
+}
+
 uli()
 {
 	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-includes=$INSTALLS/include"
@@ -236,6 +246,22 @@ uli()
 	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-libraries=$INSTALLS/lib"
 	#LDFLAGS=-L$INSTALLS/lib
 	echo "#include \"$INSTALLS/include/gmp.h\"" > includes/gmp.h
+}
+
+mesCompilos()
+{
+	# Oh purée ce boulet utilise $CPP n'importe comment (pour faire du -MM par exemple).
+	#CPP="gcc -E -traditional"
+	#export CPP
+	# GHC cherche dans une liste apparemment codée en dur d'exécutables.
+	for truc in gcc clang llc opt
+	do
+		if command -v $truc > /dev/null 2>&1
+		then
+			OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-$truc=`command -v $truc`"
+		fi
+	done
+	# Alors en fait la grosse astuce c'est de modifier le GHC *existant* pour que ça marche. Mettre par exemple /usr/local/bin/gcc dans /usr/local/ghc-7.6.3/lib/ghc-7.6.3/settings si ce dernier est branché sur un /usr/bin/gcc qui a été modifié lors d'une MàJ Mac OS X.
 }
 
 sansDoc()
@@ -250,6 +276,11 @@ preInstallLibs()
 {
 	# En 7.10, il installe ghc-pkg et tente de s'en servir; sauf qu'il a au préalable installé les biblios utilisées par ghc-pkg, mais à un endroit inacessible. Chapeau!
 	preInstallLibs=oui
+}
+
+runghcLie()
+{
+	true
 }
 
 # Pour une amorce de version sur cette machine, les fichiers .hc ayant été
@@ -376,7 +407,8 @@ inclure dlcompat $v_dlcompat
 inclure gmp $v_gmp
 export LIBRARY_PATH="$INSTALLS/lib"
 export LD_LIBRARY_PATH=$LIBRARY_PATH
-export DYLD_LIBRARY_PATH=$LIBRARY_PATH
+# Ça, depuis le 10.6 à peu près, ça fout la grouille:
+#export DYLD_LIBRARY_PATH=$LIBRARY_PATH
 inclure readline $v_readline
 
 # Modifs
@@ -851,6 +883,20 @@ for biblio in /usr/local/$logiciel-$version/lib/$logiciel-$version/libHS*.a ; do
 fi
 
 sutiliser $logiciel-$version
+# Pour faire tourner runghc (runghcLie)
+if [ -f "$dest/lib/ghc-$version/ghc-$version/libHSghc-$version-ghc$version.dylib" -a ! -f "$dest/lib/ghc-$version/ghc-$version/libHSghc-$version.dylib" ]
+then
+	for i in `grep topdir= /usr/local/bin/runghc | cut -d = -f 2- | tr -d \"`/*/*.dylib
+	do
+		sudo ln -s "`basename "$i"`" "`echo "$i" | sed -e "s#-ghc$version.dylib#.dylib#"`"
+	done
+	sed < "$dest/bin/runghc" > /tmp/temp.$$.runghc -e '/^exec /{
+i\
+LD_LIBRARY_PATH="`ls -d "$topdir"/*/ | sed -e '\''s#/$##'\'' | tr '\''\\012'\'' :`"
+i\
+export LD_LIBRARY_PATH
+}' && sudo cp /tmp/temp.$$.runghc "$dest/bin/runghc"
+fi
 rm -Rf /tmp/$$
 
 [ -z "$recommencer" ] || "$SCRIPTS/`basename $0`" # Travaillant en deux passes, on invoque la seconde.
