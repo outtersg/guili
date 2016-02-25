@@ -34,6 +34,7 @@ v 8.2 && modifs="compil3264 dyld105" && modifspostconf=dylib || true
 v 8.3 || true
 v 8.4 || true
 v 9 || true
+v 9.1 || true
 
 # Modifications
 
