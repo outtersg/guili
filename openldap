@@ -28,7 +28,8 @@ logiciel=openldap
 
 # Historique des versions gérées
 
-version=2.4.28
+v 2.4.28 || true
+v 2.4.40 || true
 
 # Modifications
 
@@ -47,7 +48,7 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 CFLAGS="$CFLAGS -DMDB_DSYNC=O_SYNC -DMDB_FDATASYNC=fsync"
 export CFLAGS
-./configure --prefix="$dest"
+./configure --prefix="$dest" --without-fetch # libfetch, sous BSD, permet à openldap d'ouvrir des .ldif distants; mais la version système est liée à l'OpenSSL système, qui entre en conflit avec notre version compilée.
 
 echo Compilation… >&2
 make
