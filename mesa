@@ -1,0 +1,138 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=mesa
+
+# Historique des versions gérées
+
+v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
+
+# Modifications
+
+choixSortie()
+{
+	if [ -d /usr/include/X11 ]
+	then
+		optionsConf=""
+	else
+		optionsConf="--enable-osmesa --enable-glx=no --enable-dri=no --disable-egl --with-dri-drivers= --with-egl-platforms= --with-gallium-drivers="
+	fi
+}
+
+log2()
+{
+	# log2 est-elle déclarée?
+	
+	log2declaree=oui
+	log2embarquee=oui
+	
+	cat > $TMP/$$/testl.c <<TERMINE
+#include <math.h>
+#ifdef TEST_EMBARQUEE
+#ifdef __cplusplus
+extern "C" {
+#endif
+double log2(double n);
+#ifdef __cplusplus
+};
+#endif
+#endif
+void bah()
+{
+	double z = log2(3.0);
+}
+TERMINE
+	$CXX $CFLAGS -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null || log2declaree=non
+	[ $log2declaree = oui ] || ( $CXX $CFLAGS -DTEST_EMBARQUEE=1 -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null && nm -o $TMP/$$/testl.o | grep -q bah && nm -o $TMP/$$/testl.o | ! grep -q log2 ) || log2embarquee=non # Si ça compile, et que le fichier objet ne contient pas de référence U (unresolved) à log2, c'est que le compilo embarque une implémentation et la reverse dans les .o.
+	
+	if [ $log2declaree = non ]
+	then
+		# Bon en fait c'est le foutoir, que l'on soit en C++ ou en C ça change dans tous les sens donc tant pis on fait comme si on n'avait rien d'embarqué dans le compilo.
+		log2embarquee=non
+		for i in src/mesa/main/imports.h src/glsl/nir/nir_constant_expressions.c
+		do
+			numLigne="`grep -n '^#include' < "$i" | head -1 | cut -d : -f 1`"
+			if [ $log2embarquee = oui ]
+			then
+				filtrer "$i" sed -e "$numLigne"'{
+i\
+#include <math.h>
+i\
+#ifdef __cplusplus
+i\
+extern "C" {
+i\
+#endif
+i\
+double log2(double x);
+i\
+float log2f(float x);
+i\
+#ifdef __cplusplus
+i\
+};
+i\
+#endif
+}'
+			else
+				filtrer "$i" sed -e "$numLigne"'{
+i\
+#include <math.h>
+i\
+#define log2(x) (log10(x) / log10(2.0))
+i\
+#define log2f(x) ((float)log2((double)x))
+}'
+			fi
+		done
+	fi
+}
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+archive="ftp://ftp.freedesktop.org/pub/mesa/$version/mesa-$version.tar.xz"
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest" $optionsConf
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudo make install
+sutiliser "$logiciel-$version"
+
+rm -Rf $TMP/$$
