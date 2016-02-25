@@ -35,6 +35,7 @@ v 2.36.4 || true
 v 2.38.1 || true
 v 2.40.0 && modifs="pasBesoinDeCarbon sansDtrace" || true
 v 2.41.2 || true
+v 2.42.1 || true
 
 prerequis
 
