@@ -28,16 +28,17 @@ logiciel=sudo
 
 # Historique des versions gérées
 
-version=1.6.9p13
-
-version=1.8.3p1
+v 1.6.9.13 || true
+v 1.8.3.1 || true
+v 1.8.16 || true
 
 # Modifications
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
-archive="http://www.sudo.ws/sudo/dist/$logiciel-$version.tar.gz"
+vp="`echo "$version" | sed -e 's/[.]/p/g' -e s/p/./ -e s/p/./`"
+dest="$INSTALLS/$logiciel-$version"
+archive="http://www.sudo.ws/sudo/dist/$logiciel-$vp.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
@@ -56,4 +57,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
