@@ -57,12 +57,11 @@ make
 echo Installation… >&2
 sudo make install
 ini="`php -i | sed -e '/^Loaded Configura/!d' -e 's/.* => //'`"
-< "$ini" > $TMP/$$/temp.apc.filtrer sed -e '${
+sufiltrer "$ini" sed -e '${
 a\
 extension = apc.so
 a\
 apc.enabled = 1
-}' -e '/extension = apc.so/d' -e '/apc.enabled/d' \
-&& sudo cp $TMP/$$/temp.apc.filtrer "$ini"
+}' -e '/extension = apc.so/d' -e '/apc.enabled/d'
 
 rm -Rf "$TMP/$$"
