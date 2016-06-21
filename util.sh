@@ -200,18 +200,19 @@ then
 	}
 fi
 
-if ! command -v utiliser 2> /dev/null >&2
-then
-	utiliser()
-	{
-		"$SCRIPTS/utiliser" "$@"
-	}
-fi
+utiliser=utiliser
+command -v $utiliser 2> /dev/null >&2 || utiliser="$SCRIPTS/utiliser"
 
 sutiliser()
 {
-	sudo utiliser -r "$INSTALLS" "$@"
+	sudo $utiliser -r "$INSTALLS" "$@"
 }
+
+if [ ! -z "$SANSU" ]
+then
+	utiliser() { true ; }
+	sutiliser() { true ; }
+fi
 
 filtrer()
 {
