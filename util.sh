@@ -297,10 +297,11 @@ reglagesCompilPrerequis()
 		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" || true
 	done
 	preChemine "$dossierRequis"
-	PATH="$dossierRequis/bin:$PATH" # Pour les machins du genre xml2-config, etc.
+	PATH="$dossierRequis/bin:$PATH" # Pour les machins qui ont besoin de lancer des exécutables (xml2-config etc.) de leurs prérequis.
+	LD_LIBRARY_PATH="$dossierRequis/lib:$LD_LIBRARY_PATH" # Python et compagnie.
 	PKG_CONFIG_PATH="$dossierRequis/lib/pkgconfig:$PKG_CONFIG_PATH"
 	ACLOCAL="`echo "$ACLOCAL" | sed -e "s#aclocal#aclocal -I $dossierRequis/share/aclocal #"`"
-	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH PKG_CONFIG_PATH ACLOCAL
+	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL
 }
 
 prerequis()
