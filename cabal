@@ -51,6 +51,12 @@ archive="https://www.haskell.org/cabal/release/cabal-install-$version/cabal-inst
 
 [ -d "$dest" ] && exit 0
 
+if false
+then
+	cd /tmp/cabal-install-$version
+	echo "# Vous êtes dans un shell. Allez-y"\!
+	bash
+else
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
@@ -58,6 +64,7 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./bootstrap.sh --no-doc
+fi
 exit 0
 
 echo Compilation… >&2
