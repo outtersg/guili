@@ -843,6 +843,13 @@ SRC_HC_OPTS += -keep-hc-file
 
 # Version à récupérer
 
+if false ; then # Manuel.
+cd /tmp/ghc-$version
+preInstallLibs=oui
+echo "VOUS ETES DANS UN SHELL" >&2
+bash
+else
+
 if [[ $version = *-* ]] ; then
 	obtenirEtAllerDansCvs -d $version $archive_cvs
 else
@@ -869,7 +876,9 @@ else
 fi
 
 echo Compilation… >&2
-make "${PARAMS_MAKE[@]}"
+make -j 4 "${PARAMS_MAKE[@]}"
+
+fi # Manuel.
 
 echo Installation… >&2
 if [ ! -z "$preInstallLibs" ]
