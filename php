@@ -204,6 +204,13 @@ i\
 
 dest=$INSTALLS/$logiciel-$version
 
+if false
+then
+	cd /tmp/$logiciel-$version
+	echo "BASH EST À VOUS"
+	bash
+else
+
 [ -d "$dest" ] && exit 0
 
 if [[ "$version" = *-* ]] ; then
