@@ -26,9 +26,9 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=m4
 
-version=1.4.15
-
-version=1.4.16
+v 1.4.15 || true
+v 1.4.16 || true
+v 1.4.17 || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
