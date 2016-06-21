@@ -28,9 +28,9 @@ logiciel=make
 
 # Historique des versions gérées
 
-version=3.81
-
-version=3.82
+v 3.81 || true
+v 3.82 || true
+v 4.2 || true
 
 # Modifications
 
@@ -40,6 +40,8 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
