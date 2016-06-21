@@ -39,12 +39,14 @@ v 6.6.1 && type_demarreur=actuel &&	modifs="extralibs pasStatic testReadline"
 v 6.8.2 && modifs="extralibs uli"
 v 6.10.4
 v 6.10.4.20090921
-v 6.12.1 && modifs=uli && v_gmp=5.0.1
-v 7.4.2 && modifs="uli sansDoc mesCompilos" && v_gmp=5.0.5 || true
-v 7.6.2 && modifs="uli sansDoc runghcLie mesCompilos" && v_gmp=5.1.1 || true
+v 6.12.1 && modifs=uli && prerequis="gmp 5.0.1" || true
+v 7.4.2 && modifs="uli sansDoc mesCompilos" && prerequis="gmp 5.0.5" || true
+v 7.6.2 && modifs="uli sansDoc runghcLie mesCompilos" && prerequis="gmp 5.1.1" || true
 v 7.8.3 || true
 v 7.8.4 || true
 v 7.10.1 && modifs="$modifs preInstallLibs mesCompilos" || true
+v 7.10.3 && modifs="uli sansDoc runghcLie preInstallLibs mesCompilos" && prerequis="gmp >= 5 < 6" || true
+v 8.0.1 && modifs="uli" && prerequis= || true
 
 auMoins()
 {
@@ -59,6 +61,7 @@ nomArchive()
 {
 	suffixe=gz
 	pge $1 4.08.2 && suffixe=bz2
+	pge $1 8 && suffixe=xz
 	# Attention, l'archive (dès la 0.29) ne passe pas sur le tar d'un fBSD 6.2
 	# (voir la fin de ./ghc-0.29/ghc/lib/Jmake.inc5).
 	[[ "$version" = 6.10.*.???????? ]] && echo "http://www.haskell.org/$logiciel/dist/stable/dist/6.10/ghc-$version-src.tar.$suffixe" && return
@@ -239,6 +242,7 @@ decom()
 
 uli()
 {
+	# Toujours nécessaire en 8.
 	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-includes=$INSTALLS/include"
 	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-libraries=$INSTALLS/lib"
 	
@@ -254,13 +258,15 @@ mesCompilos()
 	#CPP="gcc -E -traditional"
 	#export CPP
 	# GHC cherche dans une liste apparemment codée en dur d'exécutables.
-	for truc in gcc clang llc opt
+	#for truc in gcc clang llc opt
+	for truc in clang llc llvm opt
 	do
 		if command -v $truc > /dev/null 2>&1
 		then
 			OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-$truc=`command -v $truc`"
 		fi
 	done
+        OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gcc="
 	# Alors en fait la grosse astuce c'est de modifier le GHC *existant* pour que ça marche. Mettre par exemple /usr/local/bin/gcc dans /usr/local/ghc-7.6.3/lib/ghc-7.6.3/settings si ce dernier est branché sur un /usr/bin/gcc qui a été modifié lors d'une MàJ Mac OS X.
 }
 
@@ -396,20 +402,25 @@ in
 		;;
 esac
 
-dest="$INSTALLS/$logiciel-$version"
+versiondest="$version"
+case "$1" in
+	-d) versiondest="$2" ; shift ; shift ;;
+esac
+dest="$INSTALLS/$logiciel-$versiondest"
 [ "x$1" = xdemarre -o "x$1" = xdemarrant ] && dest=$dest-brut # Notre démarreur n'inclut pas les biblios supplémentaires.
 
-[ -d "$dest" -a -z "$DDEMARRANT" ] && exit 0
+#[ -d "$dest" -a -z "$DDEMARRANT" ] && exit 0
 
 # Autres nécessaires
 
 inclure dlcompat $v_dlcompat
-inclure gmp $v_gmp
 export LIBRARY_PATH="$INSTALLS/lib"
 export LD_LIBRARY_PATH=$LIBRARY_PATH
 # Ça, depuis le 10.6 à peu près, ça fout la grouille:
 #export DYLD_LIBRARY_PATH=$LIBRARY_PATH
 inclure readline $v_readline
+
+prerequis
 
 # Modifs
 
@@ -854,7 +865,7 @@ then
 		startup
 	fi
 else
-	./configure --prefix=/usr/local/$logiciel-$version --with-ghc=$GHC "${OPTIONS_CONF[@]}"
+	./configure --prefix="$dest" --with-ghc=$GHC "${OPTIONS_CONF[@]}"
 fi
 
 echo Compilation… >&2
@@ -879,10 +890,10 @@ TERMINE
 	sudo ./makePreInstallLibs install
 else
 sudo make install
-for biblio in /usr/local/$logiciel-$version/lib/$logiciel-$version/libHS*.a ; do sudo ranlib $biblio ; done
+for biblio in "$dest/lib/$logiciel-$version"/libHS*.a ; do sudo ranlib $biblio ; done
 fi
 
-sutiliser $logiciel-$version
+sutiliser $logiciel-$versiondest
 # Pour faire tourner runghc (runghcLie)
 if [ -f "$dest/lib/ghc-$version/ghc-$version/libHSghc-$version-ghc$version.dylib" -a ! -f "$dest/lib/ghc-$version/ghc-$version/libHSghc-$version.dylib" ]
 then
