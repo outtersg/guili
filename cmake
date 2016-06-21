@@ -106,7 +106,7 @@ echo Compilation… >&2
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
-make
+make -j 4
 
 echo Installation… >&2
 sudo make install
