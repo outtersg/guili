@@ -32,14 +32,35 @@ v 4.3.1
 v 5.0.1
 v 5.0.5
 v 5.1.1
-v 5.1.3 || true
-v 6.0.0.1 || true
+v 5.1.3 && modifs="m32 pasClang" || true
+v 6.0.0.1 && modifs="" || true
+
+# Modifications.
+
+m32()
+{
+	# Sous FreeBSD 10 avec clang, on ne répond pas à l'exigence de GMP 5 d'avoir un long sur 4 octets.
+	CFLAGS="$CFLAGS -m32"
+}
+
+pasClang()
+{
+	# Saleté, il n'arrive pas à exécuter ses tests avec ses biblios temporaires. On doit donc les référencer comme des cochons depuis la destination, tant qu'elles n'ont pas été installées (ce qui ne se fera évidemment qu'une fois les tests passés…).
+	sudo mkdir "$dest"
+	sudo ln -s "`pwd`/.libs" "$dest/lib"
+	# Bon, même après ça notre 5.1.3 plante dans ses tests. On abandonne.
+}
 
 dest="$INSTALLS/$logiciel-$version"
 vmaj="`echo "$version" | sed -e 's/^\([^.]*\.[^.]*\.[^.]*\).*/\1/'`" ; vmin="`echo "$version" | sed -e "s/$vmaj//" -e 's/\.//'`" ; varchive="$vmaj`[ -z "$vmin" ] || ( echo obase=16 ; echo $vmin + 9 ) | bc | tr A-Z a-z`"
 archive="http://ftp.sunet.se/pub/gnu/$logiciel/$logiciel-$varchive.tar.bz2"
 
 [ -d "$dest" ] && exit 0
+
+for modif in true $modifs
+do
+	$modif
+done
 
 # Création de biblio multiarchi si nécessaire et possible.
 lipoenfler()
