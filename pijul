@@ -1,0 +1,127 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=pijul
+
+# Historique des versions gérées
+
+v 0.2.99.1 && prerequis="rust python < 3 libssh0" && modifs="" || true
+
+boo()
+{
+	# L'original ne gère plus les versions > 0.8.
+	#curl -O https://raw.githubusercontent.com/dhuseby/cargo-bootstrap/master/bootstrap.py
+	[ -f bootstrap.py ] || curl -O https://raw.githubusercontent.com/krig/cargo-bootstrap/master/bootstrap.py
+	chmod a+x bootstrap.py
+	mkdir -p localbin
+	[ -e localbin/gmake ] || ln -s "`command -v make`" localbin/gmake
+	PATH="`pwd`/localbin:$PATH"
+	export PATH
+	./bootstrap.py "$@"
+}
+
+prerequis
+
+cd /tmp/
+mkdir -p /tmp/pigeon/bazar
+[ -d pijul.org ] || darcs get http://pijul.org
+[ -d /tmp/pigeon/index ] || git clone https://github.com/rust-lang/crates.io-index /tmp/pigeon/index
+echo "Vas-y" >&2
+bash
+cd pijul.org
+# Modifier libpijul/Cargo.toml pour référencer sanakirja (0.4.4 à ce jour) en direct, virer la section src_dependencies.
+# Rajouter au pijul/Cargo.toml deux lignes [bin] name = "pijul"
+# cd ../pigeon ; vi index/fl/at/flate2 index/co/ok/cookie index/3/s/ssh index/3/n/num index/nu/m-/num-bigint index/cl/ap/clap
+# index/fl/at/flate2: miniz y est marqué en optionnel (alors qu'il est obligatoire en 0.2.13). Il faut le repasser en optional: false.
+# index/co/ok/cookie: openssl non optionnel dans cookie (index et Cargo.toml)
+# index/co/ok/cookie: virer les 0.2.3, 4, 5 (seule la 2 utilise url-0.5, encore compatible avec les autres)
+# index/3/s/ssh: bitflags 0.5 et non 0.3
+# index/3/n/num: num_complexe non optionnel, idem pour bigint et rational.
+# index/nu/m-/num-bigint: rand non optionnel
+# index/cl/ap/clap: strsim pas optionnel, ansi_term, unicode_width, libc
+# bootstrap pète une erreur "ne sais pas convertir un nombre en chaîne" lorsqu'on lui indique un répertoire de dépendance inexistant. Pour le voir: ajouter dans la méthode __str__ de SemverRange un if isinstance(self._input, int): return str(self._input).
+# Ça permettra entre autre de passer outre le fait que libpijul n'est pas vraiment empaqueté.
+# Une fois les téléchargements effectués, au fur et à mesure des plantages.
+# bazar/flate2-0.2.14/Cargo.toml: miniz pas optionnel
+# bazar/ssh-0.1.4/Cargo.toml: bitflags 0.5 (après avoir construit une première fois en 0.3).
+# Bon en fait on repasse tout en bitflags 0.7 (https://github.com/rust-lang-nursery/bitflags/issues/39). Bon en fait non: ça fait la même chose (private type in public interface) que si on précise nous-même ::libc::c_int.
+# bazar/ssh-0.1.4/src/lib.rs: remplacer le flags  Mode:c_int { par pub flags  Mode: ::libc::c_int {
+# rm bazar/build_script_ssh-0_1_4 bazar/libssh-0_1_4.rlib
+# bazar/url-0.5.9/Cargo.toml: remettre ce qui suit les [[test]] sur une ligne séparée.
+# bazar/uuid-0.2.2/Cargo.toml: rand pas optionnel
+# bazar/uuid-0.2.2/src/lib.rs: Supprimer toutes les lignes /^ *#.cfg.*v4/
+# rm bazar/libuuid-0_2_2.rlib
+# bazar/cookie-0.2.2/Cargo.toml: openssl
+# bazar/num-0.1.32/Cargo.toml: num-* en non optionnel
+# bazar/num-bigint-0.1.32/Cargo.toml: rand
+# bazar/clap-2.5.2/Cargo.toml: les 4 plus haut
+
+cd libpijul
+boo --crate-index /tmp/pigeon/index --target-dir /tmp/pigeon/bazar --no-clone --no-clean --target x86_64-unknown-freebsd
+cd ..
+cd pijul
+[ -e src/libpijul ] || ln -s ../../libpijul src/libpijul
+boo --crate-index /tmp/pigeon/index --target-dir /tmp/pigeon/bazar --no-clone --no-clean --target x86_64-unknown-freebsd
+# À la toute fin il plante (ne trouvant pas son -lssh): récupérer la dernière commande qu'il a lancée, ajouter un -L/usr/local/lib, et c'est bon.
+sudo mkdir -p /usr/local/pijul-0.2.99.1/bin
+sudo cp /tmp/pigeon/bazar/pijul-0_3_0 /usr/local/pijul-0.2.99.1/bin/pijul
+sudo ~/src/installs/utiliser pijul-0.2.99.1
+
+
+exit 0
+
+# Modifications
+
+# Variables
+
+archive="https://static.rust-lang.org/dist/rustc-$version-src.tar.gz"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+
+echo Compilation… >&2
+make -j 4
+
+echo Installation… >&2
+# Rust refuse de bosser en root.
+#sudo make install
+sudo mkdir "$dest"
+sudo chown "`id -u`:`id -g`" "$dest"
+make install
+sudo chown -R 0:0 "$dest"
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
