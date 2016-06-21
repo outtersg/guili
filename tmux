@@ -30,6 +30,7 @@ logiciel=tmux
 
 v 1.8 && prerequis="libevent" && modifs="bonneLibevent surMac" || true
 v 1.9a
+v 2.2
 
 prerequis
 
@@ -54,6 +55,7 @@ surMac()
 # Variables
 
 archive="http://heanet.dl.sourceforge.net/project/tmux/tmux/tmux-$version/tmux-$version.tar.gz"
+pge $version 2 && archive="https://github.com/tmux/tmux/releases/download/$version/tmux-$version.tar.gz" || true
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
