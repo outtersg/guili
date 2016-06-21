@@ -30,10 +30,22 @@ v 1.7.0.6
 v 1.7.5.4
 v 1.7.10.4 && modifs=autoconfer && v_expat=">= 0" || true
 v 1.8.3.2 && modifs=sansConfigurer && v_expat= || true
+v 2.9.0 && modifs="sansConfigurer sansMoinsR" && prerequis="gettext expat" || true
 
 [ -z "$v_expat" ] || include expat "$v_expat"
 
 # Modifications
+
+sansMoinsR()
+{
+	case `uname` in
+		FreeBSD)
+			NO_R_TO_GCC_LINKER=1
+			#CC_LD_DYNPATH=-L
+			export NO_R_TO_GCC_LINKER #CC_LD_DYNPATH
+			;;
+	esac
+}
 
 autoconfer()
 {
@@ -55,6 +67,8 @@ dest="$INSTALLS/$logiciel-$version"
 
 [ -d "$dest" ] && exit 0
 
+prerequis
+
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
@@ -70,7 +84,7 @@ echo Compilation… >&2
 make $prefixeMake
 
 echo Installation… >&2
-sudo make $prefixeMake install
+sudo NO_R_TO_GCC_LINKER=$NO_R_TO_GCC_LINKER make $prefixeMake install
 sutiliser $logiciel-$version
 
 rm -Rf "$TMP/$$"
