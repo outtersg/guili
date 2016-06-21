@@ -37,6 +37,7 @@ version=9.20.1
 modifs="dlopenPourTous sansLdl"
 
 v 15.09 || true
+v 15.14 && modifs="dlopenPourTous sansLdl clang" || true
 
 # Modifications
 
@@ -49,6 +50,11 @@ dlopenPourTous()
 sansLdl()
 {
 	ldlOptionnel makefile.machine
+}
+
+clang()
+{
+	filtrer makefile.machine sed -e 's/g++/c++/g' -e 's/gcc/cc/g'
 }
 
 # Variables
@@ -64,9 +70,12 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-filtrer makefile sed -e '/^DEST_HOME=/c\
+for i in makefile makefile.common
+do
+	[ -e "$i" ] && filtrer "$i" sed -e '/^DEST_HOME=/c\
 DEST_HOME='"$dest"'
-'
+' || true
+done
 filtrer makefile.machine sed -e '/^\(ALLFLAGS=.*\) -s /s//\1 /'
 
 echo Compilation… >&2
