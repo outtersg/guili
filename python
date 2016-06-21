@@ -323,4 +323,6 @@ then
 	sudo sh -c "SSL_CERT_FILE=$HOME/.curl-ca-bundle.crt LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib $dest/bin/python ez_setup.py"
 fi
 
+[ -e "$dest/bin/python" ] || ln -s python3 "$dest/bin/python"
+
 rm -Rf /tmp/$$
