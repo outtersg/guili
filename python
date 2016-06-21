@@ -290,6 +290,13 @@ pge "$version" 2.7.9 && archive="http://www.python.org/ftp/$logiciel/$version/Py
 dest="$INSTALLS/$logiciel-$version"
 vm="`echo "$version" | sed -e 's/^\([0-9]*\.[0-9]*\).*$/\1/'`"
 
+if false
+then
+	cd /tmp/Python-$version
+	echo "BASH EN ROUTE"
+	bash
+else
+
 [ -d "$dest" ] && exit 0
 
 obtenirEtAllerDansVersion
@@ -302,6 +309,8 @@ echo Configuration… >&2
 
 echo Compilation… >&2
 make
+
+fi
 
 echo Installation… >&2
 sudo make install
