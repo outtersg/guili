@@ -89,6 +89,7 @@ extern "C" { long long strtoll(const char * nptr, char ** endptr, int base); uns
 stdcppPasTropEnDur()
 {
 	# clang code en dur les chemins dans lesquels il cherche ses include système pour lib(std)c++ (cf. lib/Driver/ToolChains.cpp).
+	[ -e ./tools/clang/lib/Driver/ToolChains.cpp ] || return 0 # Pour un llvm sans clang, ce fichier n'existe pas.
 	patch -p0 <<TERMINE
 --- ./tools/clang/lib/Driver/ToolChains.cpp	2014-12-15 19:36:49.000000000 +0100
 +++ ./tools/clang/lib/Driver/ToolChains.cpp	2014-12-15 19:49:40.000000000 +0100
