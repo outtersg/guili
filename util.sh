@@ -34,6 +34,8 @@ CFLAGS="-I$INSTALLS/include"
 CXXFLAGS="-I$INSTALLS/include"
 LDFLAGS="-L$INSTALLS/lib"
 PKG_CONFIG_PATH="$INSTALLS/lib/pkgconfig"
+CFLAGS="-O3 $CFLAGS" # Trop de logiciels (PHP\xe2\x80\xa6) se compilent par d\xc3\xa9faut sans optimisation. C'est ballot.
+CXXFLAGS="-O3 $CXXFLAGS"
 export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH
 export ACLOCAL="aclocal -I $INSTALLS/share/aclocal"
 
