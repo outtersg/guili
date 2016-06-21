@@ -28,9 +28,18 @@ logiciel=iconv
 
 # Historique des versions gérées
 
-v 1.14
+v 1.14 && modifs="fbsd10" || true
 
 # Modifications
+
+fbsd10()
+{
+	# Ce couillon confond freebsd10 et freebsd1.
+	for i in configure preload/configure libcharset/configure
+	do
+		[ ! -f "$i" ] || filtrer "$i" sed -e 's#freebsd1\*#freebsd1|freebsd1.*#g'
+	done
+}
 
 # Variables
 
@@ -52,6 +61,8 @@ make
 
 echo Installation… >&2
 sudo make install
+# Le .la, c'est bien gentil, mais ça ne vaut pas un .so qui pointe vers le .so.x.x.
+( cd "$dest/lib" && for i in lib*.so.* ; do lib="`echo "$i" | sed -e 's/\.so\..*/.so/'`" ; [ -e "$lib" ] || sudo ln -s "$i" "$lib" ; done )
 sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
