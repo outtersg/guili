@@ -28,20 +28,13 @@ logiciel=cmake
 
 # Historique des versions gérées
 
-version=2.4.5
-
-version=2.4.6
-OPTIONS_CONF=()
-
-version=2.8.3
-modifs=putainDeLibJPEGDeMacOSX
-
-version=2.8.6
-modifs=putainDeLibJPEGDeMacOSX
-
+v 2.4.5 || true
+v 2.4.6 || true
+v 2.8.3 && modifs=putainDeLibJPEGDeMacOSX || true
+v 2.8.6 && modifs=putainDeLibJPEGDeMacOSX || true
 v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
-
 v 2.8.12 && modifs="etToiAlors havefchdir" || true
+v 3.5.2 && modifs="" || true
 
 # Modifications
 
