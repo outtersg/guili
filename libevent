@@ -28,13 +28,15 @@ logiciel=libevent
 
 # Historique des versions gérées
 
-v 2.0.21
+v 2.0.21 || true
+v 2.0.22 || true
 
 # Modifications
 
 # Variables
 
 archive="https://github.com/downloads/libevent/libevent/libevent-$version-stable.tar.gz"
+pge $version 2.0.22 && archive=https://github.com/libevent/libevent/releases/download/release-$version-stable/libevent-$version-stable.tar.gz || true
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
