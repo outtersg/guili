@@ -39,6 +39,13 @@ prerequis
 dest="$INSTALLS/$logiciel-$version"
 archive="http://download.osgeo.org/gdal/$logiciel-$version.tar.gz"
 
+if false
+then
+	cd /tmp/gdal-$version
+	echo "BASHOUILLE"
+	bash
+else
+
 [ -d "$dest" ] && exit 0
 
 obtenirEtAllerDansVersion
@@ -51,6 +58,8 @@ echo Configuration… >&2
 
 echo Compilation… >&2
 make
+
+fi
 
 echo Installation… >&2
 sudo make install
