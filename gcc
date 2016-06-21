@@ -28,7 +28,7 @@ logiciel=gcc
 
 # Si on a déjà une version système qui convient, pas la peine de compiler.
 
-vsysteme="`command -v gcc > /dev/null && gcc -v 2>&1 | grep 'gcc version' | sed -e 's/.*gcc version //' -e 's/ .*//'`"
+vsysteme="`command -v gcc > /dev/null && gcc -v 2>&1 | grep 'gcc version' | sed -e 's/.*gcc version //' -e 's/ .*//'`" || true
 [ ! -z "$vsysteme" ] && testerVersion $vsysteme $argVersion && exit 0 || true
 
 # Historique des versions gérées
@@ -67,6 +67,9 @@ logarithme()
 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?format=multiple&id=55997
 	filtrer libstdc++-v3/include/bits/random.tcc sed -e 's/std::log(2.0L)/0.693147/'
 }
+
+# Notons que sur une install très locale (/home/xxx/local), il a fallu ajouter au Makefile racine les LDFLAGS à la variable POSTSTAGE1_LDFLAGS. Sinon il ne trouvait pas les libmpc et consortes (dépendances externes gcc).
+# Peut-être rajouter au configure un --with-boot-ldflags="-static-libstdc++ -static-libgcc $LDFLAGS"
 
 lambdaObjC()
 {
