@@ -221,6 +221,13 @@ filtrer()
 	"$@" < "$fichier" > "$TMP/$$/temp" && cat "$TMP/$$/temp" > "$fichier"
 }
 
+sufiltrer()
+{
+    fichier="$1"
+    shift
+    "$@" < "$fichier" > "$TMP/$$/temp" && sudo sh -c "cat $TMP/$$/temp > $fichier"
+}
+
 # Ajoute à une variable du contenu
 # Paramètres:
 # $1: Makefile
