@@ -57,6 +57,7 @@ obtenir()
 de7z()
 {
 	7za x -bd -y "$@" | sed -e '/^Extracting /!d' -e 's///' > "$TMP/$$/de7z.liste"
+	_liste7z "$@" > "$TMP/$$/de7z.liste" # La ligne précédente est peu fiable.
 	if [ `wc -l < "$TMP/$$/de7z.liste"` -eq 1 ] && grep -q '\.tar$' < "$TMP/$$/de7z.liste"
 	then
 		tar xf `cat "$TMP/$$/de7z.liste"`
