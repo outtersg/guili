@@ -29,6 +29,7 @@ logiciel=expat
 version=1.95.8
 
 version=2.1.0
+v 2.1.1 || true
 
 dest=$INSTALLS/$logiciel-$version
 
@@ -36,6 +37,7 @@ dest=$INSTALLS/$logiciel-$version
 
 archive="http://ovh.dl.sourceforge.net/sourceforge/expat/$logiciel-$version.tar.gz"
 archive="http://freefr.dl.sourceforge.net/project/expat/expat/$version/expat-$version.tar.gz"
+pge $version 2.1.1 && archive="http://freefr.dl.sourceforge.net/project/expat/expat/$version/expat-$version.tar.bz2" || true
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
