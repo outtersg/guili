@@ -28,11 +28,21 @@ logiciel=cabal
 
 # Historique des versions gérées
 
-v 1.22.3.0 && modifs="" || true
+v 1.22.3.0 && modifs="detectionALaConDeLd" || true
+v 1.22.5.0 || true
+v 1.22.8.0 || true
+v 1.24.0.0 || true
 
 prerequis
 
 # Modifications
+
+detectionALaConDeLd()
+{
+	# Cet abruti, pour détecter si le lieur est collect2 ou ld, essaie de le faire tourner en mode verbeux, puis traite la sortie en supprimant "tout ce qu'il y a après le nom du programme" (idée: transformer un /usr/bin/ld --machin --truc en /usr/bin/ld). Sauf que notre ld sous FreeBSD sort un /usr/bin/ld --machin -L/libexec/ld-elf.so", ce qui lui fait détecter un exécutable au doux nom de '/usr/bin/ld --machin -L/libexec/ld'.
+	filtrer bootstrap.sh sed -e '/sed.*link/s#link\\)#link\\)[\\" ]#'
+
+}
 
 # Variables
 
