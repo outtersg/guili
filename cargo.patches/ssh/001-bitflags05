@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Version un peu vieille, qui référence une bitflags 0.3 alors que tout le monde est passé à la 0.5. Comme le passage de l'une à l'autre ne demande pas tant de changements que ça, on lui impose la modification sans attendre que le paquet soit regénéré officiellement avec la bonne bitflags.
+sed -e '/bitflags/s/0\.3[.0-9]*/0.5/' -i '' Cargo.toml
+
+sed -e 's/flags *Mode:c_int *{/pub flags Mode: ::libc::c_int {/' -i '' src/lib.rs

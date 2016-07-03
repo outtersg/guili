@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sed -e '/^ *#.cfg.*v4/d' -i '' src/lib.rs
