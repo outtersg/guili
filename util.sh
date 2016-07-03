@@ -29,10 +29,11 @@ export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g
 export LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 export CMAKE_LIBRARY_PATH="$INSTALLS"
-CPPFLAGS="-I$INSTALLS/include"
-CFLAGS="-I$INSTALLS/include"
-CXXFLAGS="-I$INSTALLS/include"
-LDFLAGS="-L$INSTALLS/lib"
+
+CPPFLAGS="-I$INSTALLS/include $CPPFLAGS"
+#CFLAGS="-I$INSTALLS/include $CFLAGS"
+#CXXFLAGS="-I$INSTALLS/include $CXXFLAGS"
+LDFLAGS="-L$INSTALLS/lib $LDFLAGS"
 PKG_CONFIG_PATH="$INSTALLS/lib/pkgconfig"
 CFLAGS="-O3 $CFLAGS" # Trop de logiciels (PHP\xe2\x80\xa6) se compilent par d\xc3\xa9faut sans optimisation. C'est ballot.
 CXXFLAGS="-O3 $CXXFLAGS"
