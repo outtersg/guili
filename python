@@ -48,10 +48,30 @@ modifs="incdir fbsdopenssl"
 
 v 2.7.2 && modifs="incdirbourrin fbsdopenssl" || true
 v 2.7.9 && modifs="incdirbourrin" || true
-v 2.7.11 && modifs="incdirbourrin" || true
+v 2.7.11 && modifs="incdirbourrin nouveaumac" || true
 v 3.4.3 && modifs="incdirbourrin" || true
 
 # Modifications
+
+nouveaumac()
+{
+	# Recompiler un Python 2.7 sur un Mac dont il n'avait pas connaissance entraîne quelques soucis.
+	case `uname` in
+		Darwin)
+			if [ `uname -r | cut -d . -f 1` -ge 13 ]
+			then
+				filtrer configure sed -e '/CONFIGURE_MACOSX_DEPLOYMENT_TARGET=.*cur_target/i\
+cur_target=10.8
+'
+				OPTIONS_CONF="$OPTIONS_CONF --disable-toolbox-glue"
+				filtrer Lib/urllib.py sed \
+					-e '/from _scproxy/,/return False/d' \
+					-e '/def getproxies_macosx_sysconf/,/^ *return/d' \
+					-e 's/proxy_bypass_macosx_sysconf/proxy_bypass_environment/g' \
+					-e 's/getproxies_macosx_sysconf/getproxies_environment/g'
+			fi
+	esac
+}
 
 incdir()
 {
