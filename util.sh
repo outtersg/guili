@@ -157,6 +157,44 @@ obtenirEtAllerDansGit()
 	fi
 }
 
+obtenirEtAllerDansDarcs()
+{
+	patch_oeadd=
+	archive_oeadd=
+	archive_locale_oeadd=
+	petit_nom_oeadd=
+	options_oeadd=
+	zero="`echo | tr '\012' '\011'`"
+	
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-p) shift ; patch_oeadd="$1" ; options_oeadd="$options_oeadd--to-patch=$patch_oeadd$zero" ;;
+			-n) shift ; petit_nom_oeadd="$1" ;;
+			*) archive_oeadd="$1" ;;
+		esac
+		shift
+	done
+	endroit_oeadd="`basename "$archive_oeadd"`"
+	if [ -z "$petit_nom_oeadd" ]
+	then
+		[ -z "$patch_oeadd" ] || endroit="$endroit_oeadd-$patch_oeadd"
+	else
+		endroit_oeadd="$endroit_oeadd-$petit_nom_oeadd"
+	fi
+	
+	cd "$TMP"
+	echo Obtention et décompression… >&2
+	if [ "x$patch_oeadd" != x ]
+	then
+		archive_locale_oeadd="$INSTALL_MEM/${endroit_oeadd}.tar.bz2"
+		[ -f "$archive_locale_oeadd" ] && tar xjf "$archive_locale_oeadd" && cd "$endroit_oeadd" && return 0
+	fi
+	echo "$options_oeadd--lazy$zero$archive_oeadd$zero$endroit_oeadd" | tr -d '\012' | tr "$zero" '\000' | LANG=C LC_ALL=C xargs -0 darcs get
+	[ -z "$patch_oeadd" ] || tar cjf "$archive_locale_oeadd" "$endroit_oeadd"
+	cd $endroit_oeadd
+}
+
 # Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {

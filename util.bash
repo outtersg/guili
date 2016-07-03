@@ -24,40 +24,6 @@ mkdir -p "$TMP/$$"
 
 [ "`basename "$SHELL"`" != bash ] && return # util.sh est censé contenir des version minimalistes des fonctions ici développées.
 
-obtenirEtAllerDansDarcs()
-{
-	local patch= archive= archive_locale= petit_nom=
-	local -a options
-	
-	while [ $# -gt 0 ]
-	do
-		case "$1" in
-			-p) shift ; patch="$1" ; options=("${options[@]}" "--to-patch=$patch") ;;
-			-n) shift ; petit_nom="$1" ;;
-			*) archive="$1" ;;
-		esac
-		shift
-	done
-	endroit=${archive##*/}
-	if [ -z "$petit_nom" ]
-	then
-		[ -z "$patch" ] || endroit="$endroit-$patch"
-	else
-		endroit="$endroit-$petit_nom"
-	fi
-	
-	cd "$TMP"
-	echo Obtention et décompression… >&2
-	if [ "x$patch" != x ]
-	then
-		archive_locale="$INSTALL_MEM/${endroit}.tar.bz2"
-		[ -f "$archive_locale" ] && tar xjf "$archive_locale" && cd "$endroit" && return 0
-	fi
-	darcs get "${options[@]}" "$archive" "$endroit"
-	[ -z "$patch" ] || tar cjf "$archive_locale" "$endroit"
-	cd $endroit
-}
-
 obtenirEtAllerDansSvn()
 {
 	local rev= tag= archive= archive_locale= options=
