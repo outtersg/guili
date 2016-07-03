@@ -607,3 +607,66 @@ export DYLD_LIBRARY_PATH=
 TERMINE
 	chmod a+x "$TMP/$$/$i"
 done
+
+runghc()
+{
+	# GHC est vraiment une putain d'usine à gaz plantogène. Je crois que je vais finir par abandonner Darcs à cause de GHC (impossibilité de compiler avec un simple compilo C, bibliothèques qui se mettent en vrac si on a le malheur de tenter d'installer une extension 7.6.2 sur la 7.6.3 qui l'embarquait déjà, plantages inopinés de la distrib binaire, etc.).
+	# Redéfinir cette fonction dans le shell ne mettra pas à l'abri les sudo runghc Setup install, mais au moins les configure et build, non sudo, en bénéficieront.
+	until /usr/local/bin/runghc "$@" || [ $? -ne 11 ]
+	do
+		true
+	done
+}
+
+pseudocargo()
+{
+	ou="$TMP"
+	
+	if [ ! -e "$ou/get-pip.py" ]
+	then
+		( cd "$ou" && curl -O https://bootstrap.pypa.io/get-pip.py )
+		sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH PATH=$PATH python "$ou/get-pip.py"
+		sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH PATH=$PATH pip install pytoml dulwich requests # requests pour la version de krig.
+	fi
+	
+	[ -d "$ou/index" ] || git clone https://github.com/rust-lang/crates.io-index "$ou/index"
+	mkdir -p "$ou/bazar"
+	
+	mkdir -p "$ou/localbin"
+	[ -e "$ou/localbin/gmake" ] || ln -s "`command -v make`" "$ou/localbin/gmake"
+	PATH="`pwd`/localbin:$PATH"
+	export PATH
+	triplet=
+	machine="`uname -m`"
+	systeme="`uname -s | tr '[A-Z]' '[a-z]'`"
+	case $machine-$systeme in
+		*-darwin) triplet="$machine-apple-$systeme" ;;
+		*) triplet="$machine-unknown-$systeme" ;;
+	esac
+	ldflagsPseudocargo
+	"$HOME/src/projets/pseudocargo/bootstrap.py" --crate-index "$ou/index" --target-dir "$ou/bazar" --no-clone --no-clean --target "$triplet" --patchdir "$SCRIPTS/cargo.patches/" "$@"
+	
+	CARGODEST="$ou/bazar"
+}
+
+ldflagsPseudocargo()
+{
+	# À FAIRE: se greffer au build s'il y en a déjà un dans le Cargo.toml, plutôt que de l'écraser.
+	
+	filtrer Cargo.toml sed -e '/\[package\]/{
+a\
+build = "ldflags.rs"
+}'
+	(
+		echo "fn main(){"
+		for i in `printf %s "$LDFLAGS" | sed -e 's/-L  */-L/g'`
+		do
+			case "$i" in
+				-L*)
+					echo "$i" | sed -e 's/^../println!("cargo:rustc-link-search=native=/' -e 's/$/");/'
+					;;
+			esac
+		done
+		echo "}"
+	) > ldflags.rs
+}
