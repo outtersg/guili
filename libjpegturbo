@@ -29,6 +29,7 @@ logiciel=libjpegturbo
 # Historique des versions gérées
 
 v 1.4.0 || true
+v 1.5.0 || true
 
 prerequis
 
@@ -37,6 +38,7 @@ prerequis
 # Variables
 
 archive="http://switch.dl.sourceforge.net/project/libjpeg-turbo/$version/libjpeg-turbo-$version.tar.gz"
+archive="http://heanet.dl.sourceforge.net/project/libjpeg-turbo/$version/libjpeg-turbo-$version.tar.gz"
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
