@@ -30,9 +30,16 @@ logiciel=nodejs
 
 v 0.10.33 && prerequis="libexecinfo" || true
 v 0.12.4 && prerequis="libexecinfo" && modifs="pthreadtInt doubleResult neReconstruisPasTout" || true
-v 5.3.0 && prerequis="libexecinfo" && modifs="cstds neReconstruisPasTout" || true
+v 5.3.0 && prerequis="libexecinfo" && modifs="cstds neReconstruisPasTout sansGold" || true
 
 archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
+
+sansGold()
+{
+    # https://github.com/nodejs/node/issues/4212
+    GYP_DEFINES="linux_use_gold_flags=0 $GYP_DEFINES"
+    export GYP_DEFINES
+}
 
 cstds()
 {
