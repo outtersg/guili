@@ -28,14 +28,86 @@ calcScripts "$0"
 
 logiciel=hummus
 
-v 3.0.0.99.1.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 3.9.4 libjpeg 8.3 freetype zlib" || true # Il faudrait un moyen pour que le numéro de version de libjpeg soit calculé depuis le libjpeg embarqué par le libtiff choisi.
+v 3.0.0.99.1.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 3.9.4 libjpeg 8.3 freetype zlib" && modifs="monMake" || true # Il faudrait un moyen pour que le numéro de version de libjpeg soit calculé depuis le libjpeg embarqué par le libtiff choisi.
 v 3.2 || true
+v 3.5 && prerequis="libtiff < 4 libjpeg < 9 freetype zlib" && modifs="monMake monMakeOrdonne" || true
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
-archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe).
+archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
+archive="PDFWriter`echo "$version" | tr . _`.zip"
 
 v_simple="`echo "$version" | sed -e 's/[.][^.]*.git$//'`"
 dest=$INSTALLS/$logiciel-$v_simple
+
+sonMake()
+{
+	configurer()
+	{
+		mkdir Build
+		cd Build
+		cmake ..
+	}
+}
+
+monMake()
+{
+	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
+	cat > PDFWriter/Makefile <<TERMINE
+sourcescpp := \$(shell find . -name \\*.cpp)
+sourcesc := \$(shell find . -name \\*.c)
+sources := \${sourcescpp} \${sourcesc}
+objscpp := \$(sourcescpp:.cpp=.o)
+objsc := \$(sourcesc:.c=.o)
+objs := \${objscpp} \${objsc}
+
+libhummus.so: \${objs}
+	c++ -shared -fpic $LDFLAGS -ltiff -ljpeg -lfreetype -lz \$^ -o \$@
+
+%.o: %.cpp
+	c++ -c -fpic -I$INSTALLS/include/freetype2 $CPPFLAGS \$< -o \$@
+
+%.o: %.c
+	cc -c -fpic -I$INSTALLS/include/freetype2 $CPPFLAGS \$< -o \$@
+TERMINE
+	configurer()
+	{
+		cd PDFWriter
+	}
+}
+
+monMakeOrdonne()
+{
+	mucxx=$CXX
+	[ ! -z $mucxx ] || mucxx=c++
+	# En 3.5, PDFWriter.cpp initialise un truc à partir du DefaultEncryptionOptions, lui-même initialisé dans EncryptionOptions.cpp. Pour éviter le plantage, il nous faut ordonner ces fichiers relativement dans l'ordre qui permettra au second d'être initialisé avant le premier… et cet ordre n'est pas forcément logique.
+	for i in 1 2
+	do
+		cat > $TMP/$$/Mu$i.cpp <<TERMINE
+#include <stdio.h>
+class Mu$i { Mu$i() { fprintf(stdout, "$i\n"); } static const Mu$i mono; };
+const Mu$i Mu$i::mono;
+TERMINE
+		$mucxx -c -fPIC -o $TMP/$$/Mu$i.o $TMP/$$/Mu$i.cpp
+	done
+	cat > $TMP/$$/Mu.cpp <<TERMINE
+int main(int argc, char ** argv)
+{
+	return 0;
+}
+TERMINE
+	$mucxx -shared -o $TMP/$$/libmu.so $TMP/$$/Mu1.o $TMP/$$/Mu2.o
+	$mucxx -o $TMP/$$/mu -L$TMP/$$ -lmu $TMP/$$/Mu.cpp
+	case `LD_LIBRARY_PATH=$TMP/$$ $TMP/$$/mu | head -1` in
+		1) filtrer PDFWriter/Makefile sed -e '/^sourcescpp :=/{
+s/:= */:= EncryptionOptions.cpp /
+s/$/ PDFWriter.cpp/
+}' ;;
+		2) filtrer PDFWriter/Makefile sed -e '/^sourcescpp :=/{
+s/:= */:= PDFWriter.cpp /
+s/$/ EncryptionOptions.cpp/
+}' ;;
+	esac
+}
 
 [ -d "$dest" ] && exit 0
 
@@ -47,24 +119,10 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
-#mkdir Build
-#cd Build
-#cmake ..
-cd PDFWriter
-cat > Makefile <<TERMINE
-sources := \$(shell find . -name \\*.cpp)
-objs := \$(sources:.cpp=.o)
-
-libhummus.so: \${objs}
-	c++ -shared -fpic $LDFLAGS -ltiff -ljpeg -lfreetype -lz \$^ -o \$@
-
-%.o: %.cpp
-	c++ -c -fpic -I$INSTALLS/include/freetype2 $CPPFLAGS \$< -o \$@
-TERMINE
+configurer
 
 echo Compilation… >&2
-make
+make -j3
 
 echo Installation… >&2
 sudo mkdir -p "$dest/include/Hummus" "$dest/lib"
