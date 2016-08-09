@@ -33,6 +33,7 @@ v 2.4.11
 v 2.4.12
 #v 2.5.3
 v 2.5.5
+v 2.6.5
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
