@@ -29,11 +29,11 @@ logiciel=vim
 
 v 6.3 || true
 v 6.4 || true
-v 7.0.205 && modifs="corr" || true
+v 7.0.205 && modifs="corr syntaxephp" || true
 v 7.2.160 || true
 v 7.3.353 || true
 v 7.3.1242 || true
-v 7.4.52 && modifs="corr mavericks" || true
+v 7.4.52 && modifs="corr syntaxephp mavericks" || true
 v 7.4.702 || true
 v 7.4.1847 || true
 v 7.4.2296 || true
@@ -66,6 +66,11 @@ corr()
 	do
 		patch -f -p0 < "${version%.*}.`printf "%3.3d" $i`" || true # Un peu de rustines indigestes Windows.
 	done
+}
+
+syntaxephp()
+{
+	filtrer runtime/syntax/php.vim sed -e 's/\\h\\w/[A-Za-z0-9_âàçéêèëîïôöûùüÿ]/g' # A priori les majuscules sont couvertes aussi, puisque le caractère UTF-8 en minuscule est composé de deux octets, ex. à = a`, donc le [Aaà] est en fait équivalent à [Aaa`] et inclut donc aussi le À qui est la combinaison A`.
 }
 
 mavericks()
