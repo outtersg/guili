@@ -58,8 +58,11 @@ archive="http://exim.mirror.fr/exim/exim4/$logiciel-$version.tar.bz2"
 
 obtenirEtAllerDansVersion
 
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
 echo Configuration… >&2
-sed < src/EDITME > Local/Makefile \
+sed < src/EDITME >> Local/Makefile \
 	-e "/^BIN_DIRECTORY=/s#=.*#=$dest/bin#" \
 	-e "/^CONFIGURE_FILE=/s#=.*#=$dest/etc/exim#" \
 	-e "/^EXIM_USER=/s#=.*#=postfix#" \
@@ -89,9 +92,6 @@ LDCC=cc $(LOOKUP_INCLUDES) $(LOOKUP_LIBS)
 a\
 LIBS += $(PCRE_LIBS) $(LOOKUP_LIBS)
 }'
-
-echo Correction… >&2
-for modif in true $modifs ; do $modif ; done
 
 echo Compilation… >&2
 make || ( filtrer build-`uname`-`uname -m`/Makefile sed -e '/^\.if/,/^\.endif/d' && make )
