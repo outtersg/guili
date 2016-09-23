@@ -28,7 +28,7 @@ logiciel=pkgconfig
 
 v 0.15.0 || true
 v 0.23 || true
-v 0.28 && prerequis="glib >= 2.16" || true
+v 0.28 || true
 
 prerequis
 
@@ -43,7 +43,7 @@ echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" --with-internal-glib
 
 echo Correction… >&2
 # La modif suivante était nécessaire pour que certains paquets daignent cesser de surcharger mon PATH; malheureusement elle m'empêche aussi d'utiliser (proprement) mon PATH pour surcharger /usr/local.
