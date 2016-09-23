@@ -53,7 +53,7 @@ makefile()
 	filtrer Makefile sed -e '/^all: /s/ stemwords//'
 	cat >> Makefile <<TERMINE
 libstemmer.so: \$(snowball_sources:.c=.o)
-	gcc -shared -o \$@ \$^
+	cc -shared -o \$@ \$^
 TERMINE
 }
 
