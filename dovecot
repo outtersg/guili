@@ -26,10 +26,23 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=dovecot
 
-v 2.0.16
-v 2.2.3 && prerequis="libstemmer clucene" && modifs="avecLucene" || true
+v 2.0.16 && modifs="cheminBiblios" || true
+v 2.2.3 && prerequis="libstemmer clucene" && modifs="cheminBiblios avecLucene" || true
 
 # Modifications
+
+cheminBiblios()
+{
+	# http://www.dovecot.org/list/dovecot/2010-November/055257.html
+	# Dovecot efface l'env (dont LD_LIBRARY_PATH) lorsqu'il lance des sous-tâches, du genre dovecot-login.
+	# En conséquence, au démarrage, la tâche se plante, le maître attend 2 s puis la relance, et là apparemment ça passe. Mais par contre entre-temps si un imapproxy a tenté de se connecter, il s'est cassé les dents (il a réussi à se connecter, mais n'a pas obtenu la bannière d'accueil), et pour lui c'est fatal.
+	#LDFLAGS="$LDFLAGS -rpath $INSTALLS/lib"
+	#export LDFLAGS
+	# Par contre on n'ajoute pas notre rpath à LDFLAGS, mais à SSL_LIBS. Sinon ça se met à dégouliner sur toute l'appli, en particulier les "biblios internes" (lib-http, etc.): et leur libtool, configuré normalement pour les compiler en statiques, se met alors à les passer en dynamiques à la vue de ce seul paramètre, ce qui entraîne tout plein de problèmes (car pour compiler la biblio de niveau 3, il se lie juste avec la niveau 2, mais si celle-ci requiert la niveau 1, ça va planter en dynamique alors qu'en statique la niveau 2 inclut la 1).
+	# Attention aussi: sur du LD_LIBRARY_PATH, il faudrait utiliser du -rpath (avec du -R clang plante, ne comprenant pas que c'est le -R pour compatibilité, qu'il faut passer en tant que -rpath à ld), alors qu'en SSL_LIBS, qui passe par libtool, il faut forcément du -rpath, car -rpath a une autre signification pour libtool ("où je dois installer cette biblio").
+	SSL_LIBS="-L$INSTALLS/lib -lssl -lcrypto -R$INSTALLS/lib"
+	export SSL_LIBS
+}
 
 avecLucene()
 {
