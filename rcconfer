@@ -1,0 +1,15 @@
+#!/bin/sh
+
+filtrer()
+{
+	fichier="$1"
+	shift
+	"$@" < "$fichier" > "$fichier.filtrage.$$" && cat "$fichier.filtrage.$$" > "$fichier" && rm "$fichier.filtrage.$$"
+}
+
+while [ $# -gt 0 ]
+do
+	directive="`echo "$1" | sed -e 's/=.*/=/'`"
+	filtrer /etc/rc.conf sed -e "/^$directive/d" && echo "$1" >> /etc/rc.conf
+	shift
+done
