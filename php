@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2004-2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +22,7 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 inclure libjpeg
 inclure libpng
@@ -33,7 +33,7 @@ inclure iconv-gnu # Depuis Mavericks, même sur Mac OS X, il nous faut recompi
 
 logiciel=php
 
-OPTIONS_CONF=()
+OPTIONS_CONF=
 
 # Historique des versions gérées
 
@@ -227,18 +227,18 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 versionApache=
 `apxs -q SBINDIR`/`apxs -q TARGET` -v | grep version | grep -q 'Apache/2' && versionApache=2
-psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-pgsql --with-pdo-pgsql)
-[ $cgi = oui ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-apxs$versionApache)
-[ $cgi = oui ] && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-fpm) || true
-[ -z "$v_icu" ] || OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-intl) || true
-pge $version 5.6 && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-phpdbg) || true
+psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF="$OPTIONS_CONF --with-pgsql --with-pdo-pgsql"
+[ -z "$versionApache" ] || OPTIONS_CONF="$OPTIONS_CONF --with-apxs$versionApache"
+OPTIONS_CONF="$OPTIONS_CONF --enable-fpm"
+[ -z "$v_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
+pge $version 5.6 && OPTIONS_CONF="$OPTIONS_CONF --enable-phpdbg" || true
 for i in "$INSTALLS" /usr ""
 do
-	stat "$i/lib/libz."* > /dev/null 2>&1 && OPTIONS_CONF=("${OPTIONS_CONF[@]}" --with-zlib-dir=$i) && break
+	stat "$i/lib/libz."* > /dev/null 2>&1 && OPTIONS_CONF="$OPTIONS_CONF --with-zlib-dir=$i" && break
 done
 # gettext: pour Horde
 # ssl: pour Horde IMP
-./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets "${OPTIONS_CONF[@]}" #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
+./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets $OPTIONS_CONF #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
 
 fi
 
