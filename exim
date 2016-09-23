@@ -32,8 +32,8 @@ logiciel=exim
 
 # Historique des versions gérées
 
-v 4.77
-v 4.80.1 && modifs="paf" && prerequis="pcre"
+v 4.77 && modifs="lthr" || true
+v 4.80.1 && modifs="lthr paf" && prerequis="pcre" || true
 v 4.82
 v 4.82.1
 v 4.87 || true
@@ -47,6 +47,25 @@ paf()
 	cp $HOME/src/projets/paf/paf.c Local/ || true
 	echo "LOCAL_SCAN_SOURCE=Local/paf.c" >> Local/Makefile
 	echo "LOCAL_SCAN_HAS_OPTIONS=yes" >> Local/Makefile
+}
+
+lthr()
+{
+	case `uname` in
+		FreeBSD)
+			cat > $TMP/$$/testpthr.c <<TERMINE
+#include <pthread.h>
+int main(int argc, char ** argv)
+{
+	pthread_create(NULL, NULL, NULL, NULL);
+}
+TERMINE
+			for BIBLIOS_PTHREAD in "" "-lthr"
+			do
+				cc -o $TMP/$$/testphr $TMP/$$/testpthr.c "$BIBLIOS_PTHREAD" 2> /dev/null >&2 && break || true
+			done
+			;;
+	esac
 }
 
 # Variables
@@ -87,7 +106,7 @@ a\
 LOOKUP_INCLUDES='"-I$INSTALLS/include"'
 }' \
 	-e '/^# LOOKUP_LIBS=/a\
-LOOKUP_LIBS='"-L$INSTALLS/lib $BIBLIOS_LDAP -lsqlite3 -ldb -lpam"'
+LOOKUP_LIBS='"-L$INSTALLS/lib $BIBLIOS_LDAP -lsqlite3 -ldb -lpam $BIBLIOS_PTHREAD"'
 ' \
 	-e '${
 a\
