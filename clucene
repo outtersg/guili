@@ -29,6 +29,7 @@ logiciel=clucene
 # Historique des versions gérées
 
 v 20130621.4f62f2a90ecbea0d6d14e4bc0902056996144023.git && modifs="wcstoll"
+v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="wcstoll wcscpp" || true
 
 # Modifications
 
@@ -36,6 +37,15 @@ wcstoll()
 {
 	# http://sourceforge.net/p/clucene/bugs/208/
 	export CXXFLAGS=-D__LONG_LONG_SUPPORTED
+}
+
+wcscpp()
+{
+	# clang trouve une ambiguïté entre le wcsstr C et celui CPP (sachant que le second est un simple appel au premier).
+	for i in src/shared/CLucene/util/Misc.cpp src/core/CLucene/search/FieldCacheImpl.cpp src/core/CLucene/search/WildcardQuery.cpp
+	do
+		filtrer "$i" sed -e s/_tcsstr/::wcsstr/g -e s/_tcschr/::wcschr/g
+	done
 }
 
 # Variables
