@@ -36,6 +36,7 @@ v 5.1.46 && OPTIONS_CONF= || true
 v 5.1.50 && OPTIONS_CONF= || true
 v 5.5.18 && prerequis="readline cmake" && OPTIONS_CONF="-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF" && modifs="poumReadline cheminsInstallDb" || true
 v 5.5.32 && OPTIONS_CONF="-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF" && modifs="poumReadline cheminsInstallDb" || true
+v 5.5.35 || true
 v 5.6.15 && modifs="$modifs inclusionsEnOrdre mesParamsInit" || true
 
 vmaj="`echo $version | sed -e 's#^\([^.]*.[^.]*\).*#\1#'`"
