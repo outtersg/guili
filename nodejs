@@ -101,8 +101,7 @@ MAKE="make -j 3" make
 fi
 
 echo Installation… >&2
-# Bon, de toute façon cet abruti recompile tout. Le make précédent est donc inutile.
-sudo make install
+sudo LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make install
 sutiliser "$logiciel-$version"
 
 rm -Rf $TMP/$$
