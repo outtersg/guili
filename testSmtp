@@ -1,0 +1,138 @@
+#!/bin/sh
+# Test de la mécanique exim / ssmtp.
+
+chut=1
+dlemis=gclo.fr
+dlrecu=outters.eu
+externe=guillaume.outters@free.fr
+externee=guillaume.outters@example.com
+
+if [ -z "$mdp" ]
+then
+	printf "mdp de gui@$dlemis? "
+	read mdp
+fi
+adrip="`ifconfig | grep inet | cut -d ' ' -f 2 | head -1`"
+lisRes()
+{
+	grep --max-count=1 "$1" > /tmp/temp.$$.rep
+	grep -q "^5" < /tmp/temp.$$.rep && echo QUIT && touch /tmp/temp.$$.rate && exit 0 || true
+}
+cause()
+{
+	if [ -z "$chut" ]
+	then
+		tee -a /dev/tty
+	else
+		tee -a /tmp/temp.$$.trace
+	fi
+}
+envoi()
+{
+	auth=oui
+	[ "x$1" = x--sans-auth ] && shift && auth=non
+	adr=$adrip
+	[ "x$1" = x--localhost ] && shift && adr=127.0.0.1
+	fichier=
+	[ "x$1" = x--fichier ] && shift && fichier="$1" && shift
+	[ "x$1" = x- ] && shift && fichier="/tmp/temp.testSmtp.$$.contenu" && cat > "$fichier"
+	dequiaffiche=
+	[ "x$1" = x-f ] && shift && dequiaffiche="$1" && shift
+	quoi="$1"
+	dequi="$2"
+	[ "x$dequiaffiche" = x ] && dequiaffiche="$dequi"
+	aqui="$3"
+	dequiauth="`echo "$dequi" | sed -e 's/-[^@]*@/@/'`"
+	plain=`printf ^$dequiauth^$mdp | tr ^ '\000' | openssl base64`
+	mkfifo /tmp/temp.$$.fifo
+	rm -f /tmp/temp.$$.rate
+	cat /tmp/temp.$$.fifo | (
+		grep -q ESMTP
+		echo EHLO `hostname`
+		grep -q "250 "
+		[ $auth = oui ] && echo AUTH PLAIN $plain && grep -q "235 "
+		echo "MAIL FROM:<$dequi>"
+		lisRes "[25]50 "
+		echo RCPT TO: $aqui
+		lisRes "[25]50 "
+		echo DATA
+		grep -q "354 "
+		if [ -z "$fichier" ]
+		then
+			echo Subject: essai de Guillaume $quoi
+			echo From: $dequiaffiche
+			echo
+			echo COUCOU DE $dequi
+		else
+			cat "$fichier"
+		fi
+		echo .
+		grep -q "250 "
+		echo QUIT
+		grep -q "221 "
+	) | cause | telnet $adr 25 2>&1 | cause > /tmp/temp.$$.fifo
+	rm /tmp/temp.$$.fifo
+	echo "$quoi" | cut -d ' ' -f 1 | tr -d '\012'
+	oui=Oui
+	[ -e /tmp/temp.$$.rate ] && oui=Non || true
+	couleur='@[0;31m'
+	echo "$quoi" | grep -q "^$oui" && couleur='@[0;32m' || true
+	echo ": $couleur$oui"'@[0m' | tr @ '\033'
+}
+
+m()
+{
+	quoi="$1"
+	qui="$2"
+	( echo "Subject: $quoi" ; echo ; cat ) | sm "$quoi" "$qui"
+	
+	return
+	
+	# Version initiale, court-circuitée car mail étant asynchrone, il peut accepter notre message et planter ensuite sans qu'on le sache.
+	
+	quoi="$1" ; shift
+	oui=Oui
+	mail -s "$quoi" "$@" 2> /dev/null >&2 || oui=Non
+	couleur='@[0;31m'
+	echo "$quoi" | cut -d ' ' -f 1 | tr -d '\012'
+	echo "$quoi" | grep -q "^$oui" && couleur='@[0;32m' || true
+	echo ": $couleur$oui"'@[0m' | tr @ '\033'
+}
+
+sm()
+{
+	quoi="$1" ; shift
+	oui=Oui
+	sendmail "$@" 2> /dev/null >&2 || oui=Non
+	couleur='@[0;31m'
+	echo "$quoi" | cut -d ' ' -f 1 | tr -d '\012'
+	echo "$quoi" | grep -q "^$oui" && couleur='@[0;32m' || true
+	echo ": $couleur$oui"'@[0m' | tr @ '\033'
+}
+
+envoi Oui1 gui-envoyant@$dlemis guillaume-destinataire@$dlrecu
+envoi -f guidouille-envoyant@$dlemis OuiMais1 gui-envoyant@$dlemis guillaume-destinataire@$dlrecu # Oui, mais From forcé à ce qui est réécrit.
+envoi --sans-auth Non1 gui@$dlemis guillaume-destinataire@$dlrecu # Interne non authentifié interdit
+envoi --sans-auth Oui2 $externee guillaume-destinataire@$dlrecu # Externe vers interne: sans auth
+envoi --sans-auth --localhost Oui3 fournil@$dlrecu guillaume-destinataire@$dlrecu # Du moment qu'il est référencé dans $dlrecu.automates, ça passe (serveur PHP émettant).
+# À FAIRE: tester avec une redirection (mathilde-logistique -> externe, par exemple; vérifier DKIM); et en sens inverse.
+envoi --sans-auth --localhost Non2 fourmil@$dlrecu guillaume-destinataire@$dlrecu # Un serveur local qui n'est pas inscrit se fait jeter.
+
+echo "COUCOU de `id`" | m "Oui4 essai de Guillaume" guillaume@$dlrecu
+( echo "From: fournil@$dlrecu" ; echo "Subject: essai de Guillaume Oui5" ; echo ; echo "COUCOU de `id`" ; echo . ) | sm OuiFournil guillaume@$dlrecu # gui est autorisé à envoyer sous le nom fournil@$dlemis
+( echo "From: Fournil <fournil@$dlrecu>" ; echo "Subject: essai de Guillaume Oui6" ; echo ; echo "COUCOU de `id`" ; echo . ) | sm OuiFournilComplexe guillaume@$dlrecu # le même avec un From un poil plus complexe.
+( echo "From: Fournil <fourmille@$dlrecu>" ; echo "Subject: essai de Guillaume Non3" ; echo ; echo "COUCOU de `id`" ; echo . ) | sm NonFauxFournil guillaume@$dlrecu # Mais interdit si on ne figure pas dans la liste des autorisés!
+envoi Oui41 gui-envoyant@$dlemis $externe
+envoi --sans-auth Non40 $externee $externe # Relai interdit
+echo "COUCOU de `id`" | m "Oui42 essai de Guillaume" $externe # Juste parce que l'utilisateur courant a été autorisé dans ici.la.automates.
+( echo "From: Fournil <fournil@$dlrecu>" ; echo "Subject: essai de Guillaume Oui43" ; echo ; echo "COUCOU de `id`" ; echo . ) | sm OuiSendMailExt $externe # test sendmail en externe.
+
+(
+	cat <<TERMINE
+Subject: Doctor work from home Health
+From: "Rencontre" <rencontre@
+
+Doctor work from home <http://www.work.com/home/>
+Viagra und compagnie.
+TERMINE
+) | envoi --sans-auth - NonLongSpam $externee guillaume-destinataire@$dlrecu # Pourriel, ne doit pas passer.
