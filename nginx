@@ -27,6 +27,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 logiciel=nginx
 
 v 1.9.1 && modifs="" && prerequis="pcre" || true
+v 1.10.1 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
