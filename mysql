@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +22,7 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 inclure readline
 
@@ -30,24 +30,13 @@ logiciel=mysql
 
 # Historique des versions gérées
 
-version=5.0.24a
-OPTIONS_CONF=()
-
-version=5.0.51
-OPTIONS_CONF=(--without-editline --with-readline=yes --with-charset=utf8 CPPFLAGS=-I$INSTALLS/include)
-modifs=poumReadline
-
-version=5.1.46
-OPTIONS_CONF=()
-
-version=5.1.50
-OPTIONS_CONF=()
-
-v 5.5.18 && OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF) && modifs="poumReadline cheminsInstallDb" || true
-v 5.5.32 && OPTIONS_CONF=(-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF) && modifs="poumReadline cheminsInstallDb" || true
+v 5.0.24a && prerequis="readline" || true
+v 5.0.51 && OPTIONS_CONF="--without-editline --with-readline=yes --with-charset=utf8 CPPFLAGS=-I$INSTALLS/include" && modifs=poumReadline || true
+v 5.1.46 && OPTIONS_CONF= || true
+v 5.1.50 && OPTIONS_CONF= || true
+v 5.5.18 && prerequis="readline cmake" && OPTIONS_CONF="-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF" && modifs="poumReadline cheminsInstallDb" || true
+v 5.5.32 && OPTIONS_CONF="-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF" && modifs="poumReadline cheminsInstallDb" || true
 v 5.6.15 && modifs="$modifs inclusionsEnOrdre" || true
-
-inclure cmake # depuis la 5.5.18 pour sûr.
 
 vmaj="`echo $version | sed -e 's#^\([^.]*.[^.]*\).*#\1#'`"
 
@@ -86,6 +75,8 @@ archive=http://mirrors.dotsrc.org/mysql/Downloads/MySQL-$vmaj/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
+prerequis
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
@@ -94,9 +85,9 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 if pge $version 5.5.18
 then
-	cmake -DCMAKE_INSTALL_PREFIX="$dest" "${OPTIONS_CONF[@]}"
+	cmake -DCMAKE_INSTALL_PREFIX="$dest" $OPTIONS_CONF
 else
-	./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+	./configure --prefix="$dest" $OPTIONS_CONF
 fi
 
 echo Compilation… >&2
