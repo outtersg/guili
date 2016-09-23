@@ -31,6 +31,7 @@ logiciel=lua
 v 5.1.5 && modifs="compilo fpic" || true
 v 5.2.1 || true
 v 5.3.1 && modifs="compilo fpic log2" || true
+v 5.3.3 || true
 
 # Modifications
 
