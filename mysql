@@ -36,11 +36,18 @@ v 5.1.46 && OPTIONS_CONF= || true
 v 5.1.50 && OPTIONS_CONF= || true
 v 5.5.18 && prerequis="readline cmake" && OPTIONS_CONF="-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF" && modifs="poumReadline cheminsInstallDb" || true
 v 5.5.32 && OPTIONS_CONF="-DWITH_LIBEDIT=OFF -DWITH_READLINE=ON -DWITH_UNIT_TESTS=OFF" && modifs="poumReadline cheminsInstallDb" || true
-v 5.6.15 && modifs="$modifs inclusionsEnOrdre" || true
+v 5.6.15 && modifs="$modifs inclusionsEnOrdre mesParamsInit" || true
 
 vmaj="`echo $version | sed -e 's#^\([^.]*.[^.]*\).*#\1#'`"
 
 # Modifications
+
+mesParamsInit()
+{
+	# Leur foutu démarreur ignore royalement tous les paramètres qu'on lui passe. Résultat, impossible de configurer une base hors de $INSTALLS.
+	# Il y a apparemment un mysql-multi.server.sh: à voir si ça ne ferait pas l'affaire.
+	filtrer support-files/mysql.server.sh sed -e '/parse_server_arguments[^(]*$/s/$/ "$@"/'
+}
 
 poumReadline()
 {
@@ -94,7 +101,7 @@ echo Compilation… >&2
 make
 plugins=
 pge $version 5.1.50 && pge 5.2 $version && plugins='plugin-load=innodb=ha_innodb_plugin.so'
-cat <<TERMINE > my.cnf
+cat <<TERMINE > my.cnf.exemple
 # https://mariadb.com/blog/starting-mysql-low-memory-virtual-machines
 # http://www.tocker.ca/2014/03/10/configuring-mysql-to-use-minimal-memory.html
 
@@ -117,7 +124,7 @@ sudo make install
 sudo rm -Rf "$dest/mysql-test" "$dest/sql-bench"
 [ -d "$dest/scripts" ] && sudo mv "$dest/scripts/"* "$dest/bin/" && sudo rm -Rf "$dest/scripts"
 [ -d "$dest/support-files" ] && sudo mkdir -p "$dest/share/mysql/" && sudo mv "$dest/support-files/"* "$dest/share/mysql/" && sudo rm -Rf "$dest/support-files"
-sudo cp my.cnf "$dest/"
+sudo cp my.cnf.exemple "$dest/"
 sutiliser "$logiciel-$version"
 
 #[ -d "$HOME/var/mysql" ] || mysql_install_db --datadir="$HOME/var/mysql"
