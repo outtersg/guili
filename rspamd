@@ -30,6 +30,7 @@ logiciel=rspamd
 
 #v 1.0.4 && prerequis="cmake libevent glib gmime luajit sqlite" || true
 v 1.0.4 && prerequis="cmake libevent glib gmime lua sqlite" && modifs="sansLuaJit" || true
+v 1.3.5 && prerequis="cmake libevent glib gmime lua sqlite ragel" || true
 
 # Modifications
 
