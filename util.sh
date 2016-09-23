@@ -257,7 +257,27 @@ if [ "x$SANSSU" = x1 ] || ! command -v sudo 2> /dev/null >&2
 then
 	sudo()
 	{
+		(
+			enTantQue=
+			while [ "$#" -gt 0 ]
+			do
+				case "$1" in
+					*=*)
+						eval "$1"
+						export "`echo "$1" | cut -d = -f 1`"
+						shift
+						;;
+					-u) shift ; enTantQue="$1" ; shift ;;
+					*) break ;;
+				esac
+			done
+			if [ -z "$enTantQue" ]
+			then
 		"$@" # Avec un peu de chance on est en root.
+			else
+				su - "$enTantQue" -c "$*"
+			fi
+		)
 	}
 fi
 
