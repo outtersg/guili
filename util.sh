@@ -22,7 +22,13 @@
 INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
-[ -z "$SANSSU" ] && SANSSU=0 || true
+if [ -z "$SANSSU" ]
+then
+	case `id -u` in
+		0) SANSSU=1 ;;
+		*) SANSSU=0 ;;
+	esac
+fi
 
 mkdir -p "$TMP/$$"
 export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
