@@ -62,25 +62,32 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+# Avec ou sans LDAP?
+if false
+then
+	BIBLIOS_LDAP="-lldap -llber"
+else
+	CONF_LDAP="# "
+fi
 sed < src/EDITME >> Local/Makefile \
 	-e "/^BIN_DIRECTORY=/s#=.*#=$dest/bin#" \
 	-e "/^CONFIGURE_FILE=/s#=.*#=$dest/etc/exim#" \
 	-e "/^EXIM_USER=/s#=.*#=postfix#" \
 	-e "/^SPOOL_DIRECTORY=/s#=.*#=$dest/var/spool/exim#" \
 	-e "/^EXIM_MONITOR=/s#=.*#=#" \
-	-e "/^# LOOKUP_LDAP=yes/s/^# //" \
+	-e "/^# LOOKUP_LDAP=yes/s/^# /$CONF_LDAP/" \
 	-e "/^# LOOKUP_PASSWD=yes/s/^# //" \
 	-e "/^# LOOKUP_SQLITE=yes/s/^# //" \
 	-e "/^# AUTH_DOVECOT=yes/s/^# //" \
 	-e "/^# SUPPORT_PAM=yes/s/^# //" \
 	-e "/^# SUPPORT_MAILDIR=yes/s/^# //" \
-	-e "/^# LDAP_LIB_TYPE=OPENLDAP2/s/^# //" \
+	-e "/^# LDAP_LIB_TYPE=OPENLDAP2/s/^# /$CONF_LDAP/" \
 	-e '/^# LOOKUP_INCLUDE=/{
 a\
 LOOKUP_INCLUDES='"-I$INSTALLS/include"'
 }' \
 	-e '/^# LOOKUP_LIBS=/a\
-LOOKUP_LIBS='"-L$INSTALLS/lib -lldap -llber -lsqlite3 -ldb -lpam"'
+LOOKUP_LIBS='"-L$INSTALLS/lib $BIBLIOS_LDAP -lsqlite3 -ldb -lpam"'
 ' \
 	-e '${
 a\
