@@ -40,6 +40,19 @@ CXXFLAGS="-O3 $CXXFLAGS"
 export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH
 export ACLOCAL="aclocal -I $INSTALLS/share/aclocal"
 
+ajouterModif()
+{
+	modifs="$modifs $*"
+}
+
+retirerModif()
+{
+	for modif in "$@"
+	do
+		modifs="`echo " $modifs " | sed -e "s/ $modif / /g" -e 's/  */ /g' -e 's/^ //' -e 's/ $//'`"
+	done
+}
+
 obtenir()
 {
 	fichier="$2"
