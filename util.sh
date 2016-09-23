@@ -347,8 +347,10 @@ reglagesCompilPrerequis()
 	for peutEtreDossierRequis in "$INSTALLS/$1-"*
 	do
 		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#$INSTALLS/$1-##"`"
-		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" || true
+		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" && versionInclus="$versionRequis" || true
 	done
+	PREINCLUS="$1:$versionInclus $PREINCLUS"
+	eval "dest`echo "$1" | tr - _`=$dossierRequis"
 	preChemine "$dossierRequis"
 	PATH="$dossierRequis/bin:$PATH" # Pour les machins qui ont besoin de lancer des exécutables (xml2-config etc.) de leurs prérequis.
 	LD_LIBRARY_PATH="$dossierRequis/lib:$LD_LIBRARY_PATH" # Python et compagnie.
