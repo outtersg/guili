@@ -27,12 +27,14 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 logiciel=dovecot
 
 v 2.0.16
-v 2.2.3 && avec_lucene=oui
-
-[ -z "$avec_lucene" ] || inclure libstemmer
-[ -z "$avec_lucene" ] || options="--with-lucene --with-stemmer"
+v 2.2.3 && prerequis="libstemmer clucene" && modifs="avecLucene" || true
 
 # Modifications
+
+avecLucene()
+{
+	options="--with-lucene --with-stemmer"
+}
 
 # Variables
 
@@ -42,6 +44,8 @@ archive="http://dovecot.org/releases/$v_maj/$logiciel-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
+prerequis
+
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
@@ -49,7 +53,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-sqlite --with-ldap $options
+./configure --prefix="$dest" --with-sqlite $options # --with-ldap
 
 echo Compilation… >&2
 make
