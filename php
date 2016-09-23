@@ -86,14 +86,6 @@ v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
 v 7.0.8 || true
 
-if [ "x$1" = xcgi ]
-then
-	cgi=oui
-	shift
-else
-	cgi=non
-fi
-
 prerequis
 
 # Modifs
@@ -267,55 +259,24 @@ log_errors = On
 display_errors = Off
 date.timezone = Europe/Paris
 magic_quotes_gpc = 0
+
+; Ça ne fait pas de mal d'activer les extensions: s'il ne trouve pas il ne pète pas.
+zend_extension = "opcache.so"
 TERMINE
 
-# Pour un PHP en mode CGI, on ne se permet pas de devenir le PHP par défaut de l'OS.
-if [ $cgi = oui ]
-then
-	if [ -e "sapi/fpm/init.d.php-fpm.in" -a -d /usr/local/etc/rc.d ]
+if [ -e "sapi/fpm/init.d.php-fpm.in" ] # Toutes les versions n'ont pas un fpm intégré.
 	then
-		sed < "sapi/fpm/init.d.php-fpm.in" > "sapi/fpm/init.d.php-fpm" -e "s#@sbindir@#$dest/sbin#g" -e "s#@sysconfdir@#$dest/etc#g" -e "s#@localstatedir@#$dest/var#g"
+		sed < "sapi/fpm/init.d.php-fpm.in" > "sapi/fpm/init.d.php-fpm" -e "s#@sbindir@#$dest/sbin#g" -e "s#@sysconfdir@#$dest/etc#g" -e "s#@localstatedir@#$dest/var#g" -e '1{
+a\
+# PROVIDE: phpfpm
+a\
+# REQUIRE: NETWORKING
+}' -e '/[^e]start)/s/)/|quietstart)/'
 		chmod u+x "sapi/fpm/init.d.php-fpm"
-		sudo cp "sapi/fpm/init.d.php-fpm" /usr/local/etc/rc.d/php-fpm
-		if [ ! -e "$dest/etc/php-fpm.conf" ]
-		then
 			sed < "$dest/etc/php-fpm.conf.default" > php-fpm.conf -e 's/^;pid =/pid =/' -e 's/^user = .*/user = www/' -e 's/^group = .*/group = www/' -e 's/^pm.max_children = .*/pm.max_children = 20/'
-			sudo cp php-fpm.conf "$dest/etc/php-fpm.conf"
-		fi
-	fi
-	exit
+	sudo cp php-fpm.conf sapi/fpm/init.d.php-fpm "$dest/etc/"
 fi
 
 sutiliser "$logiciel-$version"
 
-echo Configuration d\'Apache… >&2
-varap()
-{
-	"`apxs -q SBINDIR`/`apxs -q TARGET`" -V | sed -e "/$1/"'!d' -e 's/^[^"]*"//' -e 's/"[^"]*$//'
-}
-conf="`varap SERVER_CONFIG_FILE`"
-[[ $conf = /* ]] || conf="`varap HTTPD_ROOT`/$conf"
-sed -e '/^#LoadModule.*php5/s/#//' -e '/^LoadModule.*php4/s/^/#/' < "$conf" > /tmp/mod.$$.temp # L'install de PHP a dû rajouter, mais en commenté, le chargement de la biblio.
-if grep -q 'application/x-httpd-php' "$conf"
-then
-	cat /tmp/mod.$$.temp
-else
-	sed -e '/Section 3/,$d' < /tmp/mod.$$.temp > /tmp/ext.$$.temp
-	cat >> /tmp/ext.$$.temp << TERMINE
-<IfModule mod_php5.c>
-	AddType application/x-httpd-php .php
-	AddType application/x-httpd-php-source .phps
-	<IfModule mod_dir.c>
-		DirectoryIndex index.html index.php
-	</IfModule>
-</IfModule>
-TERMINE
-	sed -e '/Section 3/,$!d' < /tmp/mod.$$.temp >> /tmp/ext.$$.temp
-	cat /tmp/ext.$$.temp
-	rm /tmp/ext.$$.temp
-fi | sudo tee "$conf" > /dev/null
-[ "$1" = 4 ] && cat "$conf" | sed -e '/^#LoadModule.*php4/s/#//' -e '/^LoadModule.*php5/s/^/#/' -e 's/^Listen 80$/Listen 8080/' | sudo tee "${conf%.conf}.php4.conf" > /dev/null
-rm /tmp/mod.$$.temp
-
-echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
-echo "Ou, pour une 5.5, d'activer le ZOP (zend_extension=\"/usr/local/php-5.5.8/lib/php/extensions/no-debug-non-zts-20121212/opcache.so\")." >&2
+pge "$version" 5.5 || echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2

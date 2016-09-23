@@ -1,0 +1,79 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=phpapache
+
+# Historique des versions gérées
+
+prerequis="apache php"
+
+prerequis
+
+# Modifications
+
+# Variables
+
+version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*:/-/g'`"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+echo Configuration d\'Apache… >&2
+varap()
+{
+	"`apxs -q SBINDIR`/`apxs -q TARGET`" -V | sed -e "/$1/"'!d' -e 's/^[^"]*"//' -e 's/"[^"]*$//'
+}
+conf="`varap SERVER_CONFIG_FILE`"
+case "$conf" in
+	/*) true ;;
+	*) conf="`varap HTTPD_ROOT`/$conf"
+esac
+sed -e '/^#LoadModule.*php[5-9]/s/#//' -e '/^LoadModule.*php4/s/^/#/' < "$conf" > /tmp/mod.$$.temp # L'install de PHP a dû rajouter, mais en commenté, le chargement de la biblio.
+if grep -q 'application/x-httpd-php' "$conf"
+then
+	cat /tmp/mod.$$.temp
+else
+	sed -e '/Section 3/,$d' < /tmp/mod.$$.temp > /tmp/ext.$$.temp
+	cat >> /tmp/ext.$$.temp << TERMINE
+<IfModule mod_php5.c>
+	AddType application/x-httpd-php .php
+	AddType application/x-httpd-php-source .phps
+	<IfModule mod_dir.c>
+		DirectoryIndex index.html index.php
+	</IfModule>
+</IfModule>
+TERMINE
+	sed -e '/Section 3/,$!d' < /tmp/mod.$$.temp >> /tmp/ext.$$.temp
+	cat /tmp/ext.$$.temp
+	rm /tmp/ext.$$.temp
+fi | sudo tee "$conf" > /dev/null
+[ "$1" = 4 ] && cat "$conf" | sed -e '/^#LoadModule.*php4/s/#//' -e '/^LoadModule.*php[5-9]/s/^/#/' -e 's/^Listen 80$/Listen 8080/' | sudo tee "${conf%.conf}.php4.conf" > /dev/null
+rm /tmp/mod.$$.temp
+
+# Pour marquer qu'on a installé le couple de versions.
+sudo mkdir "$dest"
+
+rm -Rf "$TMP/$$"
