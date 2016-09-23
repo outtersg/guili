@@ -68,7 +68,10 @@ toutLeMondeVeutTruncate()
 ldlproot()
 {
 	# Le sudo make install fait un bout de compil. C'est gentil, mais étant donné que sudo vide l'environnement, il ne verra aucune de nos variables d'env surchargées. On doit donc les coder en dur dans le Makefile.
-	filtrer icudefs.mk sed -e "s#\\\$\\\$\\\$(LDLIBRARYPATH_ENVVAR)#$LD_LIBRARY_PATH#g"
+	for i in icudefs.mk.in icudefs.mk
+	do
+		[ -e "$i" ] && filtrer "$i" sed -e "s#\\\$\\\$\\\$(LDLIBRARYPATH_ENVVAR)#$LD_LIBRARY_PATH#g" || true
+	done
 }
 
 # Variables
