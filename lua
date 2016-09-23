@@ -28,9 +28,9 @@ logiciel=lua
 
 # Historique des versions gérées
 
-v 5.1.5 && modifs=fpic || true
-v 5.2.1 && modifs=fpic || true
-v 5.3.1 && modifs="fpic log2" || true
+v 5.1.5 && modifs="compilo fpic" || true
+v 5.2.1 || true
+v 5.3.1 && modifs="compilo fpic log2" || true
 
 # Modifications
 
@@ -69,6 +69,11 @@ fpic()
 	case `uname` in
 		FreeBSD) filtrer src/Makefile sed -e 's#^CFLAGS *=#CFLAGS=-fPIC#' ;;
 	esac
+}
+
+compilo()
+{
+	filtrer src/Makefile sed -e 's#^CC *= *gcc#CC=cc#'
 }
 
 # Variables
