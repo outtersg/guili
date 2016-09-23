@@ -1,0 +1,119 @@
+#!/bin/sh
+
+# En 2.2.3 sur la FBSD 8, pas la peine de mentionner listen = *.
+# En 2.2.24 sur la FBSD 10, si on ne l'y force pas, il tente aussi de se lancer en IPv6 et plante si cela n'est pas supporté.
+pge $version 2.2.24 && listen="listen = *" || true
+
+mkdir "$TMP/$$/conf"
+cat > "$TMP/$$/conf/dovecot.conf" <<TERMINE
+# Général
+
+default_login_user = nobody
+default_internal_user = @compte@
+
+$listen
+protocols = imap
+base_dir = $dest/var/run/dovecot
+
+# Auth
+
+disable_plaintext_auth = no
+auth_mechanisms = plain login
+
+passdb {
+	driver = sql
+	args = @cedossier@/dovecot-sqlite.conf
+}
+
+userdb {
+	driver = static
+}
+
+# logging.conf
+
+mail_home = @mels@/%d/%n
+mail_location = maildir:~/
+mail_uid = @compte@
+mail_gid = @compte@
+
+namespace {
+	separator = /
+	prefix = 
+	inbox = yes
+}
+
+namespace {
+	separator = /
+	prefix = Unix/
+	location = mbox:~/mail:INBOX=/var/mail/%u
+}
+
+maildir_very_dirty_syncs = yes
+
+# Master
+
+service imap-login {
+	inet_listener imap {
+		port = 143
+	}
+}
+
+service imap {
+}
+
+service auth {
+	unix_listener auth-userdb {
+		mode = 0600
+		user =
+		group =
+	}
+    unix_listener auth-client {
+        user = @compte@
+        mode = 0600
+    }
+}
+
+service auth-worker {
+}
+
+ssl = no
+
+# IMAP
+
+protocol imap {
+	imap_client_workarounds = delay-newmail
+	mail_max_userip_connections = 24
+}
+
+# Recherche Lucene
+
+mail_plugins = \$mail_plugins fts fts_lucene
+
+plugin {
+  fts = lucene
+  # Lucene-specific settings, good ones are:
+  fts_lucene = whitespace_chars=@. #normalize no_snowball #default_language=fr
+  # Impossible de faire tourner comme voulu malgré:
+  # http://dovecot.2317879.n4.nabble.com/search-and-UTF-8-normalization-forms-NFD-td41808.html
+  # On souhaitait que les recherches Églantine et eglantine renvoyassent la même chose.
+}
+TERMINE
+
+cat > "$TMP/$$/conf/dovecot-sqlite.conf" <<TERMINE
+# CREATE TABLE users (
+#     username VARCHAR(128) NOT NULL,
+#     domain VARCHAR(128) NOT NULL,
+#     password VARCHAR(64) NOT NULL,
+#     home VARCHAR(255) NOT NULL,
+#     uid INTEGER NOT NULL,
+#     gid INTEGER NOT NULL,
+#     active CHAR(1) DEFAULT 'Y' NOT NULL
+# );
+
+driver = sqlite
+connect = @comptes@/dovecot-users.sqlite3
+#password_query = select user, password from users where user||'@'||domain = '%u';
+#password_query = select username, domain, password from users where username = '%n' AND domain = '%d';
+TERMINE
+
+sudo cp -R "$TMP/$$/conf" "$dest/share/doc/dovecot/exemple-config"

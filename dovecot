@@ -76,9 +76,8 @@ make
 echo Installation… >&2
 sudo make install
 sudo mkdir -p "$dest/var/run"
+. "$SCRIPTS/dovecot-exemple-config"
 
 sutiliser $logiciel-$version
 
 rm -Rf "$TMP/$$"
-
-echo "# Pensez à paramétrer votre dovecot" >&2
