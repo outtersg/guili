@@ -51,7 +51,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" --enable-unicode-properties # unicodeprops en tout cas connu en 8.39; glib en a besoin.
 
 echo Compilation… >&2
 make
