@@ -25,21 +25,30 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 . "$SCRIPTS/util.sh"
 
 logiciel=postgresql
-version=8.0.1
 
-version=8.0.3
-
-version=9.1.2
-modifs=bsdAvecPythonThreade
-
-version=9.2.1
-modifs=
-
+v 8.0.1 && modifs="detectionPerl" || true
+v 8.0.3 || true
+v 9.1.2 && modifs="bsdAvecPythonThreade detectionPerl" || true
+v 9.2.1 && modifs="detectionPerl" || true
 v 9.2.9 || true
 
 bsdAvecPythonThreade()
 {
 	filtrer configure sed -e '/freebsd.*)$/,/;;/d'
+}
+
+detectionPerl()
+{
+	avecPerl="--without-perl"
+	if command -v perl 2> /dev/null >&1
+	then
+		if perl -MConfig -e 'print $Config{useshrplib}' | grep -q true
+		then
+			avecPerl="--with-perl"
+		fi
+	fi
+	
+	OPTIONS_CONF="$OPTIONS_CONF $avecPerl"
 }
 
 dest="$INSTALLS/$logiciel-$version"
@@ -57,7 +66,8 @@ do
 done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --enable-thread-safety --with-python --with-perl --with-pam --with-rendezvous --with-openssl
+
+./configure --prefix="$dest" --enable-thread-safety --with-python --with-pam --with-rendezvous --with-openssl $OPTIONS_CONF
 
 echo Compilation… >&2
 make
