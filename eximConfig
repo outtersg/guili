@@ -1,0 +1,510 @@
+#!/bin/sh
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi [--prefixe <racine>] [-u <compte>] [-d <domaine>]* [--paf <régles paf>] <répertoire maildir> <répertoire comptes>
+TERMINE
+	exit 1
+}
+
+analyserParametres()
+{
+	vars="mels comptes rien"
+	mels=
+	compte=
+	domaines=
+	prefixe=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-d) shift ; domaines="$domaines:$1" ;;
+			-u) shift ; compte="$1" ;;
+			--paf) shift ; reglesPaf="$1" ;;
+			--prefix|--prefixe) shift ; prefixe="$1" ;;
+			*)
+				[ -z "$vars" ] && auSecours
+				for i in $vars
+				do
+					eval $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+
+	if [ -z "$compte" ]
+	then
+		comptesEnvisages="exim mail mel"
+		for compte in $comptesEnvisages personne
+		do
+			id "$compte" 2> /dev/null >&2 && break
+		done
+		if [ "$compte" = personne ]
+		then
+			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte via un -u (il sera créé si nécessaire)." >&2
+			exit 1
+		fi
+	fi
+	
+	if [ -z "$prefixe" ]
+	then
+		prefixe="`command -v exim`"
+		prefixe="`readlinkf "$prefixe" | sed -e 's#/bin/.*##'`"
+	fi
+	
+	prefixedovecot="`command -v dovecot`"
+	prefixedovecot="`readlinkf "$prefixedovecot" | sed -e 's#/sbin/.*##'`"
+	
+	[ ! -d "$prefixe" ] && echo "# Impossible de repérer le dossier où s'installer (en partant de `command -v exim`)." >&2 && exit 1 || true
+	
+	domaines="`echo "$domaines" | sed -e 's/ //g' -e 's/::/:/g' -e 's/^://' -e 's/:$//'`"
+	
+	[ ! -z "$mels" -a ! -z "$comptes" -a "$vars" = rien ] || auSecours
+	[ ! -z "$domaines" ] || auSecours
+}
+
+analyserParametres "$@"
+
+# Détection des réseaux locaux dans des jails. On détecte pour le moment une config ezjails classique.
+reseauxLocaux="`ifconfig lo1 2> /dev/null | sed -e '/^[ 	]*inet/!d' -e 's/^[ 	]*inet[ 	]*//' -e 's#^\([0-9]*\.[0-9]*\.[0-9]*\)\..*#\1.0/8#' -e 's/^/ : /' | tr -d '\012'`"
+
+echo '
+# primary_hostname: faudrait-il savoir le faire varier en fonction du domaine pour lequel on envoie (afin que le EHLO corresponde?).
+
+domainlist ici = @ : ici.la
+domainlist local_domains = '"`echo "$domaines" | sed -e 's/:/ : /g'`"' : ici.la : @
+domainlist relay_to_domains =
+hostlist   relay_from_hosts = 127.0.0.1 : ::::1'"$reseauxLocaux"'
+
+acl_smtp_mail = acl_check_mail
+acl_smtp_rcpt = acl_check_rcpt
+acl_smtp_data = acl_check_data
+#acl_smtp_dkim = acl_check_dkim
+acl_not_smtp = acl_check_local
+
+#dkim_verify_signers = $sender_address_domain:$dkim_signers
+
+# Fonctionne pour un return_path mis à un en-tête arbitraire (via errors_to dans le routeur, par exemple), partant du principe que sender_address retient l'\''adresse de retour originale.
+#FROM_SINON_SENDER = ${if eq{$h_from}{} {$sender_address} {$h_from}}
+#FROM_SI_LOCAL = ${if eq {$home}{} {FROM_AUTH_OU_VARIANTE}
+FROM_AUTH_OU_VARIANTE = ${if eq{$authenticated_id}{} {$sender_address} {${if match{$return_path}{^${local_part:$authenticated_id}([-_][-a-zA-Z0-9_]*)*@${domain:$authenticated_id}\$} {$return_path} {$sender_address}}}}
+FROM_SINON_SENDER = ${if eq{$h_from:}{} {$sender_address} {${address:$h_from:}}}
+REWRITE_SMTP = ${if def:authenticated_id {${if eq{${sg{$1}{[-_][^@]*@}{@}}}{$authenticated_id} {$1} {$authenticated_id}}} {$1}}
+REWRITE_TOUT = ${if !eq{$received_protocol}{local} {REWRITE_SMTP} {FROM_SINON_SENDER}}
+
+CLES_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.reecritures} {${lookup{${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.reecritures} {$sender_address}}} {:}}
+CLES_AUTOMATES = ${if exists{'"$comptes"'/$sender_address_domain.automates} {${lookup{${local_part:$sender_address}} lsearch {'"$comptes"'/$sender_address_domain.automates} {$sender_address}}} {}}
+#DANS_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.reecritures} {${filter {${lookup {${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.reecritures}}} {eq{$item}{${address:$h_from:}}} }} }
+DANS_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.reecritures} {${reduce {${lookup {${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.reecritures}}} {false} {${if or{{eq{$value}{true}}{eq{$item}{${address:$h_from:}}}} {true}}}}} }
+
+DKIM_CLE = '"$comptes"'/$dkim_domain.$dkim_selector.pem
+
+# received_header_text par défaut, avec cependant modification du envelope-from si la personne est authentifiée de chez nous et a souhaité causer sous un de ses alias (moi-alias@domaine).
+received_header_text = Received: \
+  ${if def:sender_rcvhost {from $sender_rcvhost\n\t}\
+  {${if def:sender_ident \
+  {from ${quote_local_part:$sender_ident} }}\
+  ${if def:sender_helo_name {(helo=$sender_helo_name)\n\t}}}}\
+  by $primary_hostname \
+  ${if def:received_protocol {with $received_protocol}} \
+  ${if def:tls_cipher {($tls_cipher)\n\t}}\
+  (Exim $version_number)\n\t\
+  ${if def:sender_address \
+  {(envelope-from <\
+  FROM_AUTH_OU_VARIANTE\
+  >)\n\t}}\
+  id $message_exim_id\
+  ${if def:received_for {\n\tfor $received_for}}
+
+log_selector = -queue_run -retry_defer +received_recipients +received_sender
+
+# Pour ça, compiler avec l'\''option de scan du contenu (WITH_CONTENT_SCAN=yes)
+# av_scanner = clamd:/tmp/clamd
+# Puis voir acl_check_data
+
+# spamd_address = 127.0.0.1 783
+# idem: acl_check_data
+
+# tls_advertise_hosts = *
+# tls_certificate = /etc/ssl/exim.crt
+# tls_privatekey = /etc/ssl/exim.pem
+
+# daemon_smtp_ports = 25 : 465 : 587
+# tls_on_connect_ports = 465
+
+# Une interface publique + une 2500 pour pouvoir être contacté de derrière un fournisseur qui filtre le 25; une pour nos domaine-à-domaine (en SMTP, seul moyen de signer DKIM).
+local_interfaces = <; [0.0.0.0]:25 ; [0.0.0.0]:465 ; [0.0.0.0]:587 ; [0.0.0.0]:2500 ; [127.0.0.1]:2525
+
+qualify_domain = ici.la
+
+# Idem, si gui envoie à root, comment transfère-je sans qu'\''un externe fasse de même?
+# qualify_recipient =
+
+# N.B.: le réglage suivant est de toute façon codé en dur dans l'\''exécutable. Il faudra définir un alias pour root.
+never_users = root
+
+# On aurait bien voulu avoir la même chose pour les users authentifiés à distance.
+#untrusted_set_sender = 
+#return_path_remove = false
+# cf. le return_path du smtp
+
+host_lookup = *
+
+# Défauts dans le code.
+rfc1413_hosts = *
+rfc1413_query_timeout = 5s
+
+sender_unqualified_hosts = 127.0.0.1
+recipient_unqualified_hosts = 127.0.0.1
+
+ignore_bounce_errors_after = 2d
+timeout_frozen_after = 5d
+
+begin acl
+
+# This access control list is used for every RCPT command in an incoming
+# SMTP message. The tests are run in order until the address is either
+# accepted or denied.
+
+acl_check_local:
+  # Si l'\''utilisateur local est explicitement autorisé à effectuer une réécriture particulière, on prend.
+  accept  senders = ${if exists{'"$comptes"'/$qualify_domain.reecritures} {${lookup{$authenticated_id}lsearch{'"$comptes"'/$qualify_domain.reecritures}}} {:}}
+  # Les : à la fin permettent au MTA lui-même (il n'\''a pas d'\''identifiant) de transmettre en toute liberté. Ce serait embêtant qu'\''il soit interdit d'\''annoncer que l'\''envoi de mél est interdit.
+  accept  senders = ${if exists{'"$comptes"'/$qualify_domain.automates} {${lookup{${local_part:$sender_address}} lsearch {'"$comptes"'/$qualify_domain.automates} {$sender_address} {:}}} {:}}
+  # Personne d'\''autre n'\''a le droit d'\''envoyer de message depuis la machine même.
+  deny    message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add $sender_address to $qualify_domain.automates, or to reecritures for $authenticated_id in $qualify_domain.reecritures.
+
+acl_check_mail:
+  # Reçu sur le port 2525? C'\''est un message qui est passé en premier lieu par notre 25, qui a effectué toutes les vérifications nécessaires. On prend.
+  accept  condition = ${if eq {$received_port}{2525}}
+  # Sur les machines locales, envoi autorisé sans authentification du moment qu'\''on est listé comme tel (envoi par appli PHP, par exemple).
+  # Cf. acl_check_local.
+  deny    hosts = +relay_from_hosts
+		  # Pour nos tests, example.com doit être considéré comme un domaine externe même s'\''il est invoqué en local (depuis les relay_from_hosts).
+          ! sender_domains = example.com
+          ! authenticated = *
+		  # Dans le .reecritures: à ce stade (MAIL FROM:), on n'\''a pas encore le From: RFC822. Du coup on ne peut que se contenter de vérifier que l'\''émetteur est présent.
+		  ! senders = CLES_REECRITURES
+          ! senders = CLES_AUTOMATES
+          message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add ${local_part:$sender_address} to $sender_address_domain.automates, or add it an entry in $sender_address_domain.reecritures.
+  accept  hosts = +relay_from_hosts
+          control = submission/sender_retain
+  # On se dit d'\''un des domaines locaux, mais on n'\''est pas authentifié? Pas bien: on rejette!
+  deny    message = Please authenticate to send from your account
+          ! authenticated = *
+          sender_domains = +local_domains
+  accept  authenticated = *
+          # Sans quoi le qualify_domain est ajouté ("gui@gclo.fr"@gclo.fr).
+	  #condition     = ${if !eq{$authenticated_id}{}}
+          # sender_retain, pour que le From soit préservé pour les messages authentifiés. La corrélation entre l'\''authenticated_id et le From sera faite plus tard (FROM_AUTH_OU_VARIANTE).
+          control       = submission/domain=/sender_retain
+  accept
+
+acl_check_rcpt:
+
+  # En local (émetteur vide)
+  accept  hosts = :
+          control = dkim_disable_verify
+  
+  # Maintenant que le local à local est passé, on vire tout ce qui est adressé à du local.
+  deny    domains = ici.la
+  deny    domains = :
+
+  deny    message       = Restricted characters in address
+          domains       = +local_domains
+          local_parts   = ^[.] : ^.*[@%!/|]
+
+  deny    message       = Restricted characters in address
+          domains       = !+local_domains
+          local_parts   = ^[./|] : ^.*[@%!] : ^.*/\\.\\./
+
+  accept  local_parts   = postmaster
+          domains       = +local_domains
+  
+  # Domaines créés par nous, cf. le rewriting "S".
+  # On laisse aussi passer les messages s'\''annonçant d'\''un de nos domaines de test, même s'\''il n'\''est pas référencé DNS.
+  deny    ! sender_domains = ^.*\.ip\$
+          ! hosts          = +relay_from_hosts
+          ! sender_domains = outters.eue
+          ! sender_domains = gclo.fre
+          ! verify         = sender
+
+  accept  hosts         = +relay_from_hosts
+          ! sender_domains = example.com
+          control       = submission
+
+  accept  authenticated = *
+#          control       = submission
+#          control       = dkim_disable_verify
+
+  require message = relay not permitted
+          domains = +local_domains : +relay_to_domains
+
+  require verify = recipient
+  
+  # deny    message       = rejected because $sender_host_address is in a black list at $dnslist_domain\n$dnslist_text
+  #         dnslists      = black.list.example
+  #
+  # warn    dnslists      = black.list.example
+  #         add_header    = X-Warning: $sender_host_address is in a black list at $dnslist_domain
+  #         log_message   = found in $dnslist_domain
+
+  # require verify = csa
+
+  accept
+
+acl_check_data:
+  deny    hosts = +relay_from_hosts
+          ! sender_domains = example.com
+          ! authenticated = *
+          ! condition = ${if eq {$received_port}{2525}}
+		  ! condition = DANS_REECRITURES
+          ! senders = CLES_AUTOMATES
+          message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add ${local_part:$sender_address} to $sender_address_domain.automates, or add ${address:$h_from:} to its entry in $sender_address_domain.reecritures.
+
+  # deny    malware    = *
+  #         message    = This message contains a virus ($malware_name).
+
+  # warn    spam       = nobody
+  #         add_header = X-Spam_score: $spam_score\n\
+  #                      X-Spam_score_int: $spam_score_int\n\
+  #                      X-Spam_bar: $spam_bar\n\
+  #                      X-Spam_report: $spam_report
+
+  accept
+
+#acl_check_dkim:
+#  accept
+
+begin routers
+
+dnslookup:
+  driver = dnslookup
+  domains = ! +local_domains
+  transport = remote_smtp
+  ignore_target_hosts = 0.0.0.0 : 127.0.0.0/8
+  # Nous allons peut-être réécrire l'\''émetteur. Mais exim ne doit pas le signaler. (cela dit, idéalement, il faudrait ne retirer l'\''en-tête que si derrière nous sommes certains de pouvoir réécrire l'\''émetteur, cf. ce qui est fait dans le transport, en fonction de l'\''authentification)
+  headers_remove = Sender
+  #headers_add = ${if eq{$authenticated_id}{} {} {Sender: $authenticated_id}}
+  errors_to = $h_From
+  no_more
+
+# À FAIRE: à la réception, gérer le 2525 un peu différemment (pas besoin de dkim puisque l'\''on est l'\''émetteur garanti).
+# Idem pour les méls local -> local, à partir du moment où ils sont émis dans le cadre d'\''une session authentifiée, on les passe par smtp_vers_local pour les signer DKIM.
+local_a_local_emission:
+  driver = accept
+  condition = ${if !eq{$authenticated_id}{}}
+  domains = !ici.la : +local_domains
+  transport = smtp_vers_local
+  # Nous allons peut-être réécrire l'\''émetteur. Mais exim ne doit pas le signaler. (cela dit, idéalement, il faudrait ne retirer l'\''en-tête que si derrière nous sommes certains de pouvoir réécrire l'\''émetteur, cf. ce qui est fait dans le transport, en fonction de l'\''authentification)
+  headers_remove = Sender
+  #headers_add = ${if eq{$authenticated_id}{} {} {Sender: $authenticated_id}}
+  errors_to = $h_From
+  no_more
+
+system_aliases:
+  driver = redirect
+  allow_fail
+  allow_defer
+  data = ${lookup{$local_part}lsearch{/etc/aliases}}
+  file_transport = address_file
+  pipe_transport = address_pipe
+
+localroot:
+  driver = redirect
+  allow_fail
+  allow_defer
+  local_parts = root
+  data = guillaume@outters.eu
+  file_transport = address_file
+  pipe_transport = address_pipe
+
+userforward:
+  driver = redirect
+  check_local_user
+# local_part_suffix = +* : -*
+# local_part_suffix_optional
+  file = $home/.forward
+# allow_filter
+  no_verify
+  no_expn
+  check_ancestor
+  file_transport = address_file
+  pipe_transport = address_pipe
+  reply_transport = address_reply
+
+aliasdomaine:
+  driver = redirect
+  allow_fail
+  allow_defer
+  domains = ! ici.la
+  data = "${lookup{$local_part}wildlsearch{'"$comptes"'/$domain.aliases}}${if eq {${lookup{$local_part}wildlsearch{'"$comptes"'/$domain.aliases}}}{} {}{${if match {${lookup{$local_part}wildlsearch{'"$comptes"'/$domain.aliases}}}{.*@.*} {}{@$domain}}}}"
+
+localuser:
+  driver = accept
+  domains = ici.la
+  check_local_user
+  transport = local_delivery
+  cannot_route_message = Unknown user
+  no_more
+
+domainefiltre:
+  driver = redirect
+  domains = +local_domains
+  local_part_suffix = +* : -* : _*
+  local_part_suffix_optional
+  local_parts = '"$comptes"'/$domain
+  file_transport = domaine_local
+  cannot_route_message = Unknown user
+  user = '"$compte"'
+  file = '"$comptes"'/$domain.$local_part.regles
+  require_files = '"$comptes"'/$domain.$local_part.regles
+  allow_filter
+
+domaine:
+  driver = accept
+  domains = +local_domains
+  # Pour que gui-01, gui-laredoute, gui, pointent tous sur gui.
+  local_part_suffix = +* : -* : _*
+  local_part_suffix_optional
+  local_parts = '"$comptes"'/$domain
+  transport = domaine_local
+  cannot_route_message = Unknown user
+
+begin transports
+
+smtp_vers_local:
+  driver = smtp
+  hosts_override
+  hosts = <; [127.0.0.1]:2525
+  interface = 127.0.0.1
+  # DKIM
+  allow_localhost
+  dkim_domain = ${lc:${if eq{$authenticated_id}{} {$sender_address_domain} {${domain:$authenticated_id}}}}
+  dkim_selector = ${if eq{$authenticated_id}{} {simple} {authentifie}}.0
+  dkim_private_key = ${if exists{DKIM_CLE} {DKIM_CLE} {}}
+# On n'\''ajoute pas de Return-Path, mais on laisse faire l'\''agent émetteur.
+# return_path_add
+  return_path = FROM_AUTH_OU_VARIANTE
+
+remote_smtp:
+  driver = smtp
+  # DKIM
+  dkim_domain = ${lc:${if eq{$authenticated_id}{} {$sender_address_domain} {${domain:$authenticated_id}}}}
+  dkim_selector = ${if eq{$authenticated_id}{} {simple} {authentifie}}.0
+  dkim_private_key = ${if exists{DKIM_CLE} {DKIM_CLE} {}}
+# On n'\''ajoute pas de Return-Path, mais on laisse faire l'\''agent émetteur.
+# return_path_add
+  return_path = FROM_AUTH_OU_VARIANTE
+
+local_delivery:
+  driver = appendfile
+  file = /var/mail/$local_part
+  delivery_date_add
+  envelope_to_add
+# On n'\''ajoute pas de Return-Path, mais on laisse faire l'\''agent émetteur.
+# return_path_add
+  use_lockfile = no
+# Pour si on n'\''a pas le sticky bit sur /var/mail:
+# group = mail
+# mode = 0660
+
+domaine_local:
+  driver = appendfile
+  # Pour Sieve, le terme inbox est spécial.
+  directory = '"$mels"'/$domain/$local_part${if or{ {eq{$address_file}{inbox}} {eq{$address_file}{}} } {} {/$address_file}}
+  delivery_date_add
+  envelope_to_add
+# On n'\''ajoute pas de Return-Path, mais on laisse faire l'\''agent émetteur.
+# return_path_add
+  group = mail
+  mode = 0660
+  use_lockfile = no
+  create_directory
+  maildir_format
+
+address_pipe:
+  driver = pipe
+  return_output
+
+address_file:
+  driver = appendfile
+  delivery_date_add
+  envelope_to_add
+  return_path_add
+
+address_reply:
+  driver = autoreply
+
+begin retry
+
+# Address or Domain    Error       Retries
+# -----------------    -----       -------
+
+*                      *           F,2h,15m; G,16h,1h,1.5; F,4d,6h
+
+begin rewrite
+
+^(.*)\.ip\$	"$1"	SFfs
+^([^@]*)\$	"${if eq {$authenticated_id}{} {$1${if !eq {$sender_host_address}{} {@$sender_host_address.ip}{@ici.la}}} {$authenticated_id}}"	SFfs
+# Impossible de faire un match dans le rewrite: le preg du rewrite et celui du match se disputent le $1. Par contre sg fonctionne.
+^(.*)\$	"REWRITE_TOUT"	FfsrQ
+
+begin authenticators
+
+# PLAIN authentication has no server prompts. The client sends its
+# credentials in one lump, containing an authorization ID (which we do not
+# use), an authentication ID, and a password. The latter two appear as
+# $auth2 and $auth3 in the configuration and should be checked against a
+# valid username and password. In a real configuration you would typically
+# use $auth2 as a lookup key, and compare $auth3 against the result of the
+# lookup, perhaps using the crypteq{}{} condition.
+
+#PLAIN:
+#  driver                     = plaintext
+#  server_set_id              = $auth2
+#  server_prompts             = :
+#  server_condition           = Authentication is not yet configured
+#  server_advertise_condition = ${if def:tls_cipher }
+
+# LOGIN authentication has traditional prompts and responses. There is no
+# authorization ID in this mechanism, so unlike PLAIN the username and
+# password are $auth1 and $auth2. Apart from that you can use the same
+# server_condition setting for both authenticators.
+
+#LOGIN:
+#  driver                     = plaintext
+#  server_set_id              = $auth1
+#  server_prompts             = <| Username: | Password:
+#  server_condition           = Authentication is not yet configured
+#  server_advertise_condition = ${if def:tls_cipher }
+
+imap:
+  driver = dovecot
+  public_name = PLAIN
+  server_socket = '"$prefixedovecot"'/var/run/dovecot/auth-client
+  server_set_id = $auth1
+
+
+######################################################################
+#                   CONFIGURATION FOR local_scan()                   #
+######################################################################
+
+# If you have built Exim to include a local_scan() function that contains
+# tables for private options, you can define those options here. Remember to
+# uncomment the "begin" line. It is commented by default because it provokes
+# an error with Exim binaries that are not built with LOCAL_SCAN_HAS_OPTIONS
+# set in the Local/Makefile.
+
+begin local_scan
+
+tranchePoireautage = 3
+rejets = '"$mels"'/spam
+regles = '"$reglesPaf"'
+'

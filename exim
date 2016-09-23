@@ -91,7 +91,7 @@ fi
 sed < src/EDITME >> Local/Makefile \
 	-e "/^BIN_DIRECTORY=/s#=.*#=$dest/bin#" \
 	-e "/^CONFIGURE_FILE=/s#=.*#=$dest/etc/exim#" \
-	-e "/^EXIM_USER=/s#=.*#=postfix#" \
+	-e "/^EXIM_USER=/s#=.*#=`id -u -n`#" \
 	-e "/^SPOOL_DIRECTORY=/s#=.*#=$dest/var/spool/exim#" \
 	-e "/^EXIM_MONITOR=/s#=.*#=#" \
 	-e "/^# LOOKUP_LDAP=yes/s/^# /$CONF_LDAP/" \
@@ -126,9 +126,6 @@ make
 
 echo Installation… >&2
 sudo make install
-sudo mkdir -p "$dest/var/spool/exim/log"
-sudo chown -R postfix "$dest/var"
 sutiliser "$logiciel-$version"
-[ -h /usr/sbin/sendmail -o ! -e /usr/sbin/sendmail ] && sudo rm -f /usr/sbin/sendmail && sudo ln -s "$dest/bin/exim" /usr/sbin/sendmail
 
 rm -Rf "$TMP/$$"
