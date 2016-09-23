@@ -36,6 +36,7 @@ v 4.77
 v 4.80.1 && modifs="paf" && prerequis="pcre"
 v 4.82
 v 4.82.1
+v 4.87 || true
 
 prerequis
 
