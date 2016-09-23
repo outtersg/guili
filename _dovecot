@@ -1,0 +1,163 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=_dovecot
+
+# Historique des versions gérées
+
+prerequis="dovecot imapproxy"
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi <répertoire méls>
+TERMINE
+	exit 1
+}
+
+analyserParametres()
+{
+	vars="mels compte"
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			*)
+				[ -z "$vars" ] && auSecours
+				for i in $vars
+				do
+					eval $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+
+	if [ -z "$compte" ]
+	then
+		comptesEnvisages="dovecot mail mel exim postfix"
+		for compte in $comptesEnvisages personne
+		do
+			id "$compte" 2> /dev/null >&2 && break
+		done
+		if [ "$compte" = personne ]
+		then
+			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte en le précisant en second paramètre (il sera créé si nécessaire)." >&2
+			exit 1
+		fi
+	fi
+	
+	[ ! -z "$mels" ] || auSecours
+}
+
+analyserParametres "$@"
+
+prerequis
+
+# Modifications
+
+# Variables
+
+version="`echo " $PREINCLUS" | sed -e 's/^.*dovecot://' -e 's/ .*//'`"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+if ! id "$compte" > /dev/null 2>&1
+then
+
+echo "Création de l'utilisateur…" >&2
+creeCompte -s /bin/sh $compte
+
+fi
+
+if [ ! -d "$mels" ]
+then
+
+echo "Création de la base méls…" >&2
+
+sudo mkdir -p "$mels"
+sudo chown -R $compte:$compte "$mels"
+sudo chmod -R go-rwx "$mels"
+
+fi
+
+echo "Auto-démarrage…" >&2
+case `uname` in
+	Darwin)
+		# Rien. On démarrera à la main.
+		;;
+	FreeBSD)
+		mkdir -p "$TMP/$$/init/etc/rc.d/"
+		cp "$destimapproxy/etc/imapproxy.conf" "$TMP/$$/init/etc/imapproxy.0.conf"
+		filtrer "$TMP/$$/init/etc/imapproxy.0.conf" sed \
+			-e "/^proc_username /s# .*# $compte#" \
+			-e "/^proc_groupname /s# .*# $compte#"
+		cp -R "$destdovecot/share/doc/dovecot/exemple-config" "$TMP/$$/init/etc/dovecot.0"
+		comptes="`dirname "$mels"`/comptes" # var/mail -> var/comptes.
+		for i in "$TMP/$$/init/etc/dovecot.0/"*
+		do
+			filtrer "$i" sed \
+				-e "s#@cedossier@#$dest/etc/dovecot.0#g" \
+				-e "s#@compte@#$compte#g" \
+				-e "s#@mels@#$mels#g" \
+				-e "s#@comptes@#$comptes#g"
+		done
+		cat > "$TMP/$$/init/etc/rc.d/dovecot" <<TERMINE
+#!/bin/sh
+# PROVIDE: dovecot
+# REQUIRE: NETWORKING syslogd
+. /etc/rc.subr
+name=dovecot
+start_cmd="\${name}_start"
+stop_cmd="\${name}_stop"
+rcvar=\`set_rcvar\`
+load_rc_config "\$name"
+: \${dovecot_enable="NO"}
+dovecot_start()
+{
+	LD_LIBRARY_PATH=/usr/local/lib
+	export LD_LIBRARY_PATH
+	checkyesno \${rcvar} && "$destdovecot/sbin/dovecot" -c "$dest/etc/dovecot.0/dovecot.conf" && "$destimapproxy/sbin/in.imapproxyd" -f "$dest/etc/imapproxy.0.conf"
+}
+dovecot_stop()
+{
+	"$destdovecot/sbin/dovecot" -c "$dest/etc/dovecot.0/dovecot.conf" stop
+	kill \`ps auxww | grep in\\\\.imapproxyd | grep -v grep | awk '{print \$2}'\`
+}
+run_rc_command "\$1"
+TERMINE
+		chmod a+x "$TMP/$$/init/etc/rc.d/dovecot"
+		sudo mkdir -p "$dest"
+		sudo cp -R "$TMP/$$/init/" "$dest/."
+		;;
+esac
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
