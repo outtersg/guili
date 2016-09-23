@@ -105,16 +105,6 @@ inclureBiblios()
 	done
 }
 
-ajouterModif()
-{
-	modifs="$modifs $1"
-}
-
-retirerModif()
-{
-	modifs=${modifs//$1/}
-}
-
 # Renvoie 0 si le premier paramètre (num de version) est plus grand ou égal au
 # second.
 pge()
