@@ -29,6 +29,15 @@ logiciel=pkgconfig
 v 0.15.0 || true
 v 0.23 || true
 v 0.28 || true
+v 0.29.1 && prerequis="iconv-gnu" && modifs="sisicestbienuniconvgnu" || true
+
+sisicestbienuniconvgnu()
+{
+	#filtrer glib/glib/gconvert.c grep -v '#error.*iconv'
+	CPPFLAGS="$CPPFLAGS -DUSE_LIBICONV_GNU=1"
+	LDFLAGS="$LDFLAGS -liconv"
+	export CPPFLAGS LDFLAGS
+}
 
 archive="http://www.freedesktop.org/software/pkgconfig/releases/$logiciel-$version.tar.gz"
 pge $version 0.23 && archive="http://pkgconfig.freedesktop.org/releases/pkg-config-$version.tar.gz"
