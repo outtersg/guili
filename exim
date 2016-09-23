@@ -118,9 +118,11 @@ LDCC=cc $(LOOKUP_INCLUDES) $(LOOKUP_LIBS)
 a\
 LIBS += $(PCRE_LIBS) $(LOOKUP_LIBS)
 }'
+make configure
 
 echo Compilation… >&2
-make || ( filtrer build-`uname`-`uname -m`/Makefile sed -e '/^\.if/,/^\.endif/d' && make )
+filtrer build-`uname`-`uname -m`/Makefile sed -e '/^\.if/,/^\.endif/d'
+make
 
 echo Installation… >&2
 sudo make install
