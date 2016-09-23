@@ -25,7 +25,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 . "$SCRIPTS/util.sh"
 
 logiciel=db
-version=4.2.52
+
+v 4.2.52 && modifs="atomicce fbsd10" || true
 
 version=4.3.28
 
@@ -42,6 +43,22 @@ v 5.2.36
 v 5.3.15
 
 archive="http://download.oracle.com/berkeley-db/db-$version.tar.gz"
+
+atomicce()
+{
+	# Les versions modernes des compilos embarquent une fonction qui a le même nom qu'une interne des vieux DB.
+	filtrer src/dbinc/atomic.h sed -e 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g'
+}
+
+fbsd10()
+{
+	# Ce couillon confond freebsd10 et freebsd1.
+	for i in configure preload/configure libcharset/configure dist/configure
+	do
+		[ ! -f "$i" ] || filtrer "$i" sed -e 's#freebsd1\*#freebsd1|freebsd1.*#g'
+	done
+}
+
 dest="$INSTALLS/$logiciel-$version"
 
 [ -d "$dest" ] && exit 0
