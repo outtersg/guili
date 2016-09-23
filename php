@@ -82,7 +82,9 @@ v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
 v 5.6.10 && prerequis="libxml icu >= 50 libjpegturbo" || true
+v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
+v 7.0.8 || true
 
 if [ "x$1" = xcgi ]
 then
@@ -175,6 +177,7 @@ TERMINE
 
 detectionIconvOuLibiconv()
 {
+	# Encore nécessaire en 7.
 	for i in libiconv iconv
 	do
 		echo "char $i();int main(int argc, char ** argv) { $i(); return 0; }" > "$TMP/$$/testiconv.c"
