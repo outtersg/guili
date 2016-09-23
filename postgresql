@@ -71,30 +71,15 @@ echo Configuration… >&2
 
 echo Compilation… >&2
 make
+sed < contrib/start-scripts/freebsd > share.init.postgresql -e "/^prefix=/s#=.*#=$INSTALLS#"
+chmod a+x share.init.postgresql
 
 echo Installation… >&2
 sudo make install
 pge $version 9 || sudo cp `obtenir "$jar"` "$dest/lib/postgresql.jar"
 pge $version 9.2 && ( cd contrib/hstore && make && sudo make install ) || true
-sutiliser "$logiciel-$version"
+sudo cp share.init.postgresql "$dest/share/init.postgresql"
 
-echo "Auto-démarrage…" >&2
-creeCompte -s /bin/sh -d "$HOME/var/postgresql" postgresql 4100
-case `uname` in
-	Darwin)
-		# Rien. On démarrera à la main.
-		;;
-	FreeBSD)
-		bdd="$HOME/var/db/pgsql"
-		filtrer contrib/start-scripts/freebsd sed -e "/^prefix=/s#=.*#=$INSTALLS#" -e "/^PGDATA=/s#=.*#=$bdd#" -e "/^PGUSER=/s#=.*#=postgresql#"
-		sudo cp contrib/start-scripts/freebsd "$INSTALLS/etc/rc.d/postgresql"
-		sudo chmod u+x "$INSTALLS/etc/rc.d/postgresql"
-		sudo mkdir -p "$bdd"
-		sudo chown -R postgresql:postgresql "$bdd"
-		sudo chmod -R go-rwx "$bdd"
-		# A priori il faut monter les valeurs dans /boot/loader.conf; ex.: kern.ipc.semmni=20 kern.ipc.semmns=120 kern.ipc.semmnu=60 kern.ipc.semmap=60
-		sudo -u postgresql initdb "$bdd"
-		;;
-esac
+sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"

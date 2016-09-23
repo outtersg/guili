@@ -1,0 +1,138 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=_postgresql
+
+# Historique des versions gérées
+
+prerequis="postgresql"
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi <répertoire destination>
+TERMINE
+	exit 1
+}
+
+analyserParametres()
+{
+	vars="bdd compte"
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			*)
+				[ -z "$vars" ] && auSecours
+				for i in $vars
+				do
+					eval $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+
+	if [ -z "$compte" ]
+	then
+		comptesEnvisages="postgresql pgsql pg bdd db"
+		for compte in $comptesEnvisages personne
+		do
+			id "$compte" 2> /dev/null >&2 && break
+		done
+		if [ "$compte" = personne ]
+		then
+			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte en le précisant en second paramètre (il sera créé si nécessaire)." >&2
+			exit 1
+		fi
+	fi
+	
+	[ ! -z "$bdd" ] || auSecours
+}
+
+analyserParametres "$@"
+
+prerequis
+
+# Modifications
+
+# Variables
+
+version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*://g' -e 's/ //g'`"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+if ! id "$compte" > /dev/null 2>&1
+then
+
+echo "Création de l'utilisateur…" >&2
+creeCompte -s /bin/sh $compte # 4100
+
+fi
+
+if [ ! -d "$bdd" ]
+then
+
+echo "Création de la base…" >&2
+
+sudo mkdir -p "$bdd"
+sudo chown -R $compte:$compte "$bdd"
+sudo chmod -R go-rwx "$bdd"
+# A priori il faut monter les valeurs dans /boot/loader.conf; ex.: kern.ipc.semmni=20 kern.ipc.semmns=120 kern.ipc.semmnu=60 kern.ipc.semmap=60
+sudo -u $compte initdb "$bdd"
+
+fi
+
+echo "Auto-démarrage…" >&2
+case `uname` in
+	Darwin)
+		# Rien. On démarrera à la main.
+		;;
+	FreeBSD)
+		sed < "$destpostgresql/share/init.postgresql" > "$TMP/$$/init.postgresql" -e "/^PGDATA=/s#=.*#=$bdd#" -e "/^PGUSER=/s#=.*#=$compte#" -e '1{
+a\
+# PROVIDE: postgresql
+a\
+# REQUIRE: NETWORKING
+}' -e '/[^e]start)/s/)/|quietstart)/'
+
+		sudo mkdir -p "$dest/etc/rc.d"
+		sudo cp "$TMP/$$/init.postgresql" "$dest/etc/rc.d/postgresql"
+		sudo chmod u+x "$dest/etc/rc.d/postgresql"
+		;;
+esac
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
+
+# Note: plusieurs instances de PostgreSQL à la fois sous FreeBSD (8):
+# PostgreSQL consomme en mémoire partagée ce qu'on lui donne (par défaut, 24 Mo) + de la mémoire pour tout le reste (dont les connexion; par défaut 100, qui doivent bouffer dans les 3 Mo au total) = 30 Mo de mémoire partagée par défaut pour une instance.
+# Le sysctl -a | grep -E "shmall|shmmax" semble donner la limite *pour l'ensemble du système*. On ne peut donc lancer deux instances en même temps (par défaut: 32 Mo).
+# Darwin Calendar Server s'en sort en ne consommant qu'un tout petit 2 Mo (cf ipcs -a).
