@@ -28,7 +28,16 @@ calcScripts "$0"
 
 logiciel=zlib
 
-v 1.2.8 && prerequis="" || true
+v 1.2.8 && prerequis="" && modifs="fPIC" || true
+
+# Modifications
+
+fPIC()
+{
+	CFLAGS="-fPIC $CFLAGS"
+}
+
+# Variables
 
 archive="http://zlib.net/zlib-$version.tar.gz"
 
