@@ -49,6 +49,9 @@ dest="$INSTALLS/$logiciel-$version"
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
+echo Correction… >&2
+for modif in $modifs true ; do $modif ; done
+
 echo Configuration… >&2
 cd ./build_unix
 ../dist/configure --prefix="$dest"
