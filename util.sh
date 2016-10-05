@@ -113,6 +113,7 @@ listeZip()
 # Téléchargege $1 et va dans le dossier obtenu en décompressant.
 obtenirEtAllerDans()
 {
+	echo "=== $logiciel $version ===" >&2
 	for i in liste dec archive dossier fichier ; do local $i ; done 2> /dev/null
 	
 	cd "$TMP"
