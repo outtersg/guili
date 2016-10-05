@@ -44,7 +44,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" --with-http_ssl_module
 
 echo Compilation… >&2
 make
