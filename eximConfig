@@ -75,6 +75,10 @@ analyserParametres "$@"
 reseauxLocaux="`ifconfig lo1 2> /dev/null | sed -e '/^[ 	]*inet/!d' -e 's/^[ 	]*inet[ 	]*//' -e 's#^\([0-9]*\.[0-9]*\.[0-9]*\)\..*#\1.0/8#' -e 's/^/ : /' | tr -d '\012'`"
 
 echo '
+# NOTE: rôles
+# - automates: comptes Unix habilités à émettre directement
+# - regents: comptes Unix habilités à émettre pour le compte d'\''une adrél
+# 
 # primary_hostname: faudrait-il savoir le faire varier en fonction du domaine pour lequel on envoie (afin que le EHLO corresponde?).
 
 domainlist ici = @ : ici.la
@@ -98,10 +102,9 @@ FROM_SINON_SENDER = ${if eq{$h_from:}{} {$sender_address} {${address:$h_from:}}}
 REWRITE_SMTP = ${if def:authenticated_id {${if eq{${sg{$1}{[-_][^@]*@}{@}}}{$authenticated_id} {$1} {$authenticated_id}}} {$1}}
 REWRITE_TOUT = ${if !eq{$received_protocol}{local} {REWRITE_SMTP} {FROM_SINON_SENDER}}
 
-CLES_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.reecritures} {${lookup{${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.reecritures} {$sender_address}}} {:}}
+CLES_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.regents} {${lookup{${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.regents} {$sender_address}}} {:}}
 CLES_AUTOMATES = ${if exists{'"$comptes"'/$sender_address_domain.automates} {${lookup{${local_part:$sender_address}} lsearch {'"$comptes"'/$sender_address_domain.automates} {$sender_address}}} {}}
-#DANS_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.reecritures} {${filter {${lookup {${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.reecritures}}} {eq{$item}{${address:$h_from:}}} }} }
-DANS_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.reecritures} {${reduce {${lookup {${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.reecritures}}} {false} {${if or{{eq{$value}{true}}{eq{$item}{${address:$h_from:}}}} {true}}}}} }
+DANS_REECRITURES = ${if exists{'"$comptes"'/$sender_address_domain.regents} {${reduce {${lookup {${local_part:$sender_address}} lsearch{'"$comptes"'/$sender_address_domain.regents}}} {false} {${if or{{eq{$value}{true}}{eq{$item}{${address:$h_from:}}}} {true}}}}} }
 
 DKIM_CLE = '"$comptes"'/$dkim_domain.$dkim_selector.pem
 
@@ -174,11 +177,11 @@ begin acl
 
 acl_check_local:
   # Si l'\''utilisateur local est explicitement autorisé à effectuer une réécriture particulière, on prend.
-  accept  senders = ${if exists{'"$comptes"'/$qualify_domain.reecritures} {${lookup{$authenticated_id}lsearch{'"$comptes"'/$qualify_domain.reecritures}}} {:}}
+  accept  senders = ${if exists{'"$comptes"'/$qualify_domain.regents} {${lookup{$authenticated_id}lsearch{'"$comptes"'/$qualify_domain.regents}}} {:}}
   # Les : à la fin permettent au MTA lui-même (il n'\''a pas d'\''identifiant) de transmettre en toute liberté. Ce serait embêtant qu'\''il soit interdit d'\''annoncer que l'\''envoi de mél est interdit.
   accept  senders = ${if exists{'"$comptes"'/$qualify_domain.automates} {${lookup{${local_part:$sender_address}} lsearch {'"$comptes"'/$qualify_domain.automates} {$sender_address} {:}}} {:}}
   # Personne d'\''autre n'\''a le droit d'\''envoyer de message depuis la machine même.
-  deny    message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add $sender_address to $qualify_domain.automates, or to reecritures for $authenticated_id in $qualify_domain.reecritures.
+  deny    message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add $sender_address to $qualify_domain.automates, or to regents for $authenticated_id in $qualify_domain.regents.
 
 acl_check_mail:
   # Reçu sur le port 2525? C'\''est un message qui est passé en premier lieu par notre 25, qui a effectué toutes les vérifications nécessaires. On prend.
@@ -189,10 +192,10 @@ acl_check_mail:
 		  # Pour nos tests, example.com doit être considéré comme un domaine externe même s'\''il est invoqué en local (depuis les relay_from_hosts).
           ! sender_domains = example.com
           ! authenticated = *
-		  # Dans le .reecritures: à ce stade (MAIL FROM:), on n'\''a pas encore le From: RFC822. Du coup on ne peut que se contenter de vérifier que l'\''émetteur est présent.
+		  # Dans le .regents: à ce stade (MAIL FROM:), on n'\''a pas encore le From: RFC822. Du coup on ne peut que se contenter de vérifier que l'\''émetteur est présent.
 		  ! senders = CLES_REECRITURES
           ! senders = CLES_AUTOMATES
-          message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add ${local_part:$sender_address} to $sender_address_domain.automates, or add it an entry in $sender_address_domain.reecritures.
+          message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add ${local_part:$sender_address} to $sender_address_domain.automates, or add it an entry in $sender_address_domain.regents.
   accept  hosts = +relay_from_hosts
           control = submission/sender_retain
   # On se dit d'\''un des domaines locaux, mais on n'\''est pas authentifié? Pas bien: on rejette!
@@ -266,7 +269,7 @@ acl_check_data:
           ! condition = ${if eq {$received_port}{2525}}
 		  ! condition = DANS_REECRITURES
           ! senders = CLES_AUTOMATES
-          message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add ${local_part:$sender_address} to $sender_address_domain.automates, or add ${address:$h_from:} to its entry in $sender_address_domain.reecritures.
+          message = Only whitelisted users are allowed to send from this host. Please ask your administrator to add ${local_part:$sender_address} to $sender_address_domain.automates, or add ${address:$h_from:} to its entry in $sender_address_domain.regents.
 
   # deny    malware    = *
   #         message    = This message contains a virus ($malware_name).
