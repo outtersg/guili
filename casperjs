@@ -31,12 +31,19 @@ logiciel=casperjs
 v 1.0.99.1 && v_archive=1.1-beta1 && prerequis="phantomjs" || true
 v 1.0.99.3 && v_archive=1.1-beta3 && prerequis="phantomjs" || true
 v 1.0.99.4 && v_archive=1.1-beta4 && prerequis="phantomjs" || true
+v 1.1.3 && v_archive= || true
 
 # Modifications
 
 # Variables
 
+if [ -z "$v_archive" ]
+then
+	archive="https://github.com/casperjs/casperjs/archive/$version.zip"
+	v_archive="$version"
+else
 archive="https://codeload.github.com/n1k0/casperjs/legacy.zip/$v_archive"
+fi
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
