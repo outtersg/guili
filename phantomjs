@@ -32,12 +32,112 @@ v 1.9.2 && prerequis="freetype fontconfig libpng libjpeg icu" && modifs="miens c
 v 1.9.7 || true
 v 1.9.8 || true
 v 2.0.0 && prerequis="$prerequis bison ruby" && modifs="miensSqlite compatibleJpegMien debogageEtProxy" && qb="/qtbase" || true
-v 2.1.1 && modifs="viaGit miens pipe2 statfs procinfo icuSansDl compatibleJpegMien debogageEtProxy lz" || true
+v 2.0.0 && prerequis="$prerequis bison ruby harfbuzz" && modifs="miensSqlite compatibleJpegMien debogageEtProxy qmakeO3 qtclang" && qb="/qtbase" || true
+v 2.1.1 && modifs="dyn viaGit miens pipe2 statfs procinfo icuSansDl compatibleJpegMien debogageEtProxy lz qtclang qpa" || true
 
 echo "NOTE: en 1.9.8, sur certains systèmes, PhantomJS a du mal à comprendre qu'il doit compiler les modules qu'il embarque. Il faudra donc peut-être que vous le fassiez à la main, à savoir: remplacer le obtenirEtAller suivi des modifs par un bash, de là faire en manuel un make, constater que ça plante, aller dans le répertoire WebKit/qt, faire un make, aller dans qt/gui, faire un make, et revenir faire le make principal. N'était-ce pas à cause du manque de bison et ruby?" >&2
 echo "NOTE: en 2, Qt5 essaye de compiler des fichiers *AllInOne.cpp, ce qui plante sur les machines moins bien dotées. On peut tout d'abord essayer de relancer l'installation (en effet le make compile en parallèle; quand deux AllInOne.cpp se compilent en même temps, l'un plante, libérant la mémoire, et make, passant en \"Waiting for other tasks to complete\", va permettre à l'autre de se terminer. Finalement, un par un, on parvient à nos fins). Sinon on peut essayer de procéder manuellement, en récupérant la commande de compil, et en l'exécutant à la main par étapes: remplacer le -c par d'abord -E, puis -S, puis l'assemblage du .s en -c. N.B.: seul le répertoire et le nom change entre les différents AllInOne, les options de compil sont les mêmes. On peut donc faire un lanceur réutilisable pour tous). Pour le plus gros (Inspector, semble-t-il), on monte à 1 Go de SIZE" >&2
 
 # Modifications
+
+# De quoi ajouter un filtrage, invoqué dans le build.py, avant une étape à préciser.
+g_numFiltreAvant=0
+filtreAvant()
+{
+	g_numFiltreAvant="`expr 1 + $g_numFiltreAvant`"
+	cat > "$TMP/$$/filtreAvant.$g_numFiltreAvant" <<TERMINE
+#!/bin/sh
+. "$SCRIPTS/util.sh"
+TERMINE
+	cat >> "$TMP/$$/filtreAvant.$g_numFiltreAvant"
+	exprAvantSh="$1"
+	exprAvantPy="$1"
+	if [ "x$exprAvantSh" = x-sh ]
+	then
+		exprAvantSh="$2"
+		exprAvantPy="$3"
+	fi
+	chmod a+x "$TMP/$$/filtreAvant.$g_numFiltreAvant"
+	if [ -e build.py ]
+	then
+		filtrer build.py sed -e "/$exprAvantPy/"'{
+h
+s#[^ 	].*#os.system("'"$TMP/$$/filtreAvant.$g_numFiltreAvant"'")#
+p
+x
+}'
+	else
+		filtrer build.sh sed -e "/$exprAvantSh/"'i\
+'"$TMP/$$/filtreAvant.$g_numFiltreAvant"'
+'
+	fi
+}
+
+dyn()
+{
+	# Sur certains OS / compilo, "QtWebKit cannot be built as a static library on this platform. Check your configuration in qtbase/config.summary."
+	true || filtreAvant 'self.make("\.")' <<TERMINE
+filtrer "`pwd`/src/qt/qtbase/lib/pkgconfig/Qt5WebKitWidgets.pc" sed -e 's/-lQt5WebKitWidgets/-lQt5WebKitWidgets -lQt5PrintSupport/'
+TERMINE
+	# En mode dynamique, petit souci: Qt compile bien son QtWebCore en dynamique, mais WebCore en statique, avec un -fvisibility=hidden, avant d'inclure celle-ci dans QtWebCore. Du coup quand PhantomJS demande QtWebCore, elle se heurte à des "symboles indéfinis", en fait planqués dans la section texte *locale* du .so.
+	filtreAvant 'qtbase.configure' <<TERMINE
+filtrer "`pwd`/src/qt/qtbase/configure" grep -v reduce_exports
+TERMINE
+	# De plus les biblios n'étant plus embarquées façon poupées russes les unes dans les autres, il nous faut les spécifier à la main.
+	echo "LIBS += -lQt5PrintSupport" >> src/phantomjs.pro
+	case `uname -s`-`uname -r` in
+		FreeBSD-10.*)
+			filtrer build.py grep -v '"-static"'
+			;;
+	esac
+}
+
+qtclang()
+{
+	if ! command -v gcc 2> /dev/null >&1
+	then
+		filtrer src/qt/qtbase/configure sed -e 's#freebsd-g++#unsupported/freebsd-clang#'
+	fi
+}
+
+sansQpa()
+{
+	# La 2.1.1 se propose de nous brancher sur une QPA inexistante ("phantom"). Attendons sagement qu'elle soit créée dans une prochaine version, pour l'heure contentons-nous de ce qui se faisait avant avec le build.sh (à savoir ne pas donner de -qpa au configure de Qt, et le laisser choisir).
+	#filtrer build.py grep -ve -qpa
+	filtrer build.py sed -e '/-qpa/{
+h
+s#[^ 	].*#"-no-qpa-platform-guard",#
+p
+x
+s/phantom/offscreen/g
+}'
+}
+
+qpa()
+{
+	# La 2.1.1 avec un Qt trop récent ne sait pas définir l'option qu'il faut pour dire à Qt d'être étêté.
+	# Correction trouvée sur:
+	# https://github.com/ariya/phantomjs/pull/14505/files
+	filtrer build.py sed -e '/-qpa/{
+h
+s#[^ 	].*#"-no-qpa-platform-guard",#
+p
+x
+}'
+}
+
+qmakeO3()
+{
+	# qmake se vautre en recevant une option -O3. On rajoute la gestion du cas.
+	filtreAvant -sh 'cd.*preconfig.sh' self.configureQtBase <<TERMINE
+filtrer "`pwd`/src/qt/qtbase/config.tests/unix/compile.test" sed -e '/ \\*)/i\\
+-O*) CFLAGS="\\\$CFLAGS \\\$PARAM" ; CXXFLAGS="\\\$CXXFLAGS \\\$PARAM" ;;
+'
+filtrer "`pwd`/src/qt/qtbase/configure" sed -e '/-L.*\\*.*)/i\\
+-O*) QMakeVar add QMAKE_CFLAGS -O3 ; QMakeVar add QMAKE_CXXFLAGS -O3 ;;
+'
+TERMINE
+}
 
 icuSansDl()
 {
@@ -48,7 +148,9 @@ icuSansDl()
 procinfo()
 {
 	( cd src/qt/qtbase && git checkout src/corelib/io/qlockfile_unix.cpp )
+	# En fonction du Qt récupéré par le script de composition, il va nous falloir ou non détecter correctement notre FreeBSD.
 	filtrer src/qt/qtbase/src/corelib/io/qlockfile_unix.cpp sed -e 's@defined(__GLIBC__) && defined(__FreeBSD_kernel__)@HAVE_NO_GETPROC@'
+	(
 	patch -p0 <<TERMINE
 --- src/qt/qtbase/src/corelib/io/qlockfile_unix.cpp	2016-02-04 15:29:11.000000000 +0100
 +++ src/qt/qtbase/src/corelib/io/qlockfile_unix.cpp	2016-02-04 16:20:19.000000000 +0100
@@ -67,6 +169,7 @@ procinfo()
  #   include <sys/cdefs.h>
  #   include <sys/param.h>
 TERMINE
+	) || true
 }
 
 statfs()
@@ -78,6 +181,8 @@ statfs()
 pipe2()
 {
 	( cd src/qt/qtbase && git checkout src/3rdparty/forkfd/forkfd.c )
+	# En fonction du Qt récupéré par le script de composition, il va nous falloir ou non détecter correctement notre FreeBSD.
+	(
     patch -p0 <<TERMINE
 --- src/qt/qtbase/src/3rdparty/forkfd/forkfd.c	2016-02-03 17:24:01.000000000 +0100
 +++ src/qt/qtbase/src/3rdparty/forkfd/forkfd.c	2016-02-03 17:24:19.000000000 +0100
@@ -91,12 +196,25 @@ pipe2()
  #endif
  
 TERMINE
+	) || true
 }
 
 viaGit()
 {
+	# La commande suivante ne marche que sur un git clone.
+	#git submodule update --init
+	#return
+	# En mode manuel (archive .zip), on doit spécifier les révisions exactes. Le plus simple pour cela est d'aller voir le commit correspondant sur un phantomjs issu d'un clonage, après y avoir fait le bout de code ci-dessus.
+	case $version in
+		2.1.1)
+			bqtbase=b5cc0083a5766e773885e8dd624c51a967c17de0
+			bqtwebkit=e7b74331d695bfa8b77e39cdc50fc2d84a49a22a
+			;;
+	esac
     [ -d src/qt/qtbase/.git ] || git clone -b phantomjs https://github.com/Vitallium/qtbase.git src/qt/qtbase
+	[ -z "$bqtbase" ] || ( cd src/qt/qtbase && git checkout $bqtbase )
     [ -d src/qt/qtwebkit/.git ] || git clone -b phantomjs https://github.com/Vitallium/qtwebkit.git src/qt/qtwebkit
+	[ -z "$bqtwebkit" ] || ( cd src/qt/qtwebkit && git checkout $bqtwebkit )
 }
 
 freetype2()
@@ -185,18 +303,11 @@ debogageEtProxy()
 		f="src/qt/$i/Source/WebKit/qt/WebCoreSupport/InspectorServerQt.cpp"
 		if [ -e "$f" ]
 		then
-    patch -p0 <<TERMINE
---- $f
-+++ $f
-@@ -87,6 +87,7 @@
-         return;
- 
-     m_tcpServer = new QTcpServer();
-+    m_tcpServer->setProxy(QNetworkProxy::NoProxy);
-     m_tcpServer->listen(QHostAddress::Any, port);
-     connect(m_tcpServer, SIGNAL(newConnection()), SLOT(newConnection()));
- }
-TERMINE
+			filtrer "$f" sed -e '/m_tcpServer = new QTcpServer/a\
+    m_tcpServer->setProxy(QNetworkProxy::NoProxy);
+' -e '/namespace/i\
+#include <qnetworkproxy.h>
+'
 		fi
 	done
 }
