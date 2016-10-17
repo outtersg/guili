@@ -33,7 +33,7 @@ version=2.40.63
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
-archive="http://www.seas.upenn.edu/~bcpierce/unison//download/releases/stable/unison-$version.tar.gz"
+archive="http://www.seas.upenn.edu/~bcpierce/unison//download/releases/unison-$version/unison-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
