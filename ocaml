@@ -28,13 +28,18 @@ logiciel=ocaml
 
 # Historique des versions gérées
 
-v 3.09.3 || true
+v 3.09.3 && modifs="sansGcc" || true
 v 3.10.2 || true
 v 3.11.2 || true
 v 3.12.0 || true
 v 3.12.1 || true
 
 # Modifications
+
+sansGcc()
+{
+	command -v gcc > /dev/null 2>&1 || filtrer configure sed -e '/aspp=.*gcc/s/gcc/cc/g'
+}
 
 # Variables
 
