@@ -27,6 +27,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 logiciel=unison
 
 v 2.40.63 && prerequis="ocaml < 4" && modifs="espaces" || true
+v 2.40.128 || true
+v 2.48.4 && prerequis="ocaml >= 4" || true
 
 # Modifications
 
