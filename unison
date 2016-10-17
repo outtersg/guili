@@ -26,9 +26,16 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=unison
 
-version=2.40.63
+v 2.40.63 && prerequis="ocaml < 4" && modifs="espaces" || true
 
 # Modifications
+
+espaces()
+{
+	CPPFLAGS="`echo " $CPPFLAGS" | sed -e 's/ -I/ -I /g'`"
+	CFLAGS="`echo " $CFLAGS" | sed -e 's/ -I/ -I /g'`"
+	export CPPFLAGS CFLAGS
+}
 
 # Variables
 
@@ -36,6 +43,8 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://www.seas.upenn.edu/~bcpierce/unison//download/releases/unison-$version/unison-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
