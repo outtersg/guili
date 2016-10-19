@@ -346,7 +346,7 @@ echo Configuration… >&2
 echo Compilation… >&2
 if pge $version 2.1
 then
-    echo y | ./build.py $OPTIONS_CONF --qt-config "$CPPFLAGS $CFLAGS $LDFLAGS"
+    echo y | ./build.py $OPTIONS_CONF `for option in $CPPFLAGS $CFLAGS $LDFLAGS ; do printf " --qt-config=$option" ; done`
 else
 echo y | ./build.sh $OPTIONS_CONF --qt-config "$CPPFLAGS $CFLAGS $LDFLAGS" # Lorsque $INSTALLS vaut /usr/local, build.sh (et son qmake) arrive à détecter les OpenSSL et autres qui y évoluent. Par contre si on a tout compilé en local local ($HOME/local), le --qt-config est nécessaire. On lui passe tout en vrac, lui fera le ménage pour trier les -L, -I, etc.
 fi
