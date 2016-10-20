@@ -41,12 +41,15 @@ TERMINE
 
 analyserParametres()
 {
-	vars="mels compte"
+	vars="mels"
 	versionExim=
 	domaines=
+	compte=
+	mels=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
+			-u) shift ; compte="$1" ;;
 			-d) shift ; domaines="$domaines $1" ;;
 			*)
 				echo "$1" | grep -q '^[0-9.<>=]*$' && versionExim="$1" && continue || true
@@ -71,7 +74,7 @@ analyserParametres()
 		done
 		if [ "$compte" = personne ]
 		then
-			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte en le précisant en second paramètre (il sera créé si nécessaire)." >&2
+			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte via l'option -u (il sera créé si nécessaire)." >&2
 			exit 1
 		fi
 	fi
