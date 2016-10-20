@@ -27,21 +27,15 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 logiciel=db
 
 v 4.2.52 && modifs="atomicce fbsd10" || true
-
-version=4.3.28
+v 4.3.28 || true
+v 4.5.20 || true
+v 5.0.21 || true
+v 5.2.36 || true
+v 5.3.15 || true
 
 archive="ftp://sleepycat1.inetu.net/releases/$logiciel-$version.tar.gz"
-
 archive="http://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
-
 archive="http://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
-
-version=4.5.20
-
-v 5.0.21
-v 5.2.36
-v 5.3.15
-
 archive="http://download.oracle.com/berkeley-db/db-$version.tar.gz"
 
 atomicce()
