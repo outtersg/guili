@@ -123,28 +123,10 @@ case `uname` in
 		# Rien. On démarrera à la main.
 		;;
 	FreeBSD)
-		mkdir -p "$TMP/$$/dest/etc/rc.d"
-		cat > "$TMP/$$/dest/etc/rc.d/exim" <<TERMINE
-#!/bin/sh
-# PROVIDE: exim
-# REQUIRE: NETWORKING
-. /etc/rc.subr
-name=exim
-rcvar=\`set_rcvar\`
-command="$destexim/bin/exim"
-command_args="-bd -q1m"
-pidfile=$destexim/var/spool/exim/exim-daemon.pid
-load_rc_config "\$name"
-: \${exim_enable="NO"}
-
-LD_LIBRARY_PATH="$INSTALLS/lib"
-export LD_LIBRARY_PATH
-run_rc_command "\$1"
-TERMINE
+		serveur -d0 "$TMP/$$/dest" -d "$dest" -p "$destexim/var/spool/exim/exim-daemon.pid" -pre "LD_LIBRARY_PATH=$INSTALLS/lib ; export LD_LIBRARY_PATH" demon exim "$destexim/bin/exim -bd -q1m"
 		touch "$TMP/$$/dest/etc/exim.paf.regles"
 		comptes="`dirname "$mels"`/comptes"
 		"$SCRIPTS/eximConfig" --paf "$dest/etc/exim.paf.regles" -u "$compte" `echo "$domaines" | sed -e 's/  *\([^ ]\)/ -d \1/g'` "$mels" "$comptes" > "$TMP/$$/exim.conf"
-		chmod u+x "$TMP/$$/dest/etc/rc.d/exim"
 		sudo cp -R "$TMP/$$/dest" "$dest"
 		sudo cp "$TMP/$$/exim.conf" "$destexim/etc/exim"
 		sudo mkdir -p "$destexim/var/spool/exim/log"
