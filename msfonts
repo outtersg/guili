@@ -3,16 +3,26 @@
 set -e
 
 ~/src/installs/cabextract
+PATH=$HOME/local/bin:/usr/local/bin:$PATH
 
 cd /tmp/
 mkdir msfonts
 cd msfonts
-curl -o /tmp/0.exe "http://cznic.dl.sourceforge.net/project/mscorefonts2/cabs/PowerPointViewer.exe"
-curl -o /tmp/1.exe "http://skylink.dl.sourceforge.net/project/mscorefonts2/cabs/EUupdate.EXE"
-cabextract /tmp/0.exe
-cabextract ppviewer.cab
-cabextract /tmp/1.exe
+
+mkdir paquets
+cd paquets
+#curl -o /tmp/0.exe "http://cznic.dl.sourceforge.net/project/mscorefonts2/cabs/PowerPointViewer.exe"
+#curl -o /tmp/1.exe "http://skylink.dl.sourceforge.net/project/mscorefonts2/cabs/EUupdate.EXE"
+curl -O https://www.freedesktop.org/software/fontconfig/webfonts/webfonts.tar.gz
+find . -name \*.tar.gz -exec tar xzf {} \;
+
+mkdir ../polices
+cd ../polices
+find ../paquets \( -name \*.exe -o -name \*.EXE \) -exec cabextract {} \;
+
 echo "========"
-ls -l *.ttf *.TTF
-sudo cp *.ttf *.TTF /usr/share/fonts/
-fc-list
+
+find . -name \*.ttf -o -name \*.TTF
+find . -name \*.ttf -o -name \*.TTF -exec sudo cp {} /usr/share/fonts/ \;
+
+sudo fc-list
