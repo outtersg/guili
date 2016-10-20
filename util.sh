@@ -776,3 +776,5 @@ readlinkf()
 		echo "$RESULT"
 	)
 }
+
+[ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
