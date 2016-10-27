@@ -33,6 +33,7 @@ v 3.4.12 || true
 v 4.1.4 && modifs="php53" || true
 v 4.3.5 || true
 v 4.7.6 || true
+v 4.8.27 || true
 
 # Modifications
 
