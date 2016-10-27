@@ -26,6 +26,8 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=phpunit
 
+prerequis="php"
+
 v 3.3.17 && modifs="php_bin libBin" || true
 v 3.4.12 || true
 v 4.1.4 && modifs="php53" || true
@@ -33,8 +35,6 @@ v 4.3.5 || true
 v 4.7.6 || true
 
 # Modifications
-
-inclure php
 
 php_bin()
 {
@@ -75,6 +75,8 @@ archive="https://github.com/sebastianbergmann/phpunit/archive/$version.tar.gz"
 pge $version 4 && archive="https://phar.phpunit.de/phpunit-$version.phar" || true
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 echo Obtention et décompression… >&2
 if pge $version 4
