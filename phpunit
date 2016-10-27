@@ -80,6 +80,8 @@ echo Obtention et décompression… >&2
 if pge $version 4
 then
 	cd $TMP/$$
+	mkdir prefix
+	cd prefix
 	mkdir bin
 	cd bin
 	cp "`obtenir "$archive"`" ./phpunit
