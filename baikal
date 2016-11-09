@@ -28,8 +28,8 @@ calcScripts "$0"
 
 logiciel=baikal
 
-v 0.2.6.5.58c58c08170004e2fb91cc2bf64acc5419589c5f.git && modifs="deps bonneRacine" || true
-v 0.2.7 && modifs="bonneRacine peruser cachecal" || true
+v 0.2.6.5.58c58c08170004e2fb91cc2bf64acc5419589c5f.git && modifs="deps bonneRacine2" || true
+v 0.2.7 && modifs="bonneRacine2 peruser cachecal" || true
 
 archive=http://baikal-server.com/get/baikal-regular-$version.tgz
 archive_git="git://github.com/jeromeschneider/Baikal"
@@ -39,6 +39,41 @@ deps()
 	# Le composer veut une version récente de PHP.
 	curl -sS https://getcomposer.org/installer | /usr/local/php-5.5.8/bin/php -- --install-dir=.
 	/usr/local/php-5.5.8/bin/php composer.phar install
+}
+
+bonneRacine2()
+{
+	patch -p0 <<TERMINE
+diff -ruw ./Core/Frameworks/Flake/Framework.php ./Core/Frameworks/Flake/Framework.php
+--- ./Core/Frameworks/Flake/Framework.php	2014-02-03 21:46:11.000000000 +0100
++++ ./Core/Frameworks/Flake/Framework.php	2016-11-08 23:05:53.797937000 +0100
+@@ -69,6 +69,8 @@
+ 		\$sScriptBaseName = basename(\$sScriptName);
+ 		if( self::endswith(\$sString, \$sScriptBaseName) )
+ 			return substr(\$sString, 0, -strlen(\$sScriptBaseName));
++		else if( (\$pos = strpos(\$sString, '/'.\$sScriptBaseName.'/')) !== false )
++			return substr(\$sString, 0, \$pos + 1);
+ 		return \$sString;
+ 	}
+ 
+@@ -156,7 +158,7 @@
+ 		}
+ 		
+ 		\$sBaseUrl = self::rmBeginSlash(self::rmProjectContext(\$sDirName));
+-		define("PROJECT_BASEURI", self::prependSlash(\$sBaseUrl));	# SabreDAV needs a "/" at the beginning of BASEURL
++		//define("PROJECT_BASEURI", self::prependSlash(\$sBaseUrl));	# SabreDAV needs a "/" at the beginning of BASEURL
+ 
+ 		# Determine PROJECT_URI
+ 		\$sProtocol = \\Flake\\Util\\Tools::getCurrentProtocol();
+@@ -164,6 +166,7 @@
+ 		\$sHttpBaseUrl = self::rmQuery(\$sHttpBaseUrl);
+ 		\$sHttpBaseUrl = self::rmScriptName(\$sHttpBaseUrl, \$sScript);
+ 		\$sHttpBaseUrl = self::rmProjectContext(\$sHttpBaseUrl);
++		define("PROJECT_BASEURI", self::prependSlash(\$sHttpBaseUrl));
+ 		define("PROJECT_URI", \$sProtocol . "://" . \$_SERVER["HTTP_HOST"] . \$sHttpBaseUrl);
+ 		unset(\$sScript); unset(\$sDirName); unset(\$sBaseUrl); unset(\$sProtocol); unset(\$sHttpBaseUrl);
+ 
+TERMINE
 }
 
 bonneRacine()
