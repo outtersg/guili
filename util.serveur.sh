@@ -160,8 +160,21 @@ FINI
 
 serveurSystemd()
 {
-	[ -z "$avant" ] || avant="ExecStartPre=$avant"
-	[ $type != simple ] && echo "# Je ne sais pas gérer d'autre type que simple." >&2 && return 1
+    ajoutService=
+	[ -z "$avant" ] || ajoutService="ExecStartPre=$avant"
+
+	case "$type" in
+		simple)
+            ajoutType=
+			;;
+		demon) 
+            ajoutService="$ajoutService|Type=forking|ExecReload=/bin/kill -s HUP \$MAINPID|ExecStop=/bin/kill -s QUIT \$MAINPID"
+			;;
+        *)
+            echo "# Je ne sais pas gérer le type '$type'." >&2
+            return 1
+	esac
+    ajoutService="`echo "$ajoutService" | tr \| '\012'`"
 	
     cat > /etc/systemd/system/${nom}.service <<TERMINE
 [Unit]
@@ -171,8 +184,8 @@ After=network-online.target
 [Service]
 User=$compte
 Group=$groupe
-$avant
 ExecStart=$commande
+$ajoutService
 Restart=on-failure
 
 [Install]
