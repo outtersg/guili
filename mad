@@ -52,6 +52,7 @@ make
 
 echo Installation… >&2
 sudo make install
+( cd "$dest/lib" && sudo ln -s libmad.so.* libmad.so || true )
 sutiliser "$logiciel-$version"
 
 rm -Rf $TMP/$$
