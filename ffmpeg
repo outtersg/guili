@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +22,7 @@
 set -e
 
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 logiciel=ffmpeg
 
@@ -32,17 +32,17 @@ inclure pkgconfig
 
 version=2005-10-14
 modifs=panther
-OPTIONS_CONF=(--disable-altivec) # h264_chroma_mc8, entre autres, a une variable non initialisée qui fait tout planter.
+OPTIONS_CONF="--disable-altivec" # h264_chroma_mc8, entre autres, a une variable non initialisée qui fait tout planter.
 
 version=2005-10-29
 
 version=r6177
 modifs=avecX264
-OPTIONS_CONF=(--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enable-pp --enable-shared)
+OPTIONS_CONF="--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enable-pp --enable-shared"
 
-v 0.7-rc1 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --disable-yasm)
-v 1.0 && modifs= && OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus) && inclure yasm && inclure opus
-v 1.0.1 && prerequis="lame" OPTIONS_CONF=(--enable-gpl --enable-nonfree --enable-shared --enable-libopus --enable-libmp3lame)
+v 0.7-rc1 && modifs= && OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --disable-yasm"
+v 1.0 && modifs= && OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --enable-libopus" && inclure yasm && inclure opus
+v 1.0.1 && prerequis="lame" OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --enable-libopus --enable-libmp3lame"
 v 2.5 && modifs="monCc" prerequis="opus lame >= 3.98.3 binutils" || true
 v 2.5.2 || true
 
@@ -89,7 +89,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make -j 4
