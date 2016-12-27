@@ -33,6 +33,7 @@ esac
 # Historique des versions gérées
 
 v 2.24 && modifs="sbrk" || true
+v 2.27 || true
 
 prerequis
 
