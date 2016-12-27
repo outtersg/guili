@@ -28,9 +28,10 @@ logiciel=xdebug
 
 # Historique des versions gérées
 
-v 2.1.0
-v 2.2.1
-v 2.2.5 && modifs="quelphp" || true
+v 2.1.0 && modifs="quelphp" || true
+v 2.2.1 || true
+v 2.2.5 || true
+v 2.4.1 || true
 
 params="$*"
 
