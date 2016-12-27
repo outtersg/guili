@@ -36,6 +36,7 @@ v 0.15.1b && modifs= || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/lib$logiciel-$version.tar.gz
+archive="https://kent.dl.sourceforge.net/project/mad/libmad/$version/libmad-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
