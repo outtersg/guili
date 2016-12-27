@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,7 +22,7 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 inclusions_ao()
 {
@@ -80,12 +80,13 @@ modifs=dyld105
 for i in ao/libao-1.2.0 ogg/libogg-1.3.2 vorbis/libvorbis-1.3.4 vorbis/vorbis-tools-1.4.0
 do
 
-logiciel=${i#*/}
-version=${logiciel##*-}
-logiciel=${logiciel%-*}
-[ "x$RETROAPPEL" != x -a "$RETROAPPEL" != $logiciel ] && continue
+logiciel="`basename "$i"`"
+version="`echo "$logiciel" | sed -e 's/.*-//'`"
+logiciel="`echo "$logiciel" | sed -e 's/-[^-]*$//'`"
+
+[ "x$RETROAPPEL" != x -a "$RETROAPPEL" != "$logiciel" ] && continue
 archive=http://downloads.xiph.org/releases/$i.tar.gz
-archive_svn=http://svn.xiph.org/trunk/${logiciel#lib}
+archive_svn=http://svn.xiph.org/trunk/`echo "$logiciel" | sed -e 's/lib//g'`
 
 dest="$INSTALLS/$logiciel-$version"
 
@@ -94,18 +95,19 @@ dest="$INSTALLS/$logiciel-$version"
 modifspostcompil=
 conf=./configure
 if [[ $version = r* ]] ; then
-	obtenirEtAllerDansSvn -r ${version#r} $archive_svn
+	obtenirEtAllerDansSvn -r `echo "$version" | sed -e 's/^r//'` $archive_svn
 	export ACLOCAL_FLAGS="-I $INSTALLS/share/aclocal"
 	conf=./autogen.sh
 else
-	obtenirEtAllerDans "$archive"
+	obtenirEtAllerDansVersion
 fi
 
 echo Correction… >&2
-for modif in compil3264 $modifs $(eval echo \$modifs_${logiciel//-/}) ; do $modif "$@" ; done
+nom_modifs_truc=\$modifs_"`echo "$logiciel" | tr -d -`"
+for modif in compil3264 $modifs `eval echo $nom_modifs_truc` ; do $modif "$@" ; done
 
 echo Configuration… >&2
-"${conf[@]}" --prefix="$dest"
+$conf --prefix="$dest"
 
 echo Compilation… >&2
 make
