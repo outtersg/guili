@@ -28,23 +28,18 @@ logiciel=mad
 
 # Historique des versions gérées
 
-version=0.15.1b
-modifs=
+v 0.15.1b && modifs= || true
 
 # Modifications
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
+dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/lib$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -59,4 +54,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
