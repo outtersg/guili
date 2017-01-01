@@ -8,6 +8,7 @@ set -e
 PATH=$HOME/local/bin:/usr/local/bin:$PATH
 
 cd /tmp/
+rm -Rf msfonts
 mkdir msfonts
 cd msfonts
 
