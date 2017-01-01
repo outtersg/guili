@@ -103,8 +103,25 @@ haveLibReadline()
 
 readlineNcurses()
 {
-	# readline n'est pas naturellement liée à ncurses, mais plante sans.
-	filtrer configure sed -e 's/-lreadline/-lreadline -lncurses/g'
+	# readline repose sur la présence des fonctions de terminfo… mais se garde bien d'aller la chercher (trop d'endroits possibles?).
+	# Du coup si l'on veut se lier à readline il nous faut trouver avec quoi d'autre nous lier pour que ça fonctionne.
+	# À FAIRE: faire un coup de prérequis ncurses si une première passe ne l'a pas trouvé.
+	cc="$CC"
+	[ ! -z "$cc" ] || cc=cc
+	echo 'extern int tgetent(char *bp, const char *name); int main(int argc, char ** argv) { tgetent("coucou", "coucou"); }' > testTerminfo.c
+	for essai in \
+		"" \
+		"-lncursesw" \
+		"-lncurses" \
+		"-lterminfo" \
+		"-ltinfo" \
+		"/lib64/libterminfo.5."* \
+		"(impossible de trouver libterminfo)"
+	do
+		"$cc" -o testTerminfo testTerminfo.c $LDFLAGS $essai 2> /dev/null >&2 && break
+	done
+	filtrer configure sed -e "s#-lreadline#-lreadline $essai#g"
+		
 }
 
 php34617()
