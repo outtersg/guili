@@ -39,7 +39,7 @@ statn()
 {
 	case `uname` in
 		FreeBSD) stat "$@" ;;
-		*) stat -f "%N" "$@" ;;
+		*) stat --format="%N" "$@" ;;
 	esac
 }
 
