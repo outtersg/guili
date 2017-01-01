@@ -123,4 +123,5 @@ sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
 
-$INSTALLS/bin/curl -k -L http://curl.haxx.se/ca/cacert.pem > $HOME/.curl-ca-bundle.crt
+$dest/bin/curl -k -L http://curl.haxx.se/ca/cacert.pem > $HOME/.curl-ca-bundle.crt
+sudo cp $HOME/.curl-ca-bundle.crt "$dest/share/curl-ca-bundle.crt"
