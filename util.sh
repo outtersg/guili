@@ -402,8 +402,7 @@ prerequis()
 				"`echo "$requis" | tr -d '()'`" $versionRequis
 				;;
 			*)
-				inclure "$requis" "$versionRequis"
-				reglagesCompilPrerequis "$requis" "$versionRequis"
+				prerequerir "$requis" "$versionRequis"
 				;;
 		esac
 	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
