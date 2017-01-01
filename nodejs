@@ -31,6 +31,7 @@ logiciel=nodejs
 v 0.10.33 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
 v 0.12.4 && prerequis="libexecinfo py2()" && modifs="pasGcc pthreadtInt doubleResult neReconstruisPasTout" || true
 v 5.3.0 && prerequis="libexecinfo py2()" && modifs="pasGcc cstds neReconstruisPasTout sansGold" || true
+v 6.9.1 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
 
 archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
 
