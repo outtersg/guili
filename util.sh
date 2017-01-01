@@ -386,6 +386,12 @@ reglagesCompilPrerequis()
 	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL
 }
 
+prerequerir()
+{
+	inclure "$@"
+	reglagesCompilPrerequis "$@"
+}
+
 prerequis()
 {
 	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' > $TMP/$$/temp.prerequis
