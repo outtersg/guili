@@ -28,11 +28,24 @@ calcScripts "$0"
 
 logiciel=nodejs
 
-v 0.10.33 && prerequis="libexecinfo" || true
-v 0.12.4 && prerequis="libexecinfo" && modifs="pthreadtInt doubleResult neReconstruisPasTout" || true
-v 5.3.0 && prerequis="libexecinfo" && modifs="cstds neReconstruisPasTout sansGold" || true
+v 0.10.33 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
+v 0.12.4 && prerequis="libexecinfo py2()" && modifs="pasGcc pthreadtInt doubleResult neReconstruisPasTout" || true
+v 5.3.0 && prerequis="libexecinfo py2()" && modifs="pasGcc cstds neReconstruisPasTout sansGold" || true
 
 archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
+
+py2()
+{
+	# NodeJS repose sur gyp, un outil de génération de Makefiles qui ne sera pas porté sous Python3 (et requiert spécifiquement des paquets Python 2, donc 2to3 ne marche pas).
+	modifs="py2m $modifs"
+	command -v python2 > /dev/null 2>&1 && return 0 || true
+	prerequerir python "< 3"
+}
+
+py2m()
+{
+	filtrer configure sed -e "1s/env python$/env python2/"
+}
 
 sansGold()
 {
@@ -72,6 +85,14 @@ s/result.push_back/retour.push_back/
 neReconstruisPasTout()
 {
 	filtrer Makefile sed -e '/^install:/s/:.*/:/'
+}
+
+pasGcc()
+{
+	# gyp (et dans les dernières versions le configure principal de Node) attend CC et CXX, et les définit par défaut à gcc si elles sont vides. Alors on les définit.
+	command -v gcc > /dev/null 2>&1 || CC=cc
+	command -v g++ > /dev/null 2>&1 || CXX=c++
+	export CC CXX
 }
 
 dest=$INSTALLS/$logiciel-$version
