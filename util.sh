@@ -393,7 +393,7 @@ prerequis()
 	do
 		case "$requis" in
 			*\(\))
-				"$requis" $versionRequis
+				"`echo "$requis" | tr -d '()'`" $versionRequis
 				;;
 			*)
 				inclure "$requis" "$versionRequis"
