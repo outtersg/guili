@@ -24,14 +24,13 @@ set -e
 if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
 . "$SCRIPTS/util.bash"
 
-inclure db
 inclure apr
 inclure apr-util
 inclure gettext
 
 logiciel=subversion
 
-v 1.2.3 && prerequis=neon || true
+v 1.2.3 && prerequis="neon db" || true
 v 1.4.6 && modifs="lssl" || true
 v 1.7.2 && modifs= || true
 v 1.7.6 && modifs=destdir || true
