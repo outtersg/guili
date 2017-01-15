@@ -49,6 +49,7 @@ v 1.0.2f || true
 # Corrige une faille béante au 2016-03-01, mais mon vieux mod_php a l'air d'être lié à /usr/local/lib/libopenssl.so, et ne trouve plus dans cette version ses fonctions SSLv2_…. Il faudrait sans doute le recompiler, mais bon, un 5.2, quand même…
 v 1.0.2g || true
 v 1.0.2h || true
+v 1.1.0c || true
 
 # Modifications
 
@@ -83,7 +84,13 @@ docItemComplet()
 sansdoc()
 {
 	# Cette petite histoire de l'incompat entre les docs d'OpenSSL et Perl 5.18 m'échaude furieusement, après les deux tentatives docItem et docItemComplet on a encore un gruyère. On zappe donc tout, merde.
-	filtrer Makefile.org sed -e '/^install: /s/install_docs//g'
+	for f in Makefile.org Configurations/unix-Makefile.tmpl
+	do
+		if [ -e "$f" ]
+		then
+			filtrer "$f" sed -e '/^install: /s/install_docs//g'
+		fi
+	done
 }
 
 dyld105postconf()
