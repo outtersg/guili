@@ -30,6 +30,7 @@ logiciel=perl
 
 v 5.16.3 || true
 v 5.18.0 || true # Attention, ne permet pas à OpenSSL 1.0.1e de finir son install (http://osdir.com/ml/blfs-support/2013-06/msg00136.html).
+v 5.24.0 || true
 
 # Modifications
 
