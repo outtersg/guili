@@ -34,11 +34,17 @@ case `basename "$0"` in
 		;;
 esac
 
-v 5.9 && modifs=pointeurs || true
+v 5.9 && modifs="pointeurs fpic" || true
 
 archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
 
 dest=$INSTALLS/$logiciel-$version
+
+fpic()
+{
+	CFLAGS="$CFLAGS -fPIC"
+	export CFLAGS
+}
 
 pointeurs()
 {
