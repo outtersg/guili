@@ -30,9 +30,9 @@ logiciel=ncurses
 case `basename "$0"` in
 	ncursesw)
 		logiciel=ncursesw
-		OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
 		;;
 esac
+OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
 
 v 5.9 && modifs="pointeurs fpic" || true
 
