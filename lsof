@@ -78,7 +78,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./Configure freebsd
+./Configure -n "`uname | tr A-Z a-z`"
 
 echo Compilation… >&2
 make
