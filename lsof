@@ -26,7 +26,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=lsof
 
-v 4.82 && modifs=paslirelaconf || true
+v 4.82 && modifs="srcBsd confBsdAvecSrcATrous" || true
 v 4.84 || true
 v 4.85 || true
 v 4.87 || true
@@ -34,9 +34,32 @@ v 4.88 || true
 
 # Modifications
 
-paslirelaconf()
+srcBsd()
 {
+	[ FreeBSD = `uname` ] || return 0
+	[ ! -d /usr/src/sys ] || return 0
+	
+	fbsd="`uname -r | cut -d - -f 1`.0"
+	sfbsd="https://svnweb.freebsd.org/base/release/$fbsd/sys"
+	mkdir -p racine/sys
+	cd racine/sys
+	for f in sys/conf.h sys/types.h kern/kern_lockf.c fs/devfs/devfs_int.h sys/filedesc.h
+	do
+		mkdir -p "./`dirname $f`"
+		curl -s "$sfbsd/$f?view=co" > "$f"
+	done
+	cd ..
+	sudo cp -R * /usr/src/./
+	cd ..
+}
+
+confBsdAvecSrcATrous()
+{
+	# Nos environnement de dév kernel est incomplet (on l'a reconstitué à la main, cf. srcBsd), il y a donc quelques petites choses que le Configure ne pourra pas trouver.
 	export FREEBSD_MAKE_CONF=/rien/du/tout
+	# Le Configure repose sur une option du make BSD que n'a pas le GNU make.
+	chmod u+w Configure
+	filtrer Configure sed -e '/-VCFLAGS/s#\$LSOF_MAKE#/usr/bin/make#g'
 }
 
 # Variables
