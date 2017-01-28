@@ -34,7 +34,7 @@ auSecours()
 {
 	moi="`basename "$0"`"
 	cat >&2 <<TERMINE
-# Utilisation: $moi <répertoire destination>
+# Utilisation: $moi [-s <suffixe démarreur>] [-p <port>] <dossier de base>
 TERMINE
 	exit 1
 }
@@ -42,9 +42,14 @@ TERMINE
 analyserParametres()
 {
 	vars="bdd compte"
+	suffixe=
+	port=5432
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
+			-s) suffixe="$2" ; shift ;;
+			-p) port="$2" ; shift ;;
+			-u) shift ; compte="$1" ;;
 			*)
 				[ -z "$vars" ] && auSecours
 				for i in $vars
@@ -114,21 +119,10 @@ case `uname` in
 	Darwin)
 		# Rien. On démarrera à la main.
 		;;
-	FreeBSD)
-		sed < "$destpostgresql/share/init.postgresql" > "$TMP/$$/init.postgresql" -e "/^PGDATA=/s#=.*#=$bdd#" -e "/^PGUSER=/s#=.*#=$compte#" -e '1{
-a\
-# PROVIDE: postgresql
-a\
-# REQUIRE: NETWORKING
-}' -e '/[^e]start)/s/)/|quietstart)/'
-
-		sudo mkdir -p "$dest/etc/rc.d"
-		sudo cp "$TMP/$$/init.postgresql" "$dest/etc/rc.d/postgresql"
-		sudo chmod u+x "$dest/etc/rc.d/postgresql"
+	FreeBSD|Linux)
+		sudo serveur -u "$compte" simple postgresql$suffixe "$destpostgresql/bin/postmaster -D $bdd"
 		;;
 esac
-
-sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
 
