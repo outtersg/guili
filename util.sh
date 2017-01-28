@@ -272,7 +272,7 @@ then
 					*) break ;;
 				esac
 			done
-			if [ -z "$enTantQue" ]
+			if [ -z "$enTantQue" -o "$enTantQue" = "`id -n -u`" ]
 			then
 		"$@" # Avec un peu de chance on est en root.
 			else
