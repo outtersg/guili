@@ -33,6 +33,7 @@ v 9.2.1 && modifs="detectionPerl detectionReadline" || true
 v 9.2.9 || true
 v 9.2.18 || true
 v 9.5.3  || true
+v 9.6.1 || true
 
 detectionReadline()
 {
