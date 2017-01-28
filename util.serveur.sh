@@ -17,7 +17,12 @@ serveur()
 			serveurFreebsd "$@"
 			;;
 		Linux)
+			if command -v systemctl > /dev/null 2>&1
+			then
 			serveurSystemd "$@"
+			else
+				serveurLinux "$@"
+			fi
 			;;
 		*)
 			echo "# Je ne sais pas créer d'amorceur sur `uname`." >&2
@@ -195,5 +200,85 @@ TERMINE
 	then
 		systemctl start ${nom}.service
 		systemctl enable ${nom}.service
+	fi
+}
+
+serveurLinux()
+{
+	[ ! -z "$dest" ] || dest=
+	[ ! -z "$desttemp" ] || desttemp="$dest"
+	if [ -z "$fpid" ]
+	then
+		fpid=$dest/var/run/$nom.pid
+		# Bizarre, la doc de daemon dit qu'il faut utiliser -P pour tuer le démon plutôt que le fils (sinon le démon redémarre le fils), mais en pratique ce faisant le stop ne trouve pas le pid. Et comme apparemment le démon ne relance pas le fils, partons sur du -p.
+		optionfpiddaemon="-p $fpid"
+	fi
+	[ -z "$compte" ] || commande="su $compte sh -c \"`echo "$commande" | sed -e 's/"/\\"/g'`\""
+	case "$type" in
+		simple)
+			commande="daemon $commande"
+			ftrace="$dest/var/log/$nom.demon.log"
+			;;
+		demon) 
+			true
+			;;
+	esac
+	
+	mkdir -p "$desttemp/etc/init.d"
+	cat > "$desttemp/etc/init.d/$nom" <<TERMINE
+#!/bin/sh
+
+PATH="$INSTALLS/bin:\$PATH"
+LD_LIBRARY_PATH="$INSTALLS/lib:\$LD_LIBRARY_PATH"
+export PATH LD_LIBRARY_PATH
+
+daemon()
+{
+	"\$@" < /dev/null >> "$ftrace" 2>&1 &
+}
+
+lance()
+{
+	$commande
+	echo \$! > "\$pidfile"
+}
+
+tue()
+{
+	pid="\`cat "\$pidfile"\`"
+	if [ -z "\$pid" ]
+	then
+		echo "# Impossible d'arrêter le serveur. PID introuvable à \$pidfile." >&2
+	else
+		kill "\$pid"
+		while ps -p "\$pid" > /dev/null 2>&1
+		do
+			sleep 1
+		done
+	fi
+}
+
+name=$nom
+pidfile=$fpid
+
+$avant
+case "\$1" in
+	start) lance ;;
+	stop) tue ;;
+	restart) tue ; lance ;;
+	*) echo "# Commande \\"\$1\\" inconnue." >&2 ; exit 1 ;;
+esac
+TERMINE
+	chmod u+x "$desttemp/etc/init.d/$nom"
+	if [ "x$installer" = xoui ]
+	then
+		# À FAIRE: lier dans /etc/rcx.d/
+		true
+	fi
+	if [ ! -z "$compte" ]
+	then
+		cat >> /etc/sudoers <<FINI
+$compte ALL=(ALL) NOPASSWD:$dest/etc/init.d/$nom *
+FINI
 	fi
 }
