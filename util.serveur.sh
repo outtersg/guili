@@ -272,8 +272,14 @@ TERMINE
 	chmod u+x "$desttemp/etc/init.d/$nom"
 	if [ "x$installer" = xoui ]
 	then
-		# À FAIRE: lier dans /etc/rcx.d/
-		true
+		for i in 0 1 6
+		do
+			ln -s "../init.d/$nom" "$desttemp/etc/rc$i.d/K05$nom"
+		done
+		for i in 2 3 4 5
+		do
+			ln -s "../init.d/$nom" "$desttemp/etc/rc$i.d/S95$nom"
+		done
 	fi
 	if [ ! -z "$compte" ]
 	then
