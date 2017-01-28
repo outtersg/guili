@@ -107,7 +107,7 @@ then
 echo "Création de la base…" >&2
 
 sudo mkdir -p "$bdd"
-sudo chown -R $compte:$compte "$bdd"
+sudo chown -R $compte: "$bdd"
 sudo chmod -R go-rwx "$bdd"
 # A priori il faut monter les valeurs dans /boot/loader.conf; ex.: kern.ipc.semmni=20 kern.ipc.semmns=120 kern.ipc.semmnu=60 kern.ipc.semmap=60
 sudo -u $compte initdb "$bdd"
