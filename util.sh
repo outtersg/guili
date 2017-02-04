@@ -254,6 +254,24 @@ then
 	}
 fi
 
+suer()
+{
+	argsSu="$1"
+	shift
+	[ "x$argsSu" = x- ] && argsSu="$argsSu $1" && shift || true
+	
+	argsColles="`for arg in "$@" ; do printf "%s" "$arg" ; done`"
+	for sep in ' ' '|' '\t' ':' ';' '@' '#' '!' '+' '=' '\r' ; do
+		commande="`for arg in "$@" ; do printf "%s$sep" "$arg" ; done | xxd -p | tr -d '\012'`"
+		# Si le séparateur est utilisé dans la commande, il va être difficile de s'en servir sans perdre notre shell. En ce cas on passe au séparateur suivant.
+		echo "$argsColles" | grep -q "`printf %s "$sep"`" && continue || true
+		su $argsSu -c 'commande="`echo '"$commande"' | xxd -r -p`" ; IFS="`printf '"'$sep'"'`" ; $commande'
+		return $?
+	done
+	echo "# Impossible de trouver un séparateur shell qui ne soit pas utilisé par la commande: $*" >&2
+	return 1
+}
+
 if [ "x$SANSSU" = x1 ] || ! command -v sudo 2> /dev/null >&2
 then
 	sudo()
