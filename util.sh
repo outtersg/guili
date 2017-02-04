@@ -294,7 +294,7 @@ then
 			then
 		"$@" # Avec un peu de chance on est en root.
 			else
-				su - "$enTantQue" -c "$*"
+				suer - "$enTantQue" "$@"
 			fi
 		)
 	}
