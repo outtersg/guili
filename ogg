@@ -59,6 +59,17 @@ uint()
 	filtrer include/ogg/os_types.h sed -e 's/u_int16_t/uint16_t/g' -e 's/u_int32_t/uint32_t/g'
 }
 
+# Pas de blague, sur Mac, il faut utiliser le compilo Apple, même si GCC est présent; sans quoi impossibilité de trouver CoreAudio.h et toutes ses dépendances.
+ccMac()
+{
+	case `uname` in
+		Darwin)
+			CC=cc
+			export CC
+			;;
+	esac
+}
+
 #for i in ao/libao-r10015 ogg/libogg-1.1.2 vorbis/libvorbis-1.1.1 vorbis/vorbis-tools-1.1.1
 
 #modifs_libao=inclusions_ao
@@ -76,7 +87,7 @@ uint()
 #modifs=dyld105
 #for i in ao/libao-1.1.0 ogg/libogg-1.3.0 vorbis/libvorbis-1.3.3 vorbis/vorbis-tools-1.4.0
 
-modifs=dyld105
+modifs="dyld105 ccMac"
 for i in ao/libao-1.2.0 ogg/libogg-1.3.2 vorbis/libvorbis-1.3.4 vorbis/vorbis-tools-1.4.0
 do
 
