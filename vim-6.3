@@ -27,6 +27,9 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=vim
 
+# Désormais les 8.0.tar.bz2 ne sont plus des 8.0.0, mais des 8.0.x embarquant les x premiers patches.
+demarrage=
+
 v 6.3 || true
 v 6.4 || true
 v 7.0.205 && modifs="corr syntaxephp" || true
@@ -38,7 +41,7 @@ v 7.4.702 || true
 v 7.4.1847 || true
 v 7.4.2296 || true
 
-archive=ftp://ftp.vim.org/pub/vim/unix/$logiciel-${version%.*}.tar.bz2
+archive=ftp://ftp.vim.org/pub/vim/unix/$logiciel-${version%.*}$demarrage.tar.bz2
 
 dest=$INSTALLS/$logiciel-$version
 
@@ -47,13 +50,20 @@ corr()
 	n="${version##*.}"
 	ou="${archive%/*}"
 	ou="${ou/unix/patches}"
-	mem="$INSTALL_MEM/$logiciel-$version.corr.tar.gz"
+	mem="$INSTALL_MEM/$logiciel-$version$demarrage.corr.tar.gz"
+	if [ -z "$demarrage" ]
+	then
+		demarrage=0
+	else
+		demarrage="`echo "$demarrage" | sed -e 's/^[.0]*//'`"
+	fi
+	
 	if [ -f "$mem" ] && tar xzf "$mem"
 	then
 		true
 	else
 		i=$((n + 1))
-		while [ $((--i)) -gt 0 ]
+		while [ $((--i)) -gt $demarrage ]
 		do
 			iFormate="`printf "%3.3d" "$i"`"
 			mv "`obtenir "$ou/${version%.*}/${version%.*}.$iFormate"`" ./
@@ -61,7 +71,7 @@ corr()
 		tar czf "$mem" "${version%.*}".*
 	fi
 	
-	i=0
+	i=$demarrage
 	while [ $((++i)) -le $n ]
 	do
 		patch -f -p0 < "${version%.*}.`printf "%3.3d" $i`" || true # Un peu de rustines indigestes Windows.
