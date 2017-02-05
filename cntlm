@@ -35,8 +35,13 @@ v 0.92.3 && modifs="freebsd" || true
 # Adaptations au vieux GCC de FreeBSD.
 freebsd()
 {
+	[ `uname` = FreeBSD ] || return 0
 	filtrer Makefile sed -e 's/ -Wno-unused-but-set-variable//g'
 	filtrer Makefile sed -e 's/install -D/install/g'
+	# Sur les nouveaux FreeBSD, il n'y a carrément plus de gcc.
+	[ -e Makefile.clang ] || cp Makefile Makefile.clang
+	filtrer Makefile.clang sed -e '/OBJS=/s/^	*//' -e '/^ifeq/d' -e '/^else/,/^endif/d' -e 's/gcc/clang/g'
+	filtrer configure sed -e '/^CCS=/s/="/="clang /'
 }
 
 # Variables
