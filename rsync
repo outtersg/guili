@@ -47,7 +47,7 @@ version=3.0.7
 
 version=3.0.9
 
-v 3.1.1 || true
+v 3.1.1 && prerequis="perl" || true
 
 # Modifications
 
