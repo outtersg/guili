@@ -145,6 +145,8 @@ archive=http://www.opensource.apple.com/darwinsource/tarballs/other/$logiciel-$v
 
 [ -d "$dest" ] && exit 0
 
+prerequis
+
 if [[ $version = *-* ]] ; then
 	obtenirEtAllerDansCvs -d $version $archive_cvs
 else
