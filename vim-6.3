@@ -58,6 +58,8 @@ corr()
 		demarrage="`echo "$demarrage" | sed -e 's/^[.0]*//'`"
 	fi
 	
+	pge "$version" 8.0 && formateur=4.4d || formateur=3.3d
+	
 	if [ -f "$mem" ] && tar xzf "$mem"
 	then
 		true
@@ -65,7 +67,7 @@ corr()
 		i=$((n + 1))
 		while [ $((--i)) -gt $demarrage ]
 		do
-			iFormate="`printf "%3.3d" "$i"`"
+			iFormate="`printf "%$formateur" "$i"`"
 			mv "`obtenir "$ou/${version%.*}/${version%.*}.$iFormate"`" ./
 		done
 		tar czf "$mem" "${version%.*}".*
@@ -74,7 +76,7 @@ corr()
 	i=$demarrage
 	while [ $((++i)) -le $n ]
 	do
-		patch -f -p0 < "${version%.*}.`printf "%3.3d" $i`" || true # Un peu de rustines indigestes Windows.
+		patch -f -p0 < "${version%.*}.`printf "%$formateur" $i`" || true # Un peu de rustines indigestes Windows.
 	done
 }
 
