@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -51,11 +51,11 @@ v 3.1.1 && prerequis="perl" || true
 
 # Modifications
 
-OPTIONS_CONF=()
+OPTIONS_CONF=
 
 apple()
 {
-	OPTIONS_CONF=("${OPTIONS_CONF[@]}" --enable-ea-support)
+	OPTIONS_CONF="$OPTIONS_CONF --enable-ea-support"
 }
 
 cd_rsync()
@@ -66,7 +66,7 @@ cd_rsync()
 rustine()
 {
 	(
-		archive="${archive//$version/patches-$version}"
+		archive="`echo "$archive" | sed -e "s#$version#patches-$version#g"`"
 		obtenirEtAllerDansVersion
 		patch -p1 < patches/$1.diff
 	)
@@ -157,7 +157,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" "${OPTIONS_CONF[@]}"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
