@@ -26,7 +26,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=proxytunnel
 
-v 1.9.0 && modifs="preconf" || true
+v 1.9.0 && modifs="preconf makeBsd pasDeRev" || true
 
 archive="http://kent.dl.sourceforge.net/project/proxytunnel/proxytunnel%20source%20tarballs/proxytunnel%20$version/proxytunnel-$version.tgz"
 
@@ -75,6 +75,21 @@ precree "\$@"
 install "\$@"
 TERMINE
     chmod u+x configure moninstall
+}
+
+makeBsd()
+{
+	filtrer Makefile sed -e '/SSL_LIBS :=/i\
+LDFLAGS += -lssl -lcrypto
+' -e '/SSL_LIBS :=/,/LDFLAGS.*SSL_LIBS/d'
+}
+
+pasDeRev()
+{
+	filtrer cmdline.c sed -e '/printf.*REV/{
+s/ (rev[^)]*)//
+s/, REV//
+}'
 }
 
 dest="$INSTALLS/$logiciel-$version"
