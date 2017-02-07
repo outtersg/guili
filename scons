@@ -28,7 +28,7 @@ logiciel=scons
 
 # Historique des versions gérées
 
-v 0.96.1 || true
+v 0.96.1 && prerequis="python < 3" || true
 v 2.3.4 || true
 
 # Modifications
