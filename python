@@ -334,6 +334,7 @@ fi
 
 echo Installation… >&2
 sudo make install
+[ -e "$dest/bin/python" ] || sudo ln -s python3 "$dest/bin/python"
 sutiliser $logiciel-$version
 
 echo Biblios standard… >&2
@@ -342,7 +343,5 @@ then
 	curl -O 'https://bootstrap.pypa.io/ez_setup.py'
 	sudo sh -c "SSL_CERT_FILE=$HOME/.curl-ca-bundle.crt LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY $dest/bin/python ez_setup.py"
 fi
-
-[ -e "$dest/bin/python" ] || ln -s python3 "$dest/bin/python"
 
 rm -Rf /tmp/$$
