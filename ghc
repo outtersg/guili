@@ -46,7 +46,20 @@ v 7.8.3 || true
 v 7.8.4 || true
 v 7.10.1 && modifs="$modifs preInstallLibs mesCompilos" || true
 v 7.10.3 && modifs="uli sansDoc runghcLie preInstallLibs mesCompilos" && prerequis="gmp >= 5 < 6" || true
-v 8.0.1 && modifs="uli sansDoc" && prerequis= || true
+v 8.0.1 && modifs="uli sansDoc sansNoReserve" && prerequis= || true
+
+# FreeBSD 11 retire MAP_NORESERVE, qui d'ailleurs n'était pas implémenté.
+sansNoReserve()
+{
+	filtrer rts/posix/OSMem.c sed -e '/^enum/{
+i\
+#ifndef MAP_NORESERVE
+i\
+#define MAP_NORESERVE 0
+i\
+#endif
+}'
+}
 
 auMoins()
 {
