@@ -28,9 +28,8 @@ logiciel=lame
 
 # Historique des versions gérées
 
-version=3.97
-
-version=3.98.4
+v 3.97 && modifs=fpic || true
+v 3.98.4 || true
 v 3.99.5 || true
 
 v_maj="`echo "$version" | sed -e 's#^\([^.]*\.[^.]*\).*$#\1#'`"
@@ -52,7 +51,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" --enable-shared
 
 echo Compilation… >&2
 make
