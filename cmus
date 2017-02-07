@@ -29,9 +29,19 @@ calcScripts "$0"
 logiciel=cmus
 
 prerequis="ncurses ffmpeg mad ogg" # ncurses GNU pour le support des caractères multi-octets.
-v 2.5.0 || true
+v 2.5.0 && modifs="fpic monCc" || true
 v 2.5.1 || true
 v 2.7.1 || true
+
+# Modifications
+
+monCc()
+{
+	# M'emmerdent, ces gcc codés en dur.
+	CC=cc
+	HOSTCC=cc
+	export CC HOSTCC
+}
 
 archive=http://netcologne.dl.sourceforge.net/project/cmus/cmus-v$version.tar.bz2
 pge $version 2.5.1 && archive="https://github.com/cmus/cmus/archive/v$version.tar.gz" || true
