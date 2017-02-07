@@ -56,7 +56,7 @@ cd build/scons
 fi
 
 echo Installation… >&2
-sudo python setup.py install --prefix="$dest"
+sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH PATH=$PATH python setup.py install --prefix="$dest"
 sutiliser "$logiciel-$version"
 
 rm -Rf $TMP/$$
