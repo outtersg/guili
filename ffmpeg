@@ -60,6 +60,7 @@ prerequis
 monCc()
 {
 	# binutils: http://lists.freebsd.org/pipermail/freebsd-questions/2012-February/238956.html; mais même avec ça ça ne passe pas, on fait donc un export CC=/usr/bin/gcc (sur mon FreeBSD: /usr/local/bin/gcc == 4.9, /usr/bin/gcc == 4.2). La 4.2 est la plus stable (la 4.9 se vautre fréquemment en SEGFAULT), donc on fera le gros de la compil en 4.2 avec le CC=…, et de temps à autre quand on aura des plantages 64 bits, on lancera le make, faisant un ps auxww | grep cc, on repérera la ligne qui tourne avant qu'elle ne plante, et on la relancera en remplaçant l'/usr/bin/gcc par gcc. Puis make jusqu'au prochain plantage pour continuer en 4.2, etc.
+	command -v gcc > /dev/null 2>&1 || CC=cc
 	if [ ! -z "$CC" ] ; then
 		filtrer configure sed -e '/^host_cc_default=/c\
 host_cc_default="'"$CC"'"
