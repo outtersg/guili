@@ -28,7 +28,7 @@ logiciel=mad
 
 # Historique des versions gérées
 
-v 0.15.1b && modifs= || true
+v 0.15.1b && modifs="fpic" || true
 
 # Modifications
 
