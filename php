@@ -265,7 +265,7 @@ make -j 4
 
 echo Installation… >&2
 sudo make install
-sudo sh -c "cat > '$dest/lib/php.ini'" <<TERMINE
+cat > monphp.ini <<TERMINE
 ; Pour charger les JPEG de 50 Mpixels, il faut bien ça (collages de deux photos).
 memory_limit = 256M
 ; Durée de session: 3 jours (pour le Fournil, qui propose de retenir la session).
@@ -280,10 +280,13 @@ log_errors = On
 display_errors = Off
 date.timezone = Europe/Paris
 magic_quotes_gpc = 0
-
-; Ça ne fait pas de mal d'activer les extensions: s'il ne trouve pas il ne pète pas.
-zend_extension = "opcache.so"
 TERMINE
+if pge $version 5.5 ; then
+	echo 'zend_extension = "opcache.so"' >> monphp.ini
+else
+	echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
+fi
+sudo cp monphp.ini "$dest/lib/php.ini"
 
 if [ -e "sapi/fpm/init.d.php-fpm.in" ] # Toutes les versions n'ont pas un fpm intégré.
 	then
@@ -299,5 +302,3 @@ a\
 fi
 
 sutiliser "$logiciel-$version"
-
-pge "$version" 5.5 || echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
