@@ -85,6 +85,7 @@ v 5.6.10 && prerequis="libxml icu >= 50 libjpegturbo openssl < 1.1" || true
 v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
 v 7.0.8 || true
+v 7.0.15 || true
 
 prerequis
 
