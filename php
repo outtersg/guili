@@ -217,6 +217,7 @@ i\
 # Variables
 
 dest=$INSTALLS/$logiciel-$version
+archive="http://de.php.net/distributions/$logiciel-$version.tar.bz2"
 
 if false
 then
@@ -227,13 +228,16 @@ else
 
 [ -d "$dest" ] && exit 0
 
-if [[ "$version" = *-* ]] ; then
+case "$version" in
+	*-*)
 	version_cvs="`echo "$version" | sed -e 's/.*[.]//'`"
 	obtenirEtAllerDansCvs -d "$version_cvs" cvs://cvsread:phpfi@cvs.php.net:/repository:php-src
 	./buildconf
-else
-	obtenirEtAllerDans "http://de2.php.net/get/$logiciel-$version.tar.bz2/from/this/mirror" "$logiciel-$version.tar.bz2"
-fi
+		;;
+	*)
+		obtenirEtAllerDansVersion
+		;;
+esac
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
