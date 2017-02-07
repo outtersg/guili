@@ -54,7 +54,7 @@ echo Configuration… >&2
 if pge $version 1.3
 then
 	scons APR=$INSTALLS APU=$INSTALLS OPENSSL=$INSTALLS PREFIX=$dest
-	sudo scons install
+	sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH PATH=$PATH scons install
 else
 ./configure --prefix="$dest"
 
