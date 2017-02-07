@@ -28,11 +28,26 @@ logiciel=opusfile
 
 # Historique des versions gérées
 
-v 0.7 && prerequis="opus ogg" || true
+v 0.7 && prerequis="opus ogg" && modifs="sansCompat" || true
 
 prerequis
 
 # Modifications
+
+sansCompat()
+{
+	# Sous FreeBSD, ftime est implémenté dans libcompat. Problème: celui-ci n'est pas relocatable, donc ne peut être embarqué dans une biblio.
+	# On essaie donc de placer une libcompat recompilée dans le chemin, pour que le lien final se fasse sur elle plutôt que sur la biblio système.
+	
+	fbsd="`uname -r | cut -d - -f 1`.0"
+	sfbsd="https://svnweb.freebsd.org/base/release/$fbsd"
+	curl -k -o ftime.c "$sfbsd/lib/libcompat/4.1/ftime.c?view=co"
+	cc -c -o ftime.o ftime.c -fPIC
+	ar cr libcompat.a ftime.o
+	
+	LDFLAGS="-L`pwd` $LDFLAGS"
+	export LDFLAGS
+}
 
 # Variables
 
