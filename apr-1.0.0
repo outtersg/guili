@@ -24,11 +24,9 @@ set -e
 if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
 . "$SCRIPTS/util.sh"
 
-inclure db
-
 logiciel=apr
 
-v 1.0.0
+v 1.0.0 && prerequis="db" || true
 v 1.2.1
 v 1.2.2
 v 1.2.7 && OPTIONS="--without-sendfile"
@@ -37,7 +35,9 @@ v 1.3.3
 v 1.4.2
 v 1.4.5
 v 1.4.6
-v 1.5.1 || true
+v 1.5.1 && prerequis= || true
+
+prerequis
 
 # Modifs
 
