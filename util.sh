@@ -287,6 +287,17 @@ command -v $utiliser 2> /dev/null >&2 || utiliser="$SCRIPTS/utiliser"
 
 sutiliser()
 {
+	logicielParam="`echo "$1" | sed -e 's/-[0-9].*//'`"
+	derniere="`versions "$logicielParam" | tail -1`"
+	if [ ! -z "$derniere" ]
+	then
+		derniere="`basename "$derniere"`"
+		if [ "$1" != "$derniere" ]
+		then
+			echo "# Attention, $1 ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $1" >&2
+			return 0
+		fi
+	fi
 	sudo $utiliser -r "$INSTALLS" "$@"
 }
 
