@@ -690,6 +690,12 @@ TERMINE
 	done
 }
 
+fpic()
+{
+	CFLAGS="$CFLAGS -fPIC"
+	export CFLAGS
+}
+
 # Remplacement d'utilitaires.
 
 # http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
