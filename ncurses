@@ -40,12 +40,6 @@ archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
 
 dest=$INSTALLS/$logiciel-$version
 
-fpic()
-{
-	CFLAGS="$CFLAGS -fPIC"
-	export CFLAGS
-}
-
 pointeurs()
 {
 	filtrer ./c++/cursesf.h sed -e '/NCursesUserForm.*NCursesFormField/s/NCursesFormField/NCursesFormField */'
