@@ -49,6 +49,7 @@ v 1.0.2f || true
 # Corrige une faille béante au 2016-03-01, mais mon vieux mod_php a l'air d'être lié à /usr/local/lib/libopenssl.so, et ne trouve plus dans cette version ses fonctions SSLv2_…. Il faudrait sans doute le recompiler, mais bon, un 5.2, quand même…
 v 1.0.2g || true
 v 1.0.2h || true
+v 1.0.2k || true
 v 1.1.0c || true
 
 # Modifications
