@@ -33,11 +33,6 @@ archive="http://www.bzip.org/$version/bzip2-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
-fpic()
-{
-	CFLAGS="-fPIC"
-}
-
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
