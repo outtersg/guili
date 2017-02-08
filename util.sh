@@ -548,6 +548,17 @@ creeCompte()
 
 mac() { [ "`uname`" = Darwin ] ; }
 
+# Utilise le compilo Apple sur Mac (ex.: libao, libdiscid, qui doivent accéder à CoreAudio et autres Frameworks auxquels seul le compilo Apple sait accéder).
+ccMac()
+{
+	case `uname` in
+		Darwin)
+			CC=cc
+			export CC
+			;;
+	esac
+}
+
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
 # Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
 libtool3264()
