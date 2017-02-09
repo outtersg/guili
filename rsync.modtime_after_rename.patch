@@ -1,0 +1,80 @@
+--- rsync.c	2016-11-28 14:42:50.000000000 +0100
++++ rsync.c	2016-11-28 15:15:20.000000000 +0100
+@@ -54,6 +54,9 @@
+ #ifdef ICONV_OPTION
+ extern char *iconv_opt;
+ #endif
++/* Do we modtime after or before renaming the temp file?
++ * 0: not decided yet; -1: modtime before rename; 1: after rename. */
++static int modtime_after_rename = 0;
+ 
+ #ifdef ICONV_CONST
+ iconv_t ic_chck = (iconv_t)-1;
+@@ -636,6 +637,31 @@
+ 	exit_cleanup(RERR_SIGNAL);
+ }
+ 
++int maybe_set_file_attrs(int after_rename, const char *fname, struct file_struct *file,
++		   stat_x *sxp, const char *fnamecmp, int ok_to_set_time)
++{
++	/* If we do not know yet what to do, and have a file to detect on, choose now. */
++	if (after_rename && modtime_after_rename == 0) {
++		stat_x stat_after_rename;
++		if (link_stat(fname, &stat_after_rename.st, 0) < 0)
++			/* Unable to read our just-created file; give up and keep the conservative
++			 * value for modtime_after_rename. */
++			modtime_after_rename = -1;
++		else
++			modtime_after_rename = stat_after_rename.st.st_mtime == file->modtime ? -1 : 1;
++	}
++	
++	if (
++		(after_rename && modtime_after_rename >= 0)
++		|| (!after_rename && modtime_after_rename <= 0)
++	) {
++		return set_file_attrs(fname, file, sxp, fnamecmp,
++				   ok_to_set_time ? 0 : ATTRS_SKIP_MTIME);
++	}
++	
++	return 1;
++}
++
+ /* Finish off a file transfer: renaming the file and setting the file's
+  * attributes (e.g. permissions, ownership, etc.).  If the robust_rename()
+  * call is forced to copy the temp file and partialptr is both non-NULL and
+@@ -665,8 +691,7 @@
+ 	}
+ 
+ 	/* Change permissions before putting the file into place. */
+-	set_file_attrs(fnametmp, file, NULL, fnamecmp,
+-		       ok_to_set_time ? 0 : ATTRS_SKIP_MTIME);
++	maybe_set_file_attrs(0, fnametmp, file, NULL, fnamecmp, ok_to_set_time);
+ 
+ 	/* move tmp file over real file */
+ 	if (DEBUG_GTE(RECV, 1))
+@@ -683,6 +708,7 @@
+ 	}
+ 	if (ret == 0) {
+ 		/* The file was moved into place (not copied), so it's done. */
++		maybe_set_file_attrs(1, fname, file, NULL, fnamecmp, ok_to_set_time);
+ 		return 1;
+ 	}
+ 	/* The file was copied, so tweak the perms of the copied file.  If it
+@@ -690,8 +716,7 @@
+ 	fnametmp = temp_copy_name ? temp_copy_name : fname;
+ 
+   do_set_file_attrs:
+-	set_file_attrs(fnametmp, file, NULL, fnamecmp,
+-		       ok_to_set_time ? 0 : ATTRS_SKIP_MTIME);
++	maybe_set_file_attrs(0, fnametmp, file, NULL, fnamecmp, ok_to_set_time);
+ 
+ 	if (temp_copy_name) {
+ 		if (do_rename(fnametmp, fname) < 0) {
+@@ -699,6 +724,7 @@
+ 				full_fname(fnametmp), fname);
+ 			return 0;
+ 		}
++		maybe_set_file_attrs(1, fname, file, NULL, fnamecmp, ok_to_set_time);
+ 		handle_partial_dir(temp_copy_name, PDIR_DELETE);
+ 	}
+ 	return 1;

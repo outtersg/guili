@@ -48,10 +48,17 @@ version=3.0.7
 version=3.0.9
 
 v 3.1.1 && prerequis="perl" || true
+v 3.1.2 && modifs="mtime_udf" || true
 
 # Modifications
 
 OPTIONS_CONF=
+
+# Mac OS X 10.10 + une destination en UDF = les mtime ne sont pas bons (en fait le mtime fonctionne, mais sur le fichier temporaire, et le rename f.temp f.définitif modifie son mtime. Il faut donc faire une détection de s'il faut modifier le mtime avant ou après le rename pour qu'il fasse effet.
+mtime_udf()
+{
+	patch -p0 < "$SCRIPTS/rsync.modtime_after_rename.patch"
+}
 
 apple()
 {
