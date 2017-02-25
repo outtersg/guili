@@ -28,7 +28,7 @@ logiciel=_phpfpm
 
 # Historique des versions gérées
 
-prerequis="php"
+prerequis="php $argVersion"
 
 auSecours()
 {
