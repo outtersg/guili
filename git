@@ -31,6 +31,7 @@ v 1.7.5.4
 v 1.7.10.4 && modifs=autoconfer && v_expat=">= 0" || true
 v 1.8.3.2 && modifs=sansConfigurer && v_expat= || true
 v 2.9.0 && modifs="sansConfigurer sansMoinsR" && prerequis="gettext expat" || true
+v 2.12.0 && modifs="sansConfigurer sansMoinsR" && prerequis="gettext expat" || true
 
 [ -z "$v_expat" ] || include expat "$v_expat"
 
