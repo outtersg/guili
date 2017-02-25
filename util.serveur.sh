@@ -129,7 +129,7 @@ serveurFreebsd()
 			;;
 		demon) 
 			lanceur="`echo "$commande" | awk '{print $1}'`"
-			parametres="`echo "$commande" | sed -e 's/^[^ 	]*[ 	]//'`"
+			parametres="`echo "$commande" | sed -e 's/^[^ 	]*[ 	]*//'`"
 			;;
 	esac
 	
