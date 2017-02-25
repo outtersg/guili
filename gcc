@@ -211,6 +211,8 @@ dest=$INSTALLS/$logiciel-$version
 
 if false ; then
 	cd /tmp/gcc-$version
+	LC_COLLATE=C LC_ALL=C LANG=C
+	export LC_COLLATE LC_ALL LANG
 	echo "VOUS ENTREZ DANS BASH. AMUSEZ-VOUS"
 	bash
 else
