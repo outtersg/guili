@@ -89,6 +89,6 @@ if ! id "$compte" > /dev/null 2>&1 ; then
 fi
 
 echo "Auto-démarrage…" >&2
-serveur -u "$compte" demon nginx -pre "extra_commands=\"reload\" ; umask 007" "$destnginx/sbin/nginx"
+serveur -u "$compte" demon nginx -pre "extra_commands=\"reload\" ; umask 007" -p "$destnginx/logs/nginx.pid" "$destnginx/sbin/nginx"
 
 rm -Rf "$TMP/$$"
