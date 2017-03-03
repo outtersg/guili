@@ -28,52 +28,13 @@ logiciel=opus-tools
 
 # Historique des versions gérées
 
-v 0.1.5 && prerequis="opus ogg" && modifs="composer" || true
+v 0.1.5 && prerequis="opus ogg" || true
 v 0.1.6 || true
 v 0.1.9 && prerequis="opus ogg flac" || true
 
 prerequis
 
 # Modifications
-
-composer()
-{
-	patch -p0 <<TERMINE
---- src/opusenc.c	2017-02-05 21:46:39.000000000 +0100
-+++ src/opusenc.c	2017-02-05 21:48:07.000000000 +0100
-@@ -151,6 +151,8 @@
-   printf(" --comment          Add the given string as an extra comment\n");
-   printf("                      This may be used multiple times\n");
-   printf(" --artist           Author of this track\n");
-+  printf(" --composer         Composer of this track\n");
-+  printf(" --track            Track number on the album\n");
-   printf(" --title            Title for this track\n");
-   printf(" --album            Album or collection this track belongs to\n");
-   printf(" --date             Date for this track\n");
-@@ -279,6 +280,8 @@
-     {"version-short", no_argument, NULL, 0},
-     {"comment", required_argument, NULL, 0},
-     {"artist", required_argument, NULL, 0},
-+    {"composer", required_argument, NULL, 0},
-+    {"track", required_argument, NULL, 0},
-     {"title", required_argument, NULL, 0},
-     {"album", required_argument, NULL, 0},
-     {"date", required_argument, NULL, 0},
-@@ -541,6 +543,12 @@
-         }else if(strcmp(long_options[option_index].name,"artist")==0){
-           save_cmd=0;
-           comment_add(&inopt.comments, &inopt.comments_length, "artist", optarg);
-+        } else if(strcmp(long_options[option_index].name,"composer")==0){
-+          save_cmd=0;
-+          comment_add(&inopt.comments, &inopt.comments_length, "composer", optarg);
-+        } else if(strcmp(long_options[option_index].name,"track")==0){
-+          save_cmd=0;
-+          comment_add(&inopt.comments, &inopt.comments_length, "track", optarg);
-         } else if(strcmp(long_options[option_index].name,"title")==0){
-           save_cmd=0;
-           comment_add(&inopt.comments, &inopt.comments_length, "title", optarg);
-TERMINE
-}
 
 # Variables
 
