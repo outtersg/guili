@@ -38,6 +38,8 @@ v 2.41.2 || true
 v 2.42.1 || true
 v 2.44.0 || true
 v 2.48.0 && prerequis="gettext libffi >= 3 pkgconfig pcre" || true
+v 2.48.1 || true
+v 2.48.2 || true
 
 prerequis
 
