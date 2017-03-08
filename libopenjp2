@@ -29,6 +29,7 @@ logiciel=libopenjp2
 # Historique des versions gérées
 
 v 2.1.0 && modifs="" && prerequis="lcms" || true
+v 2.1.2 && modifs="" && prerequis="lcms" || true
 
 # Modifications
 
