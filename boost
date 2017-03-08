@@ -29,8 +29,35 @@ logiciel=boost
 v 1.45.0 && prerequis="icu" && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis optionsBjam" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
 v 1.52.0 && true # On laisse les modifs actuelles.
 v 1.57.0 && modifs="" || true
+v 1.63.0 && modifs="toolset pythonPatate" || true
 
 # Modifications
+
+pythonPatate()
+{
+	# Ces gros malins de Python croient intelligents de #define isupper et autres fonctions, soi disant parce que FreeBSD en fait trop et donc pour être conservateurs ils préfèrent la rediriger vers to iswupper. Sauf que du coup ça explose std::, qui définit des std::isupper surchargés par le #define.
+	filtrer "./boost/python/detail/wrap_python.hpp" sed -e '/include *<Python.h>/{
+a\
+#undef toupper
+a\
+#undef tolower
+a\
+#undef isspace
+a\
+#undef isupper
+a\
+#undef islower
+a\
+#undef isalpha
+a\
+#undef isalnum
+}'
+}
+
+toolset()
+{
+	filtrer bootstrap.sh sed -e 's#| darwin |#| clang | darwin |#'
+}
 
 sanspch()
 {
