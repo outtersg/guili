@@ -53,6 +53,13 @@ v 3.4.3 && modifs="incdirbourrin" || true
 
 # Modifications
 
+refsSansSuffixe()
+{
+	if [ -e "$dest/include/python${vm}m" -a ! -e "$dest/include/python$vm" ] ; then
+		sudo ln -s python${vm}m "$dest/include/python$vm"
+	fi
+}
+
 nouveaumac()
 {
 	# Recompiler un Python 2.7 sur un Mac dont il n'avait pas connaissance entraîne quelques soucis.
@@ -335,6 +342,9 @@ fi
 echo Installation… >&2
 sudo make install
 [ -e "$dest/bin/python" ] || sudo ln -s python3 "$dest/bin/python"
+# http://legacy.python.org/dev/peps/pep-3149/
+# Sur certains systèmes, Python suffixe un peu tout (ex.: include/python3.4m, avec un m pour -with-pymalloc; mais l'include/python3.4 n'existe pas). Pour permettre aux autres logiciels de s'y retrouver, on crée à l'emplacement de référence un lien symbolique vers une de ces versions.
+refsSansSuffixe
 sutiliser $logiciel-$version
 
 echo Biblios standard… >&2
