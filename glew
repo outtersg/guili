@@ -30,6 +30,7 @@ v 1.5.7 && modifs="pre32 dyld105 bsdAveugle" || true
 v 1.6.0 || true
 v 1.12.0 && prerequis="mesa" || true
 v 1.13.0 && prerequis="mesa" || true
+v 2.0.0 && prerequis="mesa" && modifs="pre32 dyld105 bsdAveugle2 glewnoglu" || true
 
 prerequis
 
@@ -37,6 +38,12 @@ dest="$INSTALLS/$logiciel-$version"
 archive="http://freefr.dl.sourceforge.net/project/$logiciel/$logiciel/$version/$logiciel-$version.tgz"
 
 [ -d "$dest" ] && exit 0
+
+glewnoglu()
+{
+	# Étrange… On voit partout défini du -DGLEW_NO_GLU par défaut, par contre en tête de Makefile le if semble foireux, s'attendant à ce que le -DGLEW_NO_GLU soit défini explicitement (donc non pas par défaut, en contradiction avec les forçages précédemment mentionnés).
+	filtrer Makefile sed -e '/LIBGLU *=/s#=.*#=#'
+}
 
 pre32()
 {
@@ -49,6 +56,13 @@ pre32()
 dyld105()
 {
 	filtrer Makefile sed -e '/^LIB.LDFLAGS =/s/$/ -mmacosx-version-min=10.5/'
+}
+
+bsdAveugle2()
+{
+	filtrer config/Makefile.freebsd sed -e 's#-L/usr/X11R6/lib##g' -e 's#-lX11##g' -e 's#-lGL#-lOSMesa#g' -e 's#-I/usr/X11R6/include##g'
+	echo "CFLAGS.EXTRA += -DGLEW_OSMESA $CFLAGS" >> config/Makefile.freebsd
+	echo "LDFLAGS.EXTRA += $LDFLAGS" >> config/Makefile.freebsd
 }
 
 bsdAveugle()
