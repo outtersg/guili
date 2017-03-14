@@ -65,10 +65,11 @@ archive_git="git://clucene.git.sourceforge.net/gitroot/clucene/clucene"
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
+optionsConf=
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-cmake -DCMAKE_INSTALL_PREFIX="$dest/"
+cmake -DCMAKE_INSTALL_PREFIX="$dest/" $optionsConf
 
 echo Compilation… >&2
 make
