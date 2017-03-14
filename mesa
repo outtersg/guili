@@ -29,6 +29,7 @@ logiciel=mesa
 # Historique des versions gérées
 
 v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
+v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie" || true
 
 # Modifications
 
@@ -39,6 +40,9 @@ choixSortie()
 		optionsConf=""
 	else
 		optionsConf="--enable-osmesa --enable-glx=no --enable-dri=no --disable-egl --with-dri-drivers= --with-egl-platforms= --with-gallium-drivers="
+		if pge $version 17 ; then
+			optionsConf="$optionsConf --disable-gbm"
+		fi
 	fi
 }
 
