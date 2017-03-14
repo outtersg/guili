@@ -28,10 +28,17 @@ logiciel=clucene
 
 # Historique des versions gérées
 
-v 20130621.4f62f2a90ecbea0d6d14e4bc0902056996144023.git && modifs="wcstoll"
-v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="wcstoll wcscpp" || true
+v 20130621.4f62f2a90ecbea0d6d14e4bc0902056996144023.git && modifs="pthr wcstoll" || true
+v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="pthr wcstoll wcscpp" || true
 
 # Modifications
+
+pthr()
+{
+	filtrer src/shared/CLucene/LuceneThreads.h sed -e '/define *_LuceneThreads_h/a\
+#include <pthread.h>
+'
+}
 
 wcstoll()
 {
