@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,17 +22,14 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 logiciel=libtool
 
 # Historique des versions gérées
 
-version=1.5.22
-
-version=2.4.2
-
-OPTIONS_CONF=()
+v 1.5.22 || true
+v 2.4.2 || true
 
 # Modifications
 
