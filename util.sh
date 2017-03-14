@@ -726,6 +726,14 @@ fpic()
 	export CFLAGS
 }
 
+fbsd10()
+{
+	# Pour les couillons qui confondent freebsd10 et freebsd1.
+	find . -name configure | while read i ; do
+		[ ! -f "$i" ] || filtrer "$i" sed -e 's#freebsd1\*#freebsd1|freebsd1.*#g'
+	done
+}
+
 # Remplacement d'utilitaires.
 
 # http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
