@@ -32,15 +32,6 @@ v 1.14 && modifs="fbsd10" || true
 
 # Modifications
 
-fbsd10()
-{
-	# Ce couillon confond freebsd10 et freebsd1.
-	for i in configure preload/configure libcharset/configure
-	do
-		[ ! -f "$i" ] || filtrer "$i" sed -e 's#freebsd1\*#freebsd1|freebsd1.*#g'
-	done
-}
-
 # Variables
 
 archive="http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$version.tar.gz"
