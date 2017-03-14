@@ -38,6 +38,7 @@ v 2.10.2 || true
 v 2.10.95 || true
 v 2.11.1 || true
 v 2.12.0 || true
+v 2.12.1 || true
 
 dest=$INSTALLS/$logiciel-$version
 archive=http://www.fontconfig.org/release/$logiciel-$version.tar.gz
