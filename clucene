@@ -29,9 +29,16 @@ logiciel=clucene
 # Historique des versions gérées
 
 v 20130621.4f62f2a90ecbea0d6d14e4bc0902056996144023.git && modifs="pthr wcstoll" || true
-v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="pthr wcstoll wcscpp" || true
+v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="pthr wcstoll wcscpp contribs" || true
 
 # Modifications
+
+contribs()
+{
+	# https://build.opensuse.org/package/view_file/windows:mingw:win32/mingw32-clucene/clucene-2.3.3.4-contrib-libs.patch?expand=1
+	patch -p1 -l < "$SCRIPTS/clucene.contribs.patch"
+	optionsConf="$optionsConf -DBUILD_CONTRIBS_LIB=ON"
+}
 
 pthr()
 {
