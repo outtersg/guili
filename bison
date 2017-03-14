@@ -28,11 +28,25 @@ logiciel=bison
 
 # Historique des versions gérées
 
-v 3.0.4 && modifs="" || true
+v 3.0.4 && modifs="staticNoReturn" || true
 
 prerequis
 
 # Modifications
+
+staticNoReturn()
+{
+	# Bizarre, FreeBSD possède dans son cdefs.h ceci:
+	#   #if defined(__cplusplus) && __cplusplus >= 201103L
+	#   #define _Noreturn       [[noreturn]]
+	# Mais si l'on compile ainsi une fonction static _Noreturn void toto() {}, après avoir inclus sys/cdefs.h:
+	#   c++ -std=c++11 -c -o /tmp/1.o /tmp/1.cxx
+	# On se tape une "error: an attribute list cannot appear here".
+	# Si on omet sys/cdefs (et sa surcharge de _Noreturn), ou le -std=c++11, ça passe pourtant.
+	filtrer data/glr.c sed -e '/static _Noreturn/i\
+#undef _Noreturn
+'
+}
 
 # Variables
 
