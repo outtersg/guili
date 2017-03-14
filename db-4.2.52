@@ -44,15 +44,6 @@ atomicce()
 	filtrer src/dbinc/atomic.h sed -e 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g'
 }
 
-fbsd10()
-{
-	# Ce couillon confond freebsd10 et freebsd1.
-	for i in configure preload/configure libcharset/configure dist/configure
-	do
-		[ ! -f "$i" ] || filtrer "$i" sed -e 's#freebsd1\*#freebsd1|freebsd1.*#g'
-	done
-}
-
 dest="$INSTALLS/$logiciel-$version"
 
 [ -d "$dest" ] && exit 0
