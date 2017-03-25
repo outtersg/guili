@@ -37,6 +37,7 @@ v 3.4.2 && modifs="stdcppPasTropEnDur" || true # Ne compile pas avec gcc 4.7.4 (
 v 3.5.0 && modifs="strtoll stdcppPasTropEnDur" || true # A un petit problème avec strtoll.
 v 3.6.0 && modifs="strtoll stdcppPasTropEnDur sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
 v 3.7.1 && modifs="" && prerequis="" || true
+v 3.9.1 && modifs="" && prerequis="cmake" || true
 
 suffixe=xz
 pge $version 3.5 || suffixe=gz
