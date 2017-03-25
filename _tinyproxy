@@ -134,7 +134,9 @@ TERMINE
 			(
 				cat <<TERMINE
 Port $port
-StartServers 1
+StartServers 3
+MinSpareServers 3
+MaxSpareServers 3
 MaxClients 100
 TERMINE
 			) | while read param contenu
