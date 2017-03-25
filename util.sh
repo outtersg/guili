@@ -399,7 +399,7 @@ preChemine()
 reglagesCompilPrerequis()
 {
 	dossierRequis=
-	for peutEtreDossierRequis in "$INSTALLS/$1-"*
+	for peutEtreDossierRequis in `versions "$1"`
 	do
 		basename "$peutEtreDossierRequis" | grep -q "^$1-[0-9][0-9.a-z]*$" || continue
 		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#$INSTALLS/$1-##"`"
