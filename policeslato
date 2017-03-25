@@ -1,0 +1,28 @@
+#!/bin/sh
+
+dest=/usr/local/share/fonts/
+
+set -e
+
+PATH=$HOME/local/bin:/usr/local/bin:$PATH
+
+cd /tmp/
+rm -Rf polices
+mkdir polices
+cd polices
+
+mkdir paquets
+cd paquets
+curl -L -O http://www.latofonts.com/download/Lato2OFL.zip
+
+mkdir ../polices
+cd ../polices
+find ../paquets -name \*.zip -exec 7za x {} \;
+
+echo "========"
+
+sudo mkdir -p "$dest"
+find . \( -name \*.ttf -o -name \*.TTF \)
+find . \( -name \*.ttf -o -name \*.TTF \) -exec sudo cp {} "$dest/" \;
+
+sudo fc-list
