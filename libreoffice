@@ -1,0 +1,315 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=libreoffice
+
+# Historique des versions gérées
+
+v 4.4.2.2 && modifs="enTetesPoppler log10 vraiSh" && prerequis="gperf >= 3 boost libxslt flex >= 2.5.35 bison patch zip python >= 3" || true
+v 5.0.0.5 && modifs="enTetesPoppler log10 vraiSh" && prerequis="patch zip" || true
+# Première version qui accepte le GL qu'on lui propose (grâce à glew 2.0.0).
+v 5.3.1.1 && modifs="log10 vraiSh enTetesNss mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne" && prerequis="patch zip automake libtool 2.4.2 boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
+# v_libtool à faire varier entre 2.4.6 et 2.4.2, car certains bouts sont restés en 2.4.2 et pètent s'ils sont compilés par un 2.4.6. Donc pour aller jusqu'au bout, il faut commencer avec l'une, changer quand ça pète pour faire passer le point de blocage, rebasculer, etc.
+v 5.3.1.2 && modifsDyn="enTetesNss" modifs="$modifsDyn log10 vraiSh mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne envpourri" && prerequis="patch zip automake libtool $v_libtool boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
+
+prerequis
+
+# Modifications
+
+creerDestBinSoffice()
+{
+	# Création du lanceur, qui inclura dans son LD_LIBRARY_PATH l'ext défini un peu plus loin (biblios rapatriées).
+	
+	# Cf. envpourri().
+	envpourri=
+	if [ `uname` = FreeBSD ] && ! pge `uname -r | sed -e 's/[^0-9.].*//'` 11 ; then
+		envpourri='derniereEnv="`env | tail -1`" ; unset "`echo "$derniereEnv" | cut -d = -f 1`" ; export "$derniereEnv"'
+	fi
+	mkdir -p dest/bin
+	cat > dest/bin/soffice <<TERMINE
+#!/bin/sh
+
+SCRIPTS="\`command -v "\$0"\`" ; [ -x "\$SCRIPTS" -o ! -x "\$0" ] || SCRIPTS="\$0" ; case "\`basename "\$SCRIPTS"\`" in *.*) true ;; *sh) SCRIPTS="\$1" ;; esac ; case "\$SCRIPTS" in /*) ;; *) SCRIPTS="\`pwd\`/\$SCRIPTS" ;; esac ; delie() { while [ -h "\$SCRIPTS" ] ; do SCRIPTS2="\`readlink "\$SCRIPTS"\`" ; case "\$SCRIPTS2" in /*) SCRIPTS="\$SCRIPTS2" ;; *) SCRIPTS="\`dirname "\$SCRIPTS"\`/\$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="\`dirname "\$SCRIPTS"\`" ; delie
+
+PATH="\$SCRIPTS/../lib/libreoffice/program:\$PATH"
+LD_LIBRARY_PATH="\$SCRIPTS/../lib/libreoffice/ext:$INSTALLS/lib:\$LD_LIBRARY_PATH"
+
+$envpourri
+
+soffice.bin "\$@"
+TERMINE
+	chmod a+x dest/bin/soffice
+	
+	# On rapatrie les biblios, histoire de pouvoir créer un paquet "tout compris" à partir du simple $dest.
+	
+	mkdir -p dest/lib/libreoffice/ext/
+	IFS=:
+	for biblio in libboost_system libssl3 libsmime3 libnss3 libnssutil3 libplds4 libplc4 libnspr4 liblcms2 libcairo libOSMesa libGLEW libboost_iostreams libboost_filesystem libpixman-1 libglapi libclucene-contribs-lib ; do
+		for chemin in $LD_LIBRARY_PATH ; do
+			if [ -e "$chemin/$biblio.so" ] ; then
+				cp "$chemin/$biblio.so"* dest/lib/libreoffice/ext/
+				break
+			fi
+		done
+	done
+	unset IFS
+}
+
+envpourri()
+{
+	[ `uname` != FreeBSD ] || pge `uname -r | sed -e 's/[^0-9.].*//'` 11 || return
+	
+	# Un très étrange problème de corruption d'environnement sous FreeBSD (10): une commande, lancée avec un environnement pas si énorme (un poi plus de 32 Ko), explose en "environment corrupt; missing value for xxxxx', xxxxx représentant le début arbitraire de la dernière variable mentionnée par un env (ex. d'un cas: l'env se terminait par "GIT_SSL_CAINFO=/home/bas/.curl-ca-bundle.crt", la commande suivante (gengal.bin en l'occurrence) péta, de façon absolument reproductible), avec le "missing value for GIT_SSL_xx", les xx étant les deux octets 0x8102). On efface donc cette variable de l'environnement… et on la remet, et ça marche.
+	filtrer solenv/gbuild/Gallery.mk sed -e '/call gb_Executable_get_command/{
+i\
+		varpourrie=`env | tail -1` && \\
+i\
+		unset `echo $$varpourrie | cut -d = -f 1` && \\
+i\
+		export "$$varpourrie" && \\
+}'
+}
+
+boostMentionne()
+{
+	filtrer configure sed -e 's#\$ac_boost_paths#'"$destboost#g"
+}
+
+pythonPatate()
+{
+	# Ces gros malins de Python croient intelligents de #define isupper et autres fonctions, soi disant parce que FreeBSD en fait trop et donc pour être conservateurs ils préfèrent la rediriger vers to iswupper. Sauf que du coup ça explose std::, qui définit des std::isupper surchargés par le #define.
+	for fichier in pyuno/inc/pyuno.hxx pyuno/source/module/pyuno_impl.hxx ; do
+		filtrer "$fichier" sed -e '/include *<Python.h>/{
+a\
+#undef toupper
+a\
+#undef tolower
+a\
+#undef isspace
+a\
+#undef isupper
+a\
+#undef islower
+a\
+#undef isalpha
+a\
+#undef isalnum
+}'
+	done
+}
+
+cluceneFbsd()
+{
+	filtrer external/clucene/patches/clucene-libcpp.patch sed -e '/^+#ifdef/s/$/)/' -e '/^+#ifdef */s//+#if defined(/' -e 's/_LIBCPP_VERSION).*/_LIBCPP_VERSION) || 1/'
+}
+
+sansTestServices()
+{
+	# Petits soucis divers, souvent de chargement de biblios, parfois d'autres choses (ftime surchargé, tests de largeur différant de quelques pixels, etc.), en tout cas les tests nous embêtent: on déporte tout sur les "slowcheck", qui, suppose-t-on, ne sont pas tentés (et donc plantés) par défaut dans le make all.
+	filtrer solenv/gbuild/Module.mk awk '/endef/{suppr=0}{if(!suppr)print}/^define .*check_target/{suppr=1}'
+	return
+	filtrer solenv/gbuild/Module.mk sed -e 's/call gb_Module_add_check_target/call gb_Module_add_slowcheck_target/g'
+	return
+	# Petit problème, sans doute de chargement de biblios, mais va savoir quoi chercher.
+	# https://lists.freebsd.org/pipermail/freebsd-office/2015-October/003004.html
+	patch -p0 -l <<TERMINE
+--- postprocess/Module_postprocess.mk
++++ postprocess/Module_postprocess.mk
+@@ -28,5 +28,2 @@
+ 
+-\$(eval \$(call gb_Module_add_check_targets,postprocess,\\
+-       CppunitTest_services \\
+-))
+ 
+TERMINE
+	# Quelques tests qui marchent presque tous, mais certains voient des différences de quelques pixels entre valeur attendue et obtenue. Tant pis pour eux, je ne suis pas à ça près.
+	for module in sc sccomp ; do
+		filtrer $module/Module_$module.mk sed -e 's/gb_Module_add_check_targets/gb_Module_add_slowcheck_targets/g'
+	done
+}
+
+eteteComplet()
+{
+	# Apparemment un endroit qui avait été oublié des HEADLESS. On a recopié ce qui avait été fait un peu partout ailleurs. Sera vraisemblablement corrigé dans de futures versions.
+	patch -p0 < "$SCRIPTS/libreoffice.testdesktop.patch"
+	
+	filtrer libreofficekit/Module_libreofficekit.mk sed -e '/ifeq.*OS/c\
+ifeq (0, 1)
+'
+	
+	filtrer vcl/source/gdi/salgdilayout.cxx sed -e 's/HAVE_FEATURE_OPENGL/1/g'
+	filtrer vcl/source/opengl/OpenGLHelper.cxx sed -e 's/defined[ (]*\(SAL_\)*UNX[ )]*/0 /g'
+	filtrer vcl/Library_vcl.mk sed -e '/vcl\/headless\/headlessinst/{
+a\
+    vcl/source/opengl/OpenGLContext \\
+a\
+    vcl/source/opengl/OpenGLHelper \\
+a\
+    vcl/opengl/FixedTextureAtlas \\
+a\
+    vcl/opengl/LineRenderUtils \\
+a\
+	vcl/opengl/RenderList \\
+a\
+	vcl/opengl/framebuffer \\
+a\
+	vcl/opengl/gdiimpl \\
+a\
+	vcl/opengl/program \\
+a\
+	vcl/opengl/salbmp \\
+a\
+	vcl/opengl/scale \\
+a\
+	vcl/opengl/texture \\
+}'
+}
+
+mesa()
+{
+	# harfbuzz pour un hb_icu_script_to_script utilisé dans vcl.
+	filtrer vcl/Library_vcl.mk sed -e 's#-lGL#-lOSMesa -lGLEW -lharfbuzz-icu#g' -e 's#-lX11##g' -e 's#-lXext##g'
+}
+
+enTetesNss()
+{
+	preCFlag "-I$destnss/include/nss"
+}
+
+vraiSh()
+{
+	filtrer configure sed -e 's#\${PRODUCTNAME// /}#`echo "$PRODUCTNAME" | tr -d " "`#'
+}
+
+enTetesPoppler()
+{
+	# On a besoin des en-têtes *de compilation* de Poppler.
+	INSTALLSTEMP=$TMP/poppler-temp
+	(
+		INSTALLS=$INSTALLSTEMP
+		SANSSU=1
+		export INSTALLS SANSSU
+		[ -d $TMP/poppler-0.22.5 ] || rm -Rf $INSTALLSTEMP/poppler-0.22.5 # Si le répertoire de compilation n'existe pas, on détruit l'éventuelle installation (car inclure ne recompile pas si le logiciel est installé).
+		inclure poppler 0.22.5
+	)
+	( cd $TMP/poppler-0.22.5/poppler && tar cf - *.h goo/*.h  ) | ( cd sdext/source/pdfimport/xpdfwrapper/ && tar xf - )
+}
+
+log10()
+{
+	filtrer sal/osl/unx/system.cxx sed -e '/unistd/a\
+#include <math.h>
+'
+}
+
+# Variables
+
+dest="$INSTALLS/$logiciel-$version"
+vmin="`echo "$version" | cut -d . -f 1-3`"
+archive="http://download.documentfoundation.org/libreoffice/src/$vmin/libreoffice-$version.tar.xz"
+
+[ -d "$dest" ] && exit 0
+
+if true ; then
+	if [ -z "$continuer" ] ; then
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+	else
+		cd $TMP/libreoffice-$version
+		for modif in true $modifsDyn ; do $modif ; done
+fi
+
+echo Configuration… >&2
+if false ; then
+./configure --prefix="$dest" \
+	--with-system-libs --with-system-headers \
+	--without-system-clucene --without-system-librevenge --without-system-libebook --without-system-libetonyek --without-system-libfreehand --without-system-libodfgen --without-system-libcdr --without-system-libmspub --without-system-libmwaw --without-system-libpagemaker --without-system-libvisio --without-system-libcmis --without-system-libwpd --without-system-lcms2 --without-system-libabw --without-system-libwps --without-system-libwpg --without-system-cppunit --without-system-mdds --without-system-glew --without-system-glm --without-system-graphite --without-system-orcus --without-system-redland --without-system-libexttextcat --without-system-vigra --without-system-odbc --without-system-nss --without-system-nspr --without-system-npapi-headers --without-system-sane --without-system-hunspell --without-system-altlinuxhyph --without-system-mythes --without-system-lpsolve --without-system-coinmp --without-system-liblangtag --without-system-mesa-headers \
+	--disable-dependency-tracking \
+	--enable-python=system \
+	--with-theme=no --without-java --disable-cups --disable-gconf --disable-lockdown --disable-lotuswordpro --disable-firebird-sdbc --disable-liblangtag --disable-gltf --disable-collada --disable-scripting-beanshell --without-helppack-integration --without-system-jars --without-system-dicts \
+	--disable-gui --without-doxygen --without-system-libstaroffice --without-system-libxslt # 5.3
+	#--without-x # Jusqu'à 5.0
+else
+# On fait du with-system sur tous les paquets qui, téléchargés par LibreOffice, ne compilent pas: notre version à la mimine est vraisemblablement passée.
+# postgresql: parce que celui embarqué cherche à se lier à openldap, qu'il vient de compiler en embarqué aussi, sauf qu'apparemment il n'arrive pas à détecter ledit openldap lorsqu'il est compilé "à côté".
+# coinmp: parce que le paquet que tente de télécharger libreoffice finit vide.
+# neon: problème de compilation: la compil dans le cadre de libreoffice passe par un "#define GMTOFF(t) (-timezone + ((t).tm_isdst > 0 ? 3600 : 0))", sauf que sous FreeBSD timezone est une fonction.
+# clucene: les contribs-lib ne sont pas prises en compte dans celui à la sauce libreoffice.
+./configure --prefix="$dest" \
+	--with-tls=openssl \
+	--without-system-libs \
+	--without-system-libxml \
+	--with-system-boost \
+	--with-system-openssl \
+	--with-system-nspr \
+	--with-system-nss \
+	--with-system-curl \
+	--with-system-lcms2 \
+	--with-system-cairo \
+	--with-system-glew \
+	--with-system-postgresql \
+	--with-system-coinmp \
+	--with-system-neon \
+	--with-system-clucene \
+	--disable-dependency-tracking \
+	--enable-python=system \
+	--disable-gui --with-theme=no \
+	--without-java \
+	--disable-cups \
+	--disable-gconf \
+	--disable-lockdown \
+	--disable-lotuswordpro \
+	--disable-firebird-sdbc \
+	--disable-gltf \
+	--disable-collada \
+	--disable-scripting-beanshell \
+	--without-helppack-integration \
+	--without-system-jars \
+	--without-system-dicts \
+	--without-doxygen
+	#--without-system-liblangtag \
+	#--disable-liblangtag \
+fi
+else
+	cd $TMP/libreoffice-$version
+	#for modif in true $modifs ; do $modif ; done
+	bash
+fi
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+# Apparemment la compil en headless oublie de produire trois fichiers, en tout cas oublie de prévenir l'installeur qu'ils ne sont pas utiles en étêté.
+touch instdir/program/ui-previewer instdir/program/libchartopengllo.so workdir/Package/chart2_opengl_shader.filelist
+creerDestBinSoffice
+sudo make install
+sudo cp -R dest/. "$dest/."
+sutiliser "$logiciel-$version"
+
+rm -Rf $TMP/$$
