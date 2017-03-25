@@ -171,7 +171,7 @@ echo Configuration… >&2
 false && pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
 configure="./configure"
 pge $version 3.7 && mkdir -p bouild && cd bouild && configure="../configure" || true
-$configure --prefix="$dest" --enable-optimized $OPTIONS_CONF
+$configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
 
 echo Compilation… >&2
 make -j 4 || make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 )
