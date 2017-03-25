@@ -28,7 +28,7 @@ logiciel=liblangtag
 
 # Historique des versions gérées
 
-v 0.6.2 && prerequis="libtool" && modifs="" || true
+v 0.6.2 && prerequis="libtool libxml >= 2.1" && modifs="" || true
 
 # Modifications
 
