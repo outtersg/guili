@@ -32,7 +32,7 @@ v 1.12.8 && prerequis="pixman >= 0.22 glib libpng" || true
 v 1.12.14 && prerequis="pixman >= 0.30 glib libpng" || true
 v 1.12.16 && prerequis="pixman >= 0.30 glib libpng" || true
 v 1.12.18 || true
-v 1.14.8 || true
+v 1.14.8 && prerequis="$prerequis freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
 
 prerequis
 
