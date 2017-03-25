@@ -1,0 +1,35 @@
+#!/bin/sh
+
+export SANSSU=1 INSTALLS=/tmp/local
+export PREFIXE_UTILISER="$INSTALLS"
+export TMP=/tmp/soustmp
+mkdir "$TMP"
+
+set -e
+
+if [ "x$1" = x- ] ; then # Pour finir uniquement.
+	export continuer=1
+	./libreoffice
+else # Pour finir uniquement.
+
+# La 5.3.1.2 est livrée avec des bouts possédant un libtool 2.4.2, d'autre avec un libtool 2.4.6. Et libtool gueule quand il détecte qu'il est lancé avec des macros d'une autre version que lui. Donc on doit y aller de façon incrémentale: avancer au maximum dans la compilation avec le libtool par défaut, basculer en 2.4.2 pour passer les bouts livrés avec un libtool 2.4.2, repasser en 2.4.6 lorsque l'on a pu avancer jusqu'à un morceau qui maintenant plante parce que lui est en 2.4.6, etc.
+
+./bison # Celui corrigé pour _Noreturn, sera utilisé à plusieurs endroits.
+./python '>= 3' # libxml n'est pas contre compiler son liant Python, encore faut-il qu'il puisse l'installer quelque part.
+./llvm # Pas strictement nécessaire, mais mesa est destabilisé par le fait de trouver un llvm (dans mon /usr/local) et pas ses biblios dans $INSTALLS.
+./libssh # Idem, curl est déchiré entre sa version d'/usr/local compilée avec libssh, et celle d'$INSTALLS qui initialement ne l'avait pas.
+./openssl '< 1.1' # Pour que curl sache faire de l'HTTPS.
+./libreoffice || true
+export continuer=1
+export v_libtool=2.4.2
+./libreoffice || true
+export v_libtool=2.4.6
+./libreoffice || true
+./libreoffice
+
+fi # Pour finir uniquement.
+
+monooo="`ls "$INSTALLS/libreoffice-"* | tail -1`"
+monooo="`basename "$monooo"`"
+sudo cp -R "$INSTALLS/$monooo" /usr/local/
+sudo ./utiliser "$monooo"
