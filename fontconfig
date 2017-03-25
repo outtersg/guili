@@ -24,12 +24,9 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
-inclure freetype
-inclure expat
-
 logiciel=fontconfig
 
-v 2.3.2 || true
+v 2.3.2 && prerequis="freetype expat" || true
 # La 2.3.2 est boguée, leur FcObjectStaticName n'est pas généralisé et du coup
 # les comparaisons de chaînes par pointeur ne marchent pas partout.
 version=2005-06-28
