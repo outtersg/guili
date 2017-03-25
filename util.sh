@@ -534,6 +534,33 @@ pgInterne()
 	$ouEgal && [ -z "$1" ]
 }
 
+triversions()
+{
+	awk '
+		{
+			ls[length(ls)+1] = $0;
+			v = $0;
+			sub(/^([^0-9][^-]*-)+/, "", v);
+			vs[length(vs)+1] = v;
+			split(v, decoupe, ".");
+			for(i in decoupe)
+				if(i >= length(tailles) || length(decoupe[i]) > tailles[i])
+					tailles[i] = length(decoupe[i]);
+		}
+		END {
+			for(nl = 0; ++nl <= length(vs);)
+			{
+				c = "";
+				v = vs[nl];
+				split(v, decoupe, ".");
+				for(nv = 0; ++nv <= length(tailles);)
+					c = c sprintf("%0"tailles[nv]"d", nv > length(decoupe) ? 0 : decoupe[nv]);
+				print c" "ls[nl]
+			}
+		}
+	' | sort | cut -d ' ' -f 2-
+}
+
 # Renvoie les versions pour un logiciel donnée, triées par version croissante.
 versions()
 {
