@@ -169,9 +169,16 @@ echo Configuration… >&2
 # Souci sous FreeBSD 8: en créant un clang via gcc, le clang généré est incapable de créer un nouveau clang (>= 3.5) car il est fait appel à <cmath>; et pour celui-ci, soit on utilise les en-têtes clang (mais alors ils déclarent std::log2 comme un appel à log2, qui est déclarée en #if 0 dans le math.h de FreeBSD 8), soit on prend ceux de GCC (qui utilisent un __builtin_log2, embarqué par GCC, mais les include comportent des directives non reconnues de clang). Le clang généré arrive par contre à se lier à la libstdc++, si l'on avait les bons .h on pourrait faire quelque chose (un .c compilé en clang -o 1 -lstdc++ 1.c est capable d'utiliser coshl pourvu qu'on la lui ait définie en haut, sans inclusion).
 #pge $version 3.5 && OPTIONS_CONF="$OPTIONS_CONF --enable-libcpp" && CXX="clang -stdlib=libc++" && export CXX || true
 false && pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
+if pge $version 3.9
+then
+	mkdir -p build
+	cd build
+	cmake -DCMAKE_INSTALL_PREFIX="$dest/" -DBUILD_SHARED_LIBS=ON ..
+else
 configure="./configure"
 pge $version 3.7 && mkdir -p bouild && cd bouild && configure="../configure" || true
 $configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
+fi
 
 echo Compilation… >&2
 make -j 4 || make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 )
