@@ -806,7 +806,7 @@ pseudocargo()
 	PATH="`pwd`/localbin:$PATH"
 	export PATH
 	triplet=
-	machine="`uname -m`"
+	machine="`uname -m | sed -e 's/amd64/x86_64/g'`"
 	systeme="`uname -s | tr '[A-Z]' '[a-z]'`"
 	case $machine-$systeme in
 		*-darwin) triplet="$machine-apple-$systeme" ;;
