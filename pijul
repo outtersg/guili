@@ -28,7 +28,7 @@ logiciel=pijul
 
 # Historique des versions gérées
 
-v 0.2.2016.06.02 && versionComplete="$version@sanakirja txn.debug accessible only in debug mode" && prerequis="rust python < 3 libssh0" && modifs="auPropre pourPseudoCargo vraiesDeps pasDeDepSrc" || true
+v 0.2.2016.06.02 && versionComplete="$version@sanakirja txn.debug accessible only in debug mode" && prerequis="rust python < 3 libssh0" && modifs="auPropre pourPseudoCargo vraiesDeps pasDeDepSrc" && inclusionsForcees="ansi_term cookie libc miniz-sys rand num-bigint num-complex num-rational openssl strsim unicode-width" || true
 
 # Modifications
 
@@ -51,7 +51,6 @@ a\
 cookie = "<= 0.2.2"
 }'
 	done
-	inclusionsForcees="ansi_term cookie libc miniz-sys rand num-bigint num-complex num-rational openssl strsim unicode-width"
 }
 
 auPropre()
