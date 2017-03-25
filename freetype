@@ -26,7 +26,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=freetype
 
-v 2.1.9
+v 2.1.9 && prerequis="zlib" || true
 v 2.4.3 && modifs="dyld105"
 v 2.4.4
 v 2.4.11
