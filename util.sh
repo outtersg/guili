@@ -424,10 +424,12 @@ reglagesCompilPrerequis()
 	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL
 }
 
-prerequerir()
+# Si l'on ne veut pas inclure d'office tout $INSTALLS (CPPFLAGS, LDFLAGS), on peut appeler cette chose. Devrait en fait être fait par défaut (pour que les logiciels ne se lient qu'aux prérequis explicites), mais trop de logiciels reposent sur ce $INSTALLS; on est donc en mode "liste rouge", les logiciels souhaitant se distancier de ce comportement devant appeler uniquementPrerequis.
+# Ex.: openssl, dans sa compil, ajoute -L. à la fin de ses paramètres de lien (après ceux qu'on lui a passés dans $LDFLAGS). Résultat, pour le lien de libssl.so, qui fait un -lcrypto, si LDFLAGS contient -L/usr/local/lib, il trouvera la libcrypto d'une version plus ancienne déjà installée dans /usr/local/lib, plutôt que celle qu'il vient de compiler dans .
+uniquementPrerequis()
 {
-	inclure "$@"
-	reglagesCompilPrerequis "$@"
+	export CPPFLAGS="`echo " $CPPFLAGS " | sed -e 's/ /  /g' -e "s# -I$INSTALLS/include # #g"`"
+	export LDFLAGS="`echo " $LDFLAGS " | sed -e 's/ /  /g' -e "s# -L$INSTALLS/lib # #g"`"
 }
 
 prerequis()
@@ -440,7 +442,8 @@ prerequis()
 				"`echo "$requis" | tr -d '()'`" $versionRequis
 				;;
 			*)
-				prerequerir "$requis" "$versionRequis"
+				inclure "$requis" "$versionRequis"
+				reglagesCompilPrerequis "$requis" "$versionRequis"
 				;;
 		esac
 	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
