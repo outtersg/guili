@@ -277,7 +277,7 @@ fi
 for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-apple-opengl-framework
+./configure --prefix="$dest" #--with-apple-opengl-framework
 for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
