@@ -28,9 +28,84 @@ logiciel=rust
 
 # Historique des versions gérées
 
-v 1.9.0 && prerequis="llvm python < 3" && modifs="" || true
+v 1.9.0 && prerequis="python < 3 cmake" && modifs="pasDIncludesDansLesFlags makeSimple macLibre macMath macLibtool drapeaux" || true
+v 1.13.0 || true
+v 1.14.0 || true
+v 1.15.0 || true
+v 1.16.0 && prerequis="python < 3 cmake >= 3.4.3" && modifs="targetClang pasDIncludesDansLesFlags makeSimple macLibre macMath macLibtool llvmStrnlen drapeaux" && OPTIONS_CONF="$OPTIONS_CONF --disable-rustbuild" || true
+v 1.17.0 && prerequis="python < 3 cmake >= 3.4.3 clang 3.9.1" && modifs="$modifs avecQuelquesWarnings" && OPTIONS_CONF="" || true
+v 1.18.0 && prerequis="python < 3 cmake >= 3.4.3 clang 3.9.1" && modifs="$modifs avecQuelquesWarnings" && OPTIONS_CONF="" || true
+
+# Le rustbuild télécharge une précédente version de rustc de chez eux, qui code en dur l'ordre des compilos à essayer, et donc ne tient pas compte de notre --enable-clang quand on le lui demande (ce qui nous embête parce qu'on imagine que lors de la compil du compilo niveau 2 il va finir par revenir à ce qu'on lui a spécifié, et donc la compil niveau 2 se fera avec un compilo différent de la compil niveau 1, ce qui fera deux fois plus de particularités à gérer).
+# À FAIRE: détecter le "meilleur" compilo à utiliser (le plus récemment compilé?).
+OPTIONS_CONF="$OPTIONS_CONF --enable-clang"
+OPTIONS_CONF="$OPTIONS_CONF --enable-local-rust"
+destllvm="`for i in clang llvm ; do reglagesCompilPrerequis $i ; done ; ( echo "$destclang" ; echo "$destllvm" ) | grep -v ^$ | head -1`"
+if [ ! -z "$destllvm" ]
+then
+	OPTIONS_CONF="$OPTIONS_CONF --llvm-root=$destllvm --enable-llvm-link-shared"
+	modifs="$modifs cheminBibliosLlvm"
+fi
 
 # Modifications
+
+cheminBibliosLlvm()
+{
+	# Lorsque l'on demande à rust d'utiliser la version dynamique d'LLVM (--enable-llvm-link-shared), en 1.17.0 en tout cas, c'est bien, il ajoute les -l qu'il faut (à la place de la version static où il met le chemin complet vers le .a)… mais il oublie les -L, donc plantage.
+	export RUSTFLAGS="-C link-args=-Wl,-L$destllvm/lib"
+}
+
+targetClang()
+{
+	for programme in clang clang++
+	do
+		filtreargs "$programme" <<TERMINE
+			# clang veut un triplet contenant le numéro de version de l'OS (sinon il croit qu'on cross-compile et ne va pas chercher ses includes standard, du genre clang++ --target=inconnu sur un #include <cinttypes> plante). Mais pour peu que cargo ait été compilé avec gcc ou je ne sais quoi d'autre qui a codé en dur le host, sans numéro de version, on est mal.
+			--target=*[0-9].[0-9]*) argouille "\$1" ;;
+			--target=*) argouille "\$1\`uname -r\`" ;;
+TERMINE
+	done
+}
+
+avecQuelquesWarnings()
+{
+	# La 1.16 Mac plante en compilant la 1.17 sur des histoires de "variable does not need to be mutable, #[warn(unused_mut)] on by default".
+	filtrer src/bootstrap/lib.rs grep -v deny.\*warning
+}
+
+drapeaux()
+{
+	# Le configure omet d'utiliser CPPFLAGS.
+	export CFLAGS="$CFLAGS $CPPFLAGS"
+	export CXXFLAGS="$CXXFLAGS $CPPFLAGS"
+	# Et tout ce petit monde n'est pas envoyé comme il faudrait au LLVM sous-jacent.
+	filtrer configure sed -e '/LLVM_CX*FLAGS=/{
+s/"//g
+s#=\([^#]*\)#="\1 '"$CFLAGS"'"#
+}'
+}
+
+macLibre()
+{
+	# Rust croit devoir forcer libc++ sur Mac. Sauf qu'elle n'est livrée qu'avec des clang récents. On supprime donc cette directive, et on laisse la détection trouver ce que bon lui semble.
+	( IFS=: ; for i in $LD_LIBRARY_PATH ; do find "$i" -name 'libc++.*' ; done ) | grep -q . && return 0 || true
+	filtrer src/bootstrap/lib.rs grep -v 'stdlib=libc'
+}
+
+makeSimple()
+{
+	for i in src/tools/compiletest/src/runtest.rs src/build_helper/lib.rs
+	do
+		filtrer "$i" sed -e 's/gmake/make/g'
+	done
+}
+
+pasDIncludesDansLesFlags()
+{
+	# rust se compile un llvm. Malheureusement ce dernier se compile en $CXXFLAGS -Isrc/llvm/include: ses includes passent APRÈS ceux qu'on lui spécifie dans le CXXFLAGS. Ça tombe bien, normalement on aurait dû ne les spécifier que dans CPPFLAGS. Dont acte.
+	CFLAGS="`echo " $CFLAGS" | sed -e 's/ -I.[^ ]*//g'`"
+	CXXFLAGS="`echo " $CXXFLAGS" | sed -e 's/ -I.[^ ]*//g'`"
+}
 
 # Variables
 
@@ -41,9 +116,12 @@ dest=$INSTALLS/$logiciel-$version
 
 prerequis
 
-if true
+manuel=non ; for param in "$@" ; do [ "x$param" = x--manuel ] && manuel=oui ; done
+if [ $manuel = oui ]
 then
-cd /tmp/rustc-$version
+cd /tmp/rustc-$version-src
+echo "ALLEZ-Y" >&2
+bash
 else
 obtenirEtAllerDansVersion
 
@@ -51,10 +129,12 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make -j 4
+# Si ça plante sur la compilation de llvm, du genre ld qui n'arrive pas à lier un truc qui parle de mach-o: forcer la compil via clang:
+# ( export CC="clang" CFLAGS="-U__STRICT_ANSI__" CXX="clang++" CXXFLAGS="-U__STRICT_ANSI__" ; ./rust ) # La notion de CPPFLAGS est zappée par le configure. STRICT_ANSI: pour Mac, cf. http://comments.gmane.org/gmane.comp.compilers.clang.devel/12721
 fi
 
 echo Installation… >&2
