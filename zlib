@@ -28,7 +28,8 @@ calcScripts "$0"
 
 logiciel=zlib
 
-v 1.2.8 && prerequis="" && modifs="fPIC" || true
+v 1.2.8 && prerequis="" && modifs="multiarch fPIC" || true
+v 1.2.11 && prerequis="" && modifs="multiarch fPIC" || true
 
 # Modifications
 
@@ -41,9 +42,7 @@ fPIC()
 
 archive="http://zlib.net/zlib-$version.tar.gz"
 
-dest="$INSTALLS/$logiciel-$version"
-
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
