@@ -28,7 +28,7 @@ logiciel=libssh
 
 # Historique des versions gérées
 
-v 1.4.2 || true
+v 1.4.2 && modifs="multiarch" || true
 v 1.4.3 || true
 v 1.7.0 || true
 v 1.8.0 || true
