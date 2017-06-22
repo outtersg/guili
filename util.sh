@@ -118,13 +118,14 @@ obtenirEtAllerDans()
 	
 	cd "$TMP"
 	echo Obtention et décompression… >&2
-	if [ $# -gt 1 ] ; then
-		fichier="$2"
-		archive=`obtenir "$1" "$2"`
-	else
-		fichier="$1"
-		archive=`obtenir "$1"`
+	# Certains site (SourceForge, GitHub, etc.) donnent des archives au nom peu explicite.
+	fichier="$2"
+	if [ -z "$fichier" ]
+	then
+		fichier="`basename "$1"`"
+		echo "$1" | egrep '/archive/v[0-9][0-9.]*(\.tar|\.gz|\.tgz|\.xz|\.bz2|\.7z|\.zip|\.Z){1,2}$' && fichier="`echo "$1" | sed -e 's#/archive/v#-#' -e 's#.*/##'`" || true
 	fi
+	archive=`obtenir "$1" "$fichier"`
 	[ -f "$archive" ] || exit 1
 	case "$fichier" in
 		*.tar.gz|*.tgz|*.tar.Z) dec="tar xzf" ; liste="tar tzf" ;;
