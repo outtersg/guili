@@ -1,0 +1,121 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=cargo
+
+# Historique des versions gérées
+
+v 0.10.0 && prerequis="python < 3 rust cmake git" && modifs="" || true
+v 0.16.0 && prerequisautres="httpparser curl iconv-gnu" && prerequis="python < 3 rust cmake git openssl < 1.1 libssh libgit $prerequisautres" && modifs="sansDepConditionnelle fauxGmake depsOpenssl" && inclusionsForcees="libc miniz-sys" || true
+v 0.18.0 || true
+v 0.19.0 || true
+
+# Modifications
+
+deps()
+{
+	for i in Cargo.toml
+	do
+		filtrer "$i" sed -e '/^\[dependencies\]/{
+a\
+'"$1"'
+}'
+	done
+}
+
+depsOpenssl()
+{
+	deps 'openssl-sys = "0.9"'
+	# Et on force la compil de libgit2 avec toutes ses options depuis la racine, car notre pseudocargo a tendance à les perdres dans les méandres des dépendances.
+	filtrer Cargo.toml sed -e '/libgit2-sys = /c\
+libgit2-sys = { version = "0.6", features = [ "ssh", "https", "curl" ] }
+'
+}
+
+fauxCmake()
+{
+return 0
+	# Dans ce beau foutoir qu'est Rust + CMake + le cache de CMake qui retient la première valeur par laquelle il est passé + pkg-config, quelque part, mes variables d'environnements ne sont pas transmises comme il faut, et l'ami cmake ne trouve pas mon paquet libssh2 pourtant dûment présent, en tout cas à l'endroit que j'ai précisé dans mon PKG_CONFIG_PATH. On doit donc se répéter pour que cette crétine de chaîne de compil daigne comprendre.
+	vraiChemin="`echo "$PATH" | sed -e 's#[^:]*/localbin:##g'`"
+	vraiBinaire="`PATH="$vraiChemin" ; command -v cmake`"
+	cat > "`pwd`/localbin/cmake" <<TERMINE
+#!/bin/sh
+echo "===========" >> /tmp/h
+echo "\$# params" >> /tmp/h
+for param in "\$@" ; do printf "\\"%s\\" " "\$param" ; done >> /tmp/h
+echo >> /tmp/h
+env >> /tmp/h
+set -x
+exec >> /tmp/h 2>&1
+export CMAKE_PREFIX_PATH="`echo "$PKG_CONFIG_PATH" | sed -e 's#/lib/pkgconfig##g'`"
+export PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
+"$vraiBinaire" "\$@"
+TERMINE
+	chmod a+x "`pwd`/localbin/cmake"
+	PATH="`pwd`/localbin:$PATH"
+	export PATH
+}
+
+fauxGmake()
+{
+	mkdir -p localbin
+	[ -e localbin/gmake ] || ln -s "`command -v make`" localbin/gmake
+	PATH="`pwd`/localbin:$PATH"
+	export PATH
+}
+
+sansDepConditionnelle()
+{
+	filtrer Cargo.toml grep -v 'cfg(unix)'
+}
+
+# Variables
+
+archive="https://github.com/rust-lang/cargo/archive/$version.tar.gz"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+if command -v ohbennonpasviacargo 2> /dev/null >&2
+then
+	cargo install cargo
+else
+	obtenirEtAllerDansVersion
+	
+	echo Correction… >&2
+	for modif in true $modifs ; do $modif ; done
+
+	pseudocargo --include-optional "$inclusionsForcees" --patchdir "$SCRIPTS/cargo.patches"
+	
+	mkdir -p dest/bin
+	cp /tmp/bazar/cargo-`echo "$version" | tr . _` dest/bin/cargo
+	sudo cp -R dest "$dest"
+	sutiliser "$logiciel-$version"
+fi
+
+rm -Rf "$TMP/$$"
