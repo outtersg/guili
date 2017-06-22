@@ -39,6 +39,7 @@ v 1.2 || true
 # Variables
 
 archive="http://downloads.xiph.org/releases/opus/$logiciel-$version.tar.gz"
+archive="https://archive.mozilla.org/pub/opus/opus-$version.tar.gz"
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
