@@ -36,10 +36,9 @@ v 1.7.0 || true
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive=http://www.libssh2.org/download/libssh2-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
