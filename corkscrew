@@ -28,9 +28,16 @@ logiciel=corkscrew
 
 # Historique des versions gérées
 
-v 2.0 || true
+v 2.0 && modifs="darwinaussi" || true
 
 # Modifications
+
+darwinaussi()
+{
+	grep -q Darwin config.guess || filtrer config.guess sed -e '/FreeBSD/i\
+*:Darwin:*) echo ${UNAME_MACHINE}-unknown-darwin`echo ${UNAME_RELEASE}|sed -e '\''s/[-(].*//'\''` ; exit 0 ;;
+'
+}
 
 # Variables
 
