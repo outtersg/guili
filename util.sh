@@ -794,6 +794,51 @@ fbsd10()
 	done
 }
 
+macLibtool()
+{
+	# Sous Mac OS X, un éventuel libtool GNU compilé prend le pas sur celui d'Apple, seul à gérer des options à la con telles que -static. On place donc un alias du libtool officiel quelque part dans le PATH avant celui éventuellement compilé par nos soins.
+	# Un lien symbolique ferait l'affaire, mais en écrivant un script enrobeur on se réserve la possibilité d'agir sur les paramètres si un jour quelque chose ne nous plaît pas.
+	mac || return 0
+	[ -e /usr/bin/libtool ] || return 0
+	cat > "$TMP/$$/libtool" <<TERMINE
+#!/bin/sh
+/usr/bin/libtool "\$@"
+TERMINE
+	chmod a+x "$TMP/$$/libtool"
+}
+
+macMath()
+{
+	# http://clang-developers.42468.n3.nabble.com/problems-building-libcxx-td2353619.html
+	mac || return 0
+	cat > /tmp/1.cpp <<TERMINE
+#include <cmath>
+void f() { llroundl(0.0); }
+TERMINE
+	! c++ -c -o /tmp/1.o -D__STRICT_ANSI__ /tmp/1.cpp > /dev/null 2>&1 || return 0
+	
+	CPPFLAGS="$CPPFLAGS -U__STRICT_ANSI__"
+	export CPPFLAGS
+}
+
+llvmStrnlen()
+{
+	# Les dernières versions LLVM (et donc tous ceux qui l'embarquent, type Rust) utilise strnlen qui n'est pas définie dans un Mac OS X 10.8, par exemple.
+	cat > /tmp/1.cpp <<TERMINE
+#include <string.h>
+void toto() { strnlen("zug", 2); }
+TERMINE
+	! c++ -c -o /tmp/1.o /tmp/1.cpp > /dev/null 2>&1 || return 0
+	
+	# On est obligés de ne cibler que le minimum de fichiers, car d'autres .cpp, d'une part servent à définir le strnlen qui finira dans les biblios, d'autre part incluent des enum dont une valeur est strnlen.
+	find . \( -name MachOYAML.cpp -o -name HeaderMap.cpp -o -name LLVMOutputStyle.cpp -o -name macho2yaml.cpp \) -print0 | xargs -0 grep -l strnlen | while read f
+	do
+		# On insère notre remplacement avant la première ligne qui ne soit pas in include, une ligne vide, ou un commentaire.
+		filtrer "$f" awk 'fini{print;next}/#include/{print;next}/^ *\/\//{print;next}/^ *$/{print;next}{print "#define strnlen monstrnlen" ; print "static inline int monstrnlen(const char * c, int t) { int n; for(n = -1; ++n < t && c[n];) {} return n; }" ; print ; fini=1}'
+	done
+}
+
+
 # Remplacement d'utilitaires.
 
 filtreargs()
