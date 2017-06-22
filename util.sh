@@ -432,6 +432,10 @@ uniquementPrerequis()
 	export LDFLAGS="`echo " $LDFLAGS " | sed -e 's/ /  /g' -e "s# -L$INSTALLS/lib # #g"`"
 }
 
+# Les programmes qui veulent se lier à libjpeg, libjpeg < 9, ou libjpegturbo, peuvent utiliser cette variable, toujours définie, et surchargeable par l'appelant "du dessus".
+[ ! -z "$prerequis_libjpeg" ] || prerequis_libjpeg="libjpeg"
+export prerequis_libjpeg
+
 prerequis()
 {
 	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' > $TMP/$$/temp.prerequis
