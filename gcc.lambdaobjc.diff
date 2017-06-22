@@ -1,0 +1,108 @@
+diff --git a/gcc/cp/parser.c b/gcc/cp/parser.c
+index 2af1576..68940aa 100644
+--- a/gcc/cp/parser.c
++++ b/gcc/cp/parser.c
+@@ -4442,10 +4442,17 @@ cp_parser_primary_expression (cp_parser *parser,
+       }
+ 
+     case CPP_OPEN_SQUARE:
+-      if (c_dialect_objc ())
+-        /* We have an Objective-C++ message. */
+-        return cp_parser_objc_expression (parser);
+       {
++	if (c_dialect_objc ())
++	  {
++	    /* We might have an Objective-C++ message. */
++	    cp_parser_parse_tentatively (parser);
++	    tree msg = cp_parser_objc_message_expression (parser);
++	    /* If that works out, we're done ... */
++	    if (cp_parser_parse_definitely (parser))
++	      return msg;
++	    /* ... else, fall though to see if it's a lambda.  */
++	  }
+ 	tree lam = cp_parser_lambda_expression (parser);
+ 	/* Don't warn about a failed tentative parse.  */
+ 	if (cp_parser_error_occurred (parser))
+@@ -25657,14 +25664,20 @@ cp_parser_objc_message_receiver (cp_parser* parser)
+   cp_parser_parse_tentatively (parser);
+   rcv = cp_parser_expression (parser);
+ 
++  /* If that worked out, fine.  */
+   if (cp_parser_parse_definitely (parser))
+     return rcv;
+ 
++  cp_parser_parse_tentatively (parser);
+   rcv = cp_parser_simple_type_specifier (parser,
+ 					 /*decl_specs=*/NULL,
+ 					 CP_PARSER_FLAGS_NONE);
+ 
+-  return objc_get_class_reference (rcv);
++  if (cp_parser_parse_definitely (parser))
++    return objc_get_class_reference (rcv);
++  
++  cp_parser_error (parser, "objective-c++ message receiver expected");
++  return error_mark_node;
+ }
+ 
+ /* Parse the arguments and selectors comprising an Objective-C message.
+diff --git a/gcc/testsuite/obj-c++.dg/lambda-0.mm b/gcc/testsuite/obj-c++.dg/lambda-0.mm
+new file mode 100644
+index 0000000..41482fd
+--- /dev/null
++++ b/gcc/testsuite/obj-c++.dg/lambda-0.mm
+@@ -0,0 +1,22 @@
++// Contributed by Iain Sandoe <iain@codesourcery.com>, December 2014.  */
++// { dg-do compile }
++// { dg-options "-std=c++11" }
++
++
++template<class Function>
++Function thing(Function fn, int a)
++{
++  fn(a);
++  return fn;
++}
++
++int
++test (int *arr, unsigned n)
++{
++  int total = 0;
++  for (unsigned i=0; i<n; i++) {
++    int a = arr[i];
++    thing ([&total] (int a) { total += a; }, a);
++  }
++  return total;
++}
+diff --git a/gcc/testsuite/obj-c++.dg/lambda-1.mm b/gcc/testsuite/obj-c++.dg/lambda-1.mm
+new file mode 100644
+index 0000000..050d68d
+--- /dev/null
++++ b/gcc/testsuite/obj-c++.dg/lambda-1.mm
+@@ -0,0 +1,13 @@
++// Contributed by Iain Sandoe <iain@codesourcery.com>, December 2014.  */
++// { dg-do compile }
++// { dg-options "-std=c++11" }
++
++extern "C" {
++  int printf (const char *,...);
++}
++
++int main () 
++{
++  auto f = [] (const char *msg) -> int { printf("%s", msg); return 0; };
++  return f("Some test\n");
++}
+diff --git a/gcc/testsuite/obj-c++.dg/syntax-error-6.mm b/gcc/testsuite/obj-c++.dg/syntax-error-6.mm
+index 21423ec..36a444f 100644
+--- a/gcc/testsuite/obj-c++.dg/syntax-error-6.mm
++++ b/gcc/testsuite/obj-c++.dg/syntax-error-6.mm
+@@ -8,5 +8,8 @@ void FOO()
+ {
+   NSButton * mCopyAcrobatCB; 
+ 	
+-  [ [ mCopyAcrobatCB state ] == 0 ] != 1;  /* { dg-error "objective\\-c\\+\\+" } */
++  [ [ mCopyAcrobatCB state ] == 0 ] != 1;  /* { dg-error "expected identifier before ... token" } */
++/* { dg-error "expected \\\'\\\{\\\' before \\\'!=\\\' token" "" { target *-*-* } 11 } */
++/* { dg-error "lambda expressions only available with" "" { target *-*-* } 11 } */
++/* { dg-error "no match for \\\'operator!=\\\' in" "" { target *-*-* } 11 } */
+ }
