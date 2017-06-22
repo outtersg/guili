@@ -1,0 +1,74 @@
+diff -ruw udf.c udf.c
+--- udf.c	2016-04-26 21:30:15.000000000 +0200
++++ udf.c	2016-12-06 12:57:01.000000000 +0100
+@@ -60,6 +60,14 @@
+ /* for scsilib */
+ const char *dvname="UDF device";
+ 
++#define CLOCK_REALTIME 0
++static inline void clock_gettime(int x, struct timespec * ts)
++{
++	struct timeval t;
++	gettimeofday(&t, NULL);
++	ts->tv_sec = t.tv_sec;
++	ts->tv_nsec = t.tv_usec * 1000;
++}
+ 
+ #ifndef MAX
+ #	define MAX(a,b) ((a)>(b)?(a):(b))
+diff -ruw udf_unix.c udf_unix.c
+--- udf_unix.c	2016-04-26 21:30:15.000000000 +0200
++++ udf_unix.c	2016-12-06 12:57:25.000000000 +0100
+@@ -55,6 +55,15 @@
+ #include "uio.h"
+ #include <pthread.h>
+ 
++#define CLOCK_REALTIME 0
++static inline void clock_gettime(int x, struct timespec * ts)
++{
++	struct timeval t;
++	gettimeofday(&t, NULL);
++	ts->tv_sec = t.tv_sec;
++	ts->tv_nsec = t.tv_usec * 1000;
++}
++
+ 
+ #ifndef MAX
+ #	define MAX(a,b) ((a)>(b)?(a):(b))
+diff -ruw udfclient.c udfclient.c
+--- udfclient.c	2016-04-26 21:30:15.000000000 +0200
++++ udfclient.c	2016-12-06 15:12:35.000000000 +0100
+@@ -69,6 +69,7 @@
+ 	} while (/*CONSTCOND*/0)
+ #endif
+ 
++static char g_dernier[4096];
+ 
+ /* include the dump parts ... in order to get a more sane splitting */
+ extern void udf_dump_alive_sets(void);
+@@ -243,7 +244,7 @@
+ 	here = resultpath;
+ 	while (*here) {
+ 		pos = here; while (strncmp(pos, "//", 2) == 0) pos++;
+-		if (pos != here) strcpy(here, pos);
++		if (pos != here) memmove(here, pos, strlen(pos) + 1);
+ 		here++;
+ 	}
+ 
+@@ -375,6 +376,7 @@
+ 				dirent = (struct dirent *) (buffer + pos);
+ 				error = udfclient_lookup(udf_node, &entry_node, dirent->d_name);
+ 				print_dir_entry(entry_node, dirent->d_name);
++strcpy(g_dernier, dirent->d_name);
+ 
+ 				pos += sizeof(struct dirent);
+ 			}
+@@ -498,6 +500,8 @@
+ 		return;
+ 	}
+ 
++if(strcmp(arg1, "-") == 0)
++arg1 = g_dernier;
+ 	new_curdir_name = udfclient_realpath(curdir.name, arg1, NULL);
+ 
+ 	node_name = strdup(new_curdir_name);	/* working copy */
