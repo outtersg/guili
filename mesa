@@ -29,7 +29,7 @@ logiciel=mesa
 # Historique des versions gérées
 
 v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
-v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie" || true
+v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie log2" || true
 
 # Modifications
 
@@ -70,7 +70,7 @@ void bah()
 }
 TERMINE
 	$CXX $CFLAGS -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null || log2declaree=non
-	[ $log2declaree = oui ] || ( $CXX $CFLAGS -DTEST_EMBARQUEE=1 -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null && nm -o $TMP/$$/testl.o | grep -q bah && nm -o $TMP/$$/testl.o | ! grep -q log2 ) || log2embarquee=non # Si ça compile, et que le fichier objet ne contient pas de référence U (unresolved) à log2, c'est que le compilo embarque une implémentation et la reverse dans les .o.
+	[ $log2declaree = oui ] || ( $CXX $CFLAGS -DTEST_EMBARQUEE=1 -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null && nm -o $TMP/$$/testl.o | grep -q bah && ! nm -o $TMP/$$/testl.o | grep -q log2 ) || log2embarquee=non # Si ça compile, et que le fichier objet ne contient pas de référence U (unresolved) à log2, c'est que le compilo embarque une implémentation et la reverse dans les .o.
 	
 	if [ $log2declaree = non ]
 	then
