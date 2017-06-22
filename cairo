@@ -31,8 +31,26 @@ logiciel=cairo
 v 1.12.8 && prerequis="pixman >= 0.22 glib libpng" || true
 v 1.12.14 && prerequis="pixman >= 0.30 glib libpng" || true
 v 1.12.16 && prerequis="pixman >= 0.30 glib libpng" || true
-v 1.12.18 || true
+v 1.12.18 && modifs="strndup" || true
 v 1.14.8 && prerequis="$prerequis freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
+
+strndup()
+{
+	# Sur un Mac avec un GCC, il détecte les fonctions implicites de la lib GCC, mais sans leur définition, et donc il plante.
+	for i in perf/cairo-perf-report.c perf/cairo-perf-trace.c perf/cairo-analyse-trace.c
+	do
+		filtrer "$i" sed -E -e '/#(ifndef|define) _GNU_SOURCE/{
+i\
+#include <stdio.h>
+i\
+#include <unistd.h>
+i\
+char *strndup(const char *s, size_t n);
+i\
+ssize_t getline(char **lineptr, size_t *n, FILE *stream);
+}'
+	done
+}
 
 prerequis
 
