@@ -764,6 +764,16 @@ fbsd10()
 
 # Remplacement d'utilitaires.
 
+filtreargs()
+{
+	(
+		sed -e '/ICI/,$d' < "$SCRIPTS/util.filtreargs.sh"
+		cat
+		sed -e '1,/ICI/d' < "$SCRIPTS/util.filtreargs.sh"
+	) > "$TMP/$$/$1"
+	chmod a+x "$TMP/$$/$1"
+}
+
 # http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
 for i in jar javac java
 do
