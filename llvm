@@ -31,13 +31,17 @@ logiciel=llvm
 
 # Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
 # Chemin de compilation pour un Mac OS X 10.6 (clang 3.5svn): gcc 4.9.2, clang 3.6 sans lldb (et libcxx et libcxxabi sont ignorées) #, clang 3.6.
+# Chemin de compilation pour un Mac OS X 10.8 (clang 3.5svn): gcc 4.9.4, clang 3.4.2, clang 3.5.2, clang 3.7.1, clang 3.9.1.
 
 v 3.3 || true
-v 3.4.2 && modifs="stdcppPasTropEnDur" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
-v 3.5.0 && modifs="strtoll stdcppPasTropEnDur" || true # A un petit problème avec strtoll.
-v 3.6.0 && modifs="strtoll stdcppPasTropEnDur sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
-v 3.7.1 && modifs="" && prerequis="" || true
-v 3.9.1 && modifs="" && prerequis="cmake" || true
+v 3.4.2 && modifs="macMath stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
+v 3.5.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml" || true # A un petit problème avec strtoll.
+v 3.5.2 || true
+v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
+v 3.6.2 || true
+v 3.7.1 && modifs="macMath ocloexec" && prerequis="" || true
+v 3.9.1 && modifsDyn="macMath macLibtool" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
+v 4.0.0 || true
 
 suffixe=xz
 pge $version 3.5 || suffixe=gz
@@ -45,35 +49,17 @@ archive=http://llvm.org/releases/$version/llvm-$version.src.tar.$suffixe
 
 dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+# Modifs.
 
-prerequis
-
-if false
-then
-	echo "# VOUS ÊTES DANS UN TERMINAL: À VOUS DE JOUER"\! >&2
-	cd /tmp/llvm-$version.src
-	[ -d bouild ] && cd bouild || true
-	bash
-else
-obtenirEtAllerDansVersion
-integrer()
+sansOcaml()
 {
-	ici="`pwd`"
-	( obtenirEtAllerDans "$2" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
+	# Ocaml en 3.4.2 se compile, embarque dans clang des symboles liés à ocaml, puis n'arrive pas à embarquer la biblio qui va bien pour ces symboles. Ne cherchons pas, dégommons.
+	filtrer configure sed -e '/BINDINGS_TO_BUILD/{
+s/ocaml/pasocaml/g
+s/pasocaml)/ocaml)/g
+s/pasocaml/ /g
+}'
 }
-vmaj="`echo "$version" | sed -e 's/\([^.]*\.[^.]*\).*/\1/'`"
-vrt="$version"
-pge $version 3.4 && pge 3.5 $version && vrt=$vmaj || true
-vdb=$vrt # Suit le même numérotage: unifié en 3.4 pour les 3.4.x, sinon avec le numéro de révision.
-if [ "`basename "$0"`" = clang ] ; then
-integrer tools/clang          http://llvm.org/releases/$version/cfe-$version.src.tar.$suffixe
-integrer projects/compiler-rt http://llvm.org/releases/$vrt/compiler-rt-$vrt.src.tar.$suffixe
-integrer projects/libcxx      http://llvm.org/releases/$version/libcxx-$version.src.tar.$suffixe
-! pge $version 3.5 || integrer projects/libcxxabi http://llvm.org/releases/$version/libcxxabi-$version.src.tar.$suffixe
-# Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
-#! pge $version 3.5 || integrer tools/lldb           http://llvm.org/releases/$vdb/lldb-$vdb.src.tar.$suffixe
-fi
 
 strtoll()
 {
@@ -163,6 +149,41 @@ complications()
 	#filtrer tools/lldb/source/Host/macosx/Host.mm sed -e 's/_handler (source, ^{/_handler_f (source, [](dispatch_source_t source){/'
 }
 
+[ -d "$dest" ] && exit 0
+
+prerequis
+
+manuel=non ; for param in "$@" ; do [ "x$param" = x--manuel ] && manuel=oui ; done
+if [ $manuel = oui ]
+then
+	echo "# VOUS ÊTES DANS UN TERMINAL: À VOUS DE JOUER"\! >&2
+	cd /tmp/llvm-$version.src
+	for modif in true $modifsDyn ; do $modif ; done
+	[ -d bouild ] && cd bouild || true
+	[ -d build ] && cd build || true
+	bash
+else
+obtenirEtAllerDansVersion
+
+integrer()
+{
+	ici="`pwd`"
+	( obtenirEtAllerDans "$2" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
+}
+vmaj="`echo "$version" | sed -e 's/\([^.]*\.[^.]*\).*/\1/'`"
+vrt="$version"
+pge $version 3.4 && pge 3.5 $version && vrt=$vmaj || true
+vdb=$vrt # Suit le même numérotage: unifié en 3.4 pour les 3.4.x, sinon avec le numéro de révision.
+if [ "`basename "$0"`" = clang ] ; then
+integrer tools/clang          http://llvm.org/releases/$version/cfe-$version.src.tar.$suffixe
+integrer projects/compiler-rt http://llvm.org/releases/$vrt/compiler-rt-$vrt.src.tar.$suffixe
+integrer projects/libcxx      http://llvm.org/releases/$version/libcxx-$version.src.tar.$suffixe
+! pge $version 3.5 || integrer projects/libcxxabi http://llvm.org/releases/$version/libcxxabi-$version.src.tar.$suffixe
+# lldb doit être compilé à part, car il requiert libc++ qui elle-même ne peut être compilé qu'après le compilo.
+# Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
+#! pge $version 3.9 || integrer tools/lldb           http://llvm.org/releases/$vdb/lldb-$vdb.src.tar.$suffixe
+fi
+
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
@@ -174,19 +195,34 @@ if pge $version 3.9
 then
 	mkdir -p build
 	cd build
-	cmake -DCMAKE_INSTALL_PREFIX="$dest/" -DBUILD_SHARED_LIBS=ON ..
+	cmake \
+		-DCMAKE_INSTALL_PREFIX="$dest/" \
+		-DBUILD_SHARED_LIBS=ON \
+		-DCMAKE_C_FLAGS="$CPPFLAGS $CFLAGS" \
+		-DCMAKE_CXX_FLAGS="$CPPFLAGS $CXXFLAGS" \
+		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
+		-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
+		-DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
+		$OPTIONS_CMAKE \
+		..
 else
 configure="./configure"
 pge $version 3.7 && mkdir -p bouild && cd bouild && configure="../configure" || true
 $configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
 fi
 
+fi # manuel
+
 echo Compilation… >&2
-make -j 4 || make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 )
+make -j 4 #|| make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 )
 
 echo Installation… >&2
 sudo make install
+# Certains utilisateurs de llvm (ex.: rust) ont besoin d'avoir accès aux outils intermédiaires de llvm.
+[ -e build/bin/FileCheck ] && sudo cp build/bin/FileCheck "$dest/bin/" || true
+
+# Pas de compil' libc++: en versions avant cmake, le Makefile de libcxx laisse penser qu'il va s'installer comme un cochon dans /usr/lib; et en cmake (3.9.1, par exemple), elle a été compilée en même temps que clang.
+
 sutiliser "$logiciel-$version"
-fi
 
 rm -Rf $TMP/$$
