@@ -920,7 +920,9 @@ pseudocargo()
 		*-darwin) triplet="$machine-apple-$systeme" ;;
 		*) triplet="$machine-unknown-$systeme" ;;
 	esac
-	ldflagsPseudocargo
+	#ldflagsPseudocargo
+	# Mac OS X 10.9, rustc 1.16.0: si -L <lechemindesbibliosinternesrustc>, pouf, plantage instantané!
+	LD_LIBRARY_PATH="`echo ":$LD_LIBRARY_PATH:" | sed -e "s#:$destrust/lib:#:#g"`" \
 	"$HOME/src/projets/pseudocargo/bootstrap.py" --crate-index "$ou/index" --target-dir "$ou/bazar" --no-clone --no-clean --target "$triplet" --patchdir "$SCRIPTS/cargo.patches/" "$@"
 	
 	CARGODEST="$ou/bazar"
