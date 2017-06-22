@@ -220,6 +220,11 @@ obtenirEtAllerDansDarcs()
 # Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {
+	if [ ! -z "$install_obtenu" ]
+	then
+		cd "$install_obtenu"
+		return
+	fi
 	[ -z "$versionComplete" ] && versionComplete="$version" || true
 	case "$versionComplete" in
 		*.git)
@@ -467,6 +472,28 @@ then
 	argVersion="$1"
 	shift
 fi
+
+analyserParametresInstall()
+{
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--src) shift ; install_obtenu="$1" ;;
+			--dest) shift ; install_dest="$1" ;;
+		esac
+		shift
+	done
+}
+
+analyserParametresInstall "$@"
+install_moi="$SCRIPTS/`basename "$0"`"
+
+destiner()
+{
+	dest="$INSTALLS/$logiciel-$version"
+	[ -z "$install_dest" ] || dest="$install_dest"
+	[ -d "$dest" ] && exit 0 || true
+}
 
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
 v()
