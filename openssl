@@ -28,7 +28,7 @@ logiciel=openssl
 
 # Historique des versions gérées
 
-version=0.9.8g
+v 0.9.8g && modifs="multiarch" || true
 
 version=1.0.0
 
@@ -36,10 +36,8 @@ version=1.0.0a
 mac && archis=oui
 modifspostconf="dyld105postconf"
 
-version=1.0.0e
-modifs=perlredir
-
-v 1.0.1e && modifs="perlredir sansdoc" || true
+v 1.0.0e && modifs="multiarch perlredir" || true
+v 1.0.1e && modifs="multiarch perlredir sansdoc uniquementPrerequis" || true
 v 1.0.1g || true
 v 1.0.1h || true
 v 1.0.1j || true
@@ -101,60 +99,33 @@ dyld105postconf()
 	filtrer Makefile sed -e "/^SHARED_LDFLAGS=/s#\$# $LDFLAGS#"
 }
 
+configManuel()
+{
+	arch="$1" ; shift
+	pf="`uname | tr A-Z a-z`"
+	case "$pf-$arch" in
+		darwin-x86_64) pf=darwin64 ;;
+	esac
+	./Configure "$pf-$arch-cc" "$@"
+}
+
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive=http://www.openssl.org/source/$logiciel-$version.tar.gz
 # Difficile maintenant de trouver la source sur un serveur HTTP non 'S'.
 archive=http://artfiles.org/openssl.org/source/$logiciel-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
-if [ "$archis" = oui -a "`sysctl -n hw.optional.x86_64`" = 1 ]
-then
-	cp -R . ../$logiciel-$version-x86_64
-	cp -R . ../$logiciel-$version-i386
-	cd ../$logiciel-$version-x86_64
-	./Configure darwin64-x86_64-cc shared --prefix="$dest" --openssldir="$dest"
-	for modif in true $modifspostconf ; do $modif ; done
-	make
-	sudo make install
-	sudo rm -Rf "$dest.x86_64"
-	sudo mv "$dest" "$dest.x86_64"
-	cd ../$logiciel-$version-i386
-	./config shared --prefix="$dest" --openssldir="$dest"
-	for modif in true $modifspostconf ; do $modif ; done
-	make
-	sudo make install
-	cd "$dest"
-set -x
-	diff -rq . "$dest.x86_64" 2> /dev/null | sed -e 's/^Files //' -e 's/ and .*differ//' | while read i
-	do
-		if [ ! -L "$i" ]
-		then
-			suffixe=
-			nom="`basename "$i"`"
-			[[ "$nom" = *.* ]] && suffixe=".${nom##*.}"
-			case "$suffixe" in
-				.h)
-					diff -D __x86_64__ "$i" "$dest.x86_64/$i" > "$TMP/$$/temp.diffD" || true
-					sudo sh -c "cat $TMP/$$/temp.diffD > $i"
-					;;
-				*)
-					lipo -create "$i" "$dest.x86_64/$i" -output "$TMP/$$/temp.lipo$suffixe" && sudo sh -c "chmod u+w $i ; cat $TMP/$$/temp.lipo$suffixe > $i" # Les engines sont installés en non inscriptibles, ce qui nous embête bien.
-					;;
-			esac
-		fi
-	done
-	sudo rm -Rf "$dest.x86_64"
-else
 	echo Configuration… >&2
-	./config shared --prefix="$dest" --openssldir="$dest"
+	config="./config"
+	[ -z "$multiarch_arch" ] || config="configManuel $multiarch_arch"
+	$config shared --prefix="$dest" --openssldir="$dest"
 	for modif in true $modifspostconf ; do $modif ; done
 	
 	echo Compilation… >&2
@@ -162,7 +133,6 @@ else
 	
 	echo Installation… >&2
 	sudo make install
-fi
 
 sutiliser "$logiciel-$version"
 
