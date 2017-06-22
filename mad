@@ -28,9 +28,15 @@ logiciel=mad
 
 # Historique des versions gérées
 
-v 0.15.1b && modifs="fpic" || true
+v 0.15.1b && modifs="fpic i486" || true
 
 # Modifications
+
+i486()
+{
+	# Pourquoi ce crétin retranscrit-il l'archi hôte *86 en i486?
+	filtrer configure grep -v i486
+}
 
 # Variables
 
