@@ -119,6 +119,7 @@ i\
 
 dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.freedesktop.org/pub/mesa/$version/mesa-$version.tar.xz"
+archive="http://mesa.freedesktop.org/archive/mesa-$version.tar.xz"
 
 [ -d "$dest" ] && exit 0
 
