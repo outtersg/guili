@@ -23,6 +23,7 @@ set -e
 
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/garg.sh"
 
 logiciel=git
 
@@ -56,7 +57,8 @@ autoconfer()
 sansConfigurer()
 {
 	sansConfigure=1
-	prefixeMake="prefix=$dest OPENSSLDIR=$INSTALLS"
+	# L'invocation du make install doit être strictement la même que celle du make, sans quoi il détecte un changement d'environnement et retente toute la compil' (en root). Or comme on passe par sudo pour le make install, et que celui-ci dézingue l'environnement, on doit s'assurer que les variables passées au make traversent aussi le sudo make install. Le plus simple est de les ajouter aux paramètres des deux.
+	garg -a paramsMake prefix="$dest" OPENSSLDIR="$INSTALLS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CPPFLAGS"
 }
 
 # Variables
@@ -82,10 +84,11 @@ then
 fi
 
 echo Compilation… >&2
-make $prefixeMake
+garg paramsMake make
 
 echo Installation… >&2
-sudo NO_R_TO_GCC_LINKER=$NO_R_TO_GCC_LINKER make $prefixeMake install
+garg -a paramsMake install
+garg paramsMake sudo NO_R_TO_GCC_LINKER=$NO_R_TO_GCC_LINKER make
 sutiliser $logiciel-$version
 
 rm -Rf "$TMP/$$"
