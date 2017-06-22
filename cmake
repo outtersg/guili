@@ -34,40 +34,57 @@ v 2.8.3 && modifs=putainDeLibJPEGDeMacOSX || true
 v 2.8.6 && modifs=putainDeLibJPEGDeMacOSX || true
 v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
 v 2.8.12 && modifs="etToiAlors havefchdir" || true
-v 3.5.2 && modifs="" || true
+v 3.5.2 && modifs="etToiAlors speMac macGcc macOpenssl" || true
 
 # Modifications
 
-# CMake, pour sa config, teste son petit monde en essayant de se lier à Carbon.
-putainDeLibJPEGDeMacOSX()
+macOpenssl()
 {
-	# Ces trous du cul d'Apple ont cru bon créer une libJPEG.dylib à eux, qui évidemment ne sert à personne d'autre qu'à eux (les symboles à l'intérieur sont tous préfixés _cg_, comme CoreGraphics). Et avec un système de fichier insensible à la casse, cette connasse de libJPEG de merde prend le pas sur la très légitime libjpeg que l'on souhaite utiliser un peu partout.
-	case essai in
-		tentative)
-			LDFLAGS="-L/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ImageIO.framework/Versions/A/Resources $LDFLAGS"
-			export LDFLAGS
-			;;
-		test)
-			# Ou alors je lui pète la tête, à ce gros nase de CMake qui s'obstine à se lier avec Carbon. C'est pas son boulot, je me démerderai au cas par cas avec les conneries que me fait faire Apple. Putain ils font chier quand même avec leurs bourdes.
-			grep -rl 'framework Carbon' . | while read f
-			do
-				filtrer "$f" sed -e 's/-framework Carbon//g'
-			done
-			# Mais quand même il va en avoir besoin un coup à la fin.
-			filtrer bootstrap sed -e '/-o cmake/{
-s//-framework Carbon -o cmake/
-s#${cmake_ld_flags}#-L/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/ImageIO.framework/Versions/A/Resources -lJPEG &#
+	# Le DARWIN_SSL est une infamie qui ne compile plus ou moins pas.
+	# LANG et LC_ALL pour éviter un Illegal byte sequence.
+	( export LC_ALL=C LANG=C ; filtrer Utilities/cmcurl/CMakeLists.txt sed -e '/OSX_VERSION.*10\.6/s/10\.6/99.99/g' )
+	filtrer Utilities/cmlibarchive/libarchive/archive_cryptor_private.h grep -v 'define.*ARCHIVE_CRYPTOR_USE_Apple_CommonCrypto'
+}
+
+macGcc()
+{
+	# Pour une raison que j'ignore, sur mon Mac avec un GCC 4.9.4 comme compilo, Utilities/cmjsoncpp/src/lib_json/json_value.cpp inclut cstddef, qui (en C++11 et suivants, or le configure détecte un GCC qui lui fait ajouter un -std=g++14) croit devoir utiliser un std::max_align_, théoriquement défini en interne du compilo, sauf que ce dernier n'en fait rien, donc plantage.
+	mac || return 0
+	filtrer Utilities/cmjsoncpp/src/lib_json/json_value.cpp sed -e '/#include <cstddef>/{
+i\
+#undef __cplusplus
 }'
-			;;
-		essai)
-			# Mais ce foutu machin s'obstine à se lancer dans je ne sais quelles variables d'environnement. Alors on essaie de lui dire de se compiler en indépendant.
-			LDFLAGS="`echo "$LDFLAGS" | sed -e "s#-L$INSTALLS/lib##g"`"
-			DYLD_FALLBACK_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$DYLD_FALLBACK_LIBRARY_PATH"
-			unset LD_LIBRARY_PATH
-			unset DYLD_LIBRARY_PATH
-			export DYLD_FALLBACK_LIBRARY_PATH
-			;;
-	esac
+}
+
+speMac()
+{
+	# GCC sur un Mac est une vieille infamie. On bidouille avec les -isysroot, les -F et autres saloperies, mais in fine:
+	# - soit on pointe vers un SDK, et alors on plante à l'édition de lien à la fin (ne trouve pas un symbole à la con _TrucRuneMachin)
+	# - soit on ne pointe vers rien, et alors le spécifique Mac ne trouve pas ses en-têtes
+	# Donc merde au spécifique Mac.
+	mac || return 0
+	if true
+	then
+		for f in Source/cmFindProgramCommand.cxx Source/CPack/cmCPackGeneratorFactory.cxx
+		do
+			filtrer "$f" sed -e 's/__APPLE__/__APPLE_MES_FESSES__/g'
+		done
+		filtrer Source/CMakeLists.txt awk '/^endif/{non=0}!non{print}/CMAKE_USE_MACH_PARSER/{if(non)print}/^if\(APPLE/{non=1}'
+		filtrer Source/cmake.cxx grep -v 'define .*CMAKE_USE_XCODE'
+	else
+		if true
+		then
+			CPPFLAGS="$CPPFLAGS -isysroot=/Developer/SDKs/MacOSX10.6.sdk -I/usr/include"
+			LDFLAGS="$LDFLAGS -F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks -F/System/Library/Frameworks -L/usr/lib"
+		else
+			CPPFLAGS="$CPPFLAGS -isysroot=/ -I/usr/include"
+			LDFLAGS="$LDFLAGS -F/System/Library/Frameworks -L/usr/lib"
+		fi
+		# Le bootstrap oublie d'exploiter CPPFLAGS et LDFLAGS, on les rajoute donc où nécessaire.
+		CFLAGS="$CFLAGS $CPPFLAGS $LDFLAGS"
+		CXXFLAGS="$CXXFLAGS $CPPFLAGS $LDFLAGS"
+		export CPPFLAGS LDFLAGS CFLAGS CXXFLAGS
+	fi
 }
 
 # Ce crétin de CMake embarque des bibliothèques complètes (cURL) et s'étonne ensuite de péter lorsque le .h de la biblio est inclus avant le sien.
