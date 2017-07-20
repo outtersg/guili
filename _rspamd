@@ -1,0 +1,117 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=_rspamd
+
+# Historique des versions gérées
+
+prerequis="rspamd"
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi [<version rspamd>]
+TERMINE
+	exit 1
+}
+
+analyserParametres()
+{
+	vars=""
+	versionRspamd=
+	compte=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-u) shift ; compte="$1" ;;
+			*)
+				echo "$1" | grep -q '^[0-9.<>=]*$' && versionRspamd="$1" && continue || true
+				[ -z "$vars" ] && auSecours
+				for i in $vars
+				do
+					export $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+
+	if [ -z "$compte" ]
+	then
+		comptesEnvisages="exim mail mel"
+		for compte in $comptesEnvisages personne
+		do
+			id "$compte" 2> /dev/null >&2 && break
+		done
+		if [ "$compte" = personne ]
+		then
+			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte via l'option -u (il sera créé si nécessaire)." >&2
+			exit 1
+		fi
+	fi
+	
+	[ -z "$versionRspamd" -a ! -z "$argVersion" ] && versionRspamd="$argVersion" || true
+	[ -z "$versionRspamd" ] || prerequis="`echo " $prerequis " | sed -e "s# rspamd # rspamd $versionRspamd #g"`"
+}
+
+analyserParametres "$@"
+
+prerequis
+
+# Modifications
+
+# Variables
+
+version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*://g' -e 's/ //g'`"
+dest=$INSTALLS/$logiciel-$version
+
+[ -d "$dest" ] && exit 0
+
+if ! id "$compte" > /dev/null 2>&1
+then
+
+echo "Création de l'utilisateur…" >&2
+creeCompte -s /bin/sh $compte # 4100
+
+fi
+
+echo "Auto-démarrage…" >&2
+t="$TMP/$$/dest"
+mkdir -p "$t/etc" "$t/etc/local.d" "$t/var/run" "$t/var/log"
+cat > "$t/etc/local.d/logging.inc" <<TERMINE
+filename = "$dest/var/log/rspamd.log";
+TERMINE
+[ -d "$dest/etc/rspamd.0" ] || cp -R "$destrspamd/etc/rspamd" "$t/etc/rspamd.0"
+serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" demon rspamd "$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
+sudo cp -R "$t" "$dest"
+sudo chown -R $compte: "$dest/var/run" "$dest/var/log"
+
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
