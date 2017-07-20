@@ -53,10 +53,12 @@ analyserParametres()
 	vars="rien"
 	compte=
 	port=
+	seulement=
 	> $TMP/$$/regles
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
+			--seulement) shift ; seulement="$1" ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; port="$1" ;;
 			-) cat >> $TMP/$$/regles ;;
@@ -120,6 +122,7 @@ creerAmorceur()
 			fpid="var/run/tinyproxy.pid"
 			ftrace="var/log/tinyproxy.log"
 			fconfig="etc/tproxy.conf"
+			foui="etc/tproxy.oui"
 			groupe="`id -g -n "$compte"`"
 			
 			serveur -d0 "$TMP/$$/init" -d "$dest" -p "$dest/$fpid" demon tinyproxy "$desttinyproxy/sbin/tinyproxy -c $dest/$fconfig"
@@ -132,6 +135,12 @@ TERMINE
 			# On ajoute aussi les valeurs par défaut de tous les paramètres qui n'auront pas été définis par l'appelant.
 			cat $TMP/$$/regles >> "$TMP/$$/init/$fconfig"
 			(
+				if [ ! -z "$seulement" ]
+				then
+					echo "FilterDefaultDeny Yes"
+					echo "Filter \"$dest/foui\""
+					echo "$seulement" > "$TMP/$$/init/$foui"
+				fi
 				cat <<TERMINE
 Port $port
 StartServers 3
