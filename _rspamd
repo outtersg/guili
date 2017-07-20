@@ -41,7 +41,7 @@ TERMINE
 
 analyserParametres()
 {
-	vars=""
+	vars="bdd"
 	versionRspamd=
 	compte=
 	while [ $# -gt 0 ]
@@ -74,6 +74,11 @@ analyserParametres()
 			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte via l'option -u (il sera créé si nécessaire)." >&2
 			exit 1
 		fi
+	fi
+	
+	if [ -z "bdd" ]
+	then
+		bdd="$dest/var/db/rspamd"
 	fi
 	
 	[ -z "$versionRspamd" -a ! -z "$argVersion" ] && versionRspamd="$argVersion" || true
@@ -111,9 +116,10 @@ then
 	echo "secure_ip = \"`localhost`\";" > "$t/etc/rspamd.0/local.d/worker-controller.inc"
 fi
 # Il faut lui préciser un SSL_CERT_FILE pour qu'il puisse télécharger ses listes régulièrement sur https://rspamd.com/.
-serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" -pre "export SSL_CERT_FILE=$INSTALLS/share/curl-ca-bundle.crt" demon rspamd "$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
+serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" -pre "export SSL_CERT_FILE=$INSTALLS/share/curl-ca-bundle.crt" demon rspamd "$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 DBDIR=$bdd -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
 sudo cp -R "$t" "$dest"
-sudo chown -R $compte: "$dest/var/run" "$dest/var/log"
+sudo mkdir -p "$bdd"
+sudo chown -R $compte: "$dest/var/run" "$dest/var/log" "$bdd"
 
 sutiliser "$logiciel-$version"
 
