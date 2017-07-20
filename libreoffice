@@ -34,6 +34,7 @@ v 5.0.0.5 && modifs="enTetesPoppler log10 vraiSh" && prerequis="patch zip" || tr
 v 5.3.1.1 && modifs="log10 vraiSh enTetesNss mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne" && prerequis="patch zip automake libtool 2.4.2 boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
 # v_libtool à faire varier entre 2.4.6 et 2.4.2, car certains bouts sont restés en 2.4.2 et pètent s'ils sont compilés par un 2.4.6. Donc pour aller jusqu'au bout, il faut commencer avec l'une, changer quand ça pète pour faire passer le point de blocage, rebasculer, etc.
 v 5.3.1.2 && modifsDyn="enTetesNss" modifs="$modifsDyn log10 vraiSh mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne envpourri" && prerequis="patch zip automake libtool $v_libtool boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
+v 5.3.2.2 || true
 
 prerequis
 
