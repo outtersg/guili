@@ -84,8 +84,7 @@ make
 
 echo Installation… >&2
 sudo make install
-sudo mkdir -p "$dest/var/log/rspamd" "$dest/var/run/rspamd" "$dest/var/lib/rspamd"
-sudo chown postfix:postfix "$dest/var/lib/rspamd"
+
 sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
