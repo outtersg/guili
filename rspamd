@@ -31,8 +31,20 @@ logiciel=rspamd
 #v 1.0.4 && prerequis="cmake libevent glib gmime luajit sqlite" || true
 v 1.0.4 && prerequis="cmake libevent glib gmime lua sqlite" && modifs="sansLuaJit sansRedis" || true
 v 1.3.5 && prerequis="cmake libevent glib gmime lua sqlite ragel" || true
+v 1.5.3 && prerequis="cmake libevent glib gmime lua sqlite ragel fann gd" || true
+v 1.5.6 && prerequis="cmake libevent glib gmime lua sqlite ragel fann gd" || true
+v 1.6.2 && prerequis="cmake libevent glib gmime lua sqlite ragel fann gd" && modifs="lpeginternevisible" || true # À partir de la 1.6, il devient trop complexe de compiler sans Redis.
 
 # Modifications
+
+lpeginternevisible()
+{
+	# Je ne sais pourquoi lpeg, compilé dans rspamd, n'est pas exposée aux scripts lua. Du coup pétage immédiat au lancement:
+	#   rspamd_config_read: rcl parse error:
+	#   cannot init lua file /usr/local/rspamd-1.6.2/share/rspamd/rules/rspamd.lua:
+	#   /usr/local/rspamd-1.6.2/share/rspamd/lib/lua_util.lua:2: module 'lpeg' not found
+	filtrer src/lua/lua_common.c awk '/luaopen_lpeg *\(/{next}'\!'deja&&/rspamd_lua_add_preload/{print"rspamd_lua_add_preload (L, \"lpeg\", luaopen_lpeg);";deja=1}{print}'
+}
 
 sansRedis()
 {
