@@ -108,7 +108,8 @@ cat > "$t/etc/local.d/logging.inc" <<TERMINE
 filename = "$dest/var/log/rspamd.log";
 TERMINE
 [ -d "$dest/etc/rspamd.0" ] || cp -R "$destrspamd/etc/rspamd" "$t/etc/rspamd.0"
-serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" demon rspamd "$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
+# Il faut lui préciser un SSL_CERT_FILE pour qu'il puisse télécharger ses listes régulièrement sur https://rspamd.com/.
+serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" -pre "export SSL_CERT_FILE=$INSTALLS/share/curl-ca-bundle.crt" demon rspamd "$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
 sudo cp -R "$t" "$dest"
 sudo chown -R $compte: "$dest/var/run" "$dest/var/log"
 
