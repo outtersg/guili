@@ -81,7 +81,10 @@ TERMINE
 
 envpourri()
 {
-	[ `uname` != FreeBSD ] || pge `uname -r | sed -e 's/[^0-9.].*//'` 11 || return
+	if [ `uname` != FreeBSD ] || pge `uname -r | sed -e 's/[^0-9.].*//'` 11
+	then
+		return 0
+	fi
 	
 	# Un très étrange problème de corruption d'environnement sous FreeBSD (10): une commande, lancée avec un environnement pas si énorme (un poi plus de 32 Ko), explose en "environment corrupt; missing value for xxxxx', xxxxx représentant le début arbitraire de la dernière variable mentionnée par un env (ex. d'un cas: l'env se terminait par "GIT_SSL_CAINFO=/home/bas/.curl-ca-bundle.crt", la commande suivante (gengal.bin en l'occurrence) péta, de façon absolument reproductible), avec le "missing value for GIT_SSL_xx", les xx étant les deux octets 0x8102). On efface donc cette variable de l'environnement… et on la remet, et ça marche.
 	filtrer solenv/gbuild/Gallery.mk sed -e '/call gb_Executable_get_command/{
