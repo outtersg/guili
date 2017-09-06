@@ -34,9 +34,32 @@ v 3.11.2 || true
 v 3.12.0 || true
 v 3.12.1 || true
 v 4.03.0 && modifs="" || true
-v 4.04.1 || true
+v 4.04.1 && modifs="installBytePourrie" || true
 
 # Modifications
+
+installBytePourrie()
+{
+	patch <<TERMINE
+--- Makefile	2017-04-13 17:39:53.000000000 +0200
++++ Makefile	2017-09-06 21:33:09.000000000 +0200
+@@ -248,11 +248,10 @@
+ 	if test -n "\$(WITH_OCAMLDOC)"; then (cd ocamldoc; \$(MAKE) install); fi
+ 	if test -n "\$(WITH_DEBUGGER)"; then (cd debugger; \$(MAKE) install); fi
+ 	cp config/Makefile \$(INSTALL_LIBDIR)/Makefile.config
+-	if test -f ocamlopt; then \$(MAKE) installopt; else \\
++	if test -f ocamlopt; then \$(MAKE) installopt; fi
+ 	   cd \$(INSTALL_BINDIR); \\
+-	   ln -sf ocamlc.byte\$(EXE) ocamlc\$(EXE); \\
+-	   ln -sf ocamllex.byte\$(EXE) ocamllex\$(EXE); \\
+-	   fi
++	   [ -e ocamlc\$(EXE) ] || ln -sf ocamlc.byte\$(EXE) ocamlc\$(EXE); \\
++	   [ -e ocamllex\$(EXE) ] || ln -sf ocamllex.byte\$(EXE) ocamllex\$(EXE)
+ 
+ # Installation of the native-code compiler
+ installopt:
+TERMINE
+}
 
 sansGcc()
 {
