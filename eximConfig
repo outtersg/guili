@@ -107,12 +107,20 @@ case "$pourriel" in
 		;;
 esac
 
+# À FAIRE: log_file_path
+
+# À FAIRE: gérer le cas où l'on a un certif à portée de main. En attendant, on ne peut faire la pub de notre TLS, puisqu'on ne peut y répondre.
+optionsSsl="tls_advertise_hosts ="
+
 echo '
 # NOTE: rôles
 # - automates: comptes Unix habilités à émettre directement
 # - regents: comptes Unix habilités à émettre pour le compte d'\''une adrél
 # 
 # primary_hostname: faudrait-il savoir le faire varier en fonction du domaine pour lequel on envoie (afin que le EHLO corresponde?).
+
+# Il faudrait limiter ceci aux version >= 4.89.
+keep_environment =
 
 domainlist ici = @ : ici.la
 domainlist local_domains = '"`echo "$domaines" | sed -e 's/:/ : /g'`"' : ici.la : @
@@ -167,6 +175,7 @@ log_selector = -queue_run -retry_defer +received_recipients +received_sender
 '"$serveurPourriel"'
 # idem: acl_check_data
 
+'"$optionsSsl"'
 # tls_advertise_hosts = *
 # tls_certificate = /etc/ssl/exim.crt
 # tls_privatekey = /etc/ssl/exim.pem
