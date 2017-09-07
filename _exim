@@ -46,6 +46,8 @@ analyserParametres()
 	domaines=
 	compte=
 	mels=
+	paf=0
+	pourriel=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
@@ -82,6 +84,16 @@ analyserParametres()
 	[ -z "$versionExim" -a ! -z "$argVersion" ] && versionExim="$argVersion" || true
 	[ -z "$versionExim" ] || prerequis="`echo " $prerequis " | sed -e "s# exim # exim $versionExim #g"`"
 	
+	# Si le traiteur de pourriel n'est pas mentionné, on branche rspam à partir de la 4.89, version à partir de laquelle je compile exim avec paf2 (qui repose sur la présence d'un analyseur de pourriel).
+	if [ -z "$pourriel" ]
+	then
+		if pge "$versionExim" 4.89
+		then
+			pourriel=rspam+paf2
+			paf= # paf2 n'a plus besoin des règles de paf (ce sont celles de rspam qui sont utilisées).
+		fi
+	fi
+	
 	[ ! -z "$mels" ] || auSecours
 }
 
@@ -112,7 +124,7 @@ then
 echo "Création de la base méls…" >&2
 
 sudo mkdir -p "$mels"
-sudo chown -R $compte:$compte "$mels"
+sudo chown -R $compte: "$mels"
 sudo chmod -R go-rwx "$mels"
 
 fi
@@ -124,15 +136,26 @@ case `uname` in
 		;;
 	FreeBSD)
 		serveur -d0 "$TMP/$$/dest" -d "$dest" -p "$destexim/var/spool/exim/exim-daemon.pid" -pre "LD_LIBRARY_PATH=$INSTALLS/lib ; export LD_LIBRARY_PATH" demon exim "$destexim/bin/exim -bd -q1m"
+		if [ "$paf" = 1 ]
+		then
 		touch "$TMP/$$/dest/etc/exim.paf.regles"
+			optionsPaf="--paf $dest/etc/exim.paf.regles"
+		fi
+		if [ ! -z "$pourriel" ]
+		then
+			optionsPaf="$optionsPaf --spam $pourriel"
+		fi
 		comptes="`dirname "$mels"`/comptes"
-		"$SCRIPTS/eximConfig" --paf "$dest/etc/exim.paf.regles" -u "$compte" `echo "$domaines" | sed -e 's/  *\([^ ]\)/ -d \1/g'` "$mels" "$comptes" > "$TMP/$$/exim.conf"
+		"$SCRIPTS/eximConfig" $optionsPaf -u "$compte" `echo "$domaines" | sed -e 's/  *\([^ ]\)/ -d \1/g'` "$mels" "$comptes" > "$TMP/$$/exim.conf"
 		sudo cp -R "$TMP/$$/dest" "$dest"
 		sudo cp "$TMP/$$/exim.conf" "$destexim/etc/exim"
 		sudo mkdir -p "$destexim/var/spool/exim/log"
-		sudo chown -R $compte:$compte "$dest/etc/exim.paf.regles" "$destexim/var/spool/exim"
-		sudo "$SCRIPTS/rcconfer" exim_enable=YES
-		[ -h /usr/sbin/sendmail -o ! -e /usr/sbin/sendmail ] && sudo rm -f /usr/sbin/sendmail && sudo ln -s "$destexim/bin/exim" /usr/sbin/sendmail
+		if [ "$paf" = 1 ]
+		then
+		sudo chown -R $compte: "$dest/etc/exim.paf.regles"
+		fi
+		sudo chown -R $compte: "$destexim/var/spool/exim"
+		#[ -h /usr/sbin/sendmail -o ! -e /usr/sbin/sendmail ] && sudo rm -f /usr/sbin/sendmail && sudo ln -s "$destexim/bin/exim" /usr/sbin/sendmail
 		# À FAIRE: permettre à sendmail sur tous les hôtes de passer par le même, ou passer par un ssmtp. Mais comment alors distinguer les méls de source locale?
 		;;
 esac
