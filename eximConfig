@@ -18,12 +18,14 @@ analyserParametres()
 	compte=
 	domaines=
 	prefixe=
+	pourriel=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-d) shift ; domaines="$domaines:$1" ;;
 			-u) shift ; compte="$1" ;;
-			--paf) shift ; reglesPaf="$1" ;;
+			--spam) shift ; pourriel="$1" ;;
+			--paf) shift ; reglesPaf="regles = $1" ;;
 			--prefix|--prefixe) shift ; prefixe="$1" ;;
 			*)
 				[ -z "$vars" ] && auSecours
@@ -73,6 +75,37 @@ analyserParametres "$@"
 
 # Détection des réseaux locaux dans des jails. On détecte pour le moment une config ezjails classique.
 reseauxLocaux="`ifconfig lo1 2> /dev/null | sed -e '/^[ 	]*inet/!d' -e 's/^[ 	]*inet[ 	]*//' -e 's#^\([0-9]*\.[0-9]*\.[0-9]*\)\..*#\1.0/8#' -e 's/^/ : /' | tr -d '\012'`"
+
+# Blocs conditionnels pourriel.
+
+case "$pourriel" in
+	rspam*)
+		if [ "$pourriel" != "rspam+paf2" ]
+		then
+			actionPourriel="
+				deny  message = Eh, poubelle!
+					condition = \${if eq{\$spam_action}{reject}}
+			"
+		fi
+		serveurPourriel="spamd_address = 127.0.0.1 11333 variant=rspamd"
+		filtrePourriel="
+			# Filtrage anti-pourriel.
+			accept authenticated = *
+			warn spam = nobody:true
+			warn remove_header = x-spam-bar : x-spam-score : x-spam-report : x-spam-status
+			$actionPourriel
+			defer message = Please try again later
+				condition = \${if eq{\$spam_action}{soft reject}}
+			warn
+				! condition  = \${if eq{\$spam_action}{no action}}
+				add_header = X-Spam-Status: Yes
+			warn
+				condition = \${if >{\$spam_score_int}{0}}
+				add_header = X-Spam-Score: \$spam_score
+				add_header = X-Spam-Report: \$spam_report
+		"
+		;;
+esac
 
 echo '
 # NOTE: rôles
@@ -131,7 +164,7 @@ log_selector = -queue_run -retry_defer +received_recipients +received_sender
 # av_scanner = clamd:/tmp/clamd
 # Puis voir acl_check_data
 
-# spamd_address = 127.0.0.1 783
+'"$serveurPourriel"'
 # idem: acl_check_data
 
 # tls_advertise_hosts = *
@@ -273,12 +306,8 @@ acl_check_data:
 
   # deny    malware    = *
   #         message    = This message contains a virus ($malware_name).
-
-  # warn    spam       = nobody
-  #         add_header = X-Spam_score: $spam_score\n\
-  #                      X-Spam_score_int: $spam_score_int\n\
-  #                      X-Spam_bar: $spam_bar\n\
-  #                      X-Spam_report: $spam_report
+  
+  '"$filtrePourriel"'
 
   accept
 
@@ -517,5 +546,5 @@ begin local_scan
 
 tranchePoireautage = 3
 rejets = '"$mels"'/spam
-regles = '"$reglesPaf"'
-'
+'"$reglesPaf
+"
