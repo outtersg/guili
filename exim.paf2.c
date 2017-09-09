@@ -222,6 +222,8 @@ int local_scan(int fd, uschar ** return_text)
 
 void auSecours()
 {
+	fprintf(stderr, "# paf2 <fichier RFC 822> …\n# Simule le passage d'un message dans un exim + paf2 (affiche le temps de blocage éventuel).\n");
+	exit(1);
 }
 
 int main(int argc, char ** argv)
