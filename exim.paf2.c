@@ -1,4 +1,6 @@
 /* Petit Anti-Fâcheux: une sorte de spamd minimaliste. */
+// Pour tester le temps que serait bloqué un message:
+// cc -DTEST -o /tmp/paf2 exim.paf2.c && /tmp/paf2 <fichier RFC 822>
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -11,9 +13,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#ifndef TEST
+
 #include "local_scan.h"
 
 static char * g_rejets = NULL;
+
+#endif /* TEST */
+
 static int g_facteurPoireautage = 0; // 1 s de poireautage par tranche de g_facteurPoireautage points-poubelle.
 
 float secondes(float points)
@@ -22,6 +29,8 @@ float secondes(float points)
 	
 	return points * g_facteurPoireautage / 1000;
 }
+
+#ifndef TEST
 
 optionlist local_scan_options[] = {
 	{ "rejets", opt_stringptr, &g_rejets },
@@ -111,6 +120,49 @@ void entreposerMessageAnalyse(char * blocDebut, int tailleDebut, int fd)
 	close(sortie);
 }
 
+#else /* TEST */
+
+#include <errno.h>
+#include <sys/mman.h>
+
+#define LOCAL_SCAN_ACCEPT 0
+
+typedef struct header_line
+{
+	int slen;
+	const char * text;
+	struct header_line * next;
+} header_line;
+
+header_line * header_list;
+
+char * g_cheminCourant;
+
+typedef char uschar;
+
+void entreposerMessageAnalyse(char * blocDebut, int tailleDebut, int fd)
+{
+	
+}
+
+int poireauter(float points, uschar ** return_text)
+{
+	char sansZero[31];
+	char * ptr;
+	for(ptr = &sansZero[snprintf(sansZero, 31, "%.3f", points)]; --ptr > sansZero && *ptr == '0';)
+		if(*ptr == '.')
+		{
+			// Sortie forcée, de peur qu'avant le . on trouve des 0 que l'on fasse sauter.
+			--ptr;
+			break;
+		}
+	*(++ptr) = 0;
+	fprintf(stdout, "%s: %s points-poubelle -> %.0f s\n", g_cheminCourant, sansZero, secondes(points));
+	return 0;
+}
+
+#endif /* TEST */
+
 #define T_BLOC_ENTETES 0x2000
 
 int local_scan(int fd, uschar ** return_text)
@@ -165,3 +217,80 @@ int local_scan(int fd, uschar ** return_text)
 	
 	return LOCAL_SCAN_ACCEPT;
 }
+
+#ifdef TEST
+
+void auSecours()
+{
+}
+
+int main(int argc, char ** argv)
+{
+	int causant = 0;
+	int f;
+	int e;
+	char * contenu;
+	char * ptr;
+	char * debut;
+	char * fin;
+	struct stat infos;
+	header_line ** prochainEnTete;
+	header_line * enTete, * suivant;
+	
+	if(argc > 1)
+	{
+		header_list = NULL;
+		while(*++argv)
+		{
+			if(strcmp(*argv, "-h") == 0) { auSecours(); return(-1); }
+			if(strcmp(*argv, "-v") == 0) { causant = 1; continue; }
+			
+			if((f = open(g_cheminCourant = *argv, O_RDONLY)) < 0)
+			{
+				fprintf(stderr, "# fopen(%s): %s\n", *argv, strerror(errno));
+				continue;
+			}
+			
+			if((e = fstat(f, &infos)) < 0)
+			{
+				fprintf(stderr, "# fstat(%s): %s\n", *argv, strerror(errno));
+				close(f);
+				continue;
+			}
+			contenu = mmap(NULL, infos.st_size, PROT_READ, MAP_PRIVATE, f, 0);
+			fin = &contenu[infos.st_size];
+			
+			debut = contenu;
+			prochainEnTete = &header_list;
+			for(ptr = contenu; ptr < fin; ++ptr)
+			{
+				if(*ptr == '\n')
+				{
+					if(ptr == debut) // Deux d'affilée: fin des en-têtes.
+						break;
+					enTete = *prochainEnTete = (header_line *)malloc(sizeof(header_line));
+					enTete->text = debut;
+					enTete->slen = ptr - debut + 1;
+					enTete->next = NULL;
+					prochainEnTete = &enTete->next;
+					debut = ptr + 1;
+				}
+			}
+			
+			lseek(f, 0, SEEK_SET);
+			local_scan(f, NULL);
+			
+			for(enTete = header_list; enTete; enTete = suivant)
+			{
+				suivant = enTete->next;
+				free(enTete);
+			}
+			munmap(contenu, infos.st_size);
+			close(f);
+		}
+	}
+	else
+		auSecours();
+}
+
+#endif /* TEST */
