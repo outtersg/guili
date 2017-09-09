@@ -186,7 +186,7 @@ int local_scan(int fd, uschar ** return_text)
 			continue;
 		
 		// Repérage des en-têtes nous intéressant.
-		if(0 == strcmp("X-Spam-Status: Yes\n", (const char *)enTete->text))
+		if(0 == strncmp("X-Spam-Status: Yes\n", (const char *)enTete->text, 19))
 			poubelle = 1;
 		if(0 == strncmp("X-Spam-Score: ", (const char *)enTete->text, 14))
 		{
