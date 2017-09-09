@@ -16,6 +16,13 @@
 static char * g_rejets = NULL;
 static int g_facteurPoireautage = 0; // 1 s de poireautage par tranche de g_facteurPoireautage points-poubelle.
 
+float secondes(float points)
+{
+	if(!g_facteurPoireautage) g_facteurPoireautage = 2000;
+	
+	return points * g_facteurPoireautage / 1000;
+}
+
 optionlist local_scan_options[] = {
 	{ "rejets", opt_stringptr, &g_rejets },
 	{ "tranchePoireautage", opt_fixed, &g_facteurPoireautage }
@@ -30,12 +37,10 @@ int poireauter(float points, uschar ** return_text)
 	int intervalle = 5;
 	int ret;
 	
-	if(!g_facteurPoireautage) g_facteurPoireautage = 2000;
-	
 	// Exim, ne nous interromps pas, s'il-te-plaît.
 	alarm(0);
 
-	for (temps = 0; temps < points * g_facteurPoireautage / 1000; temps += intervalle)
+	for (temps = 0; temps < secondes(points); temps += intervalle)
 	{
 		smtp_printf("451- %s: %d\r\n", "Attendez, je patine dans la choucroute", (int)ceil(points));
 		ret = smtp_fflush();
