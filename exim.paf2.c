@@ -603,7 +603,10 @@ float expr_calculer(Expr * expr, float p)
 
 void auSecours()
 {
-	fprintf(stderr, "# paf2 <fichier RFC 822> …\n# Simule le passage d'un message dans un exim + paf2 (affiche le temps de blocage éventuel).\n");
+	fprintf(stderr, "# paf2 [-f <formule>] <fichier RFC 822> …\n");
+	fprintf(stderr, "# Simule le passage d'un message dans un exim + paf2 (affiche le temps de blocage éventuel).\n");
+	fprintf(stderr, "    -f <formule>\n");
+	fprintf(stderr, "        Formule à appliquer au nombre de points pour obtenir le blocage en secondes.\n");
 	exit(1);
 }
 
@@ -627,6 +630,7 @@ int main(int argc, char ** argv)
 		{
 			if(strcmp(*argv, "-h") == 0) { auSecours(); return(-1); }
 			if(strcmp(*argv, "-v") == 0) { causant = 1; continue; }
+			if(strcmp(*argv, "-f") == 0 && argv[1]) { g_formule = argv[1]; ++argv; continue; }
 			
 			if((f = open(g_cheminCourant = *argv, O_RDONLY)) < 0)
 			{
