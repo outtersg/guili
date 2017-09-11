@@ -178,9 +178,8 @@ int poireauter(float points, uschar ** return_text)
 
 int local_scan(int fd, uschar ** return_text)
 {
-	float p = 6.0f; // Points-poubelle. On initialise à 6 pour les messages qui auraient un Spam mais pas le Score associé.
+	float p = 0.0f;
 	float ici;
-	char poubelle = 0;
 	
 	char bloc[T_BLOC_ENTETES + 2];
 	int n = 0, t = 0;
@@ -197,8 +196,6 @@ int local_scan(int fd, uschar ** return_text)
 			continue;
 		
 		// Repérage des en-têtes nous intéressant.
-		if(0 == strncmp("X-Spam-Status: Yes\n", (const char *)enTete->text, 19))
-			poubelle = 1;
 		if(0 == strncmp("X-Spam-Score: ", (const char *)enTete->text, 14))
 		{
 			ici = atof((char *)&enTete->text[14]);
@@ -218,7 +215,7 @@ int local_scan(int fd, uschar ** return_text)
 		bloc[t++] = '\n';
 	bloc[t++] = '\n';
 	
-	if(poubelle)
+	if(secondes(p) > 0.1)
 	{
 		int r;
 		entreposerMessageAnalyse(bloc, t, fd);
