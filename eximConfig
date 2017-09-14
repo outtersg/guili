@@ -444,6 +444,8 @@ smtp_vers_local:
 
 remote_smtp:
   driver = smtp
+  # https://serverfault.com/a/452706
+  helo_data = ${lc:${if eq{$authenticated_id}{} {$primary_hostname} {mail.${domain:$authenticated_id}}}}
   # DKIM
   dkim_domain = ${lc:${if eq{$authenticated_id}{} {$sender_address_domain} {${domain:$authenticated_id}}}}
   dkim_selector = ${if eq{$authenticated_id}{} {simple} {authentifie}}.0
