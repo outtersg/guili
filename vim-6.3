@@ -32,11 +32,11 @@ demarrage=
 
 v 6.3 || true
 v 6.4 || true
-v 7.0.205 && modifs="corr syntaxephp" || true
+v 7.0.205 && modifs="corr syntaxephp pyth" || true
 v 7.2.160 || true
 v 7.3.353 || true
 v 7.3.1242 || true
-v 7.4.52 && modifs="corr syntaxephp mavericks" || true
+v 7.4.52 && modifs="corr syntaxephp pyth mavericks" || true
 v 7.4.702 || true
 v 7.4.1847 || true
 v 7.4.2296 || true
@@ -46,6 +46,12 @@ v 8.0.1240 && demarrage=".586" || true
 archive=ftp://ftp.vim.org/pub/vim/unix/$logiciel-${version%.*}$demarrage.tar.bz2
 
 dest=$INSTALLS/$logiciel-$version
+
+pyth()
+{
+	command -v python3 > /dev/null 2>&1 && OPTIONS="$OPTIONS --enable-python3interp=dynamic" || true
+	command -v python > /dev/null 2>&1 && OPTIONS="$OPTIONS --enable-pythoninterp=dynamic" || true
+}
 
 corr()
 {
