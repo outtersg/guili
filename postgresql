@@ -29,7 +29,7 @@ logiciel=postgresql
 v 8.0.1 && modifs="detectionPerl detectionReadline" || true
 v 8.0.3 || true
 v 9.1.2 && modifs="bsdAvecPythonThreade detectionPerl detectionReadline" || true
-v 9.2.1 && modifs="detectionPerl detectionReadline" || true
+v 9.2.1 && modifs="detectionPerl detectionReadline" && contribs="$contribs hstore" || true
 v 9.2.9 || true
 v 9.2.18 || true
 v 9.5.3  || true
@@ -90,7 +90,10 @@ chmod a+x share.init.postgresql
 echo Installation… >&2
 sudo make install
 pge $version 9 || sudo cp `obtenir "$jar"` "$dest/lib/postgresql.jar"
-pge $version 9.2 && ( cd contrib/hstore && make && sudo make install ) || true
+for contrib in $contribs
+do
+	( cd contrib/$contrib && make && sudo make install )
+done
 sudo cp share.init.postgresql "$dest/share/init.postgresql"
 
 sutiliser "$logiciel-$version"
