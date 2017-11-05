@@ -120,6 +120,7 @@ serveurFreebsd()
 		# Bizarre, la doc de daemon dit qu'il faut utiliser -P pour tuer le démon plutôt que le fils (sinon le démon redémarre le fils), mais en pratique ce faisant le stop ne trouve pas le pid. Et comme apparemment le démon ne relance pas le fils, partons sur du -p.
 		optionfpiddaemon="-p $fpid"
 	fi
+	executable="`echo "$commande" | awk '{print $1}'`"
 	case "$type" in
 		simple)
 			lanceur="/usr/sbin/daemon"
@@ -128,7 +129,7 @@ serveurFreebsd()
 			parametres="$paramCompte $optionfpiddaemon $commande"
 			;;
 		demon) 
-			lanceur="`echo "$commande" | awk '{print $1}'`"
+			lanceur="$executable"
 			parametres="`echo "$commande" | sed -e 's/^[^ 	]*[ 	]*//'`"
 			;;
 	esac
@@ -144,6 +145,7 @@ rcvar=\`set_rcvar\`
 command=$lanceur
 command_args="$parametres"
 pidfile=$fpid
+procname=$executable
 load_rc_config "\$name"
 : \${${nom}_enable="NO"}
 
