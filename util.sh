@@ -609,14 +609,36 @@ listeIdComptesBsd()
 {
 	( cut -d : -f 3 < /etc/group ; cut -d : -f 3 < /etc/passwd ; cut -d : -f 4 < /etc/passwd ) | sort -n
 }
+
+_analyserParametresCreeCompte()
+{
+	cc_vars="cc_qui cc_id"
+	cc_ou=
+	cc_qui=
+	cc_id=
+	cc_coquille=/coquille/vide
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-s) cc_coquille="$2" ; shift ;;
+			-d) cc_ou="$2" ; shift ;;
+			*)
+				[ -z "$cc_vars" ] && auSecours
+				for i in $cc_vars
+				do
+					export $i="$1"
+					break
+				done
+				cc_vars="`echo "$cc_vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+}
+
 creeCompte()
 {
-	cc_ou=
-	cc_qui=$1
-	cc_id=$2
-	cc_coquille=/coquille/vide
-	[ "x$1" = x-s ] && shift && cc_coquille="$1" && shift || true
-	[ "x$1" = x-d ] && shift && cc_ou="$1" && shift || true
+	_analyserParametresCreeCompte "$@"
 	case `uname` in
 		FreeBSD)
 			if ! grep -q "^$cc_qui:" /etc/passwd
