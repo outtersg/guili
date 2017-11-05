@@ -120,7 +120,7 @@ case `uname` in
 		# Rien. On démarrera à la main.
 		;;
 	FreeBSD|Linux)
-		sudo serveur -u "$compte" simple postgresql$suffixe "$destpostgresql/bin/postmaster -D $bdd"
+		serveur -u "$compte" simple postgresql$suffixe "$destpostgresql/bin/postmaster -D $bdd"
 		;;
 esac
 
