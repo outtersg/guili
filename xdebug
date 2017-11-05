@@ -63,11 +63,15 @@ cd xdebug-$version
 phpize
 ./configure --enable-xdebug
 make
-sudo cp modules/xdebug.so "$monPhp/lib/"
+for f in xdebug.so libxdebug.so.0.0
+do
+	[ -e "modules/$f" ] && break || true
+done
+sudo cp "modules/$f" "$monPhp/lib/"
 ini="`php --ini | grep Loaded | cut -d : -f 2 | sed -e 's/^ *//' -e 's/ *$//'`"
 sufiltrer "$ini" grep -v 'zend_extension=.*xdebug'
 sufiltrer "$ini" sed -e '$a\
-zend_extension="'"$monPhp"'/lib/xdebug.so"
+zend_extension="'"$monPhp"'/lib/'"$f"'"
 '
 
 cd debugclient
