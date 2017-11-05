@@ -28,9 +28,21 @@ logiciel=graphviz
 
 # Historique des versions gérées
 
-v 2.38.0 || true
+v 2.38.0 && modifs=sfFlags || true
 
 # Modifications
+
+sfFlags()
+{
+	# https://svnweb.freebsd.org/ports/head/devel/sfio/Makefile?r1=406084&r2=406083&pathrev=406084
+	if [ `uname` = FreeBSD -a `uname -r | cut -d . -f 1` -ge 11 ]
+	then
+		for i in lib/sfio/*.[ch]
+		do
+			filtrer "$i" sed -e 's|SF_FLAGS|SFIO_FLAGS|g'
+		done
+	fi
+}
 
 # Variables
 
