@@ -113,7 +113,15 @@ analyserParametresServeur()
 serveurFreebsd()
 {
 	[ ! -z "$dest" ] || dest=/usr/local
-	[ ! -z "$desttemp" ] || desttemp="$dest"
+	if [ -z "$desttemp" ]
+	then
+		desttemp=/tmp/temp.$$.serveur.amorce
+		rm -Rf "$desttemp"
+		mkdir "$desttemp"
+		serveur_puisCopier=oui
+	else
+		serveur_puisCopier=non
+	fi
 	if [ -z "$fpid" ]
 	then
 		fpid=$dest/var/run/$nom.pid
@@ -153,15 +161,17 @@ $avant
 run_rc_command "\$1"
 TERMINE
 	chmod u+x "$desttemp/etc/rc.d/$nom"
+	if [ "x$serveur_puisCopier" = xoui ]
+	then
+		sudo sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
+	fi
 	if [ "x$installer" = xoui ]
 	then
 		sudo "$SCRIPTS/rcconfer" ${nom}_enable=YES
 	fi
 	if [ ! -z "$compte" ]
 	then
-		cat >> /etc/sudoers <<FINI
-$compte ALL=(ALL) NOPASSWD:$dest/etc/rc.d/$nom *
-FINI
+		echo "$compte ALL=(ALL) NOPASSWD:$dest/etc/rc.d/$nom *" | sudo sh -c 'cat >> /etc/sudoers'
 	fi
 }
 
