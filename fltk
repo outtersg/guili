@@ -29,18 +29,18 @@ logiciel=fltk
 # Historique des versions gérées
 
 version=r5734
-OPTIONS_CONF=(--enable-debug)
-
-version=1.1.7
-OPTIONS_CONF=()
+#OPTIONS_CONF=(--enable-debug)
+v 1.1.7 || true
+v 1.3.3 || true
 
 # Modifications
 
 # Variables
 
 archive="http://ftp.rz.tu-bs.de/pub/mirror/ftp.easysw.com/ftp/pub/$logiciel/$version/$logiciel-$version-source.tar.bz2"
+archive="http://fltk.org/pub/fltk/$version/fltk-$version-source.tar.gz"
 archive_svn="http://svn.easysw.com/public/fltk/fltk/trunk"
-dest=/usr/local/$logiciel-$version
+dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
 
