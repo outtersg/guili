@@ -171,7 +171,7 @@ TERMINE
 	fi
 	if [ ! -z "$compte" ]
 	then
-		echo "$compte ALL=(ALL) NOPASSWD:$dest/etc/rc.d/$nom *" | sudo sh -c 'cat >> /etc/sudoers'
+		sudoer "$compte" "$dest/etc/rc.d/$nom *"
 	fi
 }
 
@@ -295,8 +295,6 @@ TERMINE
 	fi
 	if [ ! -z "$compte" ]
 	then
-		cat >> /etc/sudoers <<FINI
-$compte ALL=(ALL) NOPASSWD:$dest/etc/init.d/$nom *
-FINI
+		sudoer "$compte" "$dest/etc/init.d/$nom *"
 	fi
 }
