@@ -573,6 +573,12 @@ pgInterne()
 triversions()
 {
 	awk '
+		BEGIN {
+			# Certaines versions d awk veulent que ls soit initialisée en array avant de pouvoir être length()ée.
+			ls[0]; delete ls[0];
+			vs[0]; delete vs[0];
+			tailles[0]; delete tailles[0];
+		}
 		{
 			ls[length(ls)+1] = $0;
 			v = $0;
