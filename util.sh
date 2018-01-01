@@ -615,6 +615,17 @@ listeIdComptesBsd()
 	( cut -d : -f 3 < /etc/group ; cut -d : -f 3 < /etc/passwd ; cut -d : -f 4 < /etc/passwd ) | sort -n
 }
 
+idCompteLibre()
+{
+	listeIdComptesBsd | sort -u > "$TMP/$$/uids"
+	n=1000
+	while grep -q "^$n$" < "$TMP/$$/uids"
+	do
+		n=`expr $n + 1`
+	done
+	echo "$n"
+}
+
 _analyserParametresCreeCompte()
 {
 	cc_vars="cc_qui cc_id"
