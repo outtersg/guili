@@ -632,12 +632,16 @@ _analyserParametresCreeCompte()
 	cc_ou=
 	cc_qui=
 	cc_id=
-	cc_coquille=/coquille/vide
+	cc_groupes=
+	cc_coquille=
+	cc_mdp=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-s) cc_coquille="$2" ; shift ;;
 			-d) cc_ou="$2" ; shift ;;
+			-g) cc_groupes="`echo "$2" | tr ': ' ',,'`" ; shift ;;
+			--mdp) cc_mdp="$2" ; shift ;;
 			*)
 				[ -z "$cc_vars" ] && auSecours
 				for i in $cc_vars
@@ -650,19 +654,36 @@ _analyserParametresCreeCompte()
 		esac
 		shift
 	done
+	
+	[ -z "$cc_groupes" ] && cc_groupes=$cc_qui || true
+	cc_groupe="`echo "$cc_groupes" | cut -d , -f 1`"
+	cc_autres_groupes="`echo "$cc_groupes" | cut -d , -f 2-`"
+}
+
+suseradd()
+{
+	case `uname` in
+		FreeBSD)
+			sudo pw useradd "$@"
+			;;
+		Linux)
+			sudo useradd "$@"
+			;;
+	esac
 }
 
 creeCompte()
 {
 	_analyserParametresCreeCompte "$@"
-	case `uname` in
-		FreeBSD)
-			if ! grep -q "^$cc_qui:" /etc/passwd
-			then
+	
+	# Si le compte existe déjà, on le suppose correctement créé.
+	grep -q "^$cc_qui:" /etc/passwd && return 0 || true
+	
+	# Pas de doublon?
+	
 				if [ -z "$cc_id" ]
 				then
-					cc_id=`listeIdComptesBsd | grep -v ..... | tail -1`
-					cc_id=`expr $cc_id + 1`
+			cc_id=`idCompteLibre`
 				else
 					if listeIdComptesBsd | grep -q "^$cc_id$"
 					then
@@ -670,10 +691,51 @@ creeCompte()
 						exit 1
 					fi
 				fi
-				sudo pw groupadd $cc_qui -g $cc_id
-				sudo pw useradd $cc_qui -u $cc_id -g $cc_id -s $cc_coquille
-				[ -z "$cc_ou" ] || sudo pw usermod $cc_qui -d "$cc_ou"
-			fi
+	
+	# Création éventuelle du groupe principal.
+	# $cc_id a été choisi pour n'être pris ni comme ID de compte, ni comme ID de groupe: on peut donc l'utiliser pour le nouveau groupe.
+	
+	if ! grep -q "^$cc_groupe:" /etc/group
+	then
+		case `uname` in
+			FreeBSD) sudo pw groupadd "$cc_groupe" -g "$cc_id" ;;
+			Linux) sudo groupadd -g "$cc_id" "$cc_groupe" ;;
+		esac
+	fi
+	
+	# Options POSIX de groupe.
+	
+	cc_opts_groupe= ; [ -z "$cc_groupe" ] || cc_opts_groupe="-g $cc_groupe"
+	cc_opts_autres_groupes= ; [ -z "$cc_autres_groupes" ] || cc_opts_autres_groupes="-G $cc_autres_groupes"
+	cc_opts_groupes="$cc_opts_groupe $cc_opts_autres_groupes"
+	
+	# Options POSIX de dossier.
+	
+	cc_opts_ou=
+	[ -z "$cc_ou" -o "x$cc_ou" = x- ] || cc_opts_ou="-d $cc_ou"
+	[ -z "$cc_ou" ] || cc_opts_ou="$cc_opts_ou -m"
+	
+	# Options POSIX de shell.
+	
+	# -s -: par défaut; pas de -s: pas de shell (compte non interactif); -s <autre chose>: le shell indiqué.
+	if [ "x$cc_coquille" != x- ]
+	then
+		[ -z "$cc_coquille" ] && cc_coquille="/coquille/vide" || true
+		cc_opts_coquille="-s $cc_coquille"
+	fi
+	
+	# Création!
+	
+	suseradd $cc_qui -u $cc_id $cc_opts_groupes $cc_opts_ou $cc_opts_coquille
+	
+	# Le mot de passe éventuel.
+	
+	case `uname` in
+		FreeBSD)
+			[ -z "$cc_mdp" ] || echo "$cc_mdp" | sudo pw usermod "$cc_qui" -h 0
+			;;
+		Linux)
+			[ -z "$cc_mdp" ] || echo "$cc_mdp" | sudo passwd --stdin "$cc_qui"
 			;;
 	esac
 }
