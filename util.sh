@@ -740,6 +740,11 @@ creeCompte()
 	esac
 }
 
+compteInteractif()
+{
+	creeCompte -d - -s - "$@"
+}
+
 # Le localhost n'est pas toujours 127.0.0.1 (ex.: jails BSD). Si des programmes ont besoin de coder une IP en dur, mieux vaut passer par là.
 localhost()
 {
