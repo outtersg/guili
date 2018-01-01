@@ -605,6 +605,11 @@ versions()
 
 ### Fonctions utilitaires dans le cadre des modifs. ###
 
+sudoer()
+{
+	echo "$1 ALL=(ALL) NOPASSWD: $2" | sudo sh -c 'cat >> /etc/sudoers'
+}
+
 listeIdComptesBsd()
 {
 	( cut -d : -f 3 < /etc/group ; cut -d : -f 3 < /etc/passwd ; cut -d : -f 4 < /etc/passwd ) | sort -n
