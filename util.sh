@@ -694,6 +694,7 @@ _analyserParametresCreeCompte()
 	
 	[ -z "$cc_groupes" ] && cc_groupes=$cc_qui || true
 	cc_groupe="`echo "$cc_groupes" | cut -d , -f 1`"
+	[ ! -z "$cc_groupe" ] || cc_groupe="$cc_qui"
 	cc_autres_groupes="`echo "$cc_groupes" | cut -d , -f 2-`"
 }
 
