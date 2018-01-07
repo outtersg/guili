@@ -6,6 +6,8 @@
 # - $groupe: son groupe
 # - $installer: si oui, le serveur sera démarré avec la machine (et est lancé dès maintenant).
 
+serveur_sep="`printf '\003'`"
+
 serveur()
 {
 	local nom commande fpid avant compte groupe installer dest desttemp
