@@ -62,6 +62,7 @@ clang()
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://heanet.dl.sourceforge.net/sourceforge/p7zip/p7zip_${version}_src_all.tar.bz2
+archive=https://kent.dl.sourceforge.net/project/p7zip/p7zip/$version/p7zip_${version}_src_all.tar.bz2
 
 [ -d "$dest" ] && exit 0
 
