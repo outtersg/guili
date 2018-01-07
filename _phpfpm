@@ -88,7 +88,7 @@ filtrerConfs()
 			-e "/^user *=/s#=.*#= $compte#" \
 			-e "/^group *=/s#=.*#= $groupe#" \
 			-e "/^listen *=/s#=.*#= 127.0.0.1:$port#" \
-			-e "s#$destphp/etc/php-fpm.d#$dest/etc/php-fpm.d#g"
+			-e "s#$destphp/etc/php-fpm.d#$dest/etc/php-fpm$suffixe.d#g"
 	done
 }
 
@@ -106,24 +106,25 @@ dest=$INSTALLS/$logiciel-$version
 [ -d "$dest" ] && exit 0
 
 echo "Auto-démarrage…" >&2
-case `uname` in
-	FreeBSD)
 		conf="$dest/etc/php-fpm$suffixe.conf"
+pid="$dest/var/run/php-fpm$suffixe.pid"
 		
-		mkdir "$TMP/$$/conf"
-		cp "$destphp/etc/php-fpm.conf" "$TMP/$$/conf/php-fpm$suffixe.conf"
-		[ ! -d "$destphp/etc/php-fpm.d" ] || cp -R "$destphp/etc/php-fpm.d" "$TMP/$$/conf/php-fpm$suffixe.d"
-		filtrerConfs `find "$TMP/$$/conf" -type f`
-		sudo mkdir -p "$dest/etc/"
-		sudo cp -R "$TMP/$$/conf/"* "$dest/etc/"
+mkdir -p "$TMP/$$/dest/etc/rc.d" "$TMP/$$/dest/var/run"
+cp "$destphp/etc/php-fpm.conf" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
+if [ -d "$destphp/etc/php-fpm.d" ]
+then
+	destpointd="$TMP/$$/dest/etc/php-fpm$suffixe.d"
+	cp -R "$destphp/etc/php-fpm.d" "$destpointd"
+	[ -e "$destpointd/www.conf.default" ] && mv "$destpointd/www.conf.default" "$destpointd/www.conf" || true
+fi
+filtrerConfs `find "$TMP/$$/dest/etc" -type f`
 		
-		sudo mkdir -p "$dest/etc/rc.d"
-		sed < "$destphp/etc/init.d.php-fpm" > "$TMP/$$/amorce" \
-			-e "/^php_fpm_CONF *=/s#=.*#=$conf#"
-		chmod a+x "$TMP/$$/amorce"
-		sudo cp "$TMP/$$/amorce" "$dest/etc/rc.d/php-fpm$suffixe"
-		;;
-esac
+sudo mkdir -p "$dest"
+sudo cp -Rp "$TMP/$$/dest/." "$dest/."
+SANSSU=0 sudo chown -R "$compte:" "$dest/var/run"
+
+serveur -d "$dest" -p "$pid" demon php-fpm$suffixe \
+	"$destphp/sbin/php-fpm --fpm-config $conf --pid $pid"
 
 sutiliser "$logiciel-$version"
 
