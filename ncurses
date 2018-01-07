@@ -34,11 +34,21 @@ case `basename "$0"` in
 esac
 OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
 
-v 5.9 && modifs="pointeurs fpic" || true
+v 5.9 && modifs="pointeurs fpic avecPkgconfig" || true
 
 archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
 
 dest=$INSTALLS/$logiciel-$version
+
+avecPkgconfig()
+{
+	# Ne surtout pas ajouter pkgconfig aux prérequis. Sans quoi l'algo pourri du configure de ncurses 5.9 détecte
+	# pkg-config dans $destpkgconfig (/usr/local/pkgconfig-0.29.2) plutôt que dans $INSTALLS (/usr/local), et en
+	# déduit le ../lib/pkgconfig qui est donc celui du dossier de cette version de pkgconfig, et qui en fait
+	# n'existe pas (car tous les .pc sont centralisés dans $INSTALLS/lib/pkgconfig, afin justement d'éviter qu'en
+	# cas de changement de version de pkgconfig on les perde tous).
+	OPTIONS_CONF="$OPTIONS_CONF --enable-pc-files"
+}
 
 pointeurs()
 {
