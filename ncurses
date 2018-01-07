@@ -64,7 +64,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" $OPTIONS_CONF
+./configure --prefix="$dest" --with-shared --without-debug --without-normal $OPTIONS_CONF
 
 echo Compilation… >&2
 make
