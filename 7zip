@@ -38,6 +38,7 @@ modifs="dlopenPourTous sansLdl"
 
 v 15.09 || true
 v 15.14 && modifs="dlopenPourTous sansLdl clang" || true
+v 16.02 || true
 
 # Modifications
 
