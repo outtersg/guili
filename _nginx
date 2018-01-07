@@ -89,6 +89,27 @@ if ! id "$compte" > /dev/null 2>&1 ; then
 fi
 
 echo "Auto-démarrage…" >&2
-serveur -u "$compte" demon nginx -pre "extra_commands=\"reload\" ; umask 007" -p "$destnginx/logs/nginx.pid" "$destnginx/sbin/nginx"
+# Constitution.
+dest0="$TMP/$$/dest"
+for f in nginx.conf mime.types
+do
+	mkdir -p "$dest0/conf/`dirname "$f"`"
+	cp "$destnginx/conf/$f" "$dest0/conf/$f"
+done
+filtrer "$dest0/conf/nginx.conf" awk '/^http/{dedans=1}/^}/&&dedans{dedans=0;print"    include nginx.local.conf;"}/include nginx.local.conf/{next}{print}'
+touch "$dest0/conf/nginx.local.conf"
+mkdir "$dest0/logs"
+# Copie.
+sudo mkdir -p "$dest"
+sudo cp -R "$dest0/." "$dest/."
+# Démarreur.
+# N.B.: il est probable que le -u soit root, du fait de la nécessité d'ouvrir les ports privilégiés. Le passage en compte sous-privilégié sera à faire dans le fichier de conf (le processus maître, piloté par ce -u, sera root; les fils, pilotés par la conf, pourront être autre chose).
+extra=
+case `uname` in
+	FreeBSD) extra="; extra_commands=\"reload\"" ;;
+esac
+serveur -u "$compte" demon nginx -pre "umask 007 $extra" -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/conf/nginx.conf"
+
+sutiliser "`basename "$dest"`"
 
 rm -Rf "$TMP/$$"
