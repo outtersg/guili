@@ -81,10 +81,12 @@ analyserParametres()
 
 filtrerConfs()
 {
+	groupe="`id -g -n $compte`"
 	for i in "$@"
 	do
 		filtrer "$i" sed \
 			-e "/^user *=/s#=.*#= $compte#" \
+			-e "/^group *=/s#=.*#= $groupe#" \
 			-e "/^listen *=/s#=.*#= 127.0.0.1:$port#" \
 			-e "s#$destphp/etc/php-fpm.d#$dest/etc/php-fpm.d#g"
 	done
