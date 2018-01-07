@@ -79,6 +79,7 @@ v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
 v 7.0.8 || true
 v 7.0.15 || true
+v 7.1.13 || true
 v 7.2.1 || true
 
 prerequis
