@@ -95,7 +95,7 @@ analyserParametresServeur()
 					*=*) true ;;
 					*) serveur_var="$serveur_var=`eval 'echo "$'"$serveur_var"'"'`" ;;
 				esac
-				serveur_env="$env $serveur_var"
+				serveur_env="$serveur_env $serveur_var"
 				;;
 			-pre) shift ; avant="$avant$serveur_sep$1" ;;
 			*)
