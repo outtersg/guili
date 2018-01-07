@@ -29,6 +29,7 @@ logiciel=iconv
 # Historique des versions gérées
 
 v 1.14 && modifs="fbsd10" || true
+v 1.15 || true
 
 # Modifications
 
