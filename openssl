@@ -28,28 +28,29 @@ logiciel=openssl
 
 # Historique des versions gérées
 
-v 0.9.8g && modifs="multiarch" || true
+v 0.9.8.7 && modifs="multiarch" || true
 
 version=1.0.0
 
-version=1.0.0a
+v 1.0.0.1 || true
 mac && archis=oui
 modifspostconf="dyld105postconf"
 
-v 1.0.0e && modifs="multiarch perlredir" || true
-v 1.0.1e && modifs="multiarch perlredir sansdoc uniquementPrerequis" || true
-v 1.0.1g || true
-v 1.0.1h || true
-v 1.0.1j || true
-v 1.0.2c || true
-v 1.0.2d || true
-v 1.0.2f || true
+v 1.0.0.5 && modifs="multiarch perlredir" || true
+v 1.0.1.5 && modifs="multiarch perlredir sansdoc uniquementPrerequis" || true
+v 1.0.1.7 || true
+v 1.0.1.8 || true
+v 1.0.1.10 || true
+v 1.0.2.3 || true
+v 1.0.2.4 || true
+v 1.0.2.6 || true
 # Corrige une faille béante au 2016-03-01, mais mon vieux mod_php a l'air d'être lié à /usr/local/lib/libopenssl.so, et ne trouve plus dans cette version ses fonctions SSLv2_…. Il faudrait sans doute le recompiler, mais bon, un 5.2, quand même…
-v 1.0.2g || true
-v 1.0.2h || true
-v 1.0.2k || true
-v 1.1.0c || true
-v 1.1.0d || true
+v 1.0.2.7 || true
+v 1.0.2.8 || true
+v 1.0.2.11 || true
+v 1.1.0.3 || true
+v 1.1.0.4 || true
+v 1.1.0.7 || true
 
 # Modifications
 
@@ -111,9 +112,10 @@ configManuel()
 
 # Variables
 
-archive=http://www.openssl.org/source/$logiciel-$version.tar.gz
+v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{print $1"."$2"."$3""($4?substr(t,$4,1):"")}'`"
+archive=http://www.openssl.org/source/$logiciel-$v_alpha.tar.gz
 # Difficile maintenant de trouver la source sur un serveur HTTP non 'S'.
-archive=http://artfiles.org/openssl.org/source/$logiciel-$version.tar.gz
+archive=http://artfiles.org/openssl.org/source/$logiciel-$v_alpha.tar.gz
 
 destiner
 
