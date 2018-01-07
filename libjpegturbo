@@ -30,6 +30,7 @@ logiciel=libjpegturbo
 
 v 1.4.0 || true
 v 1.5.0 && prerequis="nasm" || true
+v 1.5.3 || true
 
 prerequis
 
