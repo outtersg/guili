@@ -192,7 +192,8 @@ serveurSystemd()
 	esac
     ajoutService="`echo "$ajoutService" | tr \| '\012'`"
 	
-    cat > /etc/systemd/system/${nom}.service <<TERMINE
+	mkdir -p "$desttemp/etc/systemd/system"
+	cat > "$desttemp/etc/systemd/system/${nom}.service" <<TERMINE
 [Unit]
 Description=$nom
 After=network-online.target
@@ -207,6 +208,10 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 TERMINE
+	if [ $serveur_puisCopier = oui ]
+	then
+		SANSSU=0 sudoku cp "$desttemp/etc/systemd/system/${nom}.service" /etc/systemd/system/
+	fi
 	if [ "x$installer" = xoui ]
 	then
 		systemctl start ${nom}.service
