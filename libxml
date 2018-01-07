@@ -39,6 +39,7 @@ version=2.7.7
 
 v 2.9.0 && modifs=pthread290 || true
 v 2.9.2 && modifs= || true
+v 2.9.7 || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/$logiciel/$lv-sources-$version.tar.gz
