@@ -31,6 +31,7 @@ logiciel=tmux
 v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent surMac" || true
 v 1.9a
 v 2.2
+v 2.6 || true # Sait correctement détecter ncursesw.
 
 prerequis
 
