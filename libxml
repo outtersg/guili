@@ -42,6 +42,7 @@ v 2.9.2 && modifs= || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/$logiciel/$lv-sources-$version.tar.gz
+archive=http://xmlsoft.org/sources/libxml2-$version.tar.gz
 
 pthread290()
 {
