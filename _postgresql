@@ -114,7 +114,7 @@ echo "Création de la base…" >&2
 	fi
 	sudo -u $compte chmod -R go-rwx "$bdd"
 # A priori il faut monter les valeurs dans /boot/loader.conf; ex.: kern.ipc.semmni=20 kern.ipc.semmns=120 kern.ipc.semmnu=60 kern.ipc.semmap=60
-sudo -u $compte initdb "$bdd"
+	sudo -u $compte LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "`command -v initdb`" "$bdd"
 
 fi
 
