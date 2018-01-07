@@ -32,7 +32,7 @@ v 1.4.17 || true
 v 1.4.18 || true
 
 dest="$INSTALLS/$logiciel-$version"
-archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
+archive=http://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 
 [ -d "$dest" ] && exit 0
 
