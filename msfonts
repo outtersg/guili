@@ -1,11 +1,19 @@
 #!/bin/sh
 
-dest=/usr/local/share/fonts/
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; absolutiseScripts() { case "$SCRIPTS" in /*) true ;; *) SCRIPTS="$1/$SCRIPTS" ;; esac ; } ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS0="$SCRIPTS" ; SCRIPTS="`readlink "$SCRIPTS"`" ; absolutiseScripts "`dirname "$SCRIPTS0"`" ; done ; } ; absolutiseScripts "`pwd`" ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+. "$SCRIPTS/util.sh"
+
+destsys=/usr/local/share/fonts/
 
 set -e
 
-~/src/installs/cabextract
-PATH=$HOME/local/bin:/usr/local/bin:$PATH
+logiciel=msfonts
+version="0.0.1"
+
+destiner
+
+prerequis="curl cabextract"
+prerequis
 
 cd /tmp/
 rm -Rf msfonts
@@ -25,8 +33,13 @@ find ../paquets \( -name \*.exe -o -name \*.EXE \) -exec cabextract {} \;
 
 echo "========"
 
-sudo mkdir -p "$dest"
+SANSSU=0 sudo mkdir -p "$destsys"
 find . -name \*.ttf -o -name \*.TTF
-find . -name \*.ttf -o -name \*.TTF -exec sudo cp {} "$dest/" \;
+find . -name \*.ttf -o -name \*.TTF -exec sudo cp {} "$destsys/" \;
 
-sudo fc-list
+SANSSU=0 sudo fc-list
+
+sudo mkdir "$dest" # Pour poser notre témoin de bonne installation.
+sutiliser "$logiciel-$version"
+
+rm -Rf "$TMP/$$"
