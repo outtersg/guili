@@ -119,6 +119,8 @@ TERMINE
 
 [ -d "$dest" ] && exit 0
 
+prerequis
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
