@@ -91,7 +91,7 @@ zend_extension="'"$monPhp"'/lib/'"$f"'"
 '
 
 cd debugclient
-./configure --with-libedit --prefix="$dest"
+./configure --prefix="$dest"
 [ -e install.sh ] && chmod a+x install.sh
 [ -e install-sh ] && chmod a+x install-sh
 sudo make install
