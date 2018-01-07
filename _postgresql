@@ -124,7 +124,7 @@ case `uname` in
 		# Rien. On démarrera à la main.
 		;;
 	FreeBSD|Linux)
-		serveur -u "$compte" simple postgresql$suffixe "$destpostgresql/bin/postmaster -D $bdd"
+serveur -u "$compte" simple postgresql$suffixe -e LD_LIBRARY_PATH "$destpostgresql/bin/postmaster -D $bdd"
 		;;
 esac
 
