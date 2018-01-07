@@ -214,8 +214,9 @@ TERMINE
 	fi
 	if [ "x$installer" = xoui ]
 	then
-		systemctl start ${nom}.service
-		systemctl enable ${nom}.service
+		SANSSU=0 sudoku systemctl daemon-reload
+		SANSSU=0 sudoku systemctl start ${nom}.service
+		SANSSU=0 sudoku systemctl enable ${nom}.service
 	fi
 }
 
