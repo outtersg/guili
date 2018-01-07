@@ -29,6 +29,9 @@ logiciel=ruby
 # Historique des versions gérées
 
 v 2.2.3 && modifs="" || true
+v 2.2.8 || true
+v 2.3.6 || true
+v 2.4.3 || true
 
 prerequis
 
