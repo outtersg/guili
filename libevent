@@ -28,7 +28,7 @@ logiciel=libevent
 
 # Historique des versions gérées
 
-v 2.0.21 || true
+v 2.0.21 && prerequis="openssl < 1.1" || true
 v 2.0.22 || true
 
 # Modifications
