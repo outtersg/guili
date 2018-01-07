@@ -22,13 +22,6 @@
 INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
-if [ -z "$SANSSU" ]
-then
-	case `id -u` in
-		0) SANSSU=1 ;;
-		*) SANSSU=0 ;;
-	esac
-fi
 
 mkdir -p "$TMP/$$"
 export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
@@ -278,12 +271,26 @@ suer()
 	return 1
 }
 
-if [ "x$SANSSU" = x1 ] || ! command -v sudo 2> /dev/null >&2
+# Si on n'a pas déjà remplacé sudo (multiples inclusions d'util.sh), faisons-le: on gérera des cas tordus.
+# L'usage principal de notre sudo surchargé est l'installation dans les dossiers privilégiés; 
+# En effet nous utilisons le sudo pour installer dans $INSTALLS, mais parfois ce n'est pas nécessaire de passer su pour cela.
+
+if [ "x`command -v sudoku 2> /dev/null`" != xsudoku ] # On se protège contre une double inclusion…
 then
-	sudo()
-	{
-		(
-			enTantQue=
+	sudo="`command -v sudo 2> /dev/null`" # … ne serait-ce que pour éviter qu'ici notre mémorisation du vrai sudo soit l'alias sudo qu'on déclare juste ci-dessous.
+	# Malheureusement, historiquement, on a un peu abusé du sudo pour nos installs (au lieu d'utiliser le sudoku dédié, qui n'est arrivé qu'après); du coup, pour compatibilité, on doit conserver cette surcharge sudo = sudoku.
+	sudo() { sudoku "$@" ; }
+fi
+
+# sudoku: Super User DO KUrsaal (sudo destiné aux installs dans des emplacements partagés, donc a priori protégés: quand on est dans un kursaal, on respecte le mobilier, n'est-ce pas?)
+sudoku()
+{
+	# On se met dans un sous-shell pour ne pas polluer l'environnement avec notre bazar.
+	
+	(
+		# Analyse des paramètres.
+		
+			enTantQue=root
 			while [ "$#" -gt 0 ]
 			do
 				case "$1" in
@@ -296,15 +303,50 @@ then
 					*) break ;;
 				esac
 			done
-			if [ -z "$enTantQue" -o "$enTantQue" = "`id -n -u`" ]
-			then
-		"$@" # Avec un peu de chance on est en root.
-			else
-				suer - "$enTantQue" "$@"
-			fi
-		)
-	}
-fi
+		
+		# Qu'a-t-on à notre disposition?
+		
+		# sdk_ecris: peut-on écrire dans le dossier cible?
+		touch "$INSTALLS/.sudoku.temoin" 2> /dev/null && rm -f "$INSTALLS/.sudoku.temoin" 2> /dev/null && sdk_ecris=1 || sdk_ecris=0
+		# sdk_vraiment: veut-on *vraiment* passer root?
+		# Du fait de notre malheureuse surcharge de sudo, parfois notre sudoku est appelé pour faire du vrai sudo où on a vraiment besoin de passer root (même si $INSTALLS est inscriptible; par exemple pour ajouter à /usr/local/etc/rc.d un lien symbolique vers un de nos fichiers "à nous"). Pour cette usage, appeler SANSSU=0 sudoku ….
+		[ "x$SANSSU" = x0 ] && sdk_vraiment=1 || sdk_vraiment=0
+		# sdk_sudo: avons-nous un sudo à disposition?
+		command -v sudo > /dev/null 2>&1 && sdk_sudo=1 || sdk_sudo=0
+		# sdk_moi: suis-je root (0) ou autre (1)?
+		[ "`id -u`" -eq 0 ] && sdk_moi=0 || sdk_moi=1
+		# sdk_lui: même chose pour l'appelé.
+		[ "`id -u $enTantQue`" -eq 0 ] && sdk_lui=0 || sdk_lui=1
+		# sdk_diff: lui est-il différent de moi?
+		[ "$sdk_moi$sdk_lui" = 00 -o "`id -u`" -eq "`id -u $enTantQue`" ] && sdk_diff=0 || sdk_diff=1
+		
+		# Exécution!
+		
+		case $sdk_moi$sdk_lui$sdk_diff$sdk_ecris$sdk_vraiment$sdk_sudo in
+			??0???|?0?10?) "$@" ;; # excution directe si: 1. on est déjà le compte cible, ou 2. on est dans le cas spécifique de la tentative d'installation qui peut s'effectuer en tant que nous (on vise root et on arrive à écrire dans la destination et on ne nous a pas vraiment imposé de passer root par SANSSU=0).
+			01????|?????0) suer - "$enTantQue" "$@" ;; # su si: 1. je suis root et qu'on me demande de passer autre chose (on suppose que l'admin ne s'est pas embêter à configurer le sudo pour root, puisqu'il a déjà tous les droits), ou 2. sudo n'est pas installé.
+			?????1) $sudo -u "$enTantQue" "$@" ;; # sudo dans les autres cas (avec sudo de détecté…).
+		esac
+	)
+}
+
+# Mode de test: une fois en tant qu'utilisateur normal, une fois en root:
+# ( . util.sh ; testsudoku )
+testsudoku()
+{
+	set -x
+	for INSTALLS in /tmp /usr/local
+	do
+		for SANSSU in 0 1
+		do
+			for compte in root bas # Là il faudrait un autre aussi.
+			do
+				echo "=== `id -u -n` en tant que $compte vers $INSTALLS (SANSSU=$SANSSU) ==="
+				sudoku -u "$compte" id
+			done
+		done
+	done
+}
 
 utiliser=utiliser
 command -v $utiliser 2> /dev/null >&2 || utiliser="$SCRIPTS/utiliser"
