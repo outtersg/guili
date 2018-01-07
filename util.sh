@@ -291,12 +291,15 @@ sudoku()
 		# Analyse des paramètres.
 		
 			enTantQue=root
+			sudo_env=
 			while [ "$#" -gt 0 ]
 			do
 				case "$1" in
 					*=*)
 						eval "$1"
 						export "`echo "$1" | cut -d = -f 1`"
+						# À FAIRE: utiliser garg si présent.
+						sudo_env="$sudo_env $1"
 						shift
 						;;
 					-u) shift ; enTantQue="$1" ; shift ;;
@@ -325,7 +328,7 @@ sudoku()
 		case $sdk_moi$sdk_lui$sdk_diff$sdk_ecris$sdk_vraiment$sdk_sudo in
 			??0???|?0?10?) "$@" ;; # excution directe si: 1. on est déjà le compte cible, ou 2. on est dans le cas spécifique de la tentative d'installation qui peut s'effectuer en tant que nous (on vise root et on arrive à écrire dans la destination et on ne nous a pas vraiment imposé de passer root par SANSSU=0).
 			01????|?????0) suer - "$enTantQue" "$@" ;; # su si: 1. je suis root et qu'on me demande de passer autre chose (on suppose que l'admin ne s'est pas embêter à configurer le sudo pour root, puisqu'il a déjà tous les droits), ou 2. sudo n'est pas installé.
-			?????1) $sudo -u "$enTantQue" "$@" ;; # sudo dans les autres cas (avec sudo de détecté…).
+			?????1) $sudo -u "$enTantQue" $sudo_env "$@" ;; # sudo dans les autres cas (avec sudo de détecté…).
 		esac
 	)
 }
