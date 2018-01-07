@@ -38,6 +38,7 @@ prerequis
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://cznic.dl.sourceforge.net/project/flex/flex-$version.tar.bz2"
+archive="https://github.com/westes/flex/releases/download/v$version/flex-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
