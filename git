@@ -27,17 +27,31 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=git
 
-v 1.7.0.6
+v 1.7.0.6 && prerequis="perl gettext expat iconv" || true
 v 1.7.5.4
-v 1.7.10.4 && modifs=autoconfer && v_expat=">= 0" || true
-v 1.8.3.2 && modifs=sansConfigurer && v_expat= || true
-v 2.9.0 && modifs="sansConfigurer sansMoinsR" && prerequis="gettext expat" || true
-v 2.12.0 && modifs="sansConfigurer sansMoinsR" && prerequis="gettext expat" || true
-v 2.12.2 && modifs="sansConfigurer sansMoinsR" && prerequis="gettext expat" || true
-
-[ -z "$v_expat" ] || include expat "$v_expat"
+v 1.7.10.4 && modifs=autoconfer || true
+v 1.8.3.2 && modifs=sansConfigurer || true
+v 2.9.0 && modifs="lierIconv sansConfigurer sansMoinsR perler" || true
+v 2.12.0 || true
+v 2.12.2 || true
+v 2.15.1 || true
 
 # Modifications
+
+perler()
+{
+	# Perl codé en dur.
+	perler_perl="$INSTALLS/bin/perl"
+	grep -rl /usr/bin/perl . | while read f
+	do
+		filtrer "$f" sed -e "s#/usr/bin/perl#$perler_perl#"
+	done
+}
+
+lierIconv()
+{
+	LDFLAGS="$LDFLAGS -liconv"
+}
 
 sansMoinsR()
 {
@@ -59,7 +73,7 @@ sansConfigurer()
 {
 	sansConfigure=1
 	# L'invocation du make install doit être strictement la même que celle du make, sans quoi il détecte un changement d'environnement et retente toute la compil' (en root). Or comme on passe par sudo pour le make install, et que celui-ci dézingue l'environnement, on doit s'assurer que les variables passées au make traversent aussi le sudo make install. Le plus simple est de les ajouter aux paramètres des deux.
-	garg -a paramsMake prefix="$dest" OPENSSLDIR="$INSTALLS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CPPFLAGS"
+	garg -a paramsMake prefix="$dest" OPENSSLDIR="$INSTALLS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CPPFLAGS" CFLAGS="$CFLAGS"
 }
 
 # Variables
