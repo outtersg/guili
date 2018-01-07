@@ -28,7 +28,7 @@ logiciel=openssl
 
 # Historique des versions gérées
 
-v 0.9.8.7 && modifs="multiarch" || true
+v 0.9.8.7 && prerequis="perl >= 5" && modifs="multiarch" || true
 
 version=1.0.0
 
