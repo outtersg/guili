@@ -850,7 +850,15 @@ meilleurCompilo()
 	# - classer les compilos disponibles par date de publication. Pour ce faire, établir une correspondance version -> date (la date donnée par certains compilos est celle de leur compilation, pas de leur publication initiale).
 	# - pouvoir privilégier un compilo en lui ajoutant virtuellement un certain nombre d'années d'avance sur les autres.
 	# - pouvoir spécifier un --systeme pour se cantonner au compilo livré avec le système (par exemple pour compiler une extension noyau, ou avoir accès aux saloperies de spécificités de Frameworks sous Mac OS X).
+	if command -v clang 2> /dev/null >&2 && command -v clang++ 2> /dev/null >&2
+	then
 	export CC=clang CXX=clang++
+	elif command -v gcc 2> /dev/null >&2 && command -v g++ 2> /dev/null >&2
+	then
+		export CC=gcc CXX=g++
+	else
+		export CC=cc CXX=c++
+	fi
 	case `uname` in
 		Darwin)
 			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
