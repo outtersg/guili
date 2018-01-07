@@ -56,7 +56,7 @@ lierIconv()
 sansMoinsR()
 {
 	case `uname` in
-		FreeBSD)
+		FreeBSD|Linux)
 			NO_R_TO_GCC_LINKER=1
 			#CC_LD_DYNPATH=-L
 			export NO_R_TO_GCC_LINKER #CC_LD_DYNPATH
