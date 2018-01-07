@@ -119,6 +119,8 @@ archive=http://artfiles.org/openssl.org/source/$logiciel-$v_alpha.tar.gz
 
 destiner
 
+prerequis
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
