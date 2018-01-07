@@ -30,13 +30,13 @@ logiciel=vim
 # Désormais les 8.0.tar.bz2 ne sont plus des 8.0.0, mais des 8.0.x embarquant les x premiers patches.
 demarrage=
 
-v 6.3 || true
+v 6.3 && prerequis="ncurses" && modifs="ncursesw" || true
 v 6.4 || true
-v 7.0.205 && modifs="corr syntaxephp pyth" || true
+v 7.0.205 && modifs="ncursesw corr syntaxephp pyth" || true
 v 7.2.160 || true
 v 7.3.353 || true
 v 7.3.1242 || true
-v 7.4.52 && modifs="corr syntaxephp pyth mavericks" || true
+v 7.4.52 && modifs="ncursesw corr syntaxephp pyth mavericks" || true
 v 7.4.702 || true
 v 7.4.1847 || true
 v 7.4.2296 || true
@@ -46,6 +46,13 @@ v 8.0.1240 && demarrage=".586" || true
 archive=http://ftp.vim.org/pub/vim/unix/$logiciel-${version%.*}$demarrage.tar.bz2
 
 dest=$INSTALLS/$logiciel-$version
+
+# Modifications.
+
+ncursesw()
+{
+	filtrer src/auto/configure sed -e '/tlibs/s/ncurses /ncursesw ncurses /g'
+}
 
 pyth()
 {
