@@ -97,7 +97,7 @@ analyserParametresServeur()
 				esac
 				serveur_env="$env $serveur_var"
 				;;
-			-pre) shift ; avant="$1" ;;
+			-pre) shift ; avant="$avant$serveur_sep$1" ;;
 			*)
 				[ -z "$vars" ] && auSecours
 				for i in $vars
@@ -172,7 +172,7 @@ procname=$executable
 load_rc_config "\$name"
 : \${${nom}_enable="NO"}
 
-$avant
+`echo "$avant" | tr "$serveur_sep" '\012'`
 run_rc_command "\$1"
 TERMINE
 	chmod u+x "$desttemp/etc/rc.d/$nom"
@@ -193,7 +193,6 @@ TERMINE
 serveurSystemd()
 {
     ajoutService=
-	[ -z "$avant" ] || ajoutService="ExecStartPre=$avant"
 
 	case "$type" in
 		simple)
@@ -218,6 +217,7 @@ After=network-online.target
 [Service]
 User=$compte
 Group=$groupe
+`IFS="$serveur_sep" ; for ligne in $avant ; do [ -z "$ligne" ] || echo "ExecStartPre=$ligne" ; done`
 ExecStart=$commande
 $ajoutService
 Restart=on-failure
@@ -295,7 +295,7 @@ tue()
 name=$nom
 pidfile=$fpid
 
-$avant
+`echo "$avant" | tr "$serveur_sep" '\012'`
 case "\$1" in
 	start) lance ;;
 	stop) tue ;;
