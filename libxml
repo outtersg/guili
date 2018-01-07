@@ -45,6 +45,12 @@ dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/$logiciel/$lv-sources-$version.tar.gz
 archive=http://xmlsoft.org/sources/libxml2-$version.tar.gz
 
+forcagePython()
+{
+	# Si Python est détecté par exemple dans /bin, le ocnfigure va tout faire pour s'y greffer, même si ce n'est pas le Python avec lequel viennent les include et autres éléments de développement (ex.: un OS qui a un Python binaire dans un dossier système et un "de dév" dans /usr/local). On doit donc le forcer à utiliser notre version de dév.
+	OPTIONS_CONF="$OPTIONS_CONF --with-python=$destpython"
+}
+
 pthread290()
 {
 	# http://git.gnome.org/browse/libxml2/commit/?id=3f6cfbd1d38d0634a2ddcb9a0a13e1b5a2195a5e
@@ -74,6 +80,11 @@ TERMINE
 }
 
 [ -d "$dest" ] && exit 0
+
+# Si python est installé, le configure va chercher à créer la biblio pour. Soit on ajoute un --without-python, soit on s'assure qu'il soit complet (avec ses en-têtes), donc le plus simple pour ça c'est d'inclure python.
+command -v python > /dev/null 2>&1 && prerequis="$prerequis python" && modifs="$modifs forcagePython" || true
+
+prerequis
 
 obtenirEtAllerDans "$archive"
 
