@@ -359,17 +359,20 @@ sutiliser()
 	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
 	sudo touch "$dest/.complet"
 	
-	logicielParam="`echo "$1" | sed -e 's/-[0-9].*//'`"
-	derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$1-.*/$1/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
+	sut_lv="$1"
+	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
+	
+	logicielParam="`echo "$sut_lv" | sed -e 's/-[0-9].*//'`"
+	derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$sut_lv-.*/$sut_lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
 	if [ ! -z "$derniere" ]
 	then
-		if [ "$1" != "$derniere" ]
+		if [ "$sut_lv" != "$derniere" ]
 		then
-			echo "# Attention, $1 ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $1" >&2
+			echo "# Attention, $sut_lv ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $sut_lv" >&2
 			return 0
 		fi
 	fi
-	sudo $utiliser -r "$INSTALLS" "$@"
+	sudo $utiliser "$INSTALLS/$sut_lv"
 }
 
 if [ ! -z "$SANSU" ]
