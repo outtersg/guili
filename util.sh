@@ -353,6 +353,9 @@ command -v $utiliser 2> /dev/null >&2 || utiliser="$SCRIPTS/utiliser"
 
 sutiliser()
 {
+	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
+	sudo touch "$dest/.complet"
+	
 	logicielParam="`echo "$1" | sed -e 's/-[0-9].*//'`"
 	derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$1-.*/$1/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
 	if [ ! -z "$derniere" ]
@@ -554,7 +557,7 @@ destiner()
 	else
 	dest="$install_dest"
 	fi
-	[ -d "$dest" ] && exit 0 || true
+	[ -e "$dest/.complet" ] && exit 0 || true
 }
 
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
