@@ -377,13 +377,15 @@ avec()
 
 inclure()
 {
-	truc=`cd "$SCRIPTS" && ls -d "$1-"[0-9]* "$1" 2> /dev/null | tail -1`
+	inclure_logiciel="`echo "$1" | cut -d + -f 1`"
+	inclure_options="`echo "$1" | sed -e 's/^[^+]*//' -e 's/[+]/ +/g'`"
+	truc=`cd "$SCRIPTS" && ls -d "$inclure_logiciel-"[0-9]* "$inclure_logiciel" 2> /dev/null | tail -1`
 	if [ -z "$truc" ] ; then
-		echo '# Aucune instruction pour installer '"$1" >&2
+		echo '# Aucune instruction pour installer '"$inclure_logiciel" >&2
 		return 1
 	fi
 	shift
-	"$SCRIPTS/$truc" "$@"
+	"$SCRIPTS/$truc" $inclure_options "$@"
 	return $?
 }
 
@@ -412,8 +414,8 @@ reglagesCompilPrerequis()
 		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" && versionInclus="$versionRequis" || true
 	done
 	PREINCLUS="$1:$versionInclus $PREINCLUS"
-	eval "dest`echo "$1" | tr - _`=$dossierRequis"
-	export "version_`echo "$1" | tr - _`=$versionRequis"
+	eval "dest`echo "$1" | tr +- __`=$dossierRequis"
+	export "version_`echo "$1" | tr +- __`=$versionRequis"
 	preChemine "$dossierRequis"
 	PATH="$dossierRequis/bin:$PATH" # Pour les machins qui ont besoin de lancer des exécutables (xml2-config etc.) de leurs prérequis.
 	LD_LIBRARY_PATH="$dossierRequis/lib:$LD_LIBRARY_PATH" # Python et compagnie.
@@ -483,11 +485,13 @@ fi
 
 analyserParametresInstall()
 {
+	argOptions=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			--src) shift ; install_obtenu="$1" ;;
 			--dest) shift ; install_dest="$1" ;;
+			+[a-z]*) argOptions="$argOptions$1" ;;
 		esac
 		shift
 	done
@@ -498,8 +502,16 @@ install_moi="$SCRIPTS/`basename "$0"`"
 
 destiner()
 {
-	dest="$INSTALLS/$logiciel-$version"
-	[ -z "$install_dest" ] || dest="$install_dest"
+	if [ -z "$install_dest" ]
+	then
+		dest="`versions -v "$version" "$logiciel$argOptions" | tail -1`"
+		if [ -z "$dest" ]
+		then
+			dest="$INSTALLS/$logiciel$argOptions-$version"
+		fi
+	else
+	dest="$install_dest"
+	fi
 	[ -d "$dest" ] && exit 0 || true
 }
 
@@ -572,6 +584,7 @@ pgInterne()
 
 triversions()
 {
+	# De deux logiciels en même version, on prend le chemin le plus long: c'est celui qui embarque le plus de modules optionnels.
 	awk '
 		BEGIN {
 			# Certaines versions d awk veulent que ls soit initialisée en array avant de pouvoir être length()ée.
@@ -597,16 +610,34 @@ triversions()
 				split(v, decoupe, ".");
 				for(nv = 0; ++nv <= length(tailles);)
 					c = c sprintf("%0"tailles[nv]"d", nv > length(decoupe) ? 0 : decoupe[nv]);
-				print c" "ls[nl]
+				print c" "sprintf("%04d", length(ls[nl]))" "ls[nl]
 			}
 		}
-	' | sort | cut -d ' ' -f 2-
+	' | sort | cut -d ' ' -f 3-
 }
 
 # Renvoie les versions pour un logiciel donnée, triées par version croissante.
 versions()
 {
-	find "$INSTALLS" -maxdepth 1 -name "$1-*" | triversions
+	versions_expr_version='[0-9.]+'
+	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
+	versions_logiciel="`echo "$1" | cut -d + -f 1`"
+	versions_expr="/$versions_logiciel`options "$1" | sed -e 's#[+]#([+][^+]*)*[+]#g'`([+][^+]*)*-$versions_expr_version$"
+	find "$INSTALLS" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \) | egrep "$versions_expr" | triversions
+}
+
+# Renvoie les options dans l'ordre de référence (alphabétique).
+options()
+{
+	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort | sed -e 's/^/+/' | tr '\012' ' ' | sed -e 's/ $//'
+}
+
+option()
+{
+	case "$argOptions+" in
+		*+$1+*) return 0
+	esac
+	return 1
 }
 
 ### Fonctions utilitaires dans le cadre des modifs. ###
