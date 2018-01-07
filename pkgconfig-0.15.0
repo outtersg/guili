@@ -56,7 +56,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-internal-glib
+./configure --prefix="$dest" --with-internal-glib --with-pc-path="$INSTALLS/lib/pkgconfig:/usr/lib/pkgconfig"
 
 echo Correction… >&2
 # La modif suivante était nécessaire pour que certains paquets daignent cesser de surcharger mon PATH; malheureusement elle m'empêche aussi d'utiliser (proprement) mon PATH pour surcharger /usr/local.
