@@ -26,16 +26,9 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=xdebug
 
-# Historique des versions gérées
-
-v 2.1.0 && modifs="quelphp" || true
-v 2.2.1 || true
-v 2.2.5 || true
-v 2.4.1 || true
+# Travail préalable: notre PHP donne des contraintes de version.
 
 params="$*"
-
-# Modifications
 
 quelphp()
 {
@@ -46,12 +39,34 @@ quelphp()
 	esac
 }
 
+quelphp
+argOptions="+php_`php-config --version | tr . _`"
+
+case `php-config --version | cut -d . -f 1-2` in
+	5.4) argVersion="$argVersion < 2.5" ;;
+	5.5) argVersion="$argVersion < 2.6" ;;
+	7.0) argVersion="$argVersion >= 2.4" ;;
+	7.1) argVersion="$argVersion >= 2.5" ;;
+	7.*) argVersion="$argVersion >= 2.6" ;;
+esac
+
+# Historique des versions gérées
+
+v 2.1.0 && prerequis="autoconf" || true
+v 2.2.1 || true
+v 2.2.5 || true
+v 2.4.1 || true
+v 2.5.5 || true
+
+# Modifications
+
 # Variables
 
 archive="http://www.xdebug.org/files/xdebug-$version.tgz"
-dest=$INSTALLS/$logiciel-$version
 
-#[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -59,6 +74,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 monPhp="`php-config --prefix`"
+
 cd xdebug-$version
 phpize
 ./configure --enable-xdebug
