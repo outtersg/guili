@@ -5,7 +5,7 @@ prefixe=/usr/local
 [ -z "$PREFIXE_UTILISER" ] || prefixe="$PREFIXE_UTILISER"
 [ "x$1" = "x-r" ] && shift && prefixe="$1" && shift
 
-if [ \( "x$1" = x \) -o ! -d "$prefixe/$1" ]
+if [ \( "x$1" = x \) -o ! \( -d "$prefixe/$1" -o -d "$1" \) ]
 then
 	echo '# Utiliser'
 	echo '# Crée des liens de /usr/local/<x> vers /usr/local/<biblio>/<x>'
@@ -94,4 +94,11 @@ utiliser()
 	done
 }
 
-allerUtiliser "$1"
+for lv in "$@"
+do
+	case "$lv" in
+		*/*) prefixeIci="`dirname "$lv"`" ; lv="`basename "$lv"`" ;;
+		*) prefixeIci="$prefixe" ;;
+	esac
+	prefixe=$prefixeIci allerUtiliser "$lv"
+done
