@@ -38,7 +38,7 @@ racine()
 statn()
 {
 	case `uname` in
-		FreeBSD) stat "$@" ;;
+		FreeBSD) stat -f "%N" "$@" ;;
 		*) stat --format="%N" "$@" ;;
 	esac
 }
