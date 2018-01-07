@@ -43,7 +43,8 @@ v 7.4.2296 || true
 v 8.0.311 && demarrage=".069" || true
 v 8.0.1240 && demarrage=".586" || true
 
-archive=http://ftp.vim.org/pub/vim/unix/$logiciel-${version%.*}$demarrage.tar.bz2
+v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
+archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
 
 dest=$INSTALLS/$logiciel-$version
 
@@ -62,9 +63,9 @@ pyth()
 
 corr()
 {
-	n="${version##*.}"
-	ou="${archive%/*}"
-	ou="${ou/unix/patches}"
+	n="`echo "$version" | sed -e 's/.*\.//'`"
+	ou="`echo "$archive" | sed -e 's#/[^/]*$##'`"
+	ou="$ou/unix/patches"
 	mem="$INSTALL_MEM/$logiciel-$version$demarrage.corr.tar.gz"
 	if [ -z "$demarrage" ]
 	then
@@ -83,16 +84,16 @@ corr()
 		while [ $i -gt $demarrage ]
 		do
 			iFormate="`printf "%$formateur" "$i"`"
-			mv "`obtenir "$ou/${version%.*}/${version%.*}.$iFormate"`" ./
+			mv "`obtenir "$ou/$v_maj/$v_maj.$iFormate"`" ./
 			i=`expr $i - 1`
 		done
-		tar czf "$mem" "${version%.*}".*
+		tar czf "$mem" "$v_maj".*
 	fi
 	
 	while [ $i -lt $n ]
 	do
 		i=`expr $i + 1`
-		patch -f -p0 < "${version%.*}.`printf "%$formateur" $i`" || true # Un peu de rustines indigestes Windows.
+		patch -f -p0 < "$v_maj.`printf "%$formateur" $i`" || true # Un peu de rustines indigestes Windows.
 	done
 }
 
