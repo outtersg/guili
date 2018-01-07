@@ -37,6 +37,7 @@ v 2.1.2 && modifs="" && prerequis="lcms" || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://cznic.dl.sourceforge.net/project/openjpeg.mirror/$version/openjpeg-$version.tar.gz"
+archive="https://github.com/uclouvain/openjpeg/archive/v$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
