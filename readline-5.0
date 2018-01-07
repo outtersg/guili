@@ -49,7 +49,7 @@ darwin89aussi()
 rustine=${version##*.}
 version=${version%.*}
 
-archive="ftp://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
+archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
