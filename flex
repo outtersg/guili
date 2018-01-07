@@ -29,6 +29,7 @@ logiciel=flex
 # Historique des versions gérées
 
 v 2.5.39 && modifs="" || true
+v 2.6.4 || true
 
 prerequis
 
