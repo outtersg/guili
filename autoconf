@@ -37,6 +37,7 @@ version=2.69
 dest="$INSTALLS/$logiciel-$version"
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
+archive=http://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
