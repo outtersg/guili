@@ -107,12 +107,6 @@ analyserParametresServeur()
 	
 	[ -z "$compte" ] || groupe="`id -g -n "$compte"`"
 	
-	[ ! -z "$desttemp" ] || desttemp="$dest"
-}
-
-serveurFreebsd()
-{
-	[ ! -z "$dest" ] || dest=/usr/local
 	if [ -z "$desttemp" ]
 	then
 		desttemp=/tmp/temp.$$.serveur.amorce
@@ -122,6 +116,11 @@ serveurFreebsd()
 	else
 		serveur_puisCopier=non
 	fi
+}
+
+serveurFreebsd()
+{
+	[ ! -z "$dest" ] || dest=/usr/local
 	if [ -z "$fpid" ]
 	then
 		fpid=$dest/var/run/$nom.pid
