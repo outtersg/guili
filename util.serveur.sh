@@ -217,7 +217,7 @@ After=network-online.target
 [Service]
 User=$compte
 Group=$groupe
-`IFS="$serveur_sep" ; for ligne in $avant ; do [ -z "$ligne" ] || echo "ExecStartPre=$ligne" ; done`
+`IFS="$serveur_sep" ; for ligne in $avant ; do [ -z "$ligne" ] || echo "ExecStartPre=$ligne" ; done | sed -e 's/ExecStartPre=umask  */UMask=0/'`
 ExecStart=$commande
 $ajoutService
 Restart=on-failure
