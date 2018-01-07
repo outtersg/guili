@@ -29,7 +29,7 @@ logiciel=cargo
 # Historique des versions gérées
 
 v 0.10.0 && prerequis="python < 3 rust cmake git" && modifs="" || true
-v 0.16.0 && prerequisautres="httpparser curl iconv-gnu" && prerequis="python < 3 rust cmake git openssl < 1.1 libssh libgit $prerequisautres" && modifs="sansDepConditionnelle fauxGmake depsOpenssl" && inclusionsForcees="libc miniz-sys" || true
+v 0.16.0 && prerequisautres="httpparser curl iconv" && prerequis="python < 3 rust cmake git openssl < 1.1 libssh libgit $prerequisautres" && modifs="sansDepConditionnelle fauxGmake depsOpenssl" && inclusionsForcees="libc miniz-sys" || true
 v 0.18.0 || true
 v 0.19.0 || true
 
