@@ -31,8 +31,8 @@ logiciel=phantomjs
 v 1.9.2 && prerequis="freetype fontconfig libpng libjpeg icu openssl < 1.1" && modifs="miens compatibleJpegMien asiatiques noproxy debogageEtProxy freetype2 lz" || true
 v 1.9.7 || true
 v 1.9.8 || true
-v 2.0.0 && prerequis="$prerequis bison ruby" && modifs="miensSqlite compatibleJpegMien debogageEtProxy" && qb="/qtbase" || true
-v 2.0.0 && prerequis="$prerequis bison ruby harfbuzz" && modifs="miensSqlite compatibleJpegMien debogageEtProxy qmakeO3 qtclang" && qb="/qtbase" || true
+v 2.0.0 && prerequis="$prerequis flex bison ruby" && modifs="miensSqlite compatibleJpegMien debogageEtProxy" && qb="/qtbase" || true
+v 2.0.0 && prerequis="$prerequis harfbuzz" && modifs="miensSqlite compatibleJpegMien debogageEtProxy qmakeO3 qtclang" && qb="/qtbase" || true
 v 2.1.1 && prerequis="$prerequis gperf" && modifs="dyn viaGit miens pipe2 statfs procinfo icuSansDl compatibleJpegMien debogageEtProxy lz qmakeO3 qtclang qpa" || true
 
 echo "NOTE: en 1.9.8, sur certains systèmes, PhantomJS a du mal à comprendre qu'il doit compiler les modules qu'il embarque. Il faudra donc peut-être que vous le fassiez à la main, à savoir: remplacer le obtenirEtAller suivi des modifs par un bash, de là faire en manuel un make, constater que ça plante, aller dans le répertoire WebKit/qt, faire un make, aller dans qt/gui, faire un make, et revenir faire le make principal. N'était-ce pas à cause du manque de bison et ruby?" >&2
