@@ -28,7 +28,7 @@ logiciel=tmux
 
 # Historique des versions gérées
 
-v 1.8 && prerequis="libevent" && modifs="bonneLibevent surMac" || true
+v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent surMac" || true
 v 1.9a
 v 2.2
 
