@@ -34,7 +34,7 @@ auSecoursServeur()
 {
 	cat >&2 <<TERMINE
 # serveur: installe un serveur / service / démon
-# Utilisation: serveur [-n] [-d0 <desttemp>] [-d <dest>] [-u <compte>] [-p <fichier pid>] [-pre <précommande>] <type> <nom> <commande>
+# Utilisation: serveur [-n] [-d0 <desttemp>] [-d <dest>] [-u <compte>] [-p <fichier pid>] [-e <env>]* [-pre <précommande>] <type> <nom> <commande>
   -n
     Ne pas activer au démarrage de la machine.
   -d0 <desttemp>
@@ -48,6 +48,9 @@ auSecoursServeur()
   -p <fichier pid>
     À indiquer si le processus inscrit son PID dans un fichier déterminé. Sinon
     serveur() lui en attribuera un.
+  -e <env>
+    Configure l'environnement du serveur. Sous la forme VAR (pour prendre la
+    valeur actuelle de \$VAR) ou VAR=VAL.
   -pre <précommande>
     Commandes à lancer avant l'invocation du démarreur (ex.: définition
     d'environnement, création dynamique du fichier de config).
@@ -73,6 +76,7 @@ analyserParametresServeur()
 	installer=oui
 	desttemp= # Destination temporaire.
 	dest= # Destination définitive.
+	serveur_env= # À FAIRE: utiliser garg si disponible.
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
@@ -81,6 +85,16 @@ analyserParametresServeur()
 			-n) installer=non ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; fpid="$1" ;;
+			*=*) serveur_env="$serveur_env $1" ;;
+			-e)
+				shift
+				serveur_var="$1"
+				case "$serveur_var" in
+					*=*) true ;;
+					*) serveur_var="$serveur_var=`eval 'echo "$'"$serveur_var"'"'`" ;;
+				esac
+				serveur_env="$env $serveur_var"
+				;;
 			-pre) shift ; avant="$1" ;;
 			*)
 				[ -z "$vars" ] && auSecours
