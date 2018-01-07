@@ -43,6 +43,7 @@ dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/$logiciel-$version.tar.bz2"
 archive="http://skylink.dl.sourceforge.net/project/pcre/pcre/$version/pcre-$version.tar.bz2"
 archive="http://ftp.exim.org/pub/pcre/pcre-$version.tar.bz2"
+archive="https://ftp.pcre.org/pub/pcre/pcre-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
 
