@@ -24,20 +24,13 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
-inclure libjpeg
-inclure libpng
-inclure readline
-inclure curl
-inclure zlib
-inclure iconv-gnu # Depuis Mavericks, même sur Mac OS X, il nous faut recompiler iconv (donc GNU). Dommage, on perd la conversion utf8-mac. On aura uconv pour ça (ICU).
-
 logiciel=php
 
 OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="mysql libxml openssl < 1.1" && ajouterModif readlineNcurses || true
+v 4.4.7 && prerequis="libjpeg libpng readline curl zlib iconv-gnu mysql libxml openssl < 1.1" && ajouterModif readlineNcurses || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -65,13 +58,13 @@ v 5.2.8
 v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
-v 5.2.17 && prerequis="mysql < 5.5.20 libxml < 2.8 icu openssl < 1.1" || true
-v 5.3.13 && retirerModif libpng14 && prerequis="mysql libxml icu openssl < 1.1" || true
+v 5.2.17 && prerequis="libjpeg libpng readline curl zlib iconv-gnu mysql < 5.5.20 libxml < 2.8 icu openssl < 1.1" || true
+v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng readline curl zlib iconv-gnu mysql libxml icu openssl < 1.1" || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
-v 5.4.11 && prerequis="libxml icu >= 50 libjpegturbo openssl < 1.1" || true # mysql < 5.6
+v 5.4.11 && prerequis="libjpeg libpng readline curl zlib iconv-gnu libxml icu >= 50 libjpegturbo openssl < 1.1" || true # mysql < 5.6
 v 5.4.33 || true
 v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfault.
 v 5.4.39 || true
@@ -81,7 +74,7 @@ v 5.5.8 || true
 v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
-v 5.6.10 && prerequis="libxml icu >= 50 libjpegturbo openssl < 1.1" || true
+v 5.6.10 && prerequis="libjpeg libpng readline curl zlib iconv-gnu libxml icu >= 50 libjpegturbo openssl < 1.1" || true
 v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
 v 7.0.8 || true
