@@ -1,0 +1,112 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+. "$SCRIPTS/util.sh"
+
+logiciel=_tomcat
+
+# Historique des versions gérées
+
+prerequis="tomcat"
+
+auSecours()
+{
+	moi="`basename "$0"`"
+	cat >&2 <<TERMINE
+# Utilisation: $moi [-u <compte>]
+TERMINE
+	exit 1
+}
+
+analyserParametres()
+{
+	vars="bdd compte"
+	suffixe=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-s) shift ; suffixe="$1" ;;
+			-u) shift ; compte="$1" ;;
+			*)
+				[ -z "$vars" ] && auSecours
+				for i in $vars
+				do
+					eval $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+
+	if [ -z "$compte" ]
+	then
+		comptesEnvisages="`id -u -n`"
+		for compte in $comptesEnvisages personne
+		do
+			id "$compte" 2> /dev/null >&2 && break
+		done
+		if [ "$compte" = personne ]
+		then
+			echo "# Impossible de trouver un des comptes sous lequel tourner ($comptesEnvisages). Forcez un compte en le précisant en second paramètre (il sera créé si nécessaire)." >&2
+			exit 1
+		fi
+	fi
+}
+
+analyserParametres "$@"
+
+prerequis
+
+# Modifications
+
+# Variables
+
+dest="$INSTALLS/$logiciel$suffixe"
+
+if ! id "$compte" > /dev/null 2>&1
+then
+	echo "Création de l'utilisateur…" >&2
+	creeCompte $compte
+fi
+
+echo "Auto-démarrage…" >&2
+# Constitution de l'arbo.
+rm -Rf dest
+mkdir dest
+mkdir dest/logs dest/temp dest/webapps
+cp -R "$desttomcat/conf" dest/conf
+# Copie à l'emplacement définitif.
+if ! sudo -u $compte mkdir -p "$dest"
+then
+	echo "(alors on retente en root)" >&2
+	SANSSU=0 sudo mkdir -p "$dest"
+	SANSSU=0 sudo chown -R $compte: "$dest"
+fi
+( cd dest && tar cf - . ) | ( cd "$dest" && sudo -u $compte tar xf - )
+# Démarreur!
+serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" "$desttomcat/bin/startup.sh"
+
+rm -Rf "$TMP/$$"
