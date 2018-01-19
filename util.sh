@@ -549,7 +549,12 @@ analyserParametresInstall()
 }
 
 analyserParametresInstall "$@"
+case "$0" in
+	-*) true ;;
+	*)
 install_moi="$SCRIPTS/`basename "$0"`"
+		;;
+esac
 
 destiner()
 {
