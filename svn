@@ -28,7 +28,7 @@ inclure apr
 inclure apr-util
 inclure gettext
 
-logiciel=subversion
+logiciel=svn
 
 v 1.2.3 && prerequis="neon db" || true
 v 1.4.6 && modifs="lssl" || true
@@ -72,7 +72,7 @@ destdir()
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
-archive="http://subversion.tigris.org/tarballs/$logiciel-$version.tar.bz2"
+archive="http://subversion.tigris.org/tarballs/subversion-$version.tar.bz2"
 pge $version 1.6.9 && archive="http://mirrors.ircam.fr/pub/apache/subversion/subversion-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
