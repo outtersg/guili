@@ -64,8 +64,7 @@ pyth()
 corr()
 {
 	n="`echo "$version" | sed -e 's/.*\.//'`"
-	ou="`echo "$archive" | sed -e 's#/[^/]*$##'`"
-	ou="$ou/unix/patches"
+	ou="`echo "$archive" | sed -e 's#/unix/[^/]*$#/patches#'`"
 	mem="$INSTALL_MEM/$logiciel-$version$demarrage.corr.tar.gz"
 	if [ -z "$demarrage" ]
 	then
