@@ -31,6 +31,7 @@ logiciel=scons
 v 0.96.1 && prerequis="python < 3" || true
 v 2.3.4 || true
 v 2.5.1 || true
+v 3.0.1 || true
 
 # Modifications
 
