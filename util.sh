@@ -586,6 +586,15 @@ uniquementPrerequis()
 	export LDFLAGS="`echo " $LDFLAGS " | sed -e 's/ /  /g' -e "s# -L$INSTALLS/lib # #g"`"
 }
 
+exclusivementPrerequis()
+{
+	uniquementPrerequis
+	export PATH="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`"
+	export LD_LIBRARY_PATH="`echo "$LD_LIBRARY_PATH" | tr : '\012' | egrep -v "^$INSTALLS/lib(64)?$" | tr '\012' ':' | sed -e 's/:$//'`"
+	export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+	export CMAKE_LIBRARY_PATH=
+}
+
 # Les programmes qui veulent se lier à libjpeg, libjpeg < 9, ou libjpegturbo, peuvent utiliser cette variable, toujours définie, et surchargeable par l'appelant "du dessus".
 [ ! -z "$prerequis_libjpeg" ] || prerequis_libjpeg="libjpeg"
 export prerequis_libjpeg
