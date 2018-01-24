@@ -91,11 +91,8 @@ fi
 echo "Auto-démarrage…" >&2
 # Constitution.
 dest0="$TMP/$$/dest"
-for f in nginx.conf mime.types
-do
-	mkdir -p "$dest0/conf/`dirname "$f"`"
-	cp "$destnginx/conf/$f" "$dest0/conf/$f"
-done
+mkdir -p "$dest0/conf"
+cp -R "$destnginx/conf/." "$dest0/conf/."
 filtrer "$dest0/conf/nginx.conf" awk '/^http/{dedans=1}/^}/&&dedans{dedans=0;print"    include nginx.local.conf;"}/include nginx.local.conf/{next}{print}'
 touch "$dest0/conf/nginx.local.conf"
 mkdir "$dest0/logs"
