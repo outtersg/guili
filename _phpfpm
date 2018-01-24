@@ -123,7 +123,7 @@ sudo mkdir -p "$dest"
 sudo cp -Rp "$TMP/$$/dest/." "$dest/."
 SANSSU=0 sudo chown -R "$compte:" "$dest/var/run"
 
-serveur -d "$dest" -p "$pid" demon php-fpm$suffixe \
+serveur -d "$dest" -p "$pid" -e LD_LIBRARY_PATH demon php-fpm$suffixe \
 	"$destphp/sbin/php-fpm --fpm-config $conf --pid $pid"
 
 sutiliser "$logiciel-$version"
