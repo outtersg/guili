@@ -29,6 +29,7 @@ logiciel=tomcat
 # Historique des versions gérées
 
 v 8.5.24 || true
+v 8.5.27 || true
 
 # Modifications
 
