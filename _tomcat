@@ -94,18 +94,12 @@ fi
 
 echo "Auto-démarrage…" >&2
 # Constitution de l'arbo.
-rm -Rf dest
-mkdir dest
-mkdir dest/logs dest/temp dest/webapps
-cp -R "$desttomcat/conf" dest/conf
-# Copie à l'emplacement définitif.
-if ! sudo -u $compte mkdir -p "$dest"
-then
-	echo "(alors on retente en root)" >&2
-	SANSSU=0 sudo mkdir -p "$dest"
-	SANSSU=0 sudo chown -R $compte: "$dest"
-fi
-( cd dest && tar cf - . ) | ( cd "$dest" && sudo -u $compte tar xf - )
+dest0="$TMP/$$/dest"
+rm -Rf "$dest0"
+mkdir "$dest0"
+mkdir "$dest0/logs" "$dest0/temp" "$dest0/webapps"
+cp -R "$desttomcat/conf" "$dest0/conf"
+sinstaller -u "$compte" "$dest0" "$dest"
 # Démarreur!
 serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" "$desttomcat/bin/startup.sh"
 
