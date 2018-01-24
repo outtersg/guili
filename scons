@@ -39,6 +39,7 @@ v 2.5.1 || true
 dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-src-$version.tar.gz
 archive="http://cznic.dl.sourceforge.net/project/scons/scons/$version/scons-$version.tar.gz"
+archive="https://netix.dl.sourceforge.net/project/scons/scons/$version/scons-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
