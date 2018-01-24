@@ -35,6 +35,7 @@ v 2.9.0 && modifs="lierIconv sansConfigurer sansMoinsR perler" || true
 v 2.12.0 || true
 v 2.12.2 || true
 v 2.15.1 || true
+v 2.16.0 || true
 
 # Modifications
 
