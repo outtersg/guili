@@ -101,6 +101,7 @@ mkdir "$dest0/logs" "$dest0/temp" "$dest0/webapps"
 cp -R "$desttomcat/conf" "$dest0/conf"
 sinstaller -u "$compte" "$dest0" "$dest"
 # Démarreur!
-serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" "$desttomcat/bin/startup.sh"
+# http://www.fourproc.com/2012/04/20/force-tomcat-to-use-ipv4-on-server-with-both-ipv6-and-ipv4-configured.html
+serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" CATALINA_OPTS="-Djava.net.preferIPv4Stack=true" "$desttomcat/bin/startup.sh"
 
 rm -Rf "$TMP/$$"
