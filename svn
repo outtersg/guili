@@ -42,6 +42,7 @@ v 1.8.15 || true
 v 1.9.1 && modifs="moiDAbord" || true
 v 1.9.4 || true
 v 1.9.5 || true
+v 1.9.7 || true
 
 prerequis
 
