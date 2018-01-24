@@ -44,6 +44,7 @@ prerequis
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://mir2.ovh.net/ftp.apache.org/dist/apr/$logiciel-$version.tar.gz"
+archive="http://mirrors.ircam.fr/pub/apache/apr/apr-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
