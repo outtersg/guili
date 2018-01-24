@@ -37,6 +37,7 @@ v 1.4.5
 v 1.4.6
 v 1.5.1 && prerequis= || true
 v 1.5.2 || true
+v 1.6.3 || true
 
 prerequis
 
