@@ -49,6 +49,7 @@ modifs="incdir fbsdopenssl"
 v 2.7.2 && modifs="incdirbourrin fbsdopenssl" || true
 v 2.7.9 && modifs="incdirbourrin" || true
 v 2.7.11 && modifs="incdirbourrin nouveaumac" || true
+v 2.7.14 || true
 v 3.4.3 && modifs="incdirbourrin" && prerequis="gettext" || true
 
 # Modifications
