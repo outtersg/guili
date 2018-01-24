@@ -29,6 +29,7 @@ logiciel=redis
 # Historique des versions gérées
 
 v 4.0.0 && prerequis="" && modifs="afLocal" || true
+v 4.0.7 || true
 
 # Modifications
 
