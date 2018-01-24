@@ -381,6 +381,34 @@ then
 	sutiliser() { true ; }
 fi
 
+# sinstaller [-u <compte>] <dossier> <dest>
+sinstaller()
+{
+	sinst_compte=
+	[ "x$1" = x-u ] && shift && sinst_compte="$1" && shift || true
+	sinst_source="$1"
+	sinst_dest="$2"
+	# Si aucun utilisateur n'est mentionné, on prend le compte courant par défaut, ou root si le courant n'a pas les droits d'écriture.
+	if [ -z "$sinst_compte" ]
+	then
+		sinst_grandpere="`dirname "$sinst_dest"`"
+		sinst_sonde="$sinst_grandpere/.sinstaller.sonde"
+		if mkdir -p "$sinst_grandpere" 2> /dev/null && touch "$sinst_sonde" 2> /dev/null
+		then
+			sinst_compte="`id -u -n`"
+		else
+			sinst_compte=root
+		fi
+	fi
+	
+	if ! sudoku -u "$sinst_compte" mkdir -p "$sinst_dest" 2> /dev/null
+	then
+		SANSSU=0 sudo mkdir -p "$sinst_dest"
+		SANSSU=0 sudo chown -R "$sinst_compte:" "$sinst_dest"
+	fi
+	( cd "$sinst_source" && tar cf - . ) | ( cd "$sinst_dest" && sudoku -u "$sinst_compte" tar xf - )
+}
+
 filtrer()
 {
 	fichier="$1"
