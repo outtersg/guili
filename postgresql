@@ -72,6 +72,8 @@ pge $version 9 || jar=http://jdbc.postgresql.org/download/postgresql-8.0-310.jdb
 
 [ -d "$dest" ] && exit 0
 
+prerequis
+
 obtenirEtAllerDansVersion
 
 echo Corrections… >&2
