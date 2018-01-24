@@ -28,7 +28,7 @@ logiciel=tmux
 
 # Historique des versions gérées
 
-v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent surMac" || true
+v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent bonneNcurses surMac" || true
 v 1.9a
 v 2.2
 v 2.6 || true # Sait correctement détecter ncursesw.
@@ -43,6 +43,11 @@ bonneLibevent()
 	# On repère une libevent explicitement 2.0, et on ajoute son lib en tête de LDFLAGS, pour qu'elle soit prise en priorité sur la pourrie de DCS.
 	LDFLAGS="-L$INSTALLS/`ls -l $INSTALLS/lib/libevent-2.0.so | sed -e 's#.*/\(libevent-[0-9.]*/\)#\1#' -e 's#/.*##'`/lib $LDFLAGS"
 	export LDFLAGS
+}
+
+bonneNcurses()
+{
+	export CPPFLAGS="-I$destncurses/ncursesw $CPPFLAGS"
 }
 
 surMac()
