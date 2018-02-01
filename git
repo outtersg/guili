@@ -27,7 +27,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=git
 
-v 1.7.0.6 && prerequis="perl gettext expat iconv" || true
+v 1.7.0.6 && prerequis="perl gettext expat iconv curl" || true
 v 1.7.5.4
 v 1.7.10.4 && modifs=autoconfer || true
 v 1.8.3.2 && modifs=sansConfigurer || true
