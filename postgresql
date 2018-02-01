@@ -110,4 +110,4 @@ sudo cp share.init.postgresql "$dest/share/init.postgresql"
 
 sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+rm -Rf "$TMP/$$" "`pwd`"
