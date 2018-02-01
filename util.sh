@@ -561,8 +561,7 @@ reglagesCompilPrerequis()
 	dossierRequis=
 	for peutEtreDossierRequis in `versions "$1"`
 	do
-		basename "$peutEtreDossierRequis" | grep -q "^$1-[0-9][0-9.a-z]*$" || continue
-		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#$INSTALLS/$1-##"`"
+		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#.*-##"`"
 		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" && versionInclus="$versionRequis" || true
 	done
 	PREINCLUS="$1:$versionInclus $PREINCLUS"
