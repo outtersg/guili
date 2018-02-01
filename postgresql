@@ -74,6 +74,12 @@ pge $version 9 || jar=http://jdbc.postgresql.org/download/postgresql-8.0-310.jdb
 
 destiner
 
+# Si on détecte perl, on laissera le configure le détecter, mais uniquement dans notre version prérequise.
+if command -v perl > /dev/null 2>&1
+then
+	prerequis="$prerequis perl"
+fi
+
 prerequis
 
 obtenirEtAllerDansVersion
