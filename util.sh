@@ -964,6 +964,36 @@ compteInteractif()
 	creeCompte -d - -s - "$@"
 }
 
+## Pare-feu ##
+
+# Troue l'éventuel pare-feu.
+feu()
+{
+	if [ -f /etc/firewalld/zones/public.xml ]
+	then
+		feuFirewalld "$@"
+	fi
+}
+
+feuFirewalld()
+{
+	for feu_port in "$@"
+	do
+		# On essaie de trouver un service qui ouvre ce port. Si plusieurs services disponibles, on prend le plus petit (celui qui ouvre juste le port en question plutôt que le fourre-tout).
+		feu_service="`grep -rl "port=\"$feu_port\"" /usr/lib/firewalld/services | while read l ; do du -b "$l" ; done | sort -n | head -1 | while read f ; do basename "$f" .xml ; done`"
+		if [ -z "$feu_service" ]
+		then
+			firewall-cmd -q --zone=public --permanent --add-port=$feu_port/tcp
+		else
+			firewall-cmd -q --zone=public --permanent --add-service=$feu_service
+		fi
+		true || filtrer /etc/firewalld/zones/public.xml sed -e "/<service name=\"$feu_service\"/d" -e "/<\/zone>/i\
+  <service name=\"$feu_service\"/>
+"
+	done
+	systemctl restart firewalld
+}
+
 # Le localhost n'est pas toujours 127.0.0.1 (ex.: jails BSD). Si des programmes ont besoin de coder une IP en dur, mieux vaut passer par là.
 localhost()
 {
