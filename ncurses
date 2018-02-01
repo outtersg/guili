@@ -34,7 +34,7 @@ case `basename "$0"` in
 esac
 OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
 
-v 5.9 && modifs="pointeurs fpic avecPkgconfig" || true
+v 5.9 && prerequis="pkgconfig" && modifs="pointeurs fpic avecPkgconfig" || true
 
 archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
 
@@ -42,12 +42,26 @@ dest=$INSTALLS/$logiciel-$version
 
 avecPkgconfig()
 {
-	# Ne surtout pas ajouter pkgconfig aux prérequis. Sans quoi l'algo pourri du configure de ncurses 5.9 détecte
-	# pkg-config dans $destpkgconfig (/usr/local/pkgconfig-0.29.2) plutôt que dans $INSTALLS (/usr/local), et en
-	# déduit le ../lib/pkgconfig qui est donc celui du dossier de cette version de pkgconfig, et qui en fait
-	# n'existe pas (car tous les .pc sont centralisés dans $INSTALLS/lib/pkgconfig, afin justement d'éviter qu'en
-	# cas de changement de version de pkgconfig on les perde tous).
-	OPTIONS_CONF="$OPTIONS_CONF --enable-pc-files"
+	# tmux (pour ne citer que lui) teste via pkg-config ncurses puis ncursesw; sans pkg-config il n'essaie de trouver, à la mimine, que ncurses. Du coup installons le .pc, qui rendra plus simple le configure de nombre de logiciels.
+	# Cependant l'algo pourri du configure de ncurses 5.9 essaie d'installer le .pc dans ../lib/pkgconfig par rapport à l'exécutable pkg-configk, ce qui contrevient à notre organisation (chaque logiciel s'installe avec ses fichiers dans son arbo propre $INSTALLS/paquet-version, et des liens symboliques sont ensuite tirés de l'arbo générale $INSTALLS).
+	# En effet si on le laisse faire, il va nous placer ses .pc à des endroits périlleux:
+	# - si $prerequis inclut pkgconfig, le PATH trouvera $INSTALLS/pkgconfig-version/bin/pkg-config, et donc le .pc sera installé dans $INSTALLS/pkgconfig-version/lib/pkgconfig, répertoire qui disparaîtra si on change de version de pkgconfig.
+	# - si on bidouille pour le faire pointer sur $INSTALLS/bin/pkg-config (ex.: prerequis dans un sous-shell pour ne pas toucher notre $PATH, et $PATH modifié manuellement pour inclure $INSTALLS/bin), c'est un peu mieux (il ira taper dans $INSTALLS/lib/pkgconfig), mais le $INSTALLS/lib/pkgconfig/ncursesw.pc sera non pas un lien symbolique vers un .pc installé avec notre ncurses, mais le fichier final de la dernière version installée de ncurses. Résultat, si on veut basculer vers une version plus ancienne, on n'a plus son .pc.
+	# Donc il nous faut corriger ce configure pourri.
+	filtrer configure awk \
+		'
+			{ print; }
+			heredoc { if($0 == heredoc) heredoc = ""; next; }
+			/<</ { heredoc = $0; sub(/.*<<[ \\]*/, "", heredoc); sub(/ .*/, "", heredoc); }
+			/^ *if / { ++niveau; }
+			/^ *fi/ { --niveau; }
+			/enable_pc_files=/ && !ou { ou = 1; }
+			ou == 1 && !niveau {
+				ou = 2;
+				destpc = "'"$dest/lib/pkgconfig"'";
+				print "enable_pc_files=yes ; PKG_CONFIG_LIBDIR="destpc" ; echo \"$as_me:"NR": *** forçage fichiers .pc dans "destpc" ***\" >&5 ; echo \"forçage fichiers .pc: OUI MON GARS, dans "destpc"\" >&6";
+			}
+		'
 }
 
 pointeurs()
@@ -57,6 +71,8 @@ pointeurs()
 }
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
