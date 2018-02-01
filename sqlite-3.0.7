@@ -30,8 +30,9 @@ logiciel=sqlite
 v 3.0.7 || true
 v 3.6.4 || true
 v 3.6.23.1 && modifs=foutuTclPourLePointH || true
-v 3.7.17 && modifs= || true
-v 3.14.1 && modifs= || true
+v 3.7.17 && v_annee=2013 && modifs= || true
+v 3.14.1 && v_annee=2016 || true
+v 3.22.0 && v_annee=2018 || true
 
 # Modifications
 
@@ -50,7 +51,7 @@ archive="http://www.sqlite.org/$logiciel-$version.tar.gz"
 version_="`echo "$version" | tr . _`"
 pge "$version" 3.6.24 && archive="http://www.sqlite.org/sqlite-amalgamation-$version_.zip"
 version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
-pge $version 3.7 && archive="http://www.sqlite.org/`date +%Y`/sqlite-autoconf-$version0.tar.gz"
+pge $version 3.7 && archive="http://www.sqlite.org/$v_annee/sqlite-autoconf-$version0.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
