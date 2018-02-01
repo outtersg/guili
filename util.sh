@@ -591,8 +591,19 @@ exclusivementPrerequis()
 	uniquementPrerequis
 	export PATH="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`"
 	export LD_LIBRARY_PATH="`echo "$LD_LIBRARY_PATH" | tr : '\012' | egrep -v "^$INSTALLS/lib(64)?$" | tr '\012' ':' | sed -e 's/:$//'`"
+	export PKG_CONFIG_PATH="`echo "$PKG_CONFIG_PATH" | tr : '\012' | egrep -v "^$INSTALLS/lib/pkgconfig$" | tr '\012' ':' | sed -e 's/:$//'`"
 	export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 	export CMAKE_LIBRARY_PATH=
+	# On se protège aussi contre les inclusions que nos éventuels prérequis voudront nous faire ajouter. Si nous passons par le contraignant exclusivementPrerequis ça n'est pas pour laisser nos sous-paquets décider.
+	exp_pkgconfig="`command -v pkg-config 2>&1`"
+	if [ ! -z "$exp_pkgconfig" -a "$exp_pkgconfig" != "$TMP/$$/pkg-config" ]
+	then
+		cat > "$TMP/$$/pkg-config" <<TERMINE
+#!/bin/sh
+$exp_pkgconfig "\$@" | sed -E -e 's/ /  /g' -e 's/^/ /' -e 's/$/ /' -e 's# -L$INSTALLS/(bin|sbin|lib|lib64) ##g'
+TERMINE
+		chmod a+x "$TMP/$$/pkg-config"
+	fi
 }
 
 # Les programmes qui veulent se lier à libjpeg, libjpeg < 9, ou libjpegturbo, peuvent utiliser cette variable, toujours définie, et surchargeable par l'appelant "du dessus".
