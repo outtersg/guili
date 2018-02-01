@@ -30,7 +30,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="libjpeg libpng ncurses readline curl zlib iconv mysql libxml openssl < 1.1" && ajouterModif readlineNcurses || true
+v 4.4.7 && prerequis="libjpeg libpng ncurses readline curl+ossl10 zlib iconv mysql libxml openssl < 1.1" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -58,13 +58,13 @@ v 5.2.8
 v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
-v 5.2.17 && prerequis="libjpeg libpng ncurses readline curl zlib iconv mysql < 5.5.20 libxml < 2.8 icu openssl < 1.1" || true
-v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng readline curl zlib iconv mysql libxml icu openssl < 1.1" || true
+v 5.2.17 && prerequis="libjpeg libpng ncurses readline curl+ossl10 zlib iconv mysql < 5.5.20 libxml < 2.8 icu openssl < 1.1" || true
+v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng readline curl+ossl10 zlib iconv mysql libxml icu openssl < 1.1" || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
-v 5.4.11 && prerequis="libjpeg libpng ncurses readline curl zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1" || true # mysql < 5.6
+v 5.4.11 && prerequis="libjpeg libpng ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1" || true # mysql < 5.6
 v 5.4.33 || true
 v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfault.
 v 5.4.39 || true
@@ -74,13 +74,20 @@ v 5.5.8 || true
 v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
-v 5.6.10 && prerequis="libjpeg libpng ncurses readline curl zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1" || true
+v 5.6.10 && prerequis="libjpeg libpng ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1" || true
 v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 || true
-v 7.2.1 || true
+#v 7.2.1 || true
+
+# Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
+if psql --version 2> /dev/null | grep -q PostgreSQL
+then
+	OPTIONS_CONF="$OPTIONS_CONF --with-pgsql --with-pdo-pgsql"
+	prerequis="$prerequis postgresql+ossl10"
+fi
 
 prerequis
 
@@ -241,18 +248,13 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 versionApache=
 `apxs -q SBINDIR`/`apxs -q TARGET` -v | grep version | grep -q 'Apache/2' && versionApache=2
-psql --version 2> /dev/null | grep -q PostgreSQL && OPTIONS_CONF="$OPTIONS_CONF --with-pgsql --with-pdo-pgsql"
 [ -z "$versionApache" ] || OPTIONS_CONF="$OPTIONS_CONF --with-apxs$versionApache"
 OPTIONS_CONF="$OPTIONS_CONF --enable-fpm"
 [ -z "$v_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
 pge $version 5.6 && OPTIONS_CONF="$OPTIONS_CONF --enable-phpdbg" || true
-for i in "$INSTALLS" /usr ""
-do
-	stat "$i/lib/libz."* > /dev/null 2>&1 && OPTIONS_CONF="$OPTIONS_CONF --with-zlib-dir=$i" && break
-done
 # gettext: pour Horde
 # ssl: pour Horde IMP
-./configure --prefix="$dest" --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets $OPTIONS_CONF #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
+./configure --prefix="$dest" --with-zlib --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --with-mysql --with-pdo-mysql --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets $OPTIONS_CONF #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
 
 fi
 
