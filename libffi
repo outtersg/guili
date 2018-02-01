@@ -42,7 +42,7 @@ putainDeLib64()
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
-archive="ftp://sourceware.org/pub/libffi/libffi-$version.tar.gz"
+archive="http://sourceware.org/pub/libffi/libffi-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
