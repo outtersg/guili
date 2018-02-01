@@ -66,11 +66,10 @@ pathZic()
 	filtrer src/timezone/Makefile sed -e "/ZIC *:*=/s#=#=PATH=\"$PATH\" LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\" #"
 }
 
-dest="$INSTALLS/$logiciel-$version"
 archive=http://ftp.postgresql.org/pub/source/v$version/postgresql-$version.tar.bz2
 pge $version 9 || jar=http://jdbc.postgresql.org/download/postgresql-8.0-310.jdbc3.jar
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
