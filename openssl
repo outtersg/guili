@@ -141,4 +141,4 @@ for modif in true $modifs ; do $modif ; done
 
 sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+rm -Rf "$TMP/$$" "`pwd`"
