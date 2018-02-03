@@ -31,6 +31,7 @@ logiciel=libexecinfo
 v 1.1 && modifs="seulementBsd charetoile" || true
 
 archive="ftp://ftp.tw.freebsd.org/pub/FreeBSD/FreeBSD/distfiles/libexecinfo-$version.tar.bz2"
+archive="http://distcache.eu.freebsd.org/local-distfiles/itetcu/libexecinfo-$version.tar.bz2"
 
 dest=$INSTALLS/$logiciel-$version
 
