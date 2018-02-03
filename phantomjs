@@ -350,7 +350,8 @@ then
 else
 echo y | ./build.sh $OPTIONS_CONF --qt-config "$CPPFLAGS $CFLAGS $LDFLAGS" # Lorsque $INSTALLS vaut /usr/local, build.sh (et son qmake) arrive à détecter les OpenSSL et autres qui y évoluent. Par contre si on a tout compilé en local local ($HOME/local), le --qt-config est nécessaire. On lui passe tout en vrac, lui fera le ménage pour trier les -L, -I, etc.
 fi
-make
+# On tente de construire plusieurs fois: si la première construction pète (généralement faute de mémoire sur les AllInOne), peut-être l'occurrence suivante ordonnera-t-elle ses fichiers suffisamment différemment (du genre dans un make -j4) pour que le machin qui ne passait pas ait sa chance et soit cette fois compilé, permettant d'avancer.
+make || make || make || make || make
 
 echo Installation… >&2
 sudo mkdir -p "$dest/bin"
