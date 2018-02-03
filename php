@@ -77,7 +77,7 @@ v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
 v 5.6.10 && prerequis="libjpeg libpng ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1" || true
 v 5.6.25 || true
-v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure || true
+v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 || true
@@ -93,6 +93,12 @@ fi
 prerequis
 
 # Modifs
+
+isfinite()
+{
+	# gcc (4.9 recompilé sur de vieilles RedHat en tout cas) définit isfinite, mais sous conditions (C++99) que ne respecte pas forcément la compil PHP. Du coup mieux vaut reposer sur l'implémentation PHP passe-partout.
+	filtrer configure sed -e '/#define HAVE_DECL_ISFINITE \$/s/\$.*/0/'
+}
 
 doubleEgalEnShDansLeConfigure()
 {
