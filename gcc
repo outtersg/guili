@@ -87,6 +87,7 @@ logarithme()
 
 lambdaObjC()
 {
+	rm -f gcc/testsuite/obj-c++.dg/lambda-0.mm gcc/testsuite/obj-c++.dg/lambda-1.mm
 	# https://github.com/gcc-mirror/gcc/commit/96d7f12983e561307f222a6d75627a3d7298ab35.diff
 	# On retire de ce diff la partie ChangeLog, qui plante (s'applique à une version Git différente de la jolie archive).
 	patch -p1 < "$SCRIPTS/gcc.lambdaobjc.diff"
