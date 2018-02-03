@@ -39,6 +39,7 @@ archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
 py2()
 {
 	# NodeJS repose sur gyp, un outil de génération de Makefiles qui ne sera pas porté sous Python3 (et requiert spécifiquement des paquets Python 2, donc 2to3 ne marche pas).
+	prerequerir openssl # Ah oui, et puis il utilise hashlib pour des sha1, or l'implémentation par défaut de Python repose sur OpenSSL pour ce besoin.
 	prerequerir python "< 3"
 	# À FAIRE: pouvoir reposer sur un python2 livré système, plutôt que de le recompiler. Problème: on ne peut simplement partir sur un remplacement de "env python" par "env python2" dans le configure, car d'autres scripts jouent sur ce env python et j'ai la flemme d'aller tous les chercher. Donc la solution est de faire en sorte qu'"env python" nous renvoie toujours un python2, autrement dit d'avoir python2 en tant que python dans le PATH. Et donc le prérequis c'est que python2 et python3 soient livrés séparément, histoire de pouvoir inclure dans le PATH le premier et pas le second. prerequerir nous le garantit, alors qu'un système vierge… Ben on ne sait pas, ça dépend. Donc on privilégie la sécurité au détriment de la légèreté, pour le moment.
 }
