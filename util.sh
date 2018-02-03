@@ -32,7 +32,7 @@ export CMAKE_LIBRARY_PATH="$INSTALLS"
 CPPFLAGS="-I$INSTALLS/include $CPPFLAGS"
 #CFLAGS="-I$INSTALLS/include $CFLAGS"
 #CXXFLAGS="-I$INSTALLS/include $CXXFLAGS"
-LDFLAGS="-L$INSTALLS/lib $LDFLAGS"
+LDFLAGS="-L$INSTALLS/lib64 -L$INSTALLS/lib $LDFLAGS"
 PKG_CONFIG_PATH="$INSTALLS/lib/pkgconfig"
 CFLAGS="-O3 $CFLAGS" # Trop de logiciels (PHP\xe2\x80\xa6) se compilent par d\xc3\xa9faut sans optimisation. C'est ballot.
 CXXFLAGS="-O3 $CXXFLAGS"
@@ -552,7 +552,7 @@ preCFlag()
 preChemine()
 {
 	preCFlag "-I$1/include"
-	LDFLAGS="-L$1/lib $LDFLAGS"
+	LDFLAGS="-L$1/lib64 -L$1/lib $LDFLAGS"
 	export LDFLAGS
 }
 
@@ -569,7 +569,7 @@ reglagesCompilPrerequis()
 	export "version_`echo "$1" | tr +- __`=$versionRequis"
 	preChemine "$dossierRequis"
 	PATH="$dossierRequis/bin:$PATH" # Pour les machins qui ont besoin de lancer des exécutables (xml2-config etc.) de leurs prérequis.
-	LD_LIBRARY_PATH="$dossierRequis/lib:$LD_LIBRARY_PATH" # Python et compagnie.
+	LD_LIBRARY_PATH="$dossierRequis/lib64:$dossierRequis/lib:$LD_LIBRARY_PATH" # Python et compagnie.
 	PKG_CONFIG_PATH="$dossierRequis/lib/pkgconfig:$PKG_CONFIG_PATH"
 	if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 	ACLOCAL="`echo "$ACLOCAL" | sed -e "s#aclocal#aclocal -I $dossierRequis/share/aclocal #"`"
@@ -586,7 +586,7 @@ reglagesCompilPrerequis()
 uniquementPrerequis()
 {
 	export CPPFLAGS="`echo " $CPPFLAGS " | sed -e 's/ /  /g' -e "s# -I$INSTALLS/include # #g"`"
-	export LDFLAGS="`echo " $LDFLAGS " | sed -e 's/ /  /g' -e "s# -L$INSTALLS/lib # #g"`"
+	export LDFLAGS="`echo " $LDFLAGS " | sed -E -e 's/ /  /g' -e "s# -L$INSTALLS/lib(64)? # #g"`"
 }
 
 exclusivementPrerequis()
