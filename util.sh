@@ -768,28 +768,30 @@ triversions()
 	awk '
 		BEGIN {
 			# Certaines versions d awk veulent que ls soit initialisée en array avant de pouvoir être length()ée.
-			ls[0]; delete ls[0];
-			vs[0]; delete vs[0];
-			tailles[0]; delete tailles[0];
+			nls = 0;
+			nvs = 0;
+			ntailles = 0;
 		}
 		{
-			ls[length(ls)+1] = $0;
+			ls[++nls] = $0;
 			v = $0;
 			sub(/^([^0-9][^-]*-)+/, "", v);
-			vs[length(vs)+1] = v;
+			vs[++nvs] = v;
 			split(v, decoupe, ".");
 			for(i in decoupe)
-				if(i >= length(tailles) || length(decoupe[i]) > tailles[i])
+				if(i >= ntailles || length(decoupe[i]) > tailles[i])
 					tailles[i] = length(decoupe[i]);
 		}
 		END {
-			for(nl = 0; ++nl <= length(vs);)
+			for(nl = 0; ++nl <= nvs;)
 			{
 				c = "";
 				v = vs[nl];
 				split(v, decoupe, ".");
-				for(nv = 0; ++nv <= length(tailles);)
-					c = c sprintf("%0"tailles[nv]"d", nv > length(decoupe) ? 0 : decoupe[nv]);
+				ndecoupe = 0;
+				for(ndecoupe in decoupe) {}
+				for(nv = 0; ++nv <= ntailles;)
+					c = c sprintf("%0"tailles[nv]"d", nv > ndecoupe ? 0 : decoupe[nv]);
 				print c" "sprintf("%04d", length(ls[nl]))" "ls[nl]
 			}
 		}
