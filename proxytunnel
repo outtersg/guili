@@ -26,7 +26,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=proxytunnel
 
-v 1.9.0 && modifs="preconf makeBsd pasDeRev" || true
+v 1.9.0 && prerequis="openssl < 1.1" && modifs="preconf makeBsd pasDeRev" || true
 
 archive="http://kent.dl.sourceforge.net/project/proxytunnel/proxytunnel%20source%20tarballs/proxytunnel%20$version/proxytunnel-$version.tgz"
 
@@ -94,6 +94,8 @@ s/, REV//
 
 dest="$INSTALLS/$logiciel-$version"
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
