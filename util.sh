@@ -23,7 +23,7 @@ INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
 
-mkdir -p "$TMP/$$"
+mkdir -p "$TMP/$$" "$INSTALL_MEM"
 export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
 export LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
