@@ -630,6 +630,12 @@ prerequis()
 	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
 }
 
+prerequerir()
+{
+	inclure "$1" "$2"
+	reglagesCompilPrerequis "$1" "$2"
+}
+
 # Trouve le nom du prochain fichier disponible, en ajoutant des suffixes numériques jusqu'à en trouver un de libre.
 prochain()
 {
