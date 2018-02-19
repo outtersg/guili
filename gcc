@@ -40,7 +40,7 @@ v 4.5.4 || true
 v 4.7.4 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
 v 4.8.3 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
 #v 4.9.2 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
-v 4.9.2 && prerequis="gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" && modifs="usrInclude sansCore lambdaObjC sansCollate fbsdbinutils" || true
+v 4.9.2 && prerequis="gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" && modifs="usrInclude libsPasDur sansCore lambdaObjC sansCollate fbsdbinutils" || true
 v 4.9.4 || true
 
 [ -z "$version" ] && echo "# Aucune règle pour compiler $logiciel $argVersion" >&2 && exit 1 || true
@@ -73,6 +73,11 @@ usrInclude()
 		echo "# /usr/include n'existe pas. Sous Mac OS X, tentez un truc du genre: sudo ln -s /Developer/SDKs/MacOSX10.6.sdk/usr/include /usr/include" >&2
 		exit 1
 	fi
+}
+
+libsPasDur()
+{
+	filtrer configure sed -e "s#gmplibs=.*#gmplibs=\"$LDFLAGS -lmpc -lmpfr -lgmp\"#g"
 }
 
 logarithme()
