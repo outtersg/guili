@@ -539,7 +539,7 @@ inclure()
 		return 1
 	fi
 	shift
-	"$SCRIPTS/$truc" $inclure_options "$@"
+	INSTALLS_AVEC_INFOS="$INSTALLS_AVEC_INFOS" "$SCRIPTS/$truc" $inclure_options "$@"
 	return $?
 }
 
@@ -558,15 +558,42 @@ preChemine()
 	export LDFLAGS
 }
 
-reglagesCompilPrerequis()
+prerequerir()
+{
+	INSTALLS_AVEC_INFOS=1 inclure "$1" "$2" 6> "$TMP/$$/temp.inclureAvecInfos"
+	
+	# L'idéal est que l'inclusion ait reconnu INSTALLS_AVEC_INFOS et nous ait sorti ses propres variables, à la pkg-config, en appelant infosInstall() en fin (réussie) d'installation.
+	# Dans le cas contraire (inclusion ancienne mode peu diserte), on recherche parmi les paquets installés celui qui répond le plus probablement à notre demande, via reglagesCompilPrerequis.
+	
+	IFS=: read pr_logiciel pr_logicielEtOptions pr_version pr_dest < "$TMP/$$/temp.inclureAvecInfos" || true
+	case "|$pr_logiciel|$pr_version|$pr_dest|" in
+		*"||"*) pr_logiciel="$1" ; _prerequerirRetrouver "$1" "$2" ;;
+	esac
+	> "$TMP/$$/temp.inclureAvecInfos"
+	
+	reglagesCompil "$pr_logiciel" "$pr_version" "$pr_dest"
+	
+	# Pour répondre à ma question "Comment faire pour avoir en plus de stdout et stderr une stdversunsousshellderetraitement" (question qui s'est posée un moment dans l'élaboration d'inclureAvecInfos):
+	# ( ( echo Un ; sleep 2 ; echo Trois >&3 ; sleep 2 ; echo Deux >&2 ; sleep 2 ; echo Trois >&3 ) 3>&1 >&4 | sed -e 's/^/== /' ) 4>&1
+}
+
+_prerequerirRetrouver()
 {
 	dossierRequis=
 	for peutEtreDossierRequis in `versions "$1"`
 	do
 		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#.*-##"`"
-		testerVersion "$versionRequis" $2 && dossierRequis="$peutEtreDossierRequis" && versionInclus="$versionRequis" || true
+		testerVersion "$versionRequis" $2 && pr_dest="$peutEtreDossierRequis" && pr_version="$versionRequis" || true
 	done
-	PREINCLUS="$1:$versionInclus $PREINCLUS"
+}
+
+reglagesCompil()
+{
+	rc_logiciel="$1"
+	versionInclus="$2"
+	dossierRequis="$3"
+	
+	PREINCLUS="$PREINCLUS $1:$versionInclus"
 	eval "dest`echo "$1" | tr +- __`=$dossierRequis"
 	export "version_`echo "$1" | tr +- __`=$versionInclus"
 	preChemine "$dossierRequis"
@@ -629,12 +656,6 @@ prerequis()
 				;;
 		esac
 	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
-}
-
-prerequerir()
-{
-	inclure "$1" "$2"
-	reglagesCompilPrerequis "$1" "$2"
 }
 
 # Trouve le nom du prochain fichier disponible, en ajoutant des suffixes numériques jusqu'à en trouver un de libre.
