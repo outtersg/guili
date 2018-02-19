@@ -46,7 +46,7 @@ sonMake()
 	{
 		mkdir Build
 		cd Build
-		cmake ..
+		cmake -DCMAKE_INSTALL_PREFIX:PATH=$dest ..
 	}
 }
 
