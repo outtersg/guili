@@ -658,6 +658,21 @@ prerequis()
 	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
 }
 
+# Sort le chemin d'installation de chacun des prérequis passés en paramètres.
+# Appelle prerequis et ne sort que l'info de chemin. L'idée est de pouvoir l'appeler depuis un sous-shell pour connaître le chemin sans modifier tout l'environnement (LDFLAGS et compagnie), par exemple:
+#   echo "Le dernier PHP avant la 7 se trouve dans `cible "php < 7"`"
+cible()
+{
+	PREINCLUS=
+	prerequis="$*" prerequis
+	for preinclus in $PREINCLUS ; do echo "$preinclus" ; done | cut -d : -f 1 | while read lpreinclus
+	do
+		suffixe="`echo "$lpreinclus" | tr '+-' __`"
+		# Mais on ne veut exporter que les $dest sous le préfixe $cible_.
+		eval "echo \"\$dest$suffixe\""
+	done
+}
+
 # Trouve le nom du prochain fichier disponible, en ajoutant des suffixes numériques jusqu'à en trouver un de libre.
 prochain()
 {
