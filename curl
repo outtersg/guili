@@ -49,6 +49,7 @@ v 7.43.0 || true
 v 7.49.0 || true
 v 7.53.1 || true
 v 7.55.1 || true
+v 7.58.0 || true
 
 # OpenSSL:
 # - s'il ne préexiste pas, on ne force pas: on est peut-être sur un système qui a besoin de cURL pour installer OpenSSL.
