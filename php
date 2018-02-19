@@ -81,6 +81,7 @@ v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite |
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 || true
+v 7.1.14 || true
 #v 7.2.1 || true
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
