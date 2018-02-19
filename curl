@@ -58,6 +58,12 @@ then
 	prerequis="$prerequis openssl$vossl"
 fi
 
+# LibSSH: si on la trouve dans notre $INSTALLS, alors on l'utilise. On ne se lie pas à une libssh système.
+if command -v pkg-config 2> /dev/null >&2 && pkg-config libssh2
+then
+	prerequis="$prerequis libssh"
+fi
+
 # Modifications
 
 sslcertfile()
