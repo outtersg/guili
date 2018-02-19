@@ -32,6 +32,7 @@ v 3.0.0.99.1.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 
 v 3.2 || true
 v 3.5 && prerequis_libjpeg="libjpegturbo" prerequis="libtiff < 4 $prerequis_libjpeg freetype zlib" && modifs="monMake monMakeOrdonne" || true
 v 3.6 || true
+v 3.9 && prerequis="$prerequis libaesgm" || true
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
 archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
@@ -52,6 +53,10 @@ sonMake()
 
 monMake()
 {
+	biblios="-ltiff -ljpeg -lfreetype -lz"
+	case "$prerequis" in
+		*libaesgm*) biblios="$biblios -laesgm"
+	esac
 	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
 	cat > PDFWriter/Makefile <<TERMINE
 sourcescpp := \$(shell find . -name \\*.cpp)
@@ -62,7 +67,7 @@ objsc := \$(sourcesc:.c=.o)
 objs := \${objscpp} \${objsc}
 
 libhummus.so: \${objs}
-	c++ -shared -fpic $LDFLAGS -ltiff -ljpeg -lfreetype -lz \$^ -o \$@
+	c++ -shared -fpic $LDFLAGS $biblios \$^ -o \$@
 
 %.o: %.cpp
 	c++ -c -fpic -I$INSTALLS/include/freetype2 $CPPFLAGS \$< -o \$@
