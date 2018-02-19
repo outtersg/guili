@@ -783,19 +783,24 @@ triversions()
 			v = $0;
 			sub(/^([^0-9][^-]*-)+/, "", v);
 			vs[++nvs] = v;
-			split(v, decoupe, ".");
-			for(i in decoupe)
-				if(i >= ntailles || length(decoupe[i]) > tailles[i])
+			ndecoupe = split(v, decoupe, ".");
+			for(i = 0; ++i <= ndecoupe;)
+			{
+				if(i >= ntailles)
+				{
+					++ntailles;
+					tailles[i] = 0;
+				}
+				if(length(decoupe[i]) > tailles[i])
 					tailles[i] = length(decoupe[i]);
+			}
 		}
 		END {
 			for(nl = 0; ++nl <= nvs;)
 			{
 				c = "";
 				v = vs[nl];
-				split(v, decoupe, ".");
-				ndecoupe = 0;
-				for(ndecoupe in decoupe) {}
+				ndecoupe = split(v, decoupe, ".");
 				for(nv = 0; ++nv <= ntailles;)
 					c = c sprintf("%0"tailles[nv]"d", nv > ndecoupe ? 0 : decoupe[nv]);
 				print c" "sprintf("%04d", length(ls[nl]))" "ls[nl]
