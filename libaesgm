@@ -1,0 +1,87 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+. "$SCRIPTS/util.sh"
+
+logiciel=libaesgm
+
+v 2007.12.20 && v_hummus=3.9 && prerequis="openssl" || true
+
+# Le site officiel de la libaesgm ne semble plus fonctionnel. On va donc le prélever dans l'empaqueté de HummusPDF (son seul usager, pour l'heure).
+archive_git=http://github.com/galkahana/PDF-Writer.git
+archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
+archive="PDFWriter`echo "$v_hummus" | tr . _`.zip"
+
+v_simple="`echo "$version" | sed -e 's/[.][^.]*.git$//'`"
+dest=$INSTALLS/$logiciel-$v_simple
+
+configurer()
+{
+	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
+	cat > Makefile <<TERMINE
+sourcescpp := `find . -name "*.cpp" | tr '\012' ' '`
+sourcesc := `find . -name "*.c" | tr '\012' ' '`
+sources := \${sourcescpp} \${sourcesc}
+objscpp := \$(sourcescpp:.cpp=.o)
+objsc := \$(sourcesc:.c=.o)
+objs := \${objscpp} \${objsc}
+dest := $dest
+
+libaesgm.so: \${objs}
+	c++ -shared -fpic $LDFLAGS \$^ -o \$@
+
+%.o: %.cpp
+	c++ -c -fpic $CPPFLAGS \$< -o \$@
+
+%.o: %.c
+	cc -c -fpic $CPPFLAGS \$< -o \$@
+
+install: libaesgm.so
+	mkdir -p ${dest}/lib ${dest}/include
+	cp \$^ ${dest}/lib/
+	cp *.h ${dest}/include
+TERMINE
+}
+
+destiner
+
+prerequis
+
+obtenirEtAllerDansVersion
+cd LibAesgm
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+configurer
+
+echo Compilation… >&2
+make
+
+echo Installation… >&2
+sudoku make install
+sutiliser
+
+rm -Rf $TMP/$$
