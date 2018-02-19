@@ -31,14 +31,14 @@ logiciel=curl
 vossl=
 if option ossl10 ; then vossl=" < 1.1" ; fi
 
-v 7.16.0 && modifs="multiarch sslcertfile" || true
+v 7.16.0 && prerequis="gettext zlib" && modifs="exclusivementPrerequis multiarch sslcertfile" || true
 version=7.16.1
 version=7.16.2
 version=7.17.0
 version=7.18.0
 version=7.19.5
 version=7.20.1
-v 7.21.0 && modifs="multiarch dyld105 sslcertfile" || true
+v 7.21.0 && modifs="exclusivementPrerequis multiarch dyld105 sslcertfile" || true
 version=7.23.0
 
 version=7.26.0
