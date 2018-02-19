@@ -228,6 +228,7 @@ i\
 
 dest=$INSTALLS/$logiciel-$version
 archive="http://de.php.net/distributions/$logiciel-$version.tar.bz2"
+archive="http://de2.php.net/distributions/$logiciel-$version.tar.bz2"
 
 if false
 then
