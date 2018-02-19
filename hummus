@@ -69,6 +69,12 @@ libhummus.so: \${objs}
 
 %.o: %.c
 	cc -c -fpic -I$INSTALLS/include/freetype2 $CPPFLAGS \$< -o \$@
+
+install:
+	mkdir -p "$dest/include/Hummus" "$dest/lib"
+	cp libhummus.so "$dest/lib/"
+	ln -s libhummus.so "$dest/lib/libPDFWriter.so"
+	cp *.h "$dest/include/Hummus/"
 TERMINE
 	configurer()
 	{
@@ -126,9 +132,7 @@ echo Compilation… >&2
 make -j3
 
 echo Installation… >&2
-sudo mkdir -p "$dest/include/Hummus" "$dest/lib"
-sudo cp libhummus.so "$dest/lib/"
-sudo cp *.h "$dest/include/Hummus/"
+sudoku make install
 sutiliser "$logiciel-$v_simple"
 
 rm -Rf $TMP/$$
