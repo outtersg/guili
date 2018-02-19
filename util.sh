@@ -373,6 +373,8 @@ sutiliser()
 		fi
 	fi
 	sudo $utiliser "$INSTALLS/$sut_lv"
+	
+	infosInstall
 }
 
 if [ ! -z "$SANSU" ]
@@ -703,7 +705,7 @@ destiner()
 	else
 	dest="$install_dest"
 	fi
-	[ -e "$dest/.complet" ] && exit 0 || true
+	[ -e "$dest/.complet" ] && infosInstall && exit 0 || true
 }
 
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
