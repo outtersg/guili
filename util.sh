@@ -686,6 +686,11 @@ install_moi="$SCRIPTS/`basename "$0"`"
 		;;
 esac
 
+infosInstall()
+{
+	[ -z "$INSTALLS_AVEC_INFOS" ] || echo "$logiciel:$logiciel$argOptions:$version:$dest" >&6
+}
+
 destiner()
 {
 	if [ -z "$install_dest" ]
