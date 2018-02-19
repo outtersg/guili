@@ -598,7 +598,7 @@ exclusivementPrerequis()
 	export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 	export CMAKE_LIBRARY_PATH=
 	# On se protège aussi contre les inclusions que nos éventuels prérequis voudront nous faire ajouter. Si nous passons par le contraignant exclusivementPrerequis ça n'est pas pour laisser nos sous-paquets décider.
-	exp_pkgconfig="`command -v pkg-config 2>&1`"
+	exp_pkgconfig="`command -v pkg-config 2>&1 || true`"
 	if [ ! -z "$exp_pkgconfig" -a "$exp_pkgconfig" != "$TMP/$$/pkg-config" ]
 	then
 		cat > "$TMP/$$/pkg-config" <<TERMINE
