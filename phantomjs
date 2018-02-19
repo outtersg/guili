@@ -354,8 +354,21 @@ fi
 make || make || make || make || make
 
 echo Installation… >&2
-sudo mkdir -p "$dest/bin"
-sudo cp bin/phantomjs "$dest/bin/"
+mkdir -p dest/libexec/phantomjs dest/bin
+cp bin/phantomjs dest/libexec/phantomjs/
+( cd src/qt/qtbase/lib/ && tar cf - libQt*.so* ) | ( cd dest/libexec/phantomjs/ && tar xf - )
+# À FAIRE: les polices (QT_QWS_FONTDIR, src/qt/qtbase/lib/fonts/).
+( cd src/qt/qtbase/ && tar cf - plugins ) | ( cd dest/libexec/phantomjs && tar xf - )
+cat > "dest/bin/phantomjs" <<TERMINE
+#!/bin/sh
+SCRIPTS="\`command -v "\$0"\`" ; [ -x "\$SCRIPTS" -o ! -x "\$0" ] || SCRIPTS="\$0" ; case "\`basename "\$SCRIPTS"\`" in *.*) true ;; *sh) SCRIPTS="\$1" ;; esac ; case "\$SCRIPTS" in /*) ;; *) SCRIPTS="\`pwd\`/\$SCRIPTS" ;; esac ; delie() { while [ -h "\$SCRIPTS" ] ; do SCRIPTS2="\`readlink "\$SCRIPTS"\`" ; case "\$SCRIPTS2" in /*) SCRIPTS="\$SCRIPTS2" ;; *) SCRIPTS="\`dirname "\$SCRIPTS"\`/\$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="\`dirname "\$SCRIPTS"\`" ; delie
+LD_LIBRARY_PATH="\$SCRIPTS/../libexec/phantomjs:\$LD_LIBRARY_PATH"
+export QT_PLUGIN_PATH="\$SCRIPTS/../libexec/phantomjs/plugins"
+"\$SCRIPTS/../libexec/phantomjs/phantomjs" "\$@"
+TERMINE
+chmod a+x "dest/bin/phantomjs"
+sudo rm -Rf "$dest"
+sudo cp -R dest "$dest"
 sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
