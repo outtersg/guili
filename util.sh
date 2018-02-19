@@ -1357,5 +1357,13 @@ readlinkf()
 	)
 }
 
+statf()
+{
+	case `uname` in
+		*BSD) stat -f "$@" ;;
+		*) stat --format "$@" ;;
+	esac
+}
+
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
