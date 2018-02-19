@@ -29,7 +29,7 @@ logiciel=postgresql
 vossl=
 if option ossl10 ; then vossl=" < 1.1" ; fi
 
-v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="ncurses readline zlib openssl$vossl" || true
+v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="ncurses readline zlib openssl$vossl python < 3 make" || true
 v 8.0.3 || true
 v 9.1.2 && modifs="exclusivementPrerequis bsdAvecPythonThreade detectionPerl detectionReadline" || true
 v 9.2.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="$contribs hstore" || true
