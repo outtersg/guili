@@ -1124,7 +1124,14 @@ meilleurCompilo()
 	case `uname` in
 		Darwin)
 			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
-			export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < /System/Library/SDKSettingsPlist/SDKSettings.plist | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
+			for f in /System/Library/SDKSettingsPlist/SDKSettings.plist /Library/Developer//CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.plist
+			do
+				if [ -e "$f" ]
+				then
+					export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$f" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
+					break
+				fi
+			done
 			;;
 	esac
 }
