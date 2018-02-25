@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,31 +22,50 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
-inclure libjpeg
 inclure libpng
 
 logiciel=ghostscript
 
 # Historique des versions gérées
 
-version=8.51
+v 8.51 && modifs="moinsL bibliosInternes" && prerequis="libtiff+jpeg8 >= 4 libjpeg < 9" || true
 
-dest=/usr/local/$logiciel-$version
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
 
 # Modifications
 
+moinsL()
+{
+	# configure vérifie l'utilisabilité de -liconv, en utilisant LDFLAGS (qui contient le -L/usr/local/lib), et ajoute alors -liconv à LIBS… mais sans son -L.
+	filtrer configure sed -e '/^[ 	]*LIBS=.*-liconv/s#="#="-L'"$INSTALLS/lib"' #'
+}
+
+jpeg8()
+{
+	# Incompatibilité avec la 9. Il nous faut nous assurer une 8.
+	jpeg8="`ls -d "$INSTALLS/libjpeg-"* | grep libjpeg-8 | tail -1`"
+	[ -z "$jpeg8" ] && echo "# Une libjpeg 8 (pas 7, pas 9) doit être en place" >&2 && exit 1
+	CFLAGS="-I$jpeg8/include $CFLAGS"
+	CPPFLAGS="-I$jpeg8/include $CPPFLAGS"
+	LDFLAGS="-L$jpeg8/lib $LDFLAGS"
+	export CFLAGS LDFLAGS
+}
+
+bibliosInternes()
+{
+	# Ce crétin embarque des biblios complètes, mais il fait passer nos CFLAGS devant, surchargeant donc les susdites et faisant planter la compil qui voit des bouts de l'embarquée, des bouts d'/usr/local.
+	preCFlag -I./libpng -I./zlib -I./obj
+}
+
 # Boulot
 
-[ -d "$dest" ] && exit 0
+destiner
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+prerequis
+
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -61,4 +80,4 @@ echo Installation… >&2
 sudo make install
 sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+rm -Rf $TMP/$$
