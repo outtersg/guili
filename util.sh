@@ -644,7 +644,7 @@ export prerequis_libjpeg
 
 prerequis()
 {
-	echo "$prerequis" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' > $TMP/$$/temp.prerequis
+	decoupePrerequis "$prerequis" > $TMP/$$/temp.prerequis
 	while read requis versionRequis
 	do
 		case "$requis" in
