@@ -33,6 +33,8 @@ logiciel=ghostscript
 v 8.51 && modifs="moinsL bibliosInternes" && prerequis="libtiff+jpeg8 >= 4 libjpeg < 9" || true
 
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
+archive=http://heanet.dl.sourceforge.net/project/ghostscript/GPL%20Ghostscript/$version/ghostscript-$version.tar.bz2
+archive=http://downloads.ghostscript.com/public/ghostscript-$version.tar.gz
 
 # Modifications
 
