@@ -639,8 +639,15 @@ TERMINE
 }
 
 # Les programmes qui veulent se lier à libjpeg, libjpeg < 9, ou libjpegturbo, peuvent utiliser cette variable, toujours définie, et surchargeable par l'appelant "du dessus".
+_initPrerequisLibJpeg()
+{
+	case "$argOptions+" in
+		*+jpeg8+*) prerequis_libjpeg="libjpeg < 9" ;;
+		*+jpegturbo+*) prerequis_libjpeg="libjpegturbo" ;;
+	esac
 [ ! -z "$prerequis_libjpeg" ] || prerequis_libjpeg="libjpeg"
 export prerequis_libjpeg
+}
 
 prerequis()
 {
@@ -1453,3 +1460,5 @@ statf()
 
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
+
+_initPrerequisLibJpeg
