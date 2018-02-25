@@ -40,7 +40,7 @@ v 6.8.7.3 && modifs= && prerequis="$prerequis cairo pango" || true
 v 6.8.8.1 || true
 # N.B.: peut utiliser rsvg pour traiter le SVG.
 v 6.9.0.2 || true
-v 6.9.0.4 && prerequis="libjpegturbo libtiff libpng freetype cairo pango zlib" || true
+v 6.9.0.4 && prerequis="libjpegturbo libtiff+jpegturbo libpng freetype cairo pango zlib" || true
 v 7.0.2.7 || true
 v 7.0.3.4 || true
 v 7.0.6.1 || true
