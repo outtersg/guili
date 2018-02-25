@@ -730,7 +730,19 @@ esac
 
 infosInstall()
 {
-	[ -z "$INSTALLS_AVEC_INFOS" ] || echo "$logiciel:$logiciel$argOptions:$version:$dest" >&6
+	[ ! -z "$INSTALLS_AVEC_INFOS" ] || return 0
+	case "$INSTALLS_AVEC_INFOS" in
+		1) echo "$logiciel:$logiciel$argOptions:$version:$dest" ;;
+		vars0) echo "dest=$dest version=$version prerequis=\"$prerequis\"" ;;
+		vars) echo "dest$logiciel=$dest version_$logiciel=$version prerequis_$logiciel=\"$prerequis\"" ;;
+		"") true ;;
+		*)
+			for ii_var in `echo "$INSTALLS_AVEC_INFOS" | tr , ' '`
+			do
+				eval "echo \"\$$ii_var\""
+			done
+			;;
+	esac >&6
 }
 
 destiner()
