@@ -43,6 +43,7 @@ v 6.9.0.2 || true
 v 6.9.0.4 && prerequis="libjpegturbo libtiff libpng freetype cairo pango zlib" || true
 v 7.0.2.7 || true
 v 7.0.3.4 || true
+v 7.0.7.11 || true
 
 prerequis
 
