@@ -663,6 +663,21 @@ decoupePrerequis()
 	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/'
 }
 
+varsPrerequis()
+{
+	vp_vars="$1" ; shift
+	decoupePrerequis "$*" > $TMP/$$/temp.prerequis
+	while read vp_logiciel vp_version
+	do
+		case "$vp_logiciel" in
+			*\(\)) true ;;
+			*)
+				INSTALLS_AVEC_INFOS="$vp_vars" inclure "$vp_logiciel" "$vp_version" 6>&1 >&2
+				;;
+		esac
+	done < $TMP/$$/temp.prerequis
+}
+
 # Sort le chemin d'installation de chacun des prérequis passés en paramètres.
 # Appelle prerequis et ne sort que l'info de chemin. L'idée est de pouvoir l'appeler depuis un sous-shell pour connaître le chemin sans modifier tout l'environnement (LDFLAGS et compagnie), par exemple:
 #   echo "Le dernier PHP avant la 7 se trouve dans `cible "php < 7"`"
