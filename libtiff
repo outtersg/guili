@@ -251,7 +251,7 @@ jpeg9()
 #define TRUE 1
 #include <jmorecfg.h>
 TERMINE
-	cc -c -o /tmp/hop.o -I$INSTALLS/include /tmp/hop.c 2> /dev/null >&2 && return
+	cc -c -o /tmp/hop.o -I$INSTALLS/include /tmp/hop.c 2> /dev/null >&2 && return || true
 	for i in jpeg ojpeg
 	do
 		filtrer libtiff/tif_${i}.c sed -e '/include "jpeglib.h"/{
