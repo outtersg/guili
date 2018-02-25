@@ -351,8 +351,8 @@ testsudoku()
 	done
 }
 
-utiliser=utiliser
-command -v $utiliser 2> /dev/null >&2 || utiliser="$SCRIPTS/utiliser"
+utiliser="$SCRIPTS/utiliser"
+command -v $utiliser 2> /dev/null >&2 || utiliser=utiliser # Si SCRIPTS n'est pas définie, on espère trouver un utiliser dans le PATH.
 
 sutiliser()
 {
