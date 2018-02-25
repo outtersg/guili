@@ -262,12 +262,11 @@ i\
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive=ftp://ftp.remotesensing.org/pub/$logiciel/tiff-$version.tar.gz
 archive="ftp://download.osgeo.org/libtiff/tiff-$version.tar.gz"
 archive_cvs=cvs://cvsanon:@cvs.maptools.org:/cvs/maptools/cvsroot:libtiff
 
-[ -d "$dest" ] && exit 0
+destiner
 
 if [[ $version = *-* ]] ; then
 	obtenirEtAllerDansCvs -d $version $archive_cvs
