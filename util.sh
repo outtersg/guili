@@ -658,6 +658,11 @@ prerequis()
 	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
 }
 
+decoupePrerequis()
+{
+	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/'
+}
+
 # Sort le chemin d'installation de chacun des prérequis passés en paramètres.
 # Appelle prerequis et ne sort que l'info de chemin. L'idée est de pouvoir l'appeler depuis un sous-shell pour connaître le chemin sans modifier tout l'environnement (LDFLAGS et compagnie), par exemple:
 #   echo "Le dernier PHP avant la 7 se trouve dans `cible "php < 7"`"
