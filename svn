@@ -35,7 +35,7 @@ v 1.4.6 && modifs="lssl" || true
 v 1.7.2 && modifs= || true
 v 1.7.6 && modifs=destdir || true
 v 1.7.10 && modifs=destdir || true
-v 1.8.0 && modifs= && prerequis="serf >= 1.2.1 pkgconfig sqlite" || true # La détection de serf est faite via pkgconfig.
+v 1.8.0 && modifs="exclusivementPrerequis" && prerequis="serf >= 1.2.1 pkgconfig sqlite" || true # La détection de serf est faite via pkgconfig.
 v 1.8.3 || true # La détection de serf est faite via pkgconfig.
 v 1.8.11 || true
 v 1.8.15 || true
