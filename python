@@ -28,6 +28,8 @@ logiciel=python
 
 # Historique des versions gérées
 
+prerequis=
+
 version=2.6
 modifs=
 OPTIONS_CONF=
