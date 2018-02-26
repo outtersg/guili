@@ -758,6 +758,10 @@ infosInstall()
 		vars0) echo "dest=$dest version=$version prerequis=\"$prerequis\"" ;;
 		vars) echo "dest$logiciel=$dest version_$logiciel=$version prerequis_$logiciel=\"$prerequis\"" ;;
 		"") true ;;
+		prerequis-r)
+			varsPrerequis prerequis-r "$prerequis" | tr '\012' ' '
+			echo "$prerequis"
+			;;
 		*)
 			for ii_var in `echo "$INSTALLS_AVEC_INFOS" | tr , ' '`
 			do
