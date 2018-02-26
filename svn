@@ -72,11 +72,10 @@ destdir()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://subversion.tigris.org/tarballs/subversion-$version.tar.bz2"
 pge $version 1.6.9 && archive="http://mirrors.ircam.fr/pub/apache/subversion/subversion-$version.tar.bz2"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
