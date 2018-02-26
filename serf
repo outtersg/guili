@@ -41,9 +41,8 @@ prerequis
 archive="https://serf.googlecode.com/files/serf-$version.tar.bz2"
 archive="http://serf.googlecode.com/svn/src_releases/serf-$version.tar.bz2"
 archive="https://www.apache.org/dist/serf/serf-$version.tar.bz2"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
