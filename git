@@ -37,6 +37,11 @@ v 2.12.2 || true
 v 2.15.1 || true
 v 2.16.0 || true
 
+if option svn
+then
+	prerequis="$prerequis depsgitsvn"
+fi
+
 # Modifications
 
 perler()
