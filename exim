@@ -32,16 +32,39 @@ logiciel=exim
 
 # Historique des versions gérées
 
-v 4.77 && modifs="lthr" || true
-v 4.80.1 && modifs="lthr paf" && prerequis="pcre" || true
+v 4.77 && modifs="lthr majmin" || true
+v 4.80.1 && modifs="lthr majmin paf" && prerequis="pcre" || true
 v 4.82
 v 4.82.1
 v 4.87 || true
-v 4.89 && modifs="uniquementPrerequis lthr paf2 tlsManuel" && prerequis="pcre openssl" || true
+v 4.89 && modifs="uniquementPrerequis lthr majmin paf2 tlsManuel" && prerequis="pcre openssl" || true
 
 prerequis
 
 # Modifications
+
+majmin()
+{
+	# On définit en plus de RELEASE_VERSION (4.90) une MAJOR (4) et une MINOR (90).
+	mm_v="`grep EXIM_RELEASE_VERSION= < src/version.sh | cut -d = -f 2`"
+	(
+		echo "EXIM_MAJOR_VERSION=`echo "$mm_v" | cut -d . -f 1`"
+		echo "EXIM_MINOR_VERSION=`echo "$mm_v" | cut -d . -f 2`"
+	) >> src/version.sh
+	filtrer scripts/reversion sed -E -e '/echo EXIM_RELEASE_VERSION=|#define EXIM_RELEASE_VERSION/{
+h
+s/\$EXIM_RELEASE_VERSION/`echo $EXIM_RELEASE_VERSION | cut -d . -f 1`/
+s/"//g
+s/RELEASE/MAJOR/
+p
+g
+s/\$EXIM_RELEASE_VERSION/`echo $EXIM_RELEASE_VERSION | cut -d . -f 2`/
+s/"//g
+s/RELEASE/MINOR/
+p
+g
+}'
+}
 
 tlsManuel()
 {
