@@ -15,6 +15,7 @@
 
 #ifndef TEST
 
+#include "version.h"
 #include "local_scan.h"
 
 static char * g_rejets = NULL;
@@ -62,7 +63,11 @@ int poireauter(float points, uschar ** return_text)
 
 	for (temps = 0; temps < secondes(points); temps += intervalle)
 	{
+		#if (EXIM_MAJOR_VERSION == 4 && EXIM_MINOR_VERSION >= 90) || EXIM_MAJOR_VERSION >= 5
+		smtp_printf("451- %s: %d\r\n", 0, "Attendez, je patine dans la choucroute", (int)ceil(points));
+		#else
 		smtp_printf("451- %s: %d\r\n", "Attendez, je patine dans la choucroute", (int)ceil(points));
+		#endif
 		ret = smtp_fflush();
 		if (ret != 0)
 		{
