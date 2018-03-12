@@ -32,12 +32,12 @@ logiciel=exim
 
 # Historique des versions gérées
 
-v 4.77 && modifs="lthr majmin" || true
-v 4.80.1 && modifs="lthr majmin paf" && prerequis="pcre" || true
+v 4.77 && modifs="menageMakefile lthr majmin" || true
+v 4.80.1 && modifs="menageMakefile lthr majmin paf" && prerequis="pcre" || true
 v 4.82
 v 4.82.1
 v 4.87 || true
-v 4.89 && modifs="uniquementPrerequis lthr majmin paf2 tlsManuel" && prerequis="pcre openssl" || true
+v 4.89 && modifs="uniquementPrerequis menageMakefile lthr majmin paf2 tlsManuel" && prerequis="pcre openssl" || true
 
 prerequis
 
@@ -73,6 +73,13 @@ tlsManuel()
 	echo "SUPPORT_TLS=yes" >> Local/Makefile
 	echo "TLS_LIBS=-L$destopenssl/lib -lssl -lcrypto" >> Local/Makefile
 	echo "TLS_INCLUDE=-L$destopenssl/include" >> Local/Makefile
+}
+
+menageMakefile()
+{
+	[ -f Local/Makefile ] || return 0
+	filtrer Local/Makefile sed -e '/# Guillaume:/,$d'
+	echo '# Guillaume:' >> Local/Makefile
 }
 
 paf2()
