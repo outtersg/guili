@@ -94,6 +94,7 @@ echo "Auto-démarrage…" >&2
 dest0="$TMP/$$/dest"
 mkdir -p "$dest0/conf"
 cp -R "$destnginx/conf/." "$dest0/conf/."
+filtrer "$dest0/conf/nginx.conf" awk '/^[ \t]*server/{entree=1}entree||niveau{sub(/#.*/,"");niveau=niveau+gsub(/{/,"")-gsub(/}/,"");entree="";next}{print}'
 filtrer "$dest0/conf/nginx.conf" awk '/^http/{dedans=1}/^}/&&dedans{dedans=0;print"    include nginx.local.conf;"}/include nginx.local.conf/{next}{print}'
 touch "$dest0/conf/nginx.local.conf"
 mkdir "$dest0/logs"
