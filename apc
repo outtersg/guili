@@ -24,6 +24,22 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
+analyserParametres()
+{
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-d) shift ; export PATH="$1/bin:$PATH" ;;
+		esac
+		shift
+	done
+	argOptions="$argOptions+php_`php-config --version | tr . _`"
+}
+
+analyserParametres "$@"
+
+logiciel=apc
+
 v 3.1.9 && modifs="lock" || true
 v 3.1.13 && modifs= || true
 v 3.1.13 && modifs= || true
@@ -38,7 +54,7 @@ lock()
 	filtrer apc_lock.h sed -e '/define apc_lck_rdunlock/s/&//'
 }
 
-dest=$INSTALLS/$logiciel-$version
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -65,5 +81,8 @@ extension = '"$apcso"'
 a\
 apc.enabled = 1
 }' -e '/extension = .*apc.*\.so/d' -e '/apc.enabled/d'
+sudoku mkdir "$dest" # Pour placement du fichier témoin par sutiliser.
+
+sutiliser
 
 rm -Rf "$TMP/$$"
