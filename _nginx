@@ -60,7 +60,7 @@ analyserParametres()
 	done
 
 	if [ -z "$compte" ] ; then
-		comptesEnvisages="nginx web `id -un`"
+		comptesEnvisages="root nginx web `id -un`"
 		for compte in $comptesEnvisages personne ; do
 			id "$compte" 2> /dev/null >&2 && break
 		done
