@@ -40,7 +40,7 @@ analyserParametres "$@"
 
 logiciel=apc
 
-v 3.1.9 && modifs="lock" || true
+v 3.1.9 && modifs="lock" && prerequis="autoconf" || true
 v 3.1.13 && modifs= || true
 v 3.1.13 && modifs= || true
 #v 3.1.14 && modifs= || true # Retirée de la "vente" par Rasmus, pour une question de fuite mémoire.
@@ -55,6 +55,8 @@ lock()
 }
 
 destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
