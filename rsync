@@ -154,19 +154,14 @@ TERMINE
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
 archive=http://www.opensource.apple.com/darwinsource/tarballs/other/$logiciel-$version_apple.tar.gz
 [ "${version%%.*}" -ge 3 ] && archive=http://www.samba.org/ftp/$logiciel/$logiciel-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
