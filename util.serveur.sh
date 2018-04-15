@@ -4,13 +4,13 @@
 # - $avant: éventuellement, trucs à exécuter avant le lancement
 # - $compte: compte sous lequel doit tourner le serveur
 # - $groupe: son groupe
-# - $installer: si oui, le serveur sera démarré avec la machine (et est lancé dès maintenant).
+# - $remplacer: si non vide, le serveur sera placé parmi les services système pour être démarré avec la machine (et est lancé dès maintenant). Il remplacera tous les services mentionnés dans $remplacer (il est dès lors judicieux de faire figurer $nom dans $remplacer, afin d'éteindre proprement toute vieille version qui tournerait encore).
 
 serveur_sep="`printf '\003'`"
 
 serveur()
 {
-	local nom commande fpid avant compte groupe installer dest desttemp
+	local nom commande fpid avant compte groupe remplacer dest desttemp
 	
 	analyserParametresServeur "$@"
 	
@@ -36,9 +36,15 @@ auSecoursServeur()
 {
 	cat >&2 <<TERMINE
 # serveur: installe un serveur / service / démon
-# Utilisation: serveur [-n] [-d0 <desttemp>] [-d <dest>] [-u <compte>] [-p <fichier pid>] [-e <env>]* [-pre <précommande>] <type> <nom> <commande>
+# Utilisation: serveur [-n] [-r <autre>]* [-d0 <desttemp>] [-d <dest>] [-u <compte>] [-p <fichier pid>] [-e <env>]* [-pre <précommande>] <type> <nom> <commande>
   -n
     Ne pas activer au démarrage de la machine.
+  -r <autre>
+    Désinstalle <autre> (en plus d'une éventuelle vieille version de <nom>) s'il
+    existe en tant que serveur système (principalement en cas de conflit de
+    port).
+    Ex.: serveur -r apache -r httpd demon nginx …
+    Ignoré si -n.
   -d0 <desttemp>
     Placer dans <desttemp>. Si non définie, l'amorceur sera placé directement
     dans <dest>.
@@ -75,7 +81,7 @@ analyserParametresServeur()
 	avant=
 	compte=
 	groupe=
-	installer=oui
+	remplacer=
 	desttemp= # Destination temporaire.
 	dest= # Destination définitive.
 	serveur_env= # À FAIRE: utiliser garg si disponible.
@@ -84,7 +90,8 @@ analyserParametresServeur()
 		case "$1" in
 			-d0) shift ; desttemp="$1" ;;
 			-d) shift ; dest="$1" ;;
-			-n) installer=non ;;
+			-n) remplacer="$remplacer -" ;;
+			-r) remplacer="$remplacer $1" ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; fpid="$1" ;;
 			*=*) serveur_env="$serveur_env $1" ;;
@@ -132,6 +139,11 @@ analyserParametresServeur()
 	else
 		serveur_puisCopier=non
 	fi
+	
+	case "$remplacer " in
+		*" - "*) remplacer= ;;
+		*) remplacer="$remplacer $nom" ;; # Le serveur remplace ses éventuelles anciennes versions tournant sur le serveur.
+	esac
 }
 
 serveurFreebsd()
@@ -180,7 +192,7 @@ TERMINE
 	then
 		sudo sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
 	fi
-	if [ "x$installer" = xoui ]
+	if [ ! -z "$remplacer" ]
 	then
 		sudo "$SCRIPTS/rcconfer" ${nom}_enable=YES
 	fi
@@ -229,7 +241,7 @@ TERMINE
 	then
 		SANSSU=0 sudoku cp "$desttemp/etc/systemd/system/${nom}.service" /etc/systemd/system/
 	fi
-	if [ "x$installer" = xoui ]
+	if [ ! -z "$remplacer" ]
 	then
 		SANSSU=0 sudoku systemctl daemon-reload
 		SANSSU=0 sudoku systemctl start ${nom}.service
@@ -304,7 +316,7 @@ case "\$1" in
 esac
 TERMINE
 	chmod u+x "$desttemp/etc/init.d/$nom"
-	if [ "x$installer" = xoui ]
+	if [ ! -z "$remplacer" ]
 	then
 		for i in 0 1 6
 		do
