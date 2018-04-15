@@ -91,7 +91,7 @@ analyserParametresServeur()
 			-d0) shift ; desttemp="$1" ;;
 			-d) shift ; dest="$1" ;;
 			-n) remplacer="$remplacer -" ;;
-			-r) remplacer="$remplacer $1" ;;
+			-r) shift ; remplacer="$remplacer $1" ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; fpid="$1" ;;
 			*=*) serveur_env="$serveur_env $1" ;;
