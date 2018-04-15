@@ -149,6 +149,13 @@ analyserParametresServeur()
 serveurFreebsd()
 {
 	[ ! -z "$dest" ] || dest=/usr/local
+	
+	for remplace in $remplacer
+	do
+		SANSSU=0 sudoku "$dest/etc/rc.d/$remplace" stop 2> /dev/null || true
+		SANSSU=0 sudoku rm -f "$dest/etc/rc.d/$remplace"
+	done
+
 	if [ -z "$fpid" ]
 	then
 		fpid=$dest/var/run/$nom.pid
