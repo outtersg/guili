@@ -935,6 +935,12 @@ option()
 
 sudoer()
 {
+	# A-t-on déjà les droits?
+	(
+		sudo="`IFS=: ; for x in $PATH ; do [ -x "$x/sudo" ] && echo "$x/sudo" && break ; done`"
+		set -f
+		sudoku -u "$1" "$sudo" -l $2 > /dev/null 2>&1
+	) && return || true
 	echo "$1 ALL=(ALL) NOPASSWD: $2" | sudo sh -c 'cat >> /etc/sudoers'
 }
 
