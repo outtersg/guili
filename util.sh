@@ -993,10 +993,10 @@ suseradd()
 {
 	case `uname` in
 		FreeBSD)
-			sudo pw useradd "$@"
+			SANSSU=0 sudoku pw useradd "$@"
 			;;
 		Linux)
-			sudo useradd "$@"
+			SANSSU=0 sudoku useradd "$@"
 			;;
 	esac
 }
@@ -1027,8 +1027,8 @@ creeCompte()
 	if ! grep -q "^$cc_groupe:" /etc/group
 	then
 		case `uname` in
-			FreeBSD) sudo pw groupadd "$cc_groupe" -g "$cc_id" ;;
-			Linux) sudo groupadd -g "$cc_id" "$cc_groupe" ;;
+			FreeBSD) SANSSU=0 sudoku pw groupadd "$cc_groupe" -g "$cc_id" ;;
+			Linux) SANSSU=0 sudoku groupadd -g "$cc_id" "$cc_groupe" ;;
 		esac
 	fi
 	
