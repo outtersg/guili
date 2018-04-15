@@ -265,6 +265,13 @@ TERMINE
 serveurLinux()
 {
 	[ ! -z "$dest" ] || dest=
+	
+	for remplace in $remplacer
+	do
+		SANSSU=0 sudoku "$dest/etc/init.d/$remplace" stop 2> /dev/null || true
+		SANSSU=0 sudoku rm -f "$dest/etc/init.d/$remplace" `find "$dest"/etc/rc[0-9].d/ -type f | grep "/[SK][0-9]*$remplace$"`
+	done
+
 	[ ! -z "$desttemp" ] || desttemp="$dest"
 	if [ -z "$fpid" ]
 	then
