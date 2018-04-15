@@ -261,7 +261,7 @@ versionApache=
 `apxs -q SBINDIR`/`apxs -q TARGET` -v | grep version | grep -q 'Apache/2' && versionApache=2
 [ -z "$versionApache" ] || OPTIONS_CONF="$OPTIONS_CONF --with-apxs$versionApache"
 OPTIONS_CONF="$OPTIONS_CONF --enable-fpm"
-[ -z "$v_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
+[ -z "$version_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
 pge $version 5.6 && OPTIONS_CONF="$OPTIONS_CONF --enable-phpdbg" || true
 # gettext: pour Horde
 # ssl: pour Horde IMP
