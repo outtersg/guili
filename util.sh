@@ -722,11 +722,24 @@ vmaj()
 	echo "$1" | sed -e 's/^\([^.]*.[^.]*\).*$/\1/'
 }
 
-if echo "$1" | grep -q '^\(\(\(>=\|<\) \)*[0-9.]* *\)*$' && [ ! -z "$1" ]
-then
-	argVersion="$1"
-	shift
-fi
+engrangerArgVersion()
+{
+	local param sortie
+	sortie=1
+	for param in "$@"
+	do
+		if echo "$param" | grep -q '^\(\(\(>=\|<\) \)*[0-9.]* *\)*$' && [ ! -z "$param" ]
+		then
+			argVersion="$argVersion $param"
+			sortie=0
+			shift
+		fi
+	done
+	return $sortie
+}
+
+argVersion=
+engrangerArgVersion "$1" || true
 
 analyserParametresInstall()
 {
