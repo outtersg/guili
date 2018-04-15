@@ -212,6 +212,12 @@ TERMINE
 serveurSystemd()
 {
     ajoutService=
+	
+	for remplace in $remplacer
+	do
+		SANSSU=0 sudoku systemctl stop "$remplace" 2> /dev/null || true
+		SANSSU=0 sudoku systemctl disable "$remplace" 2> /dev/null || true
+	done
 
 	case "$type" in
 		simple)
