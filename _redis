@@ -105,6 +105,6 @@ changerconf "$dest0/etc/redis$suffixe.conf" -d ' ' maxclients=128 logfile="$dest
 sinstaller -u $compte "$dest0" "$dest"
 # Démarreurs!
 serveur -u "$compte" simple "redis$suffixe" "$destredis/bin/redis-server $dest/etc/redis$suffixe.conf"
-serveur -u "$compte" simple "redis$suffixe.sentinel" "$destredis/bin/redis-sentinel $dest/etc/redis$suffixe.sentinel.conf"
+serveur -u "$compte" simple "redis$suffixe-sentinel" "$destredis/bin/redis-sentinel $dest/etc/redis$suffixe.sentinel.conf"
 
 rm -Rf "$TMP/$$"
