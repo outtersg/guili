@@ -260,6 +260,10 @@ TERMINE
 		SANSSU=0 sudoku systemctl start ${nom}.service
 		SANSSU=0 sudoku systemctl enable ${nom}.service
 	fi
+	if [ ! -z "$compte" ]
+	then
+		sudoer "$compte" "/bin/systemctl * $nom"
+	fi
 }
 
 serveurLinux()
