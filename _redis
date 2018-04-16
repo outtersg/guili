@@ -28,8 +28,6 @@ logiciel=_redis
 
 # Historique des versions gérées
 
-prerequis="redis"
-
 auSecours()
 {
 	moi="`basename "$0"`"
@@ -49,6 +47,7 @@ analyserParametres()
 			-s) shift ; suffixe="$1" ;;
 			-u) shift ; compte="$1" ;;
 			*)
+				engrangerArgVersion "$1" && shift && continue || true
 				[ -z "$vars" ] && auSecours
 				for i in $vars
 				do
@@ -78,13 +77,15 @@ analyserParametres()
 
 analyserParametres "$@"
 
+prerequis="redis $argVersion"
+
 prerequis
 
 # Modifications
 
 # Variables
 
-dest="$INSTALLS/$logiciel$suffixe" # Non pas destiner, car on veut écraser si besoin.
+destiner
 
 if ! id "$compte" > /dev/null 2>&1
 then
