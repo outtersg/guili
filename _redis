@@ -107,4 +107,5 @@ sinstaller -u $compte "$dest0" "$dest"
 serveur -u "$compte" simple "redis$suffixe" "$destredis/bin/redis-server $dest/etc/redis$suffixe.conf"
 serveur -u "$compte" -r redis$suffixe.sentinel simple "redis$suffixe-sentinel" "$destredis/bin/redis-sentinel $dest/etc/redis$suffixe.sentinel.conf"
 
+sutiliser
 rm -Rf "$TMP/$$"
