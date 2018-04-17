@@ -85,6 +85,7 @@ prerequis
 
 # Variables
 
+version="$version_redis"
 destiner
 
 if ! id "$compte" > /dev/null 2>&1
