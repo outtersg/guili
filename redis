@@ -59,7 +59,7 @@ make
 echo Installation… >&2
 mkdir -p dest/etc
 cp redis.conf dest/etc/redis.default.conf
-cp sentinel.conf dest/etc/redis.sentinel.default.conf
+cp sentinel.conf dest/etc/redis-sentinel.default.conf
 sudo make PREFIX="$dest" install
 sinstaller dest "$dest"
 
