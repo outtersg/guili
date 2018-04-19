@@ -100,13 +100,13 @@ dest0="$TMP/$$/dest"
 rm -Rf "$dest0"
 mkdir -p "$dest0/etc" "$dest0/var/log" "$dest0/var/db"
 cp "$destredis/etc/redis.default.conf" "$dest0/etc/redis$suffixe.conf"
-cp "$destredis/etc/redis.sentinel.default.conf" "$dest0/etc/redis$suffixe.sentinel.conf"
+cp "$destredis/etc/redis-sentinel.default.conf" "$dest0/etc/redis$suffixe-sentinel.conf"
 changerconf "$dest0/etc/redis$suffixe.conf" -d ' ' maxclients=128 logfile="$dest/var/log/redis$suffixe.log" dbfilename="redis$suffixe.rdb" dir="$dest/var/db"
 # Copie à l'emplacement définitif.
 sinstaller -u $compte "$dest0" "$dest"
 # Démarreurs!
 serveur -u "$compte" simple "redis$suffixe" "$destredis/bin/redis-server $dest/etc/redis$suffixe.conf"
-serveur -u "$compte" -r redis$suffixe.sentinel simple "redis$suffixe-sentinel" "$destredis/bin/redis-sentinel $dest/etc/redis$suffixe.sentinel.conf"
+serveur -u "$compte" -r redis$suffixe.sentinel simple "redis$suffixe-sentinel" "$destredis/bin/redis-sentinel $dest/etc/redis$suffixe-sentinel.conf"
 
 sutiliser
 rm -Rf "$TMP/$$"
