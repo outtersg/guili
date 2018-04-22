@@ -45,6 +45,7 @@ analyserParametres()
 	compte=
 	while [ $# -gt 0 ] ; do
 		case "$1" in
+			"") true ;; # Version bidon passée par exemple par varsPrerequis.
 			-u) shift ; compte="$1" ;;
 			*)
 				[ "x$1" = "x$argVersion" ] && shift && continue || true
@@ -80,9 +81,8 @@ prerequis
 # Variables
 
 version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*://g' -e 's/ //g'`"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 if ! id "$compte" > /dev/null 2>&1 ; then
 	echo "Création de l'utilisateur…" >&2
