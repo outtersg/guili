@@ -29,7 +29,8 @@ logiciel=python
 # Historique des versions gérées
 
 # Il nous faudra un cURL pour accéder à pypa.io.
-prerequis="curl"
+# zlib pour pip.
+prerequis="curl zlib"
 
 version=2.6
 modifs=
@@ -53,8 +54,8 @@ v 2.7.2 && modifs="incdirbourrin fbsdopenssl" || true
 v 2.7.9 && modifs="incdirbourrin" || true
 v 2.7.11 && modifs="incdirbourrin nouveaumac" || true
 v 2.7.14 || true
-v 3.4.3 && modifs="incdirbourrin" && prerequis="gettext" || true
-v 3.6.2 && prerequis="gettext libffi" || true
+v 3.4.3 && modifs="incdirbourrin" && prerequis="gettext zlib" || true
+v 3.6.2 && prerequis="gettext zlib libffi" || true
 
 # Modifications
 
