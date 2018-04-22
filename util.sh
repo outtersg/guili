@@ -925,7 +925,7 @@ versions()
 	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
 	versions_logiciel="`echo "$1" | cut -d + -f 1`"
 	versions_expr="/$versions_logiciel`options "$1" | sed -e 's#[+]#([+][^+]*)*[+]#g'`([+][^+]*)*-$versions_expr_version$"
-	find "$INSTALLS" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \) | egrep "$versions_expr" | triversions
+	find "$INSTALLS" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \) | egrep "$versions_expr" | filtrerVersions "$2" | triversions
 }
 
 # Renvoie les options dans l'ordre de référence (alphabétique).
