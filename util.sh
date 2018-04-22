@@ -760,6 +760,7 @@ case "$0" in
 	-*) true ;;
 	*)
 install_moi="$SCRIPTS/`basename "$0"`"
+		logiciel="`basename "$0"`" # Par défaut, le nom du logiciel est celui de l'installeur (un peu de logique, zut!).
 		;;
 esac
 
