@@ -907,6 +907,17 @@ triversions()
 	' | sort | cut -d ' ' -f 3-
 }
 
+filtrerVersions()
+{
+	sed -e '/^.*-\([0-9.]*\)$/!d' -e 's##\1 &#' | while read v chemin
+	do
+		if testerVersion "$v" $@
+		then
+			echo "$chemin"
+		fi
+	done
+}
+
 # Renvoie les versions pour un logiciel donnée, triées par version croissante.
 versions()
 {
