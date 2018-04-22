@@ -29,9 +29,7 @@ logiciel=openssl
 # Historique des versions gérées
 
 v 0.9.8.7 && prerequis="perl >= 5" && modifs="multiarch" || true
-
-version=1.0.0
-
+v 1.0.0 || true
 v 1.0.0.1 || true
 mac && archis=oui
 modifspostconf="dyld105postconf"
