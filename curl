@@ -122,6 +122,6 @@ for modif in true $modifs ; do $modif ; done
 	sudo make install
 installerAC
 
-sutiliser "$logiciel-$version"
+sutiliser
 
 rm -Rf "$TMP/$$"
