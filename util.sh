@@ -670,9 +670,24 @@ decoupePrerequis()
 	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/'
 }
 
+# Plusieurs modes de fonctionnement:
+# - par défaut: cherche une version parmi celles installées; si trouvée, elle fait foi; sinon installe.
+# - -i: installe la dernière version si pas déjà en place.
+# - -n: fait comme si on installait la dernière version.
 varsPrerequis()
 {
-	vp_vars="$1" ; shift
+	local vp_vars=
+	while [ $# -gt 0 ]
+	do
+		vp_vars="$vp_vars $1"
+		case "$1" in
+			-n|-i) true ;;
+			*) break ;;
+		esac
+		shift
+	done
+	shift
+	
 	decoupePrerequis "$*" > $TMP/$$/temp.prerequis
 	while read vp_logiciel vp_version
 	do
@@ -766,8 +781,33 @@ esac
 
 infosInstall()
 {
-	[ ! -z "$INSTALLS_AVEC_INFOS" ] || return 0
-	case "$INSTALLS_AVEC_INFOS" in
+	local feu=rouge # Si le feu passe au vert, on peut commencer à afficher nos infos.
+	local sortie=non # Si $sortie = oui, alors on finira par un bel exit 0.
+	
+	# -s comme "Pondre Seulement Si possible de Sortir prématurément".
+	# Si non spécifié, on pond de toute manière (mais on ne sort pas).
+	# Si spécifié, les conditions de sortie (et donc de ponte des infos), sortie prématurée (c'est-à-dire avant installation effective), sont:
+	# - soit le logiciel trouvé est déjà installé (auquel cas continuer l'installation ne ferait rien de plus -> on sort): test de "$dest/.complet".
+	# - soit on souhaite juste savoir ce qui *va* être installé (mais sans l'installer), ce qui sera déterminé dans le corps de boucle.
+	# - soit on va de toute façon ne lister que ce qui est déjà installé, via versions(), donc on sortira puisqu'on demande à se cantonner à l'installé, donc à ne pas installer.
+	if [ "x$1" = x-s ]
+	then
+		if [ -e "$dest/.complet" ]
+		then
+			sortie=oui # Déjà installé dans la version voulue, donc on va pouvoir poursuivre.
+			feu=vert
+		fi
+	else
+		feu=vert
+	fi
+	
+	if [ ! -z "$INSTALLS_AVEC_INFOS" ] # Petit test pour éviter d'ouvrir >&6 si on n'a rien à sortir (car si ça se trouve l'appelant, n'ayant pas défini la variable, n'a pas non plus ouvert le descripteur).
+	then
+		for ii_var in `echo "$INSTALLS_AVEC_INFOS" | tr , ' '`
+		do
+			case "$ii_var" in
+				-i) true ;;
+				-n) feu=vert ; sortie=oui ;;
 		1) echo "$logiciel:$logiciel$argOptions:$version:$dest" ;;
 		vars0) echo "dest=$dest version=$version prerequis=\"$prerequis\"" ;;
 		vars) echo "dest$logiciel=$dest version_$logiciel=$version prerequis_$logiciel=\"$prerequis\"" ;;
@@ -777,12 +817,13 @@ infosInstall()
 			echo "$prerequis"
 			;;
 		*)
-			for ii_var in `echo "$INSTALLS_AVEC_INFOS" | tr , ' '`
-			do
 				eval "echo \"\$$ii_var\""
-			done
 			;;
-	esac >&6
+			esac
+		done >&6
+	fi
+	
+	[ $feu = vert -a $sortie = oui ] && exit 0 || true
 }
 
 destiner()
@@ -797,7 +838,7 @@ destiner()
 	else
 	dest="$install_dest"
 	fi
-	[ -e "$dest/.complet" ] && infosInstall && exit 0 || true
+	infosInstall -s
 }
 
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
@@ -1497,3 +1538,15 @@ statf()
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
 
 _initPrerequisLibJpeg
+
+# Initialisation standard.
+
+case " $INSTALLS_AVEC_INFOS " in
+	*" -n "*|*" -i "*|"  ") true ;; # En mode INSTALLS_AVEC_INFOS -n ou -i, ou sans INSTALLS_AVEC_INFOS, on laisse dérouler, car on souhaite atteindre la plus haute version qui réponde aux critères définis dans la suite des opérations.
+	*)
+		# En mode INSTALLS_AVEC_INFOS par défaut, changement de stratégie: on ne veut pas installer selon des critères, juste savoir ce qu'il y a déjà d'installé qui réponde aux critères…
+		argVersionExistante="`versions "$logiciel$argOptions" "$argVersion" | tail -1 | sed -e 's/^.*-//'`"
+		# … sauf si on ne trouve décidément rien d'installé.
+		[ -z "$argVersionExistante" ] || argVersion="$argVersionExistante"
+		;;
+esac
