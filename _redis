@@ -32,7 +32,15 @@ auSecours()
 {
 	moi="`basename "$0"`"
 	cat >&2 <<TERMINE
-# Utilisation: $moi [-u <compte>]
+# Utilisation: $moi [-g] [-u <compte>]
+  -g
+    Générique. On ne se lie pas spécifiquement à la dernière version compilée du
+    logiciel, mais on prendra celui trouvé à l'emplacement générique au moment
+    du lancement:
+      $INSTALLS
+    Cela permettra (si le logiciel est compilé via les Petits Installeurs de
+    Guillaume) de basculer vers une nouvelle version simplement en stoppant puis
+    redémarrant le service.
 TERMINE
 	exit 1
 }
@@ -41,11 +49,13 @@ analyserParametres()
 {
 	vars=""
 	suffixe=
+	generique=non
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-s) shift ; suffixe="$1" ;;
 			-u) shift ; compte="$1" ;;
+			-g) generique=oui ;;
 			*)
 				engrangerArgVersion "$1" && shift && continue || true
 				[ -z "$vars" ] && auSecours
@@ -86,6 +96,13 @@ prerequis
 # Variables
 
 version="$version_redis"
+if [ $generique = oui ]
+then
+	install_dest="$INSTALLS/$logiciel$argOptions"
+	destserviceredis="$INSTALLS"
+else
+	destserviceredis="$destredis"
+fi
 destiner
 
 if ! id "$compte" > /dev/null 2>&1
@@ -105,8 +122,8 @@ changerconf "$dest0/etc/redis$suffixe.conf" -d ' ' maxclients=128 logfile="$dest
 # Copie à l'emplacement définitif.
 sinstaller -u $compte "$dest0" "$dest"
 # Démarreurs!
-serveur -u "$compte" simple "redis$suffixe" "$destredis/bin/redis-server $dest/etc/redis$suffixe.conf"
-serveur -u "$compte" -r redis$suffixe.sentinel simple "redis$suffixe-sentinel" "$destredis/bin/redis-sentinel $dest/etc/redis$suffixe-sentinel.conf"
+serveur -u "$compte" simple "redis$suffixe" "$destserviceredis/bin/redis-server $dest/etc/redis$suffixe.conf"
+serveur -u "$compte" -r redis$suffixe.sentinel simple "redis$suffixe-sentinel" "$destserviceredis/bin/redis-sentinel $dest/etc/redis$suffixe-sentinel.conf"
 
 sutiliser
 rm -Rf "$TMP/$$"
