@@ -999,7 +999,14 @@ sudoer()
 
 listeIdComptesBsd()
 {
-	( cut -d : -f 3 < /etc/group ; cut -d : -f 3 < /etc/passwd ; cut -d : -f 4 < /etc/passwd ) | sort -n
+	(
+		cut -d : -f 3 < /etc/group
+		cut -d : -f 3 < /etc/passwd
+		cut -d : -f 4 < /etc/passwd
+		ypcat group 2> /dev/null | cut -d : -f 3
+		ypcat user 2> /dev/null | cut -d : -f 3
+		ypcat user 2> /dev/null | cut -d : -f 4
+	) | sort -n
 }
 
 idCompteLibre()
@@ -1060,12 +1067,23 @@ suseradd()
 	esac
 }
 
+compteExiste()
+{
+	local source=passwd
+	[ "x$1" = x-g ] && shift && source=group || true
+	
+	grep -q "^$1:" < /etc/$source && return 0 || true
+	ypcat "$source" 2> /dev/null | grep -q "^$1:" && return 0 || true
+	
+	return 1
+}
+
 creeCompte()
 {
 	_analyserParametresCreeCompte "$@"
 	
 	# Si le compte existe déjà, on le suppose correctement créé.
-	grep -q "^$cc_qui:" /etc/passwd && return 0 || true
+	compteExiste "$cc_qui" && return 0 || true
 	
 	# Pas de doublon?
 	
@@ -1083,7 +1101,7 @@ creeCompte()
 	# Création éventuelle du groupe principal.
 	# $cc_id a été choisi pour n'être pris ni comme ID de compte, ni comme ID de groupe: on peut donc l'utiliser pour le nouveau groupe.
 	
-	if ! grep -q "^$cc_groupe:" /etc/group
+	if ! compteExiste -g "$cc_groupe"
 	then
 		case `uname` in
 			FreeBSD) SANSSU=0 sudoku pw groupadd "$cc_groupe" -g "$cc_id" ;;
