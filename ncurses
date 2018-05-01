@@ -54,8 +54,8 @@ avecPkgconfig()
 			{ print; }
 			heredoc { if($0 == heredoc) heredoc = ""; next; }
 			/<</ { heredoc = $0; sub(/.*<<[ \\]*/, "", heredoc); sub(/ .*/, "", heredoc); }
-			/^ *if / { ++niveau; }
-			/^ *fi/ { --niveau; }
+			/^[ 	]*if / { ++niveau; }
+			/^[ 	]*fi/ { --niveau; }
 			/enable_pc_files=/ && !ou { ou = 1; }
 			ou == 1 && !niveau {
 				ou = 2;
