@@ -257,6 +257,7 @@ TERMINE
 	if [ ! -z "$remplacer" ]
 	then
 		SANSSU=0 sudoku systemctl daemon-reload
+		SANSSU=0 sudoku systemctl unmask ${nom}.service > /dev/null 2>&1 || true # Des fois qu'un service avec le même nom existe à l'ancienne (init.d).
 		SANSSU=0 sudoku systemctl start ${nom}.service
 		SANSSU=0 sudoku systemctl enable ${nom}.service
 	fi
