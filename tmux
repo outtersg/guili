@@ -32,6 +32,7 @@ v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent bonneNcurses surM
 v 1.9a
 v 2.2
 v 2.6 || true # Sait correctement détecter ncursesw.
+v 2.7 || true
 
 prerequis
 
