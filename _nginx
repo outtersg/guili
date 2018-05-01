@@ -103,7 +103,7 @@ sudo mkdir -p "$dest"
 sudo cp -R "$dest0/." "$dest/."
 # Démarreur.
 # N.B.: il est probable que le -u soit root, du fait de la nécessité d'ouvrir les ports privilégiés. Le passage en compte sous-privilégié sera à faire dans le fichier de conf (le processus maître, piloté par ce -u, sera root; les fils, pilotés par la conf, pourront être autre chose).
-serveur -u "$compte" demon nginx -pre "umask 007" extra_commands=reload -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/conf/nginx.conf"
+serveur -r httpd -r apache2 -u "$compte" demon nginx -pre "umask 007" extra_commands=reload -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/conf/nginx.conf"
 
 sutiliser "`basename "$dest"`"
 
