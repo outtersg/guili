@@ -15,6 +15,13 @@ destiner
 prerequis="curl cabextract fontconfig"
 prerequis
 
+if true
+then
+
+obtenirEtAllerDans https://www.freedesktop.org/software/fontconfig/webfonts/webfonts.tar.gz
+
+else
+
 cd /tmp/
 rm -Rf msfonts
 mkdir msfonts
@@ -24,12 +31,11 @@ mkdir paquets
 cd paquets
 #curl -o /tmp/0.exe "http://cznic.dl.sourceforge.net/project/mscorefonts2/cabs/PowerPointViewer.exe"
 #curl -o /tmp/1.exe "http://skylink.dl.sourceforge.net/project/mscorefonts2/cabs/EUupdate.EXE"
-curl -O https://www.freedesktop.org/software/fontconfig/webfonts/webfonts.tar.gz
-find . -name \*.tar.gz -exec tar xzf {} \;
 
 mkdir ../polices
 cd ../polices
 find ../paquets \( -name \*.exe -o -name \*.EXE \) -exec cabextract {} \;
+fi
 
 echo "========"
 
