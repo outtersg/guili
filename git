@@ -34,6 +34,8 @@ v 1.8.3.2 && modifs=sansConfigurer || true
 v 2.9.0 && modifs="lierIconv sansConfigurer sansMoinsR perler" || true
 v 2.12.0 || true
 v 2.12.2 || true
+v 2.14.1 || true
+v 2.15.0 || true
 v 2.15.1 || true
 v 2.16.0 || true
 v 2.18.0 || true
