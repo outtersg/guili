@@ -94,6 +94,10 @@ creeCompte -s /bin/sh $compte
 fi
 
 echo "Auto-démarrage…" >&2
-serveur -u "$compte" demon cntlm$suffixe "$destcntlm/bin/cntlm -c $config"
+case `uname` in
+	FreeBSD) opts="-P \$pidfile" ;;
+	*) opts= ;;
+esac
+serveur -u "$compte" demon cntlm$suffixe "$destcntlm/bin/cntlm -c $config $opts"
 
 rm -Rf "$TMP/$$"
