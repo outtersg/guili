@@ -28,7 +28,9 @@ logiciel=libssh0
 
 # Historique des versions gérées
 
-v 0.7.3 && dow=195 || true
+v 0.7.3 && dow=195 && prerequis="openssl < 1.1" || true
+v 0.7.5 || true
+v 0.8.1 && prerequis="openssl >= 1.1" || true
 
 # Modifications
 
@@ -36,8 +38,11 @@ v 0.7.3 && dow=195 || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive=https://red.libssh.org/attachments/download/$dow/libssh-$version.tar.xz
+archive=https://www.libssh.org/files/`echo "$version" | cut -d . -f 1-2`/libssh-$version.tar.xz
 
 [ -d "$dest" ] && exit 0
+
+prerequis
 
 obtenirEtAllerDansVersion
 
