@@ -30,6 +30,7 @@ logiciel=leptonica
 
 v 1.69 && prerequis="libjpeg < 9" || true
 v 1.71 || true
+v 1.76.0 || true
 
 # Modifications
 
