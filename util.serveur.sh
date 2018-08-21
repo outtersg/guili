@@ -176,6 +176,10 @@ serveurFreebsd()
 			;;
 	esac
 	
+	if [ ! -z "$serveur_env" ]
+	then
+		avant="$avant${serveur_sep}export $serveur_env"
+	fi
 	mkdir -p "$desttemp/etc/rc.d"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
 #!/bin/sh
