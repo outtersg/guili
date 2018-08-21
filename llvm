@@ -29,9 +29,11 @@ calcScripts "$0"
 logiciel=llvm
 [ "`basename "$0"`" = clang ] && logiciel=clang || true
 
+# Chemin de compilation pour un FreeBSD 10.2 (clang 3.5): clang 3.7.1, clang 3.9.1.
 # Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
 # Chemin de compilation pour un Mac OS X 10.6 (clang 3.5svn): gcc 4.9.2, clang 3.6 sans lldb (et libcxx et libcxxabi sont ignorées) #, clang 3.6.
 # Chemin de compilation pour un Mac OS X 10.8 (clang 3.5svn): gcc 4.9.4, clang 3.4.2, clang 3.5.2, clang 3.7.1, clang 3.9.1.
+# Attention, quand on a déjà un llvm-3.9.1 d'installé, et qu'on essaie de compiler un llvm+clang 3.9.1, pour je ne sais quelle raison, seul le llvm se compile, argh.
 
 v 3.3 || true
 v 3.4.2 && modifs="macMath stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
@@ -39,8 +41,8 @@ v 3.5.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml" || true # A un 
 v 3.5.2 || true
 v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
 v 3.6.2 || true
-v 3.7.1 && modifs="macMath ocloexec" && prerequis="" || true
-v 3.9.1 && modifsDyn="macMath macLibtool" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
+v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7" || true
+v 3.9.1 && modifsDyn="macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
 v 4.0.0 || true
 
 suffixe=xz
@@ -50,6 +52,29 @@ archive=http://llvm.org/releases/$version/llvm-$version.src.tar.$suffixe
 dest=$INSTALLS/$logiciel-$version
 
 # Modifs.
+
+emmintrim()
+{
+	# Pourquoi ne trouve-t-il pas l'emmmintrim.h qui est pourtant embarqué à la fois dans le source, et dans les clang précédemment installés? Bon, on l'aide.
+	# Cependant on ne peut inclure celui du source, sous peine d'incompatibilité 
+	
+	#export CPPFLAGS="$CPPFLAGS -I`pwd`/tools/clang/lib/Headers"
+	
+	true
+}
+
+unwind()
+{
+	# En compil LLVM seul, pas besoin.
+	
+	[ -d projects/libcxxabi/src ] || return 0
+	
+	# Si le système n'a pas d'unwind.h (ex.: FreeBSD 10.2), il nous faut au moins une déclaration générique pour qu'il compile.
+	# http://lists.llvm.org/pipermail/llvm-dev/2015-November/092336.html
+	# http://clang-developers.42468.n3.nabble.com/libcxxabi-Which-unwind-h-td3230734.html
+	
+	cp tools/clang/lib/Headers/unwind.h projects/libcxxabi/src/
+}
 
 sansOcaml()
 {
@@ -123,6 +148,12 @@ a\
 a\
 #endif
 }'
+}
+
+alignementBiblios()
+{
+	# http://clang-developers.42468.n3.nabble.com/libc-std-cout-alignment-trouble-was-Re-llvm-r240144-SLP-Vectorize-for-all-constant-entries-td4047983.html et https://reviews.llvm.org/D16145: on pète le cout, du coup ce clang crée des libcxx (par exemple si on l'utilise pour compiler une 3.9.1) qui ne peuvent être liées avec rien sans générer du SIGBUS sur déclaration de cout.
+	cat "`obtenir 'https://reviews.llvm.org/file/data/o6gjjjurg5id7u7xz5n4/PHID-FILE-k3st7u3bca6bv7ro75sm/D16145.diff' llvm.d16145.diff`" | patch -l -p2 || true
 }
 
 ocloexec()
@@ -219,7 +250,7 @@ make -j 4 #|| make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une s
 echo Installation… >&2
 sudo make install
 # Certains utilisateurs de llvm (ex.: rust) ont besoin d'avoir accès aux outils intermédiaires de llvm.
-[ -e build/bin/FileCheck ] && sudo cp build/bin/FileCheck "$dest/bin/" || true
+[ -e bin/FileCheck ] && sudo cp bin/FileCheck "$dest/bin/" || true
 
 # Pas de compil' libc++: en versions avant cmake, le Makefile de libcxx laisse penser qu'il va s'installer comme un cochon dans /usr/lib; et en cmake (3.9.1, par exemple), elle a été compilée en même temps que clang.
 
