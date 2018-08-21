@@ -557,5 +557,5 @@ begin local_scan
 
 tranchePoireautage = 3
 rejets = '"$mels"'/spam
-'"$reglesPaf
+'"`echo "$reglesPaf" | tr \; '\012'`
 "
