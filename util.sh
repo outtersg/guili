@@ -38,6 +38,7 @@ CFLAGS="-O3 $CFLAGS" # Trop de logiciels (PHP\xe2\x80\xa6) se compilent par d\xc
 CXXFLAGS="-O3 $CXXFLAGS"
 export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH
 export ACLOCAL="aclocal -I $INSTALLS/share/aclocal"
+export ACLOCAL_PATH="$INSTALLS/share/aclocal" # À FAIRE?: le faire participer à reglagesCompilPrerequis.
 
 ajouterModif()
 {
