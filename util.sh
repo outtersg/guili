@@ -592,6 +592,14 @@ _prerequerirRetrouver()
 	done
 }
 
+# Affecte tous les réglages compilo pour inclure un module s'il existe déjà (on ne tente pas de compiler sa dernière version, comme le fait prerequerir()).
+reglagesCompilPrerequis()
+{
+	pr_logiciel="$1" ; _prerequerirRetrouver "$1" "$2"
+	> "$TMP/$$/temp.inclureAvecInfos"
+	reglagesCompil "$pr_logiciel" "$pr_version" "$pr_dest"
+}
+
 reglagesCompil()
 {
 	rc_logiciel="$1"
@@ -1244,6 +1252,20 @@ meilleurCompilo()
 }
 
 meilleurCompilo
+
+# Peut être utilisé en prérequis, pour aller fouiller éventuellement dans les compilos préinstallés.
+meilleurCompiloInstalle()
+{
+	if versions clang | grep -q .
+	then
+		reglagesCompilPrerequis clang
+	fi
+	if versions gcc | grep -q .
+	then
+		reglagesCompilPrerequis gcc
+	fi
+	meilleurCompilo
+}
 
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
 # Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
