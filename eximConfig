@@ -25,7 +25,7 @@ analyserParametres()
 			-d) shift ; domaines="$domaines:$1" ;;
 			-u) shift ; compte="$1" ;;
 			--spam) shift ; pourriel="$1" ;;
-			--paf) shift ; reglesPaf="regles = $1" ;;
+			--paf) shift ; reglesPaf="regles = $1 ; tranchePoireautage = 3" ;;
 			--prefix|--prefixe) shift ; prefixe="$1" ;;
 			*)
 				[ -z "$vars" ] && auSecours
@@ -555,7 +555,6 @@ imap:
 
 begin local_scan
 
-tranchePoireautage = 3
 rejets = '"$mels"'/spam
 '"`echo "$reglesPaf" | tr \; '\012'`
 "
