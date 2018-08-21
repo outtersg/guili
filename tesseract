@@ -29,6 +29,7 @@ logiciel=tesseract
 # Historique des versions gérées
 
 v 3.02.02 && modifs="libpthread" && prerequis="leptonica" || true
+v 3.05.02 && prerequis="pkgconfig leptonica >= 1.74" || true
 
 prerequis
 
@@ -46,8 +47,10 @@ libpthread()
 
 dest="$INSTALLS/$logiciel-$version"
 archive="https://tesseract-ocr.googlecode.com/files/tesseract-ocr-$version.tar.gz"
+archive="https://github.com/tesseract-ocr/tesseract/archive/$version.tar.gz"
 v_min="`echo "$version" | sed -e 's/\([0-9]*\.[0-9]*\).*/\1/'`"
 archive_fr="https://tesseract-ocr.googlecode.com/files/tesseract-ocr-$v_min.fra.tar.gz"
+archive_fr="https://github.com/tesseract-ocr/tessdata/raw/master/fra.traineddata"
 
 [ -d "$dest" ] && exit 0
 
@@ -57,6 +60,11 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ ! -e configure ] # La 3.04.01 est la dernière livrée avec son configure (https://github.com/tesseract-ocr/tesseract/issues/1219#issuecomment-346791112).
+then
+	export LIBTOOL="`command -v libtool`"
+	./autogen.sh || ./autogen.sh # La première fois il nous pète à la gueule disant qu'il lui manque LIBTOOL.
+fi
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
@@ -64,8 +72,16 @@ make
 
 echo Installation… >&2
 sudo make install
+case "$archive_fr" in
+	*.tar.gz)
 obtenirEtAllerDans "$archive_fr"
 sudo cp tessdata/fra.traineddata "$dest/share/tessdata/eng.traineddata" # En tant qu'eng pour l'avoir par défaut.
+		;;
+	*.traineddata)
+		curl -O -L "$archive_fr"
+		sudoku cp "`basename "$archive_fr"`" "$dest/share/tessdata/eng.traineddata"
+		;;
+esac
 sutiliser "$logiciel-$version"
 
 rm -Rf "$TMP/$$"
