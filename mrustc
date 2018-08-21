@@ -1,0 +1,216 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# export INSTALLS=/tmp/localrust SANSSU=1 && rm -Rf /tmp/pijul-0.10.0/ /tmp/rust+viamrustc-1.19.0 /tmp/rust+viamrustc-1.20.0 && ./pijul +viamrustc 2>&1 | tee /tmp/3.log
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+logiciel=mrustc
+
+# Historique des versions gérées
+
+v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && prerequis="openssl libssh curl cmake gcc >= 6 binutils >= 2.21 git bash" && modifs="viaGcc libcxxspecifique sousBsd" || true
+v 2017.09.25 && versionComplete="$version.9f272dd25bf8ad69a1bd4611f7342e0d22ac6d9b.git" || true
+v 2017.10.01 && versionComplete="$version.5b5deea5fcc3e76690d20d8cba726f4edf462619.git" || true
+v 2017.11.04 && versionComplete="$version.715ab49457f5d797fae8b155f51142674fe0075c.git" || true
+v 2017.11.21 && versionComplete="$version.c131c30e6db48c1edc77b123ce6771e3c5608242.git" || true
+# Compile mais génère un _build qui part en boucle infinie (apparemment un mutex_wait qui wait quelque chose qui n'existe plus).
+v 2018.01.25 && versionComplete="$version.0de427d0acb099f83bcef81e819c629b703a6e24.git" && modifs="target viaGcc libcxxspecifique sousBsd pointpointbin patache"|| true
+# Compile mais le premier build.rs compilé se vautre (SIGABRT). main appelle _ZN3std2rt10lang_start qui appelle _ZN3std3sys3imp4args3imp4init qui appelle une inline quelquechose_issome, qui s'attend à ce que son premier paramètre ait un membre TAG valant 0 ou 1, sinon default: abort(). Or son premier paramètre (_ZN3std3sys3imp4args3imp15GLOBAL_ARGS_PTR, grosso modo argv) n'a pas ce qu'il faut: défaut d'initialisation de _ZN3std3sys3imp4args3imp15GLOBAL_ARGS_PTR? Ça pourrait être lié à l'ordre de chargement des biblios.
+v 2018.03.17 && versionComplete="$version.8a64df35a605394fdc969b7abb2702a810d740e5.git" || true
+v 2018.04.07 && versionComplete="$version.4f98e4322ef7aabd3bbef8cd93c0980cd6eeeed1.git" || true
+v 2018.05.28 && versionComplete="$version.5206b786247238f32a2b5ad8ed7f6d378a1d2d12.git" || true
+v 2018.06.04 && versionComplete="$version.42bdc18d4ba8f9fd19109050eb83bb6615539a75.git" || true
+v 2018.08.20 && versionComplete="$version.74c2ec9d3c7eb09540a2a5de3127390fa8252179.git" || true
+
+# Modifications
+
+patache()
+{
+	grep -rl '<path' tools/minicargo | while read f
+	do
+		filtrer "$f" sed -e 's#<path\.h>#"path.h"#'
+	done
+}
+
+pointpointbin()
+{
+	# Je ne sais pourquoi le Makefile va chercher son mrustc généré un coup trop haut.
+	ici="`pwd`"
+	rm -f ../bin
+	ln -s "`basename "$ici"`/bin" ../bin
+}
+
+target()
+{
+	systeme=`uname -s | tr A-Z a-z`
+	proc=`uname -m`
+	case $systeme in
+		darwin) marchand=apple ;; # À FAIRE: regarder si ce n'est pas là qu'il faudrait indiquer macos ou ios (pour les inclusions conditionnelles de libc/mod.rs, par exemple).
+		linux) marchand=linux ; systeme=gnu ;;
+		*) marchand=$systeme ;;
+	esac
+	case $proc in
+		amd64) proc=x86_64 ;;
+	esac
+	cible="$proc-$marchand-$systeme`uname -r | cut -d - -f 1`"
+	filtrer src/main.cpp sed -e 's/error "Unable to detect a suitable default target"/define DEFAULT_TARGET_NAME "'"$cible"'"/'
+	
+	local codeGen='CodegenMode::Gnu11, "'"$cible"'"'
+	pge $version 2018.06.04 && codeGen="{$codeGen, BACKEND_C_OPTS_GNU}" || true # Les versions suivantes ajoutent un ensemble de flags spécifiques à GNU,à terme pour pouvoir passer aussi des flags clang (dans un premier temps pour Mac OS): bientôt une compil native clang?
+	code='else if(target_name == "'"$cible"'") return TargetSpec { "unix", "'"$marchand"'", "gnu", '"$codeGen"', ARCH_'"`echo "$proc" | tr a-z A-Z`"' };';
+	code="`echo "$code" | sed -e 's/"/\\\\"/g'`"
+	filtrer src/trans/target.cpp awk '/else if[ (]*target_name/{if(!fait){print "'"$code"'";fait=1}}{print}'
+}
+
+sousBsd()
+{
+	sousBsdCompilMrustc
+	sousBsdLienLlvm
+	sousBsdSansLdl
+}
+
+ldl()
+{
+	cat > "$TMP/testdl.c" <<TERMINE
+#include <dlfcn.h>
+void * dlopen(const char * path, int mode);
+int main(int argc, char ** argv) { dlopen("/tmp/bloug", 0000); }
+TERMINE
+	for ldl_options in "" "-ldl"
+	do
+		if cc -o "$TMP/testdl" "$TMP/testdl.c" $ldl_options 2> /dev/null
+		then
+			echo "$ldl_options"
+			return 0
+		fi
+	done
+	echo "# Impossible de trouver les options de compilation pour embarquer dlopen()." >&2
+	return 1
+}
+
+# Sous BSD, pas besoin de -ldl pour avoir dlopen. Voire, si une dlcompat n'a pas été installée, ça pète.
+sousBsdSansLdl()
+{
+	if [ -z "`ldl`" ]
+	then
+		filtrer run_rustc/Makefile sed -e 's#-l *dl##g'
+		filtrer script-overrides/stable-1.19.0-linux/build_std.txt sed -e '/^cargo:rustc-link-lib=dl/s/^/#/'
+	fi
+}
+
+sousBsdLienLlvm()
+{
+	# FreeBSD définit la variable globale environ dans crt1.o (le machin embarqué uniquement dans les applis finales), plutôt que dans une biblio. Du coup si ld est un tantinet chiant avec les symboles indéfinis dans les .so, on se fait jeter car on n'a pas moyen de lui indiquer "mais si mais si, à l'exécution, ton environ sera forcément défini car le binaire aura forcément inclut crt1.so).
+	export LDFLAGS="$LDFLAGS --warn-unresolved-symbols"
+}
+
+sousBsdCompilMrustc()
+{
+	filtrer src/span.cpp awk '/#include/{if(!fait)print"#include <stdlib.h>";fait=1}{print}'
+	filtrer src/expand/proc_macro.cpp sed -e '/unistd/a\
+extern char **environ;
+'
+}
+
+viaGcc()
+{
+	# mrustc utilise trop de trucs spécifiques GCC / libstdc++; bien qu'un effort ait été fait (libcxxspecifique), on n'arrive toujours pas à compiler via clang / libc++ au 2017-11-23. Donc GCC obligatoire.
+	export CC=gcc CXX=g++
+}
+
+libcxxspecifique()
+{
+	filtrer src/common.hpp sed -e '/define FMT/{
+h
+s/[a-z]*_cast<[^>]*>//
+i\
+#ifdef _LIBCPP_VERSION
+p
+i\
+#else
+a\
+#endif
+x
+}'
+	patch <<TERMINE
+--- src/main.cpp	2017-10-03 22:07:31.289880000 +0200
++++ src/main.cpp	2017-10-03 22:07:17.064410000 +0200
+@@ -723,7 +723,7 @@
+                     exit(1);
+                 }
+ 
+-                auto name = ::std::string(desc, pos);
++                auto name = ::std::string(desc, (const char *)pos);
+                 auto path = ::std::string(pos+1);
+                 this->crate_overrides.insert(::std::make_pair( mv\$(name), mv\$(path) ));
+             }
+TERMINE
+	# Un bout de code qui interdit le destructeur de TypeRef, malheureusement nécessaire pour des first() et second() qui utilisent de la construction et destruction par copie dans libc++.
+	filtrer src/ast/types.hpp sed -e 's/#if 1/#if 0/'
+}
+
+# Variables
+
+archive_git="https://github.com/thepowersgang/mrustc.git"
+
+destiner
+
+prerequis
+
+if false ; then
+echo ALLEZ-Y
+cd /tmp/mrustc.git-$version*
+export CC=gcc CXX=g++
+bash
+else
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+
+echo Compilation… >&2
+make
+make -f minicargo.mk tools/bin/minicargo
+if option rustc # À ne pas utiliser; mieux vaut compiler mrustc de son côté, puis rust 1.19.0 +viamrustc
+then
+	make RUSTCSRC
+	make -f minicargo.mk
+	make -C run_rustc
+fi
+fi
+
+echo Installation… >&2
+mkdir dest dest/bin dest/share dest/share/mrustc
+cp bin/mrustc tools/bin/minicargo dest/bin/
+cp -R lib dest/lib
+tar cf - Makefile minicargo.mk rust-version tools/minicargo tools/common script-overrides rust_src.patch lib | ( cd dest/share/mrustc && tar xf - )
+sudo cp -R dest "$dest"
+
+sutiliser "$logiciel$argOptions-$version"
+
+rm -Rf "$TMP/$$"
