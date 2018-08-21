@@ -784,7 +784,6 @@ analyserParametresInstall()
 	done
 }
 
-analyserParametresInstall "$@"
 case "$0" in
 	-*) true ;;
 	*)
@@ -1579,6 +1578,8 @@ statf()
 		*) stat --format "$@" ;;
 	esac
 }
+
+analyserParametresInstall "$@"
 
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
