@@ -37,12 +37,17 @@ v 4.80.1 && modifs="menageMakefile lthr majmin paf" && prerequis="pcre" || true
 v 4.82
 v 4.82.1
 v 4.87 || true
-v 4.89 && modifs="uniquementPrerequis menageMakefile lthr majmin paf2 tlsManuel" && prerequis="pcre openssl" || true
+v 4.89 && modifs="uniquementPrerequis menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="pcre openssl" || true
 v 4.90.1 || true
 
 prerequis
 
 # Modifications
+
+headcat()
+{
+	filtrer src/pdkim/pdkim.c awk '/^pdkim_headcat/{f=1}f!=2{print}f&&/^{/{f=2}f==2&&/^return/{f=0;while((getline<"'"$SCRIPTS/exim.pdkim_headcat"'")>0)print}'
+}
 
 majmin()
 {

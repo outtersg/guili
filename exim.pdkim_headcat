@@ -1,0 +1,48 @@
+size_t l;
+int space_after_pad = pad ? 1 : 0;
+
+/* Can we fit at least the pad at the end of current line? Then do it now.*/
+if (pad && *col+Ustrlen(pad) <= 78)
+  {
+  str = pdkim_headcat(col, str, NULL, NULL, pad);
+  pad = NULL;
+  }
+
+/* Special case: if the whole addition does not fit at the end of the current
+ * line, but could fit on a new line, wrap to give it its full, dedicated line.
+ */
+l = (pad?Ustrlen(pad)+1:0) + (intro?Ustrlen(intro):0) + (payload?Ustrlen(payload):0);
+if (l <= 77 && *col+l > 78)
+  {
+  str = pdkim_hdr_cont(str, col);
+  /* If pad was already put on the last line, we will have no use to space the
+   * intro. */
+  space_after_pad = 0;
+  }
+
+/* Else call us recursively with pad and intro as payloads: they will get the
+ * same, special treatment (that is, they'll get a chance not to be split if
+ * they are < 78).
+ */
+if (pad)
+  str = pdkim_headcat(col, str, NULL, NULL, pad);
+if (space_after_pad)
+  str = pdkim_headcat(col, str, NULL, NULL, US" ");
+if (intro)
+  str = pdkim_headcat(col, str, NULL, NULL, intro);
+if (payload)
+  {
+  l = Ustrlen(payload);
+  while (l)
+    {
+    if (*col >= 78)
+      str = pdkim_hdr_cont(str, col);
+    size_t chomp = *col+l > 78 ? 78-*col : l;
+    str = string_catn(str, payload, chomp);
+    *col += chomp;
+    payload += chomp;
+    l -= chomp;
+    }
+  }
+
+return str;
