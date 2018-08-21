@@ -44,6 +44,11 @@ v 3.6.2 || true
 v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7" || true
 v 3.9.1 && modifsDyn="macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
 v 4.0.0 || true
+v 4.0.1 || true
+v 5.0.0 || true
+v 5.0.1 && modifs="$modifs emmintrim" || true # Tout à la fin, que l'on compile avec un 3.9.1 ou un 4.0.1: make[2]: *** [tools/clang/runtime/CMakeFiles/compiler-rt.dir/build.make:107: tools/clang/runtime/compiler-rt-stamps/compiler-rt-configure] Segmentation fault (core dumped); si on relance, il finit sa compil + install.
+v 5.0.2 || true
+v 6.0.0 || true
 
 suffixe=xz
 pge $version 3.5 || suffixe=gz
