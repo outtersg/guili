@@ -759,7 +759,7 @@ engrangerArgVersion()
 }
 
 argVersion=
-engrangerArgVersion "$1" || true
+engrangerArgVersion "$@" || true
 
 analyserParametresInstall()
 {
