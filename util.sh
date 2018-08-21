@@ -553,8 +553,12 @@ preCFlag()
 
 preChemine()
 {
+	local d
 	preCFlag "-I$1/include"
-	LDFLAGS="-L$1/lib64 -L$1/lib $LDFLAGS"
+	for d in $1/lib64 $1/lib
+	do
+		[ ! -d "$d" ] || LDFLAGS="-L$d $LDFLAGS"
+	done
 	export LDFLAGS
 }
 
