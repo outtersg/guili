@@ -39,6 +39,7 @@ v 4.82.1
 v 4.87 || true
 v 4.89 && modifs="uniquementPrerequis menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="pcre openssl" || true
 v 4.90.1 || true
+v 4.91 || true
 
 prerequis
 
