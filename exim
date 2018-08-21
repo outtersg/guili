@@ -122,6 +122,7 @@ TERMINE
 dest="$INSTALLS/$logiciel-$version"
 archive="http://exim.mirror.fr/exim/exim4/$logiciel-$version.tar.bz2"
 archive="http://ftp.exim.llorien.org/exim/exim4/$logiciel-$version.tar.bz2"
+archive="http://exim.mirror.iphh.net/ftp/exim/exim4/$logiciel-$version.tar.bz2"
 
 [ -d "$dest" ] && exit 0
 
