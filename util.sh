@@ -782,6 +782,7 @@ analyserParametresInstall()
 		esac
 		shift
 	done
+	argOptions="`options "$argOptions" | tr -d ' '`"
 }
 
 case "$0" in
