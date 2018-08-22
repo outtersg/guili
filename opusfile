@@ -29,6 +29,7 @@ logiciel=opusfile
 # Historique des versions gérées
 
 v 0.7 && prerequis="opus ogg" && modifs="sansCompat" || true
+v 0.9 || true
 
 prerequis
 
