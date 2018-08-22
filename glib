@@ -40,6 +40,8 @@ v 2.44.0 || true
 v 2.48.0 && prerequis="gettext libffi >= 3 python pkgconfig pcre" || true
 v 2.48.1 || true
 v 2.48.2 || true
+v 2.52.1 || true
+v 2.52.2 || true
 
 prerequis
 
