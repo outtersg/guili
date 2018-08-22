@@ -31,6 +31,7 @@ logiciel=lame
 v 3.97 && modifs=fpic || true
 v 3.98.4 || true
 v 3.99.5 || true
+v 3.100 || true
 
 v_maj="`echo "$version" | sed -e 's#^\([^.]*\.[^.]*\).*$#\1#'`"
 
