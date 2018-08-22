@@ -40,6 +40,8 @@ archive="http://www.cpan.org/src/5.0/perl-$version.tar.gz"
 
 destiner
 
+prerequis
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
