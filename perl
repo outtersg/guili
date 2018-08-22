@@ -48,7 +48,11 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-sh Configure -de -Dprefix="$dest"
+sh Configure -de \
+	-A define:paths="/bin /usr/bin $INSTALLS/bin" \
+	-A define:locincpth="$INSTALLS/include" \
+	-A define:loclibpth="$INSTALLS/lib" \
+	-Dprefix="$dest"
 
 echo Compilation… >&2
 make
