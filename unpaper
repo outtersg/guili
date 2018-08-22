@@ -26,7 +26,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 # Historique des versions gérées
 
-v 6.1.0.20170607 && versionComplete="$version.b67b58c6179a5acc1e8909fbf39a1a3def2924be.git" && prerequis="" && modifs="" || true
+v 6.1.0.20170607 && versionComplete="$version.b67b58c6179a5acc1e8909fbf39a1a3def2924be.git" && prerequis="ffmpeg libxslt" && modifs="" || true # ffmpeg ou libav; libxslt pour la doc.
 
 # Modifications
 
