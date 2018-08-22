@@ -94,13 +94,16 @@ dest="$INSTALLS/$logiciel-$version"
 
 modifspostcompil=
 conf=./configure
-if [[ $version = r* ]] ; then
+case "$version" in
+	r*)
 	obtenirEtAllerDansSvn -r `echo "$version" | sed -e 's/^r//'` $archive_svn
 	export ACLOCAL_FLAGS="-I $INSTALLS/share/aclocal"
 	conf=./autogen.sh
-else
+		;;
+	*)
 	obtenirEtAllerDansVersion
-fi
+		;;
+esac
 
 echo Correction… >&2
 nom_modifs_truc=\$modifs_"`echo "$logiciel" | tr -d -`"
