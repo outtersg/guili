@@ -135,7 +135,7 @@ case `uname` in
 		# Rien. On démarrera à la main.
 		;;
 	FreeBSD)
-		serveur -d0 "$TMP/$$/dest" -d "$dest" -p "$destexim/var/spool/exim/exim-daemon.pid" -pre "LD_LIBRARY_PATH=$INSTALLS/lib ; export LD_LIBRARY_PATH" demon exim "$destexim/bin/exim -bd -q1m"
+		serveur -d0 "$TMP/$$/dest" -d "$dest" -p "$destexim/var/spool/exim/exim-daemon.pid" LD_LIBRARY_PATH="$INSTALLS/lib" demon exim "$destexim/bin/exim -bd -q1m"
 		if [ "$paf" = 1 ]
 		then
 		touch "$TMP/$$/dest/etc/exim.paf.regles"
