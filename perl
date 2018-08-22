@@ -37,9 +37,8 @@ v 5.24.0 || true
 # Variables
 
 archive="http://www.cpan.org/src/5.0/perl-$version.tar.gz"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
