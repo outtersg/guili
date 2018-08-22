@@ -46,6 +46,7 @@ v 1.0.1 && prerequis="lame" OPTIONS_CONF="--enable-gpl --enable-nonfree --enable
 v 2.5 && modifs="monCc" prerequis="opus lame >= 3.98.3" || true
 v 2.5.2 || true
 v 3.2.2 || true
+v 4.0.2 || true
 
 # http://lists.freebsd.org/pipermail/freebsd-questions/2012-February/238956.html
 if [ `uname` = FreeBSD -a `uname -r | sed -e 's/[^0-9].*//'` -lt 10 ] # Le 10 est arbitraire.
