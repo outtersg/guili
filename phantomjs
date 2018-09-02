@@ -355,7 +355,8 @@ make || make || make || make || make
 echo Installation… >&2
 mkdir -p dest/libexec/phantomjs dest/bin
 cp bin/phantomjs dest/libexec/phantomjs/
-( cd src/qt/qtbase/lib/ && tar cf - libQt*.so* ) | ( cd dest/libexec/phantomjs/ && tar xf - )
+# Si PhantomJS s'est compilé en mode biblios partagées, il nous faut intégrer les biblios au livrable.
+( cd src/qt/qtbase/lib/ && find . -name "libQt*.so*" -print0 | xargs -0 tar cf - ) | ( cd dest/libexec/phantomjs/ && tar xf - )
 # À FAIRE: les polices (QT_QWS_FONTDIR, src/qt/qtbase/lib/fonts/).
 ( cd src/qt/qtbase/ && tar cf - plugins ) | ( cd dest/libexec/phantomjs && tar xf - )
 cat > "dest/bin/phantomjs" <<TERMINE
