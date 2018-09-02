@@ -28,14 +28,14 @@ logiciel=openssh
 
 # Historique des versions gérées
 
-version=6.0p1
-modifs=
+v 6.0.1 && modifs= || true
 
 # Modifications
 
 # Variables
 
-archive=http://ftp.fr.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$version.tar.gz
+version_p="`echo "$version" | sed -e 's/\.\([0-9][0-9]*\)$/p\1/'`"
+archive=http://ftp.fr.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$version_p.tar.gz
 
 destiner
 
