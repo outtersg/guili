@@ -1051,7 +1051,7 @@ triversions()
 			ndecoupe = split(v, decoupe, ".");
 			for(i = 0; ++i <= ndecoupe;)
 			{
-				if(i >= ntailles)
+				if(i > ntailles)
 				{
 					++ntailles;
 					tailles[i] = 0;
