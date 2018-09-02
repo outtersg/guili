@@ -28,7 +28,7 @@ logiciel=phantomjs
 
 # Historique des versions gérées
 
-v 1.9.2 && prerequis="freetype fontconfig libpng libjpeg icu openssl < 1.1" && modifs="miens compatibleJpegMien asiatiques noproxy debogageEtProxy freetype2 lz" || true
+v 1.9.2 && prerequis="freetype fontconfig libpng libjpeg icu 55.1 openssl < 1.1" && modifs="miens compatibleJpegMien asiatiques noproxy debogageEtProxy freetype2 lz" || true
 v 1.9.7 || true
 v 1.9.8 || true
 v 2.0.0 && prerequis="$prerequis flex bison ruby" && modifs="miensSqlite compatibleJpegMien debogageEtProxy" && qb="/qtbase" || true
