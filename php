@@ -230,7 +230,6 @@ i\
 
 # Variables
 
-dest=$INSTALLS/$logiciel-$version
 archive="http://de.php.net/distributions/$logiciel-$version.tar.bz2"
 archive="http://de2.php.net/distributions/$logiciel-$version.tar.bz2"
 
@@ -241,7 +240,7 @@ then
 	bash
 else
 
-[ -d "$dest" ] && exit 0
+destiner # Après prerequis, afin de pouvoir interroger le résultat de reglagesCompilPrerequis (LD_LIBRARY_PATH, etc.).
 
 case "$version" in
 	*-*)
