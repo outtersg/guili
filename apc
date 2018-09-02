@@ -26,10 +26,15 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 analyserParametres()
 {
+	prerequis=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-d) shift ; export PATH="$1/bin:$PATH" ;;
+			--pour=*)
+				prerequis="$prerequis `echo "$1" | cut -d = -f 2-`"
+				prerequis
+				;;
 		esac
 		shift
 	done
@@ -40,7 +45,7 @@ analyserParametres "$@"
 
 logiciel=apc
 
-v 3.1.9 && modifs="lock" && prerequis="autoconf" || true
+v 3.1.9 && modifs="lock" && prerequis="$prerequis autoconf" || true
 v 3.1.13 && modifs= || true
 v 3.1.13 && modifs= || true
 #v 3.1.14 && modifs= || true # Retirée de la "vente" par Rasmus, pour une question de fuite mémoire.
