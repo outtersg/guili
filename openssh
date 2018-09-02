@@ -35,10 +35,11 @@ modifs=
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive=http://ftp.fr.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -54,6 +55,6 @@ make
 echo Installation… >&2
 sudo make install
 
-sutiliser "$logiciel-$version"
+sutiliser
 
 rm -Rf "$TMP/$$"
