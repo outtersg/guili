@@ -42,6 +42,7 @@ sisicestbienuniconvgnu()
 
 archive="http://www.freedesktop.org/software/pkgconfig/releases/$logiciel-$version.tar.gz"
 pge $version 0.23 && archive="http://pkgconfig.freedesktop.org/releases/pkg-config-$version.tar.gz"
+pge $version 0.23 && archive="http://tmp.outters.eu/pkg-config-$version.tar.gz"
 
 dest="$INSTALLS/$logiciel-$version"
 
