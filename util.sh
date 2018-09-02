@@ -23,6 +23,23 @@ INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
 
+util_menage()
+{
+	# Un minimum de blindage pour éviter de supprimer / en cas de gros, gros problème (genre le shell ne saurait même plus fournir $$).
+	case "$TMP/$$" in
+		*/[0-9]*)
+			rm -Rf "$TMP/$$"
+			;;
+	esac
+}
+util_mechantmenage()
+{
+	util_menage
+	exit 1
+}
+trap util_menage EXIT
+trap util_mechantmenage INT TERM
+
 mkdir -p "$TMP/$$" "$INSTALL_MEM"
 export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
 export LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
