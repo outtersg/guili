@@ -30,7 +30,7 @@ v 2.3.2 && prerequis="freetype expat" || true
 # La 2.3.2 est boguée, leur FcObjectStaticName n'est pas généralisé et du coup
 # les comparaisons de chaînes par pointeur ne marchent pas partout.
 version=2005-06-28
-v 2.10.0 || true
+v 2.10.0 && modifs="glibc225" || true
 v 2.10.2 || true
 v 2.10.95 || true
 v 2.11.1 || true
@@ -42,6 +42,18 @@ archive=http://www.fontconfig.org/release/$logiciel-$version.tar.gz
 archive_cvs=cvs://anonymous@cvs.freedesktop.org:/cvs/fontconfig:fontconfig
 
 # Modifications
+
+glibc225()
+{
+	# https://github.com/jwilm/alacritty/issues/773
+	
+	for i in `grep -rl CHAR_WIDTH .`
+	do
+		filtrer "$i" sed -e 's/CHAR_WIDTH/CHARWIDTH/g' -e '/#define[ 	]*FC_CHARWIDTH/a\
+#define FC_CHAR_WIDTH FC_CHARWIDTH
+'
+	done
+}
 
 constantes()
 {
