@@ -81,6 +81,9 @@ analyserParametres()
 
 filtrerConfs()
 {
+	local bdestphp="`basename "$destphp"`"
+	local bdest="`basename "$dest"`"
+	
 	groupe="`id -g -n $compte`"
 	for i in "$@"
 	do
@@ -88,7 +91,7 @@ filtrerConfs()
 			-e "/^user *=/s#=.*#= $compte#" \
 			-e "/^group *=/s#=.*#= $groupe#" \
 			-e "/^listen *=/s#=.*#= 127.0.0.1:$port#" \
-			-e "s#$destphp/etc/php-fpm.d#$dest/etc/php-fpm$suffixe.d#g"
+			-e "s#/$bdestphp/etc/php-fpm.d#/$bdest/etc/php-fpm$suffixe.d#g"
 	done
 }
 
