@@ -754,11 +754,25 @@ _initPrerequisLibJpeg()
 export prerequis_libjpeg
 }
 
+analyserParamsPrerequis()
+{
+	requis="$1" ; shift
+	versionRequis="$*"
+}
+
 prerequis()
 {
-	decoupePrerequis "$prerequis" > $TMP/$$/temp.prerequis
-	while read requis versionRequis
+	# Initialement on pondait dans un fichier, sur lequel on faisait un while read requis versionRequis ; do … ; done < $TMP/$$/temp.prerequis
+	# (ce < après le done pour ne pas faire un cat $TMP/$$/temp.prerequis | while, qui aurait exécuté le while dans un sous-shell donc ne modifiant pas nos variables)
+	# Problème: sous certains Linux, lorsque prerequerir() donne lieu à la compil d'un logiciel (car non encore présent sur la machine), mystérieusement le prochain tour de boucle renvoie false (comme si le prerequerir avait fait un fseek($TMP/$$/temp.prerequis, 0, SEEK_END).
+	# On passe donc maintenant par de la pure variable locale, qui ne sera pas touchée entre deux tours de boucle…
+	local prcourant requis versionRequis
+	local prdecoupes="`decoupePrerequis "$prerequis" | tr '\012' \; | sed -e 's/;$//'`"
+	IFS=';'
+	for prcourant in $prdecoupes
 	do
+		unset IFS
+		analyserParamsPrerequis $prcourant
 		case "$requis" in
 			*\(\))
 				"`echo "$requis" | tr -d '()'`" $versionRequis
@@ -767,7 +781,8 @@ prerequis()
 				prerequerir "$requis" "$versionRequis"
 				;;
 		esac
-	done < $TMP/$$/temp.prerequis # Affectation de variables dans la boucle, on doit passer par un fichier intermédiaire plutôt qu'un | (qui affecterait dans un sous-shell, donc sans effet sur nous).
+	done
+	unset IFS
 }
 
 decoupePrerequis()
