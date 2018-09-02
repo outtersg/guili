@@ -34,12 +34,11 @@ version=2.68
 
 version=2.69
 
-dest="$INSTALLS/$logiciel-$version"
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
 archive=http://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDans "$archive"
 
@@ -51,6 +50,6 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
+sutiliser
 
 rm -Rf $TMP/$$
