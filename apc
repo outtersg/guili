@@ -54,6 +54,7 @@ v 3.1.9 && modifs="lock" && prerequis="$prerequis autoconf" || true
 v 3.1.13 && modifs= || true
 v 3.1.13 && modifs= || true
 #v 3.1.14 && modifs= || true # Retirée de la "vente" par Rasmus, pour une question de fuite mémoire.
+v 5.1.12 || true
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
 pge 4 $version || archive="https://pecl.php.net/get/apcu-$version.tgz"
