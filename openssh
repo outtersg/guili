@@ -48,7 +48,8 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+# privsep-path: si on est installés en tant que non root, juste pour avoir la partie cliente d'OpenSSH, /var/empty va être difficile à créer.
+./configure --prefix="$dest" --with-privsep-path=/tmp/empty
 
 echo Compilation… >&2
 make
