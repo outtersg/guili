@@ -1122,6 +1122,8 @@ sudoer()
 	echo "$1 ALL=(ALL) NOPASSWD: $2" | sudo sh -c 'cat >> /etc/sudoers'
 }
 
+#- Création de comptes et groupes ----------------------------------------------
+
 listeIdComptesBsd()
 {
 	(
