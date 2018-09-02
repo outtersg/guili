@@ -40,7 +40,14 @@ util_mechantmenage()
 trap util_menage EXIT
 trap util_mechantmenage INT TERM
 
-mkdir -p "$TMP/$$" "$INSTALL_MEM"
+# Si notre environnement a été pourri par un appelant qui ne tourne pas sous notre compte, il se peut qu'il ait défini un TMP dans lequel nous ne savons pas écrire. En ce cas nous redéfinissons à une valeur "neutre".
+if ! mkdir -p "$TMP/$$" 2> /dev/null
+then
+	TMP=/tmp
+	mkdir -p "$TMP/$$"
+fi
+mkdir -p "$INSTALL_MEM"
+
 export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
 export LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
