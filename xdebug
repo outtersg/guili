@@ -97,6 +97,6 @@ cd debugclient
 [ -e install-sh ] && chmod a+x install-sh
 sudo make install
 
-sutiliser "$logiciel-$version"
+sutiliser -
 
 rm -Rf "$TMP/$$"
