@@ -324,9 +324,8 @@ lz()
 archive="https://phantomjs.googlecode.com/files/phantomjs-$version-source.zip"
 archive="https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-$version-source.zip"
 pge $version 2.1 && archive="https://github.com/ariya/phantomjs/archive/$version.zip" || true
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -369,6 +368,7 @@ TERMINE
 chmod a+x "dest/bin/phantomjs"
 sudo rm -Rf "$dest"
 sudo cp -R dest "$dest"
-sutiliser "$logiciel-$version"
+
+sutiliser
 
 rm -Rf "$TMP/$$"
