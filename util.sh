@@ -702,7 +702,11 @@ reglagesCompil()
 	export "version_`echo "$1" | tr +- __`=$versionInclus"
 	preChemine "$dossierRequis"
 	PATH="$dossierRequis/bin:$PATH" # Pour les machins qui ont besoin de lancer des exécutables (xml2-config etc.) de leurs prérequis.
-	LD_LIBRARY_PATH="$dossierRequis/lib64:$dossierRequis/lib:$LD_LIBRARY_PATH" # Python et compagnie.
+	local d
+	for d in lib64 lib
+	do
+		[ ! -d "$dossierRequis/$d" ] || LD_LIBRARY_PATH="$dossierRequis/$d:$LD_LIBRARY_PATH"
+	done
 	PKG_CONFIG_PATH="$dossierRequis/lib/pkgconfig:$PKG_CONFIG_PATH"
 	if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 	ACLOCAL="`echo "$ACLOCAL" | sed -e "s#aclocal#aclocal -I $dossierRequis/share/aclocal #"`"
