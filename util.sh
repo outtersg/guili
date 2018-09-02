@@ -1145,6 +1145,75 @@ idCompteLibre()
 	echo "$n"
 }
 
+_analyserParametresSusermod()
+{
+	local vars="qui"
+	qui=
+	groupe=
+	autresGroupes=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-g) groupe="$2" ; shift ;;
+			-G) autresGroupes="$autresGroupes,$2" ; shift ;;
+			*)
+				[ -z "$vars" ] && echo "# susermod <qui> [-g <groupe>] [-G <autre groupe>]*" >&2 && return 1 || true
+				for i in $vars
+				do
+					export $i="$1"
+					break
+				done
+				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				;;
+		esac
+		shift
+	done
+}
+
+# Renvoie une liste de groupes uniques.
+# groupesNormalises <liste> [<à soustraire>]
+groupesNormalises()
+{
+	echo "$1" | tr ', ' '\012\012' | grep -v "^$2$" | grep -v ^$ | sort -u | tr '\012' , | sed -e 's/,$//'
+}
+
+susermod()
+{
+	local qui groupe autresGroupes
+	_analyserParametresSusermod "$@"
+
+	local groupeActuel="`id -n -g "$qui"`"
+	local autresGroupesActuels="`id -n -G "$qui"`"
+	local optionsGroupe=
+
+	# On est en mode accu: les -G s'ajoutent (et non remplacent) aux groupes actuels, le -g, s'il remplace le groupe actuel, l'ajoute aux -G.
+
+	if [ ! -z "$groupe" -a "$groupe" != "$groupeActuel" ]
+	then
+		autresGroupes="$autresGroupes,$groupeActuel"
+		optionsGroupe="-g $groupe"
+	fi
+
+	autresGroupes="`groupesNormalises "$autresGroupes" "$groupe"`"
+	if [ ! -z "$autresGroupes" ]
+	then
+		autresGroupes="`groupesNormalises "$autresGroupes,$autresGroupesActuels" "$groupe"`"
+		optionsGroupe="$optionsGroupe -G $autresGroupes"
+	fi
+
+	[ ! -z "$optionsGroupe" ] || return 0
+
+	# À FAIRE: reporter les groupes existants (si le -g fait sauter le groupe actuel, le reporter en -G; si les -G omettent des groupes actuels, les ajouter (-a devrait le permettre sous Linux; à reconstituer sous FreeBSD)).
+	case `uname` in
+		FreeBSD)
+			SANSSU=0 sudoku pw usermod "$qui" $optionsGroupe
+			;;
+		Linux)
+			SANSSU=0 sudoku usermod "$qui" $optionsGroupe
+			;;
+	esac
+}
+
 _analyserParametresCreeCompte()
 {
 	cc_vars="cc_qui cc_id"
