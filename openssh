@@ -28,7 +28,7 @@ logiciel=openssh
 
 # Historique des versions gérées
 
-v 6.0.1 && modifs= || true
+v 6.0.1 && modifs= && prerequis="openssl < 1.1" || true
 
 # Modifications
 
