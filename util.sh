@@ -235,9 +235,55 @@ obtenirEtAllerDansDarcs()
 	cd $endroit_oeadd
 }
 
+# Va chercher si un silo central a une version binaire de ce qu'on essaie de compiler.
+installerBinaireSilo()
+{
+	[ ! -z "$INSTALL_SILO" ] || return 0
+
+	local triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`"
+	local archive="`basename "$dest"`.bin.tar.gz"
+
+	if [ ! -f "$INSTALL_MEM/$archive" ]
+	then
+		scp $INSTALL_SILO_SSH_OPTS -o ConnectTimeout=2 "$INSTALL_SILO/$triplet/$archive" "$INSTALL_MEM/$archive" < /dev/null > /dev/null 2>&1 || true
+	fi
+
+	if [ -f "$INSTALL_MEM/$archive" ]
+	then
+		local ddest="`dirname "$dest"`" # Normalement égal à $INSTALLS
+		local bdest="`basename "$dest"`"
+		sudoku sh -c "cd $ddest && mkdir $bdest.temp && ( cd $bdest.temp && tar xzf "$INSTALL_MEM/$archive" ) && mv $bdest.temp $bdest" && sutiliser - && exit 0 || true
+	fi
+}
+
+pousserBinaireVersSilo()
+{
+	local destLogiciel="$1"
+	if [ ! -z "$INSTALL_SILO" ]
+	then
+		local triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`"
+		local archive="`basename "$dest"`.bin.tar.gz"
+		local silo_hote="`echo "$INSTALL_SILO" | cut -d : -f 1`"
+		local silo_chemin="`echo "$INSTALL_SILO" | cut -d : -f 2-`"
+		local ssh_opts="$INSTALL_SILO_SSH_OPTS -o ConnectTimeout=2"
+		
+		(
+			cd "$INSTALLS/$destLogiciel"
+			tar czf "$INSTALL_MEM/$archive.temp" . && mv "$INSTALL_MEM/$archive.temp" "$INSTALL_MEM/$archive"
+			ssh $ssh_opts "$silo_hote" "cd $silo_chemin && mkdir -p $triplet" < /dev/null > /dev/null 2>&1 \
+			&& scp $ssh_opts "$INSTALL_MEM/$archive" "$INSTALL_SILO/$triplet/$archive.temp" < /dev/null > /dev/null 2>&1 \
+			&& ssh $ssh_opts "$silo_hote" "cd $silo_chemin/$triplet && mv $archive.temp $archive" \
+			|| true
+		)
+	fi
+}
+
 # Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {
+	# A-t-on un binaire déjà compilé?
+	installerBinaireSilo
+	# A-t-on déjà une copie des sources?
 	if [ ! -z "$install_obtenu" ]
 	then
 		cd "$install_obtenu"
@@ -379,13 +425,34 @@ testsudoku()
 utiliser="$SCRIPTS/utiliser"
 command -v $utiliser 2> /dev/null >&2 || utiliser=utiliser # Si SCRIPTS n'est pas définie, on espère trouver un utiliser dans le PATH.
 
+# Utilisation: sutiliser [-|+]
+#   -|+
+#	 Si +, et si $INSTALL_SILO est définie, on pousse une archive binaire de notre $dest installé vers ce silo. Cela permettra à de futurs installant de récupérer notre produit de compil plutôt que de tout recompiler.
+#	 Si -, notre produit de compil ne sera pas poussé (à mentionner par exemple s'il installe des bouts ailleurs que dans $dest, car alors l'archive de $dest sera incomplète).
+#	 Si non mentionné: comportement de - si on est un amorceur (car supposé installer des trucs dans le système, un peu partout ailleurs que dans $dest); sinon comportement de +.
 sutiliser()
 {
+	local biner=
+	[ "x$1" = "x-" -o "x$1" = "x+" ] && biner="$1" && shift || true
+
 	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
 	sudo touch "$dest/.complet"
 	
 	sut_lv="$1"
 	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
+	
+	# Si on est censés pousser notre binaire vers un silo central, on le fait.
+	if [ -z "$biner" ]
+	then
+		case "$sut_lv" in
+			_*) biner=- ;; # Par défaut, un amorceur n'est pas silotable (car il s'installe un peu partout dans le système: rc.d, init.d, systemd, etc.).
+			*) biner=+ ;;
+		esac
+	fi
+	if [ "x$biner" = "x+" ]
+	then
+		pousserBinaireVersSilo "$sut_lv"
+	fi
 	
 	logicielParam="`echo "$sut_lv" | sed -e 's/-[0-9].*//'`"
 	derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$sut_lv-.*/$sut_lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
