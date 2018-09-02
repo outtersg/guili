@@ -43,6 +43,11 @@ analyserParametres()
 
 analyserParametres "$@"
 
+case `php-config --version | cut -d . -f 1-2` in
+	[1-9][0-9].*) argVersion="$argVersion >= 5" ;;
+	[45]*) argVersion="$argVersion < 4" ;;
+esac
+
 logiciel=apc
 
 v 3.1.9 && modifs="lock" && prerequis="$prerequis autoconf" || true
@@ -51,6 +56,7 @@ v 3.1.13 && modifs= || true
 #v 3.1.14 && modifs= || true # Retirée de la "vente" par Rasmus, pour une question de fuite mémoire.
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
+pge 4 $version || archive="https://pecl.php.net/get/apcu-$version.tgz"
 
 lock()
 {
@@ -65,7 +71,7 @@ prerequis
 
 obtenirEtAllerDansVersion
 
-cd APC-$version
+cd `find . -name APC\*-$version -o -name apc\*-$version`
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
