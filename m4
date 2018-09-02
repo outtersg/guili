@@ -31,10 +31,9 @@ v 1.4.16 || true
 v 1.4.17 || true
 v 1.4.18 || true
 
-dest="$INSTALLS/$logiciel-$version"
 archive=http://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDans "$archive"
 
@@ -46,6 +45,6 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
+sutiliser
 
 rm -Rf $TMP/$$
