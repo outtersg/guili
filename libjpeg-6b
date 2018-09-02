@@ -76,13 +76,12 @@ vMinEnAlpha()
 	echo @ | tr @ \\$vminoctal
 }
 valpha="$vnum`vMinEnAlpha "$version"`"
-dest="$INSTALLS/$logiciel-$version"
 archive="http://freshmeat.net/redir/$logiciel/5665/url_tgz/jpegsrc.v$valpha.tar.gz"
 pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$valpha.tar.gz"
 
 # Constitution
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDans "$archive"
 
@@ -100,6 +99,6 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 pge $vnum 8 || sudo make install-lib
 sudo make install
-sutiliser "$logiciel-$version"
+sutiliser
 
 rm -Rf "$TMP/$$"
