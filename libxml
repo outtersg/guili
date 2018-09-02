@@ -87,7 +87,7 @@ destiner
 
 prerequis
 
-obtenirEtAllerDans "$archive"
+obtenirEtAllerDansVersion
 
 echo Corrections… >&2
 for modif in true $modifs
