@@ -317,10 +317,10 @@ obtenirEtAllerDansVersion()
 
 if ! command -v curl 2> /dev/null >&2
 then
-	[ -x "$TMP/minicurl" ] || cc -o "$TMP/minicurl" "$SCRIPTS/minicurl.c"
+	[ -x "/tmp/minicurl" ] || cc -o "/tmp/minicurl" "$SCRIPTS/minicurl.c"
 	curl()
 	{
-		"$TMP/minicurl" "$@"
+		"/tmp/minicurl" "$@"
 	}
 fi
 
