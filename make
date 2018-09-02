@@ -30,14 +30,22 @@ logiciel=make
 
 v 3.81 || true
 v 3.82 || true
-v 4.2 || true
+v 4.2 && modifs="globInterface" || true
+v 4.2.1 || true
+v 4.2.1.2018.08.04 && versionComplete="$version.a1bb739165a944769cbb4a6e4f027ac9c2587122.git" && modifs= && prerequis="automake >= 1.16.1" || true
 
 # Modifications
+
+globInterface()
+{
+	patch -p1 < "$SCRIPTS/make.glob-interface.patch"
+}
 
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
+archive_git="https://git.savannah.gnu.org/git/make.git"
 
 [ -d "$dest" ] && exit 0
 
@@ -49,6 +57,13 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ ! -f configure ]
+then
+	autoreconf -f -i
+	#aclocal
+	#autoconf
+	#automake -a
+fi
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
