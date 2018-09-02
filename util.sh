@@ -888,6 +888,7 @@ analyserParametresInstall()
 		case "$1" in
 			--src) shift ; install_obtenu="$1" ;;
 			--dest) shift ; install_dest="$1" ;;
+			+) export INSTALLS_MAX=1 ;;
 			+[a-z]*) argOptions="$argOptions$1" ;;
 		esac
 		shift
@@ -1699,6 +1700,8 @@ _initPrerequisLibJpeg
 
 # Initialisation standard.
 
+if [ -z "$INSTALLS_MAX" ]
+then
 case " $INSTALLS_AVEC_INFOS " in
 	*" -n "*|*" -i "*|"  ") true ;; # En mode INSTALLS_AVEC_INFOS -n ou -i, ou sans INSTALLS_AVEC_INFOS, on laisse dérouler, car on souhaite atteindre la plus haute version qui réponde aux critères définis dans la suite des opérations.
 	*)
@@ -1708,3 +1711,4 @@ case " $INSTALLS_AVEC_INFOS " in
 		[ -z "$argVersionExistante" ] || argVersion="$argVersionExistante"
 		;;
 esac
+fi
