@@ -44,7 +44,8 @@ v 5.0.9.3.2005-08-29
 # La 2005-08-29 explose sur la recréation du cache de l'album (httpd-2.1.7).
 v 5.0.9.4.2005-09-20
 v 5.0.9.5.2005-09-23 && ajouterModif php34617
-v 5.1.4 && retirerModif php34617 && prerequis="$prerequis icu" || true
+# icu < 56: https://bugs.archlinux.org/task/58061, http://source.icu-project.org/repos/icu/trunk/icu4c/readme.html#RecBuild par rapport aux namespaces de la 61 (et la 55.1 marche bien, donc < 56 est une valeur sûre)
+v 5.1.4 && retirerModif php34617 && prerequis="$prerequis icu < 56" || true
 # Apache 2.2.3
 v 5.2.0 && ajouterModif pasDUsrLocalEnDur || true
 v 5.2.1 || true #&& ajouterModif pourTrouverApache
@@ -58,13 +59,13 @@ v 5.2.8
 v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
-v 5.2.17 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql < 5.5.20 libxml < 2.8 icu openssl < 1.1 libssh" || true
-v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng readline curl+ossl10 zlib iconv mysql libxml icu openssl < 1.1 libssh" || true
+v 5.2.17 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql < 5.5.20 libxml < 2.8 icu < 56 openssl < 1.1 libssh" || true
+v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng readline curl+ossl10 zlib iconv mysql libxml icu < 56 openssl < 1.1 libssh" || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
-v 5.4.11 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1 libssh" || true # mysql < 5.6
+v 5.4.11 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 < 56 libjpegturbo openssl < 1.1 libssh" || true # mysql < 5.6
 v 5.4.33 || true
 v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfault.
 v 5.4.39 || true
@@ -75,7 +76,7 @@ v 5.5.8 || true
 v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
-v 5.6.10 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 libjpegturbo openssl < 1.1 libssh" || true
+v 5.6.10 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 < 56 libjpegturbo openssl < 1.1 libssh" || true
 v 5.6.25 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite || true
 v 7.0.8 || true
