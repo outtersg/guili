@@ -35,7 +35,7 @@ archive=http://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 
 destiner
 
-obtenirEtAllerDans "$archive"
+obtenirEtAllerDansVersion
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
