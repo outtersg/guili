@@ -39,6 +39,7 @@ v 9.5.3  || true
 v 9.6.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline pathZic" || true
 v 9.6.5 || true
 v 9.6.6 || true
+v 9.6.10 || true
 
 detectionReadline()
 {
