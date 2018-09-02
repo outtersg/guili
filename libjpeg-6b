@@ -83,7 +83,7 @@ pge $vnum 8 && archive="http://www.ijg.org/files/jpegsrc.v$valpha.tar.gz"
 
 destiner
 
-obtenirEtAllerDans "$archive"
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs; do $modif "$@" ; done
