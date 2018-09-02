@@ -1272,12 +1272,36 @@ compteExiste()
 	return 1
 }
 
+creeGroupe()
+{
+	local groupe="$1"
+	local id="$2"
+	if ! compteExiste -g "$groupe"
+	then
+		case `uname` in
+			FreeBSD) SANSSU=0 sudoku pw groupadd "$groupe" -g "$id" ;;
+			Linux) SANSSU=0 sudoku groupadd -g "$id" "$groupe" ;;
+		esac
+	fi
+}
+
 creeCompte()
 {
 	_analyserParametresCreeCompte "$@"
 	
-	# Si le compte existe déjà, on le suppose correctement créé.
-	compteExiste "$cc_qui" && return 0 || true
+	# Options POSIX de groupe.
+	
+	cc_opts_groupe= ; [ -z "$cc_groupe" ] || cc_opts_groupe="-g $cc_groupe"
+	cc_opts_autres_groupes= ; [ -z "$cc_autres_groupes" ] || cc_opts_autres_groupes="-G $cc_autres_groupes"
+	cc_opts_groupes="$cc_opts_groupe $cc_opts_autres_groupes"
+	
+	# Si le compte existe déjà, on le suppose correctement créé. Peut-être tout de même un rattachement de groupes à faire.
+	if compteExiste "$cc_qui"
+	then
+		creeGroupe "$cc_groupe" "$cc_id"
+		susermod $cc_qui $cc_opts_groupes
+		return 0
+	fi
 	
 	# Pas de doublon?
 	
@@ -1295,19 +1319,7 @@ creeCompte()
 	# Création éventuelle du groupe principal.
 	# $cc_id a été choisi pour n'être pris ni comme ID de compte, ni comme ID de groupe: on peut donc l'utiliser pour le nouveau groupe.
 	
-	if ! compteExiste -g "$cc_groupe"
-	then
-		case `uname` in
-			FreeBSD) SANSSU=0 sudoku pw groupadd "$cc_groupe" -g "$cc_id" ;;
-			Linux) SANSSU=0 sudoku groupadd -g "$cc_id" "$cc_groupe" ;;
-		esac
-	fi
-	
-	# Options POSIX de groupe.
-	
-	cc_opts_groupe= ; [ -z "$cc_groupe" ] || cc_opts_groupe="-g $cc_groupe"
-	cc_opts_autres_groupes= ; [ -z "$cc_autres_groupes" ] || cc_opts_autres_groupes="-G $cc_autres_groupes"
-	cc_opts_groupes="$cc_opts_groupe $cc_opts_autres_groupes"
+	creeGroupe "$cc_groupe" "$cc_id"
 	
 	# Options POSIX de dossier.
 	
