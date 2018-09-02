@@ -31,7 +31,7 @@ v 1.7.0.6 && prerequis="perl gettext expat iconv curl" || true
 v 1.7.5.4
 v 1.7.10.4 && modifs=autoconfer || true
 v 1.8.3.2 && modifs=sansConfigurer || true
-v 2.9.0 && modifs="lierIconv sansConfigurer sansMoinsR perler" || true
+v 2.9.0 && modifs="sansConfigurer sansMoinsR perler" || true
 v 2.12.0 || true
 v 2.12.2 || true
 v 2.14.1 || true
@@ -57,11 +57,6 @@ perler()
 	done
 }
 
-lierIconv()
-{
-	LDFLAGS="$LDFLAGS -liconv"
-}
-
 sansMoinsR()
 {
 	case `uname` in
@@ -82,7 +77,8 @@ sansConfigurer()
 {
 	sansConfigure=1
 	# L'invocation du make install doit être strictement la même que celle du make, sans quoi il détecte un changement d'environnement et retente toute la compil' (en root). Or comme on passe par sudo pour le make install, et que celui-ci dézingue l'environnement, on doit s'assurer que les variables passées au make traversent aussi le sudo make install. Le plus simple est de les ajouter aux paramètres des deux.
-	garg -a paramsMake prefix="$dest" OPENSSLDIR="$INSTALLS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CPPFLAGS" CFLAGS="$CFLAGS"
+	# NEEDS_LIBICONV car un -liconv dans LDFLAGS est insuffisant pour un gcc 7 sous Ubuntu 18.04 ($LDFLAGS est placée avant les .a et en particulier ligit.a qui invoque iconv_open (en l'occurrence libiconv_open car iconv a été compilé dans son mode par défaut, avec préfixe sur toutes les fonctions publiques), or pour une raison encore inexpliquée si libiconv.so (contenant un T libiconv_open) est précisée avant libgit.a (contenant un U libiconv_open), on se tape un undefined symbol libiconv_open, s'il est juste après il est correctement reconnu. A-ce à voir avec le fait que la libc définit un iconv_open (sans préfixe lib)?
+	garg -a paramsMake prefix="$dest" OPENSSLDIR="$INSTALLS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CPPFLAGS" CFLAGS="$CFLAGS" NEEDS_LIBICONV=1
 }
 
 # Variables
@@ -108,7 +104,7 @@ then
 fi
 
 echo Compilation… >&2
-garg paramsMake make
+garg paramsMake make V=1 NEEDS_LIBICONV=1
 
 echo Installation… >&2
 garg -a paramsMake install
