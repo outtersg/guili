@@ -335,10 +335,10 @@ suer()
 	
 	argsColles="`for arg in "$@" ; do printf "%s" "$arg" ; done`"
 	for sep in ' ' '|' '\t' ':' ';' '@' '#' '!' '+' '=' '\r' ; do
-		commande="`for arg in "$@" ; do printf "%s$sep" "$arg" ; done | xxd -p | tr -d '\012'`"
+		commande="`for arg in "$@" ; do printf "%s$sep" "$arg" ; done | xencode`"
 		# Si le séparateur est utilisé dans la commande, il va être difficile de s'en servir sans perdre notre shell. En ce cas on passe au séparateur suivant.
 		echo "$argsColles" | grep -q "`printf %s "$sep"`" && continue || true
-		su $argsSu -c 'commande="`echo '"$commande"' | xxd -r -p`" ; IFS="`printf '"'$sep'"'`" ; $commande'
+		su $argsSu -c 'commande="`. "'"$INSTALL_SCRIPTS"'/util.util.sh" ; echo '"$commande"' | xdecode`" ; IFS="`printf '"'$sep'"'`" ; $commande'
 		return $?
 	done
 	echo "# Impossible de trouver un séparateur shell qui ne soit pas utilisé par la commande: $*" >&2
