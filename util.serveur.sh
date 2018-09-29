@@ -109,7 +109,7 @@ analyserParametresServeur()
 				[ -z "$vars" ] && auSecours
 				for i in $vars
 				do
-					eval $i=\""$1"\"
+					eval $i='"$1"'
 					break
 				done
 				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
