@@ -22,6 +22,7 @@
 INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
+INSTALL_SCRIPTS="$SCRIPTS" # Des fois que d'autres récupèrent ensuite la variable $SCRIPTS.
 
 util_menage()
 {
