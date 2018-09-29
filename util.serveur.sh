@@ -211,6 +211,8 @@ TERMINE
 	then
 		sudoer "$compte" "$dest/etc/rc.d/$nom *"
 	fi
+	
+	SANSSU=0 sudoku "$dest/etc/rc.d/$nom" start
 }
 
 serveurSystemd()
