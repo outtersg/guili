@@ -38,10 +38,9 @@ v 1.8.25.1 || true
 # Variables
 
 vp="`echo "$version" | sed -e 's/[.]/p/g' -e s/p/./ -e s/p/./`"
-dest="$INSTALLS/$logiciel-$version"
 archive="http://www.sudo.ws/sudo/dist/$logiciel-$vp.tar.gz"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
