@@ -201,7 +201,7 @@ TERMINE
 	chmod u+x "$desttemp/etc/rc.d/$nom"
 	if [ "x$serveur_puisCopier" = xoui ]
 	then
-		sudo sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
+		SANSSU=0 sudoku sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
 	fi
 	if [ ! -z "$remplacer" ]
 	then
