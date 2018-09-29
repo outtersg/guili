@@ -352,19 +352,23 @@ then
 	{
 		wget "$@"
 	}
-	if command -v fetch 2> /dev/null >&2
-	then
-		curl() { curlfetch "$@" ; }
-	elif command -v wget 2> /dev/null >&2
-	then
-		curl() { curlwget "$@" ; }
-	else
-	[ -x "/tmp/minicurl" ] || cc -o "/tmp/minicurl" "$SCRIPTS/minicurl.c"
 	curl()
 	{
+		local curl="`unset -f curl ; command -v curl 2> /dev/null || true`"
+		if [ ! -z "$curl" ]
+		then
+			"$curl" "$@"
+		elif commande fetch
+		then
+			curlfetch "$@"
+		elif commande wget
+		then
+			curlwget "$@"
+		else
+	[ -x "/tmp/minicurl" ] || cc -o "/tmp/minicurl" "$SCRIPTS/minicurl.c"
 		"/tmp/minicurl" "$@"
+		fi
 	}
-	fi
 fi
 
 suer()
