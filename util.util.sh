@@ -22,6 +22,13 @@
 # Ensemble de fonctions utilitaires autonomes (ne dépendant pas de variables globales).
 #-------------------------------------------------------------------------------
 
+#- Système ---------------------------------------------------------------------
+
+commande()
+{
+	command -v "$@" > /dev/null 2>&1
+}
+
 #- Filtrage de fichiers --------------------------------------------------------
 
 # À FAIRE: rapatrier filtrer, changerConf, etc.
