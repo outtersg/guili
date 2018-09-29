@@ -205,7 +205,7 @@ TERMINE
 	fi
 	if [ ! -z "$remplacer" ]
 	then
-		sudo "$SCRIPTS/rcconfer" ${nom}_enable=YES
+		SANSSU=0 sudoku "$SCRIPTS/rcconfer" ${nom}_enable=YES
 	fi
 	if [ ! -z "$compte" ]
 	then
