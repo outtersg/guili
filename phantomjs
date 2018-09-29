@@ -47,6 +47,7 @@ filtreAvant()
 	g_numFiltreAvant="`expr 1 + $g_numFiltreAvant`"
 	cat > "$TMP/$$/filtreAvant.$g_numFiltreAvant" <<TERMINE
 #!/bin/sh
+export SCRIPTS="$SCRIPTS"
 . "$SCRIPTS/util.sh"
 TERMINE
 	cat >> "$TMP/$$/filtreAvant.$g_numFiltreAvant"
