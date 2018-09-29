@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=phpunit
-
 prerequis="php"
 
 v 3.3.17 && modifs="php_bin libBin" || true
@@ -72,12 +70,11 @@ TERMINE
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://pear.phpunit.de/get/PHPUnit-$version.tgz"
 archive="https://github.com/sebastianbergmann/phpunit/archive/$version.tar.gz"
 pge $version 4 && archive="https://phar.phpunit.de/phpunit-$version.phar" || true
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
