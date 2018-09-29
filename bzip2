@@ -26,7 +26,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=bzip2
 
-v 1.0.6 && modifs="fpic" || true
+v 1.0.6 && modifs="fpic meilleurCompilo" || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive="http://www.bzip.org/$version/bzip2-$version.tar.gz"
@@ -40,7 +40,10 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
-filtrer Makefile sed -e "s#^PREFIX=.*#PREFIX=$dest#" -e "s#^CFLAGS=#CFLAGS=$CFLAGS #"
+filtrer Makefile sed \
+	-e "s#^PREFIX=.*#PREFIX=$dest#" \
+	-e "s#^CFLAGS=#CFLAGS=$CFLAGS #" \
+	-e "s#^CC=.*#CC=$CC#" \
 
 echo Compilation… >&2
 make
