@@ -391,7 +391,7 @@ suer()
 
 if [ "x`command -v sudoku 2> /dev/null`" != xsudoku ] # On se protège contre une double inclusion…
 then
-	sudo="`command -v sudo 2> /dev/null`" # … ne serait-ce que pour éviter qu'ici notre mémorisation du vrai sudo soit l'alias sudo qu'on déclare juste ci-dessous.
+	sudo="`command -v sudo 2> /dev/null || true`" # … ne serait-ce que pour éviter qu'ici notre mémorisation du vrai sudo soit l'alias sudo qu'on déclare juste ci-dessous.
 	# Malheureusement, historiquement, on a un peu abusé du sudo pour nos installs (au lieu d'utiliser le sudoku dédié, qui n'est arrivé qu'après); du coup, pour compatibilité, on doit conserver cette surcharge sudo = sudoku.
 	sudo() { sudoku "$@" ; }
 fi
