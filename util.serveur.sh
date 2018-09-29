@@ -148,7 +148,9 @@ analyserParametresServeur()
 
 serveurFreebsd()
 {
-	[ ! -z "$dest" ] || dest=/usr/local
+	local usrLocal=/usr/local
+	
+	[ ! -z "$dest" ] || dest="$usrLocal"
 	
 	for remplace in $remplacer
 	do
@@ -209,10 +211,30 @@ TERMINE
 	fi
 	if [ ! -z "$compte" ]
 	then
-		sudoer "$compte" "$dest/etc/rc.d/$nom *"
+		local d ds="$dest"
+		case "$dest" in
+			$usrLocal) true ;;
+			*) ds="$ds "$usrLocal"" ;;
+		esac
+		
+		for d in $ds
+		do
+			sudoer "$compte" "$d/etc/rc.d/$nom *"
+		done
 	fi
 	
 	SANSSU=0 sudoku "$dest/etc/rc.d/$nom" start
+	
+	# On l'installe dans le système, si possible de façon compatible avec sutiliser (liens relatifs).
+	local relatif="$dest"
+	case "$relatif" in
+		"$usrLocal") relatif= ;; # On installe directement dans /usr/local, donc inutile de faire un lien vers lui-même.
+		"$usrLocal/`basename "$dest"`") relatif="../.." ;; # Vers un dossier au standard sutiliser.
+	esac
+	if [ ! -z "$relatif" ]
+	then
+		SANSSU=0 sudoku ln -s "$relatif/etc/rc.d/$nom" "$usrLocal/etc/rc.d/$nom"
+	fi
 }
 
 serveurSystemd()
