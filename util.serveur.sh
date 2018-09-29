@@ -189,9 +189,9 @@ serveurFreebsd()
 name=$nom
 rcvar=\`set_rcvar\`
 command=$lanceur
-command_args="$parametres"
 pidfile=$fpid
 procname=$executable
+command_args="$parametres"
 load_rc_config "\$name"
 : \${${nom}_enable="NO"}
 
