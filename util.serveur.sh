@@ -180,7 +180,7 @@ serveurFreebsd()
 	then
 		avant="$avant${serveur_sep}export $serveur_env"
 	fi
-	mkdir -p "$desttemp/etc/rc.d"
+	mkdir -p "$desttemp/etc/rc.d" "$desttemp/var/run"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
 #!/bin/sh
 # PROVIDE: $nom
