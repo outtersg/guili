@@ -28,3 +28,14 @@
 
 #- Encodage / décodage ---------------------------------------------------------
 # Voir aussi garg.sh
+
+if command -v xxd > /dev/null 2>&1
+then
+	xencode() { xxd -p | tr '\012' ' ' ; }
+	xdecode() { xxd -r -p ; }
+else
+	# https://stackoverflow.com/a/15554717/1346819
+	xencode() { hexdump -e '16/1 "%02x " " "' ; }
+	# https://www.unix.com/shell-programming-and-scripting/132294-reverse-hexdump-without-xxd.html
+	xdecode() { ( echo 'ibase=16' ; cat | tr 'a-f ' 'A-F\012' ) | bc | awk '{printf("%c",$0)}' ; }
+fi
