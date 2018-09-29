@@ -152,6 +152,8 @@ serveurFreebsd()
 	
 	[ ! -z "$dest" ] || dest="$usrLocal"
 	
+	local nomPropre="`echo "$nom" | tr -d -`"
+	
 	for remplace in $remplacer
 	do
 		SANSSU=0 sudoku "$dest/etc/rc.d/$remplace" stop 2> /dev/null || true
@@ -195,7 +197,7 @@ pidfile=$fpid
 procname=$executable
 command_args="$parametres"
 load_rc_config "\$name"
-: \${${nom}_enable="NO"}
+: \${${nomPropre}_enable="NO"}
 
 `echo "$avant" | tr "$serveur_sep" '\012'`
 run_rc_command "\$1"
@@ -207,7 +209,7 @@ TERMINE
 	fi
 	if [ ! -z "$remplacer" ]
 	then
-		SANSSU=0 sudoku "$SCRIPTS/rcconfer" ${nom}_enable=YES
+		SANSSU=0 sudoku "$SCRIPTS/rcconfer" ${nomPropre}_enable=YES
 	fi
 	if [ ! -z "$compte" ]
 	then
