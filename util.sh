@@ -320,11 +320,51 @@ obtenirEtAllerDansVersion()
 
 if ! command -v curl 2> /dev/null >&2
 then
+	curlfetch()
+	{
+		local params=
+		local sep="`echo | tr '\012' '\003'`"
+		local param
+		local sortie=
+		while [ $# -gt 0 ]
+		do
+			case "$1" in
+				-L|-O) true ;;
+				-o) params="$params$sep$1" ; sortie=oui ;;
+				-k) params="$params$sep--no-verify-peer" ;;
+				-s) params="$params$sep-q" ;;
+				-m) params="$params$sep-T" ;;
+				*) params="$params$sep$1" ;;
+			esac
+			shift
+		done
+		if [ -z "$sortie" ]
+		then
+			params="$params$sep-o$sep-"
+		fi
+		params="`echo "$params" | cut -c 2-`"
+		(
+			IFS="$sep"
+			http_proxy=$ALL_PROXY fetch $params
+		)
+	}
+	curlwget()
+	{
+		wget "$@"
+	}
+	if command -v fetch 2> /dev/null >&2
+	then
+		curl() { curlfetch "$@" ; }
+	elif command -v wget 2> /dev/null >&2
+	then
+		curl() { curlwget "$@" ; }
+	else
 	[ -x "/tmp/minicurl" ] || cc -o "/tmp/minicurl" "$SCRIPTS/minicurl.c"
 	curl()
 	{
 		"/tmp/minicurl" "$@"
 	}
+	fi
 fi
 
 suer()
