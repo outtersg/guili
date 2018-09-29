@@ -26,7 +26,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=db
 
-v 4.2.52 && modifs="atomicce fbsd10" || true
+v 4.2.52 && modifs="fpic atomicce fbsd10" || true
 v 4.3.28 || true
 v 4.5.20 || true
 v 5.0.21 || true
