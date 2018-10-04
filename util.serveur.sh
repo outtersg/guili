@@ -156,8 +156,8 @@ serveurFreebsd()
 	
 	for remplace in $remplacer
 	do
-		SANSSU=0 sudoku "$dest/etc/rc.d/$remplace" stop 2> /dev/null || true
-		SANSSU=0 sudoku rm -f "$dest/etc/rc.d/$remplace"
+		SANSSU=0 sudoku "$usrLocal/etc/rc.d/$remplace" stop 2> /dev/null || true
+		SANSSU=0 sudoku rm -f "$usrLocal/etc/rc.d/$remplace"
 	done
 
 	if [ -z "$fpid" ]
