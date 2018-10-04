@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=cntlm
-
 # Historique des versions gérées
 
 v 0.92.3 && modifs="freebsd" || true
@@ -47,9 +45,8 @@ freebsd()
 # Variables
 
 archive="http://freefr.dl.sourceforge.net/project/cntlm/cntlm/cntlm%20$version/cntlm-$version.tar.gz"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -66,6 +63,5 @@ echo Installation… >&2
 #sudo make install
 sudo mkdir -p $dest/bin
 sudo cp cntlm $dest/bin/
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
