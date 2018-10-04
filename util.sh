@@ -476,6 +476,17 @@ testsudoku()
 	done
 }
 
+# Pour pouvoir lancer un sh -c ou su -c dans lequel lancer des commandes d'util.sh, faire un su toto -c "$INSTALL_UTIL ; versions etc."
+INSTALL_ENV_UTIL="SCRIPTS=$SCRIPTS ; . \"\$SCRIPTS/util.sh\" "
+
+# Lance un script de fonctions util.sh en tant qu'un autre compte.
+utiler()
+{
+	local qui="$1" ; shift
+	# Redirection du stdout pour éviter la pollution des scripts type fortune si sudoku doit recourir à un su -.
+	sudoku -u "$qui" sh -c "exec >&7 ; $INSTALL_ENV_UTIL ; $*" 7>&1 > /dev/null
+}
+
 utiliser="$SCRIPTS/utiliser"
 command -v $utiliser 2> /dev/null >&2 || utiliser=utiliser # Si SCRIPTS n'est pas définie, on espère trouver un utiliser dans le PATH.
 
