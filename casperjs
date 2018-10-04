@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=casperjs
-
 # Historique des versions gérées
 
 v 1.0.99.1 && v_archive=1.1-beta1 && prerequis="phantomjs" || true
@@ -44,9 +42,8 @@ then
 else
 archive="https://codeload.github.com/n1k0/casperjs/legacy.zip/$v_archive"
 fi
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -63,7 +60,5 @@ echo Installation… >&2
 sudo mkdir -p "$dest"
 chmod a+rx bin modules tests
 sudo cp -R bin modules tests "$dest/"
-sutiliser "$logiciel-$version"
+sutiliser
 sudo cp package.json "$dest/"
-
-rm -Rf "$TMP/$$"
