@@ -44,10 +44,16 @@ v 1.9.4 || true
 v 1.9.5 || true
 v 1.9.7 || true
 v 1.9.9 || true
+v 1.10.2 && modifs="moiDAbord lz4interne" && prerequis="$prerequis utf8proc" || true
 
 prerequis
 
 # Modifications
+
+lz4interne()
+{
+	OPTIONS_CONF="$OPTIONS_CONF --with-lz4=internal"
+}
 
 moiDAbord()
 {
@@ -82,10 +88,11 @@ echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
+OPTIONS_CONF=
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-ssl
+./configure --prefix="$dest" --with-ssl $OPTIONS_CONF
 
 echo Compilation… >&2
 make -j 3
