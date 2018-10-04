@@ -118,7 +118,7 @@ echo "Création de la base…" >&2
 	sudo -u $compte LD_LIBRARY_PATH="$LD_LIBRARY_PATH" "`command -v initdb`" "$bdd"
 	if [ $ouvrir = oui ]
 	then
-		INSTALLS="$bdd" sudoku -u $compte sh -c ". \"$SCRIPTS/util.sh\" && changerconf \"$bdd/postgresql.conf\" listen_addresses=\"'*'\" && echo \"host all all all md5\" | tr ' ' '\\011' >> \"$bdd/pg_hba.conf\""
+		INSTALLS="$bdd" utiler "$compte" 'changerconf "'"$bdd"'/postgresql.conf" listen_addresses="'\''*'\''" && echo "host all all all md5" | tr " " "\011" >> "'"$bdd"'/pg_hba.conf"'
 	fi
 	sudo -u $compte touch "$bdd/.complet"
 
