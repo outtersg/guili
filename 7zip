@@ -24,8 +24,6 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
-logiciel=7z
-
 # Historique des versions gérées
 
 version=4.57
@@ -62,11 +60,10 @@ clang()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive=http://heanet.dl.sourceforge.net/sourceforge/p7zip/p7zip_${version}_src_all.tar.bz2
 archive=https://kent.dl.sourceforge.net/project/p7zip/p7zip/$version/p7zip_${version}_src_all.tar.bz2
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -87,6 +84,4 @@ make 7za 7z
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
