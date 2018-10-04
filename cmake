@@ -24,8 +24,6 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
-logiciel=cmake
-
 # Historique des versions gérées
 
 v 2.4.5 || true
@@ -110,9 +108,8 @@ havefchdir()
 
 v="`echo "$version" | cut -d . -f 1,2`"
 archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
-dest="$INSTALLS/$logiciel-$version"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -127,6 +124,4 @@ make -j 4
 
 echo Installation… >&2
 sudo make install
-sutiliser $logiciel-$version
-
-rm -Rf "$TMP/$$"
+sutiliser
