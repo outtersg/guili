@@ -333,6 +333,7 @@ then
 		local sep="`echo | tr '\012' '\003'`"
 		local param
 		local sortie=
+		local proxy="$ALL_PROXY"
 		while [ $# -gt 0 ]
 		do
 			case "$1" in
@@ -341,6 +342,7 @@ then
 				-k) params="$params$sep--no-verify-peer" ;;
 				-s) params="$params$sep-q" ;;
 				-m) params="$params$sep-T" ;;
+				-x) shift ; proxy="$1" ;;
 				*) params="$params$sep$1" ;;
 			esac
 			shift
@@ -352,7 +354,7 @@ then
 		params="`echo "$params" | cut -c 2-`"
 		(
 			IFS="$sep"
-			http_proxy=$ALL_PROXY fetch $params
+			http_proxy=$proxy fetch $params
 		)
 	}
 	curlwget()
