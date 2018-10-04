@@ -1737,6 +1737,8 @@ filtreargs()
 }
 
 # http://www.techques.com/question/1-1482450/Broken-Java-Mac-10.6
+case `uname` in
+	Darwin)
 for i in jar javac java
 do
 	rm -f "$TMP/$$/$i"
@@ -1748,6 +1750,8 @@ export DYLD_LIBRARY_PATH=
 TERMINE
 	chmod a+x "$TMP/$$/$i"
 done
+		;;
+esac
 
 runghc()
 {
