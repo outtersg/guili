@@ -114,6 +114,7 @@ pid="$dest/var/run/php-fpm$suffixe.pid"
 		
 mkdir -p "$TMP/$$/dest/etc/rc.d" "$TMP/$$/dest/var/run"
 cp "$destphp/etc/php-fpm.conf" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
+changerconf -c \; pid="$pid" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
 if [ -d "$destphp/etc/php-fpm.d" ]
 then
 	destpointd="$TMP/$$/dest/etc/php-fpm$suffixe.d"
@@ -128,7 +129,7 @@ SANSSU=0 sudo chown -R "$compte:" "$dest/var/run"
 
 LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis"`"
 serveur -d "$dest" -p "$pid" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" demon php-fpm$suffixe \
-	"$destphp/sbin/php-fpm --fpm-config $conf --pid $pid"
+	"$destphp/sbin/php-fpm --fpm-config $conf"
 
 sutiliser "$logiciel-$version"
 
