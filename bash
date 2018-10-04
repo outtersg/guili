@@ -44,6 +44,7 @@ v 4.1.7
 v 4.2.45
 v 4.3.25 || true
 v 4.3.42 || true
+v 4.4.23 || true
 
 dest=$INSTALLS/$logiciel-$version
 
