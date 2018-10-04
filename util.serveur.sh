@@ -187,10 +187,10 @@ serveurFreebsd()
 	mkdir -p "$desttemp/etc/rc.d" "$desttemp/var/run"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
 #!/bin/sh
-# PROVIDE: $nom
+# PROVIDE: $nomPropre
 # REQUIRE: NETWORKING
 . /etc/rc.subr
-name=$nom
+name=$nomPropre
 rcvar=\`set_rcvar\`
 command=$lanceur
 pidfile=$fpid
