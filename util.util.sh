@@ -29,6 +29,22 @@ commande()
 	command -v "$@" > /dev/null 2>&1
 }
 
+#- Comptes ---------------------------------------------------------------------
+
+if ! commande usermod
+then
+	usermod()
+	{
+		case `uname` in
+			FreeBSD) pw usermod "$@" ;;
+			*)
+				echo "# Argh, impossible de faire un usermod $*" >&2
+				return 1
+				;;
+		esac
+	}
+fi
+
 #- Filtrage de fichiers --------------------------------------------------------
 
 # À FAIRE: rapatrier filtrer, changerConf, etc.
