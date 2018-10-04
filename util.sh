@@ -22,6 +22,13 @@
 INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
+
+if [ -z "$SCRIPTS" ] || ! grep -q CEstBienCeFichierCiQuiDoitSeTrouverAuBoutDeSCRIPTS < "$SCRIPTS/util.sh"
+then
+	echo "# Merci de ne pas appeler util.sh directement, mais de définir \$SCRIPTS puis inclure \$SCRIPTS/util.sh." >&2
+	return 1
+fi
+
 INSTALL_SCRIPTS="$SCRIPTS" # Des fois que d'autres récupèrent ensuite la variable $SCRIPTS.
 
 util_menage()
