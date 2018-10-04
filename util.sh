@@ -587,11 +587,13 @@ changerconf()
 {
 	cc_f=
 	cc_sep="="
+	cc_comm='#'
 	cc_varsawk=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-d) shift ; cc_sep="$1" ;;
+			-c) shift ; cc_comm="$1" ;;
 			*=*) cc_varsawk="$cc_varsawk|$1" ;;
 			*) [ -z "$cc_f" ] && cc_f="$1" || break ;; # À FAIRE: pouvoir traiter plusieurs fichiers.
 		esac
@@ -601,7 +603,7 @@ changerconf()
 	filtrer "$cc_f" awk '
 BEGIN {
 	s = "'"$cc_sep"'";
-	c = "#";
+	c = "'"$cc_comm"'";
 	split(substr("'"$cc_varsawk"'", 2), t0, "|");
 	for(i in t0) { split(t0[i], telem, "="); t[telem[1]] = t[telem[1]]"|"telem[2]; }
 	for(i in t) t[i] = substr(t[i], 2);
