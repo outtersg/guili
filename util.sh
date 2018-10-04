@@ -618,7 +618,7 @@ function pondre() {
 {
 	# Si on trouve un de nos termes dans la ligne courante, on se prépare à insérer nos valeurs pour cette variable.
 	for(i in t)
-		if(match($0, "^( *"c" *)?"i""s))
+		if(match($0, "^( *"c" *)?"i"[	 ]*"s))
 		{
 			ici[i] = t[i];
 			delete t[i];
@@ -633,7 +633,7 @@ function pondre() {
 	# Autre ligne (donc non commentée).
 	# Mais va-t-on la commenter? Si elle définit un des paramètres que l on remplace, oui.
 	for(i in ici)
-		if(match($0, "^"i""s))
+		if(match($0, "^"i"[ 	]*"s))
 		{
 			split(ici[i], vals, "|");
 			for(j in vals)
