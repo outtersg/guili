@@ -30,27 +30,43 @@ logiciel=carddavmate
 
 v 0.11.1 && modifs="config adaptations" || true
 v 0.12.0 && modifs="config adaptations0012" || true
+v 0.13.1 && modifs="config adaptations0012" || true
 
 archive=http://www.inf-it.com/CardDavMATE_$version.zip
 
 config()
 {
-	filtrer config.js sed \
+	filtrer config.js jspropre -l
+	filtrer config.js sed -E \
 		-e "s/'us'/'fr'/g" \
 		-e 's/en_US/fr_FR/g' \
-		-e '/^var globalCollectionSort=/c\
+		-e '/^var globalCollectionSort=/i\
 var globalCollectionSort=["first","last"];
 ' \
-		-e '/^var globalCollectionDisplay=/c\
+		-e '/^var globalCollectionSort=/,/^}/d' \
+		-e '/^var globalCollectionDisplay=/i\
 var globalCollectionDisplay=["first"," last"];
 ' \
-		-e '/^var globalCollectionStoreFN=/c\
+		-e '/^var globalCollectionDisplay=/,/^}/d' \
+		-e '/^var globalCollectionStoreFN=/i\
 var globalContactStoreFN=["prefix"," first"," last"];
 ' \
+		-e '/^var globalContactStoreFN=/,/^}/d' \
 		-e '/^var globalCollectionDisplayOrg=/c\
 var globalCollectionDisplayOrg=false;
 ' \
-		-e 's#^[/]*var globalUseJqueryAuth.*#var globalUseJqueryAuth=true;#' -e 's#^var globalNetworkCheckSettings.*#var globalNetworkCheckSettings={ href: "http://gclo.fr/sync/card.php/addressbooks/", hrefLabel: null, crossDomain: true, additionalResources: [], forceReadOnly: null, withCredentials: false, showHeader: true, settingsAccount: true, checkContentType: true, syncInterval: 60000, timeOut: 30000, lockTimeOut: 10000, delegation: false, ignoreAlarms: false, backgroundCalendars: [] }#';
+		-e 's#^[/]*var globalUseJqueryAuth.*#var globalUseJqueryAuth=true;#' \
+		-e '/^var globalNetworkCheckSettings=/,/^}/{
+/^{/a\
+	href: "http://gclo.fr/sync/card.php/addressbooks/",
+/^{/a\
+	crossDomain: true,
+/^{/a\
+	ignoreAlarms: false,
+/^{/a\
+	backgroundCalendars: [],
+/^[ 	](href|crossDomain|ignoreAlarms|backgroundCalendars):/d
+}'
 }
 
 adaptations()
