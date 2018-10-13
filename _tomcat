@@ -102,6 +102,6 @@ cp -R "$desttomcat/conf" "$dest0/conf"
 sinstaller -u "$compte" "$dest0" "$dest"
 # Démarreur!
 # http://www.fourproc.com/2012/04/20/force-tomcat-to-use-ipv4-on-server-with-both-ipv6-and-ipv4-configured.html
-serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" CATALINA_OPTS="-Djava.net.preferIPv4Stack=true" "$desttomcat/bin/startup.sh"
+serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" CATALINA_PID="$dest/var/run/tomcat$suffixe.pid" CATALINA_OPTS="-Djava.net.preferIPv4Stack=true" "$desttomcat/bin/startup.sh"
 
 rm -Rf "$TMP/$$"
