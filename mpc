@@ -29,6 +29,7 @@ logiciel=mpc
 # Historique des versions gérées
 
 v 1.0.2 && prerequis="gmp >= 4.3.2 < 6 mpfr >= 2.4.2" && modifs=fbsd8 || true
+v 1.1.0 && prerequis="gmp >= 5 mpfr >= 3" || true
 
 prerequis
 
