@@ -46,7 +46,7 @@ v 7.8.3 || true
 v 7.8.4 || true
 v 7.10.1 && modifs="$modifs preInstallLibs mesCompilos" || true
 v 7.10.3 && modifs="uli sansDoc runghcLie preInstallLibs mesCompilos" && prerequis="gmp >= 5 < 6" || true
-v 8.0.1 && modifs="uli sansDoc sansNoReserve unused" && prerequis= || true
+v 8.0.1 && modifs="uli sansDoc sansNoReserve unused compiloGcc" && prerequis="gcc" || true # On se met sous GCC car avec clang c'est trop chiant sous FreeBSD en tout cas (cf. https://www.freshports.org/lang/ghc/).
 v 8.0.2 || true
 
 unused()
@@ -271,6 +271,17 @@ uli()
 	OPTIONS_CONF="$OPTIONS_CONF --with-gmp-libraries=$INSTALLS/lib"
 	#LDFLAGS=-L$INSTALLS/lib
 	echo "#include \"$INSTALLS/include/gmp.h\"" > includes/gmp.h
+}
+
+compiloGcc()
+{
+	export CC=gcc CXX=g++
+	if pge $version 8
+	then
+		OPTIONS_CONF="$OPTIONS_CONF CC=$CC"
+	else
+		OPTIONS_CONF="$OPTIONS_CONF --with-gcc=$CC"
+	fi
 }
 
 mesCompilos()
