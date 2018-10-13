@@ -770,6 +770,8 @@ reglagesCompilPrerequis()
 
 reglagesCompil()
 {
+	# À FAIRE: faire ça dans une variable locale, à n'exporter que quand on attaque vraiment le logiciel. Sinon si le logiciel a par exemple pour dépendances libjpeg et openssl, prerequis libjpeg ajoute -I/usr/local/libjpeg-x.x/lib à LDFLAGS, et openssl en hérite, se retrouvant à compiler OpenSSL avec un lien vers les biblios libjpeg.
+	
 	rc_logiciel="$1"
 	versionInclus="$2"
 	dossierRequis="$3"
