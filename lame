@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=lame
-
 # Historique des versions gérées
 
 v 3.97 && modifs=fpic || true
@@ -42,9 +40,7 @@ archive="http://freefr.dl.sourceforge.net/project/lame/lame/$v_maj/lame-$version
 
 # Variables
 
-dest=/usr/local/$logiciel-$version
-
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -59,6 +55,4 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser $logiciel-$version
-
-rm -Rf /tmp/$$
+sutiliser
