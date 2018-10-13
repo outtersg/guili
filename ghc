@@ -864,11 +864,7 @@ echo "VOUS ETES DANS UN SHELL" >&2
 bash
 else
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -919,7 +915,7 @@ sudo make install
 	done
 fi
 
-sutiliser $logiciel-$versiondest
+sutiliser
 # Pour faire tourner runghc (runghcLie)
 if [ -f "$dest/lib/ghc-$version/ghc-$version/libHSghc-$version-ghc$version.dylib" -a ! -f "$dest/lib/ghc-$version/ghc-$version/libHSghc-$version.dylib" ]
 then
