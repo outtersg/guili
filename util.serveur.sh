@@ -211,6 +211,19 @@ TERMINE
 	then
 		SANSSU=0 sudoku "$SCRIPTS/rcconfer" ${nomPropre}_enable=YES
 	fi
+	
+	# On l'installe dans le système, si possible de façon compatible avec sutiliser (liens relatifs).
+	local relatif="$dest"
+	case "$relatif" in
+		"$usrLocal") relatif= ;; # On installe directement dans /usr/local, donc inutile de faire un lien vers lui-même.
+		"$usrLocal/`basename "$dest"`") relatif="../.." ;; # Vers un dossier au standard sutiliser.
+	esac
+	if [ ! -z "$relatif" ]
+	then
+		SANSSU=0 sudoku ln -s "$relatif/etc/rc.d/$nom" "$usrLocal/etc/rc.d/$nom"
+	fi
+	
+	# Ajout au sudoers.
 	if [ ! -z "$compte" ]
 	then
 		local d ds="$dest"
@@ -226,17 +239,6 @@ TERMINE
 	fi
 	
 	SANSSU=0 sudoku "$dest/etc/rc.d/$nom" start
-	
-	# On l'installe dans le système, si possible de façon compatible avec sutiliser (liens relatifs).
-	local relatif="$dest"
-	case "$relatif" in
-		"$usrLocal") relatif= ;; # On installe directement dans /usr/local, donc inutile de faire un lien vers lui-même.
-		"$usrLocal/`basename "$dest"`") relatif="../.." ;; # Vers un dossier au standard sutiliser.
-	esac
-	if [ ! -z "$relatif" ]
-	then
-		SANSSU=0 sudoku ln -s "$relatif/etc/rc.d/$nom" "$usrLocal/etc/rc.d/$nom"
-	fi
 }
 
 serveurSystemd()
