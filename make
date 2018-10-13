@@ -43,11 +43,10 @@ globInterface()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
 archive_git="https://git.savannah.gnu.org/git/make.git"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -71,6 +70,6 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
+sutiliser
 
 rm -Rf $TMP/$$
