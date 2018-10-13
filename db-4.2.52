@@ -32,6 +32,7 @@ v 4.5.20 || true
 v 5.0.21 || true
 v 5.2.36 || true
 v 5.3.15 || true
+v 5.3.21 || true
 
 archive="ftp://sleepycat1.inetu.net/releases/$logiciel-$version.tar.gz"
 archive="http://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
