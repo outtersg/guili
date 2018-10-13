@@ -33,6 +33,7 @@ v 1.22.5.0 || true
 v 1.22.8.0 || true
 v 1.24.0.0 || true
 v 1.24.0.2 || true
+v 2.4.0.0 && prerequis="iconv gmp" || true
 
 prerequis
 
