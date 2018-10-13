@@ -114,7 +114,8 @@ de7z()
 
 _liste7z()
 {
-	7za l "$@" | awk '/^---/{if((entre=!entre)){match($0,/-*$/);posNom=RSTART;next}}{if(entre)print substr($0,posNom)}' # On repère la colonne du chemin du fichier à ce qu'elle est la dernière; et pour ce faire on se base sur la ligne de tirets qui introduit la liste (et la clôt).
+	7za l "$@" > "$TMP/$$/temp.liste7z" || return $?
+	awk < "$TMP/$$/temp.liste7z" '/^---/{if((entre=!entre)){match($0,/-*$/);posNom=RSTART;next}}{if(entre)print substr($0,posNom)}' # On repère la colonne du chemin du fichier à ce qu'elle est la dernière; et pour ce faire on se base sur la ligne de tirets qui introduit la liste (et la clôt).
 }
 
 liste7z()
@@ -162,7 +163,14 @@ obtenirEtAllerDans()
 		*.zip) dec="dezipe" ; liste="listeZip" ;;
 		*.7z|*.xz) dec="de7z" ; liste="liste7z" ;;
 	esac
-	$liste "$archive" | sed -e 's=^./==' -e 's=^/==' -e 's=/.*$==' | sort -u > "$TMP/$$/listeArchive"
+	(
+		if ! $liste "$archive"
+		then
+			echo "# Archive pourrie: $archive. On la supprime." >&2
+			mv "$archive" "$archive.pourrie"
+			return 1
+		fi
+	) | sed -e 's=^./==' -e 's=^/==' -e 's=/.*$==' | sort -u > "$TMP/$$/listeArchive"
 	case `wc -l < "$TMP/$$/listeArchive" | awk '{print $1}'` in
 		0)
 			return 1
