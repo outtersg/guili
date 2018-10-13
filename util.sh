@@ -1192,7 +1192,7 @@ sudoer()
 		esac
 		sudoku -u "$1" "$sudo" -n -l $commande > /dev/null 2>&1
 	) && return || true
-	echo "$1 ALL=(ALL) NOPASSWD: $2" | sudo sh -c 'cat >> /etc/sudoers'
+	echo "$1 ALL=(ALL) NOPASSWD: $2" | INSTALLS=/etc sudoku sh -c 'cat >> /etc/sudoers'
 }
 
 #- Création de comptes et groupes ----------------------------------------------
