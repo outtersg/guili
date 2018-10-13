@@ -86,6 +86,7 @@ v 7.1.14 || true
 v 7.2.1 || true
 v 7.2.3 || true
 v 7.2.4 || true
+v 7.2.10 || true
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
 if psql --version 2> /dev/null | grep -q PostgreSQL
