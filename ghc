@@ -48,6 +48,15 @@ v 7.10.1 && modifs="$modifs preInstallLibs mesCompilos" || true
 v 7.10.3 && modifs="uli sansDoc runghcLie preInstallLibs mesCompilos" && prerequis="gmp >= 5 < 6" || true
 v 8.0.1 && modifs="uli sansDoc sansNoReserve unused compiloGcc" && prerequis="gcc" || true # On se met sous GCC car avec clang c'est trop chiant sous FreeBSD en tout cas (cf. https://www.freshports.org/lang/ghc/).
 v 8.0.2 || true
+v 8.2.2 || true
+v 8.4.3 && modifs="$modifs sansDtrace" || true
+v 8.6.1 && retirerModif sansDtrace || true
+
+sansDtrace()
+{
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=228727
+	OPTIONS_CONF="$OPTIONS_CONF --enable-dtrace=0"
+}
 
 unused()
 {
