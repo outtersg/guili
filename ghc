@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/sh
 # Copyright (c) 2004-2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 set -e
 
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+. "$SCRIPTS/util.sh"
 
 # Versions
 
@@ -64,7 +64,7 @@ i\
 
 auMoins()
 {
-	PATH=${PATH//.:/}
+	PATH="`echo "$PATH" | sed -e 's#\.:##g'`"
 	# À FAIRE: tester le num de version
 	command -v ghc 2> /dev/null >&2 || return 1
 	pge "`ghc --version | sed -e 's/^.*version \([0-9.]*\).*$/\1/'`" $1 && type_demarreur=actuel && return 0
@@ -78,7 +78,6 @@ nomArchive()
 	pge $1 8 && suffixe=xz
 	# Attention, l'archive (dès la 0.29) ne passe pas sur le tar d'un fBSD 6.2
 	# (voir la fin de ./ghc-0.29/ghc/lib/Jmake.inc5).
-	[[ "$version" = 6.10.*.???????? ]] && echo "http://www.haskell.org/$logiciel/dist/stable/dist/6.10/ghc-$version-src.tar.$suffixe" && return
 	echo "http://www.haskell.org/$logiciel/dist/$1/$logiciel-$1-src.tar.$suffixe"
 }
 
@@ -257,11 +256,11 @@ decom()
 uli()
 {
 	# Toujours nécessaire en 8.
-	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-includes=$INSTALLS/include"
-	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-iconv-libraries=$INSTALLS/lib"
+	OPTIONS_CONF="$OPTIONS_CONF --with-iconv-includes=$INSTALLS/include"
+	OPTIONS_CONF="$OPTIONS_CONF --with-iconv-libraries=$INSTALLS/lib"
 	
-	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-includes=$INSTALLS/include"
-	OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gmp-libraries=$INSTALLS/lib"
+	OPTIONS_CONF="$OPTIONS_CONF --with-gmp-includes=$INSTALLS/include"
+	OPTIONS_CONF="$OPTIONS_CONF --with-gmp-libraries=$INSTALLS/lib"
 	#LDFLAGS=-L$INSTALLS/lib
 	echo "#include \"$INSTALLS/include/gmp.h\"" > includes/gmp.h
 }
@@ -277,10 +276,10 @@ mesCompilos()
 	do
 		if command -v $truc > /dev/null 2>&1
 		then
-			OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-$truc=`command -v $truc`"
+			OPTIONS_CONF="$OPTIONS_CONF --with-$truc=`command -v $truc`"
 		fi
 	done
-        OPTIONS_CONF[${#OPTIONS_CONF[@]}]="--with-gcc="
+        OPTIONS_CONF="$OPTIONS_CONF --with-gcc="
 	# Alors en fait la grosse astuce c'est de modifier le GHC *existant* pour que ça marche. Mettre par exemple /usr/local/bin/gcc dans /usr/local/ghc-7.6.3/lib/ghc-7.6.3/settings si ce dernier est branché sur un /usr/bin/gcc qui a été modifié lors d'une MàJ Mac OS X.
 }
 
@@ -593,7 +592,7 @@ startup()
 {
 	[ -f STARTUP ] && sh < STARTUP
 	cd ghc
-	PARAMS_MAKE=(all)
+	PARAMS_MAKE=all
 }
 
 v029()
@@ -887,11 +886,11 @@ then
 		startup
 	fi
 else
-	./configure --prefix="$dest" --with-ghc=$GHC "${OPTIONS_CONF[@]}"
+	./configure --prefix="$dest" --with-ghc=$GHC $OPTIONS_CONF
 fi
 
 echo Compilation… >&2
-make -j 4 "${PARAMS_MAKE[@]}"
+make -j 4 $PARAMS_MAKE
 
 fi # Manuel.
 
