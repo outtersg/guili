@@ -309,6 +309,10 @@ sansDoc()
 HADDOCK_DOCS = NO
 '
 	echo "HADDOCK_DOCS = NO" >> mk/validate.mk
+	# Et pourquoi (8.6.1) a-t-il besoin de couleur?
+	filtrer mk/config.mk.in sed -e '/^ *HSCOLOUR_SRCS = /c\
+HSCOLOUR_SRCS = NO
+'
 }
 
 preInstallLibs()
