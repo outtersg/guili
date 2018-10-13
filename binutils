@@ -34,7 +34,9 @@ esac
 
 v 2.24 && modifs="sbrk" || true
 v 2.27 || true
+v 2.28.1 || true
 v 2.30 || true
+v 2.31.1 || true
 
 prerequis
 
