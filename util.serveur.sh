@@ -102,7 +102,11 @@ analyserParametresServeur()
 	groupe=
 	remplacer=
 	desttemp= # Destination temporaire.
-	dest= # Destination définitive.
+	# Si on est appelés par un installeur qui utilise du destiner(), dest est définie au dossier (potentiellement utilisateur) dans lequel se trouve tout le bazar
+	case "$dest" in
+		$INSTALLS/$logiciel*) true ;;
+		*) dest= ;; # Dans tous les autres cas, on n'acceptera qu'un -d explicite.
+	esac
 	serveur_env= # À FAIRE: utiliser garg si disponible.
 	while [ $# -gt 0 ]
 	do
