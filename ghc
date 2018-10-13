@@ -913,7 +913,10 @@ TERMINE
 	sudo ./makePreInstallLibs install
 else
 sudo make install
-for biblio in "$dest/lib/$logiciel-$version"/libHS*.a ; do sudo ranlib $biblio ; done
+	find "$dest/lib/$logiciel-$version" -name "lib*.a" | while read biblio
+	do
+		sudoku ranlib $biblio
+	done
 fi
 
 sutiliser $logiciel-$versiondest
