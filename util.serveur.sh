@@ -72,6 +72,25 @@ TERMINE
 	exit 1
 }
 
+serveurParamEnv()
+{
+	local var
+	for var in "$@"
+	do
+		case "$var" in
+			*=*) true ;;
+			*) var="$var=`eval 'echo "$'"$var"'"'`" ;;
+		esac
+		[ -z "$serveur_env" ] || serveur_env="$serveur_env$serveur_sep"
+		serveur_env="$serveur_env$var"
+	done
+}
+
+serveurEnvPourExport()
+{
+	echo "$serveur_env" | sed -e "s/^/$serveur_sep/" -e "s/$/$serveur_sep/" -e "s#$serveur_sep\([^=]*=\)#\" \\1\"#g" -e "s/$serveur_sep/\"/g" | sed -e 's/^ *" *//'
+}
+
 analyserParametresServeur()
 {
 	vars="type nom commande rien"
@@ -94,16 +113,8 @@ analyserParametresServeur()
 			-r) shift ; remplacer="$remplacer $1" ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; fpid="$1" ;;
-			*=*) serveur_env="$serveur_env $1" ;;
-			-e)
-				shift
-				serveur_var="$1"
-				case "$serveur_var" in
-					*=*) true ;;
-					*) serveur_var="$serveur_var=`eval 'echo "$'"$serveur_var"'"'`" ;;
-				esac
-				serveur_env="$serveur_env $serveur_var"
-				;;
+			*=*) serveurParamEnv "$1" ;;
+			-e) shift ; serveurParamEnv "$1" ;;
 			-pre) shift ; avant="$avant$serveur_sep$1" ;;
 			*)
 				[ -z "$vars" ] && auSecours
@@ -182,7 +193,7 @@ serveurFreebsd()
 	
 	if [ ! -z "$serveur_env" ]
 	then
-		avant="$avant${serveur_sep}export $serveur_env"
+		avant="$avant${serveur_sep}export `serveurEnvPourExport`"
 	fi
 	mkdir -p "$desttemp/etc/rc.d" "$desttemp/var/run"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
@@ -262,7 +273,7 @@ serveurSystemd()
             echo "# Je ne sais pas gérer le type '$type'." >&2
             return 1
 	esac
-	ajoutService="$ajoutService|`echo "$serveur_env" | sed -e 's/ /|Environment=/g'`"
+	ajoutService="$ajoutService|`echo "$serveur_env" | sed -e "s/$serveur_sep/|Environment=/g"`"
     ajoutService="`echo "$ajoutService" | tr \| '\012'`"
 	
 	mkdir -p "$desttemp/etc/systemd/system"
