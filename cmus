@@ -29,11 +29,19 @@ calcScripts "$0"
 logiciel=cmus
 
 prerequis="ncurses ffmpeg mad ogg opusfile" # ncurses GNU pour le support des caractères multi-octets.
-v 2.5.0 && modifs="fpic monCc" || true
+v 2.5.0 && modifs="fpic monCc strndupBsd" || true
 v 2.5.1 || true
 v 2.7.1 || true
 
 # Modifications
+
+strndupBsd()
+{
+	# https://bugs.freebsd.org/bugzilla/attachment.cgi?id=176956&action=edit
+	filtrer xmalloc.h sed -e '/ifdef HAVE_STRNDUP/a\
+char *strndup(const char*, size_t);
+'
+}
 
 monCc()
 {
