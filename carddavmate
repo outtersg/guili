@@ -43,15 +43,15 @@ config()
 		-e '/^var globalCollectionSort=/i\
 var globalCollectionSort=["first","last"];
 ' \
-		-e '/^var globalCollectionSort=/,/^}/d' \
+		-e '/^var globalCollectionSort=/,/^\]/d' \
 		-e '/^var globalCollectionDisplay=/i\
 var globalCollectionDisplay=["first"," last"];
 ' \
-		-e '/^var globalCollectionDisplay=/,/^}/d' \
-		-e '/^var globalCollectionStoreFN=/i\
+		-e '/^var globalCollectionDisplay=/,/^\]/d' \
+		-e '/^var globalContactStoreFN=/i\
 var globalContactStoreFN=["prefix"," first"," last"];
 ' \
-		-e '/^var globalContactStoreFN=/,/^}/d' \
+		-e '/^var globalContactStoreFN=/,/^\]/d' \
 		-e '/^var globalCollectionDisplayOrg=/c\
 var globalCollectionDisplayOrg=false;
 ' \
@@ -67,6 +67,27 @@ var globalCollectionDisplayOrg=false;
 	backgroundCalendars: [],
 /^[ 	](href|crossDomain|ignoreAlarms|backgroundCalendars):/d
 }'
+	local colonnes="
+[
+	{ label: '{Name}', value: ['{FirstName}', ' {LastName}'] },
+	{ label: '{Email}', value: ['{Email[:0]}'] },
+	{ label: '{Phone} 1', value: ['{Phone[:0]}'] },
+	{ label: '{NoteText}', value: ['{NoteText}'] }
+];
+"
+	local zz3="`echo | tr '\012' '\003'`"
+	colonnes="`echo "$colonnes" | tr '\012' '\003' | sed -e "s#$zz3#\\\\\\n#g"`"
+	filtrer config.js awk "
+BEGIN{
+	globalCollectionDisplay=0;
+}
+!globalCollectionDisplay&&/var globalCollectionDisplay/{
+	globalCollectionDisplay = 1;
+	print \"var globalCollectionDisplay=\";
+	print \"$colonnes\";
+}
+{print}
+"
 }
 
 adaptations()
