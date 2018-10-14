@@ -28,9 +28,9 @@ calcScripts "$0"
 
 logiciel=carddavmate
 
-v 0.11.1 && modifs="config adaptations" || true
-v 0.12.0 && modifs="config adaptations0012" || true
-v 0.13.1 && modifs="config adaptations0013" || true
+v 0.11.1 && modifs="config adaptations binSh" || true
+v 0.12.0 && modifs="config adaptations0012 binSh" || true
+v 0.13.1 && modifs="config adaptations0013 binSh" || true
 
 archive=http://www.inf-it.com/CardDavMATE_$version.zip
 
@@ -88,6 +88,14 @@ BEGIN{
 }
 {print}
 "
+}
+
+binSh()
+{
+	for f in *.sh
+	do
+		filtrer "$f" sed -e 's#/bin/bash#/bin/sh#g'
+	done
 }
 
 adaptations()
