@@ -30,7 +30,7 @@ logiciel=carddavmate
 
 v 0.11.1 && modifs="config adaptations" || true
 v 0.12.0 && modifs="config adaptations0012" || true
-v 0.13.1 && modifs="config adaptations0012" || true
+v 0.13.1 && modifs="config adaptations0013" || true
 
 archive=http://www.inf-it.com/CardDavMATE_$version.zip
 
@@ -80,6 +80,14 @@ adaptations()
 adaptations0012()
 {
 	for i in carddavmate-0.12.0.maidenname.patch carddavmate-0.12.0.presentation.patch
+	do
+		patch -p0 < "$SCRIPTS/$i"
+	done
+}
+
+adaptations0013()
+{
+	for i in carddavmate-0.13.1.maidenname.patch carddavmate-0.12.0.presentation.patch
 	do
 		patch -p0 < "$SCRIPTS/$i"
 	done
