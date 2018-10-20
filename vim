@@ -43,6 +43,8 @@ v 7.4.2296 || true
 v 8.0.311 && demarrage=".069" || true
 v 8.0.1240 && demarrage=".586" || true
 
+option python3 && prerequis="$prerequis python >= 3" || true
+
 v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
 
