@@ -46,8 +46,6 @@ v 8.0.1240 && demarrage=".586" || true
 v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
 
-dest=$INSTALLS/$logiciel-$version
-
 # Modifications.
 
 ncursesw()
@@ -124,7 +122,7 @@ diff src/os_unix.c src/os_unix.c
 TERMINE
 }
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -141,6 +139,4 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
