@@ -62,3 +62,14 @@ else
 	# https://www.unix.com/shell-programming-and-scripting/132294-reverse-hexdump-without-xxd.html
 	xdecode() { ( echo 'ibase=16' ; cat | tr 'a-f ' 'A-F\012' ) | bc | awk '{printf("%c",$0)}' ; }
 fi
+
+# Temp IFS: réinitialise \$IFS après qu'il a été modifié pour un appel.
+# Ex.:
+#  params="p1|p2|p3"
+#  IFS="|"
+#  tifs commande $params
+tifs()
+{
+	unset IFS
+	"$@"
+}
