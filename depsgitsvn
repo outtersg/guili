@@ -63,7 +63,6 @@ proxyCpan()
 destiner
 
 prerequis
-env
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
