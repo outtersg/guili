@@ -35,6 +35,11 @@ v 1.0.0 && prerequis="ruby sqlite" || true
 prerequis
 
 echo Installation… >&2
+case "$ALL_PROXY" in
+	http*) export HTTP_PROXY="$ALL_PROXY" HTTPS_PROXY="http://$ALL_PROXY" ;;
+	"") true ;;
+	*) export HTTP_PROXY="http://$ALL_PROXY" HTTPS_PROXY="http://$ALL_PROXY" ;;
+esac
 gem install mailcatcher
 
 dest="$TMP/$$"
