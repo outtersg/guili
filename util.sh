@@ -367,7 +367,32 @@ then
 	}
 	curlwget()
 	{
-		wget "$@"
+		local params=wget
+		local sep="`echo | tr '\012' '\003'`"
+		local param
+		local sortie=
+		local proxy="$ALL_PROXY"
+		while [ $# -gt 0 ]
+		do
+			case "$1" in
+				-L|-O) true ;;
+				-o) params="$params$sep-O" ; sortie=oui ;;
+				-k) params="$params$sep--no-check-certificate" ;;
+				-s) params="$params$sep-q" ;;
+				-m) params="$params$sep-w" ;;
+				-x) shift ; proxy="$1" ;;
+				*) params="$params$sep$1" ;;
+			esac
+			shift
+		done
+		if [ -z "$sortie" ]
+		then
+			params="$params$sep-O$sep-"
+		fi
+		(
+			IFS="$sep"
+			http_proxy=$proxy https_proxy=$proxy $params
+		)
 	}
 	curl()
 	{
