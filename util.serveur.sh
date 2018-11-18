@@ -8,6 +8,65 @@
 
 serveur_sep="`printf '\003'`"
 
+# Lance / relance / arrête un serveur.
+# Utilisateur: servir <serveur> (start|restart|stop|remove)
+servir()
+{
+	local serveur="$1"
+	local action="$2"
+	[ ! -z "$action" ] || action=restart
+	local mode
+	local initds
+	
+	if [ "$action" = remove ]
+	then
+		servir "$serveur" stop 2> /dev/null || true
+	fi
+	
+	case "`uname`" in
+		FreeBSD)
+			mode=bsd
+			initds=/etc/rc.d
+			;;
+		Linux)
+			mode=initd
+			initds=/etc/init.d
+			commande systemctl && mode=systemd || true
+			;;
+		*)
+			echo "# Je ne sais pas créer d'amorceur sur `uname`." >&2
+			exit 1
+	esac
+	
+	case "$mode" in
+		bsd|initd)
+			local racine
+			for racine in $dest /usr/local ""
+			do
+				[ -f "$racine/$initds/$serveur" ] || continue # On ne teste pas en -x, car on n'est pas forcément root, donc s'il est exécutable simplement par root le -x renverra faux.
+				case "$action" in
+					remove)
+						SANSSU=0 sudoku rm -f "$dest/$initds/$serveur" `find "$racine"/etc/rc[0-9].d/ -type f 2> /dev/null | grep "/[SK][0-9]*$serveur$"`
+						;;
+					*)
+						SANSSU=0 sudoku "$racine/$initds/$serveur" "$action"
+						;;
+				esac
+				break
+			done
+			;;
+		systemd)
+			case "$action" in
+				remove)
+					SANSSU=0 sudoku systemctl disable "$serveur"
+					;;
+				*)
+					SANSSU=0 sudoku systemctl "$action" "$serveur"
+					;;
+			esac
+	esac
+}
+
 serveur()
 {
 	local nom commande fpid avant compte groupe remplacer dest desttemp
