@@ -277,7 +277,7 @@ serveurSystemd()
             echo "# Je ne sais pas gérer le type '$type'." >&2
             return 1
 	esac
-	ajoutService="$ajoutService|`echo "$serveur_env" | sed -e "s/$serveur_sep/|Environment=/g"`"
+	ajoutService="$ajoutService|`echo "$serveur_sep$serveur_env" | sed -e "s/$serveur_sep/|Environment=/g"`"
     ajoutService="`echo "$ajoutService" | tr \| '\012'`"
 	
 	mkdir -p "$desttemp/etc/systemd/system"
