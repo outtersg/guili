@@ -73,6 +73,11 @@ serveur()
 	
 	analyserParametresServeur "$@"
 	
+	for remplace in $remplacer
+	do
+		servir "$remplace" remove 2> /dev/null || true
+	done
+
 	case "`uname`" in
 		FreeBSD)
 			serveurFreebsd "$@"
@@ -228,12 +233,6 @@ serveurFreebsd()
 	
 	local nomPropre="`echo "$nom" | tr -d -`"
 	
-	for remplace in $remplacer
-	do
-		SANSSU=0 sudoku "$usrLocal/etc/rc.d/$remplace" stop 2> /dev/null || true
-		SANSSU=0 sudoku rm -f "$usrLocal/etc/rc.d/$remplace"
-	done
-
 	if [ -z "$fpid" ]
 	then
 		fpid=$dest/var/run/$nom.pid
@@ -312,19 +311,13 @@ TERMINE
 		done
 	fi
 	
-	SANSSU=0 sudoku "$dest/etc/rc.d/$nom" start
+	servir "$nom" start
 }
 
 serveurSystemd()
 {
     ajoutService=
 	
-	for remplace in $remplacer
-	do
-		SANSSU=0 sudoku systemctl stop "$remplace" 2> /dev/null || true
-		SANSSU=0 sudoku systemctl disable "$remplace" 2> /dev/null || true
-	done
-
 	case "$type" in
 		simple)
             ajoutType=
@@ -364,7 +357,7 @@ TERMINE
 	then
 		SANSSU=0 sudoku systemctl daemon-reload
 		SANSSU=0 sudoku systemctl unmask ${nom}.service > /dev/null 2>&1 || true # Des fois qu'un service avec le même nom existe à l'ancienne (init.d).
-		SANSSU=0 sudoku systemctl start ${nom}.service
+		servir "$nom" start
 		SANSSU=0 sudoku systemctl enable ${nom}.service
 	fi
 	if [ ! -z "$compte" ]
@@ -377,12 +370,6 @@ serveurLinux()
 {
 	[ ! -z "$dest" ] || dest=
 	
-	for remplace in $remplacer
-	do
-		SANSSU=0 sudoku "$dest/etc/init.d/$remplace" stop 2> /dev/null || true
-		SANSSU=0 sudoku rm -f "$dest/etc/init.d/$remplace" `find "$dest"/etc/rc[0-9].d/ -type f | grep "/[SK][0-9]*$remplace$"`
-	done
-
 	[ ! -z "$desttemp" ] || desttemp="$dest"
 	if [ -z "$fpid" ]
 	then
@@ -462,4 +449,6 @@ TERMINE
 	then
 		sudoer "$compte" "$dest/etc/init.d/$nom *"
 	fi
+	
+	servir "$nom" start
 }
