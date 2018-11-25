@@ -239,7 +239,6 @@ serveurFreebsd()
 		# Bizarre, la doc de daemon dit qu'il faut utiliser -P pour tuer le démon plutôt que le fils (sinon le démon redémarre le fils), mais en pratique ce faisant le stop ne trouve pas le pid. Et comme apparemment le démon ne relance pas le fils, partons sur du -p.
 		optionfpiddaemon="-p $fpid"
 	fi
-	executable="`echo "$commande" | awk '{print $1}'`"
 	case "$type" in
 		simple)
 			lanceur="/usr/sbin/daemon"
@@ -248,7 +247,7 @@ serveurFreebsd()
 			parametres="$paramCompte $optionfpiddaemon $commande"
 			;;
 		demon) 
-			lanceur="$executable"
+			lanceur="`echo "$commande" | awk '{print $1}'`"
 			parametres="`echo "$commande" | sed -e 's/^[^ 	]*[ 	]*//'`"
 			;;
 	esac
@@ -267,12 +266,29 @@ name=$nomPropre
 rcvar=\`set_rcvar\`
 command=$lanceur
 pidfile=$fpid
-procname=$executable
 command_args="$parametres"
 load_rc_config "\$name"
 : \${${nomPropre}_enable="NO"}
 
 `echo "$avant" | tr "$serveur_sep" '\012'`
+
+# La fonction du rc.subr est chiante, elle souhaite vérifier que le PID correspond à un process avec un nom retrouvable. Mais moi une fois que je dis à un lanceur de mettre son PID dans tel fichier, je ne vais pas me poser la question de si le processus qui tournera ce sera lui ou un des innombrables sous-shells ou sous-processus qu'il lancera. Donc on est laxistes.
+_find_processes()
+{
+	local _procname=\$1
+	local _interpreter=\$2
+	local _psargs=\$3
+	local _pref=
+	\$PS 2>/dev/null -o pid= -o jid= -o command= \$_psargs | while read _npid _jid reste
+	do
+		if [ "\$JID" -eq "\$_jid" ]
+		then
+			echo -n "\$_pref\$_npid"
+			_pref=' '
+		fi
+	done
+}
+
 run_rc_command "\$1"
 TERMINE
 	chmod u+x "$desttemp/etc/rc.d/$nom"
