@@ -293,7 +293,13 @@ TERMINE
 	esac
 	if [ ! -z "$relatif" ]
 	then
-		SANSSU=0 sudoku ln -s "$relatif/etc/rc.d/$nom" "$usrLocal/etc/rc.d/$nom"
+		SANSSU=0 sudoku sh <<TERMINE
+set -e
+d="$usrLocal/etc/rc.d/$nom"
+s="$relatif/etc/rc.d/$nom"
+[ -L "\$d" ] && rm "\$d" || true
+ln -s "\$s" "\$d"
+TERMINE
 	fi
 	
 	# Ajout au sudoers.
