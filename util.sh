@@ -737,6 +737,27 @@ inclure()
 	return $?
 }
 
+inclureBiblios()
+{
+	local v b
+	local trou=
+	[ "x$1" = x-t ] && trou=oui && shift
+	local dou="$1"
+	[ -z "$dou" ] || dou="$dou/"
+	for biblio in $biblios
+	do
+		v="`echo "$biblio" | cut -d : -f 2`"
+		b="`echo "$biblio" | cut -d : -f 1`"
+		[ -z "$v" ] || v="-v $v"
+		if [ -z "$trou" ]
+		then
+			inclure $dou$b $v
+		else
+			inclure $dou$b $v || true
+		fi
+	done
+}
+
 preCFlag()
 {
 	CPPFLAGS="$* $CPPFLAGS"
