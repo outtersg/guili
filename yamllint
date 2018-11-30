@@ -50,7 +50,7 @@ echo Installation… >&2
 # Soit on appelle pip install --install-option="--prefix=$dest" et on ajoute $dest/lib etc. au PYTHONPATH ou autre.
 # Soit on s'installe dans python, et notre $dest sert de coquille vide.
 # On choisit cette seconde option (à revoir sans doute pour être propres).
-sudoku `( command -v pip || command -v pip3 ) 2> /dev/null` install dist/yamllint-*.tar.gz
+sudoku `( command -v pip || command -v pip3 || echo pip_introuvable ) 2> /dev/null` install dist/yamllint-*.tar.gz
 #sudoku mkdir -p "$dest/bin" && sudoku ln -s "$destpython/bin/yamllint" "$dest/bin/yamllint" # Même pas; le bin aussi sera servi par Python.
 sudoku mkdir "$dest"
 sudoku "$SCRIPTS/utiliser" "$destpython"
