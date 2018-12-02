@@ -24,14 +24,11 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=bzip2
-
 v 1.0.6 && modifs="fpic meilleurCompilo" || true
 
-dest="$INSTALLS/$logiciel-$version"
 archive="https://netix.dl.sourceforge.net/project/bzip2/bzip2-$version.tar.gz"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
@@ -52,6 +49,4 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 sudo make install
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
