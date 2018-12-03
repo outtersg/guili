@@ -65,5 +65,3 @@ sudoku mkdir -p "$dest" # Pour que sutiliser puisse y déposer son témoin de bo
 
 # Au moins pour le marqueur de bonne installation.
 sutiliser -
-
-rm -Rf "$TMP/$$"
