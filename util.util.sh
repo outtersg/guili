@@ -53,6 +53,11 @@ proxy()
 	
 	# Logiciels spécifiques.
 	
+	if commande npm
+	then
+		npm config set proxy "$http_proxy"
+		npm config set https-proxy "$https_proxy"
+	fi
 }
 
 #- Comptes ---------------------------------------------------------------------
