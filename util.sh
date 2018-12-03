@@ -1913,6 +1913,7 @@ analyserParametresInstall "$@"
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
 
 _initPrerequisLibJpeg
+proxy -
 
 # Initialisation standard.
 
