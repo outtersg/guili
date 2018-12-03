@@ -102,9 +102,8 @@ CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make
 
 echo Installation… >&2
 install
+# NSS installe plein de biblios statiques inutiles, dont libssl.a en conflit avec OpenSSL (pour les biblios dynamiques, NSS suffixe par un 3 qui distingue).
+# A priori toutes les distribs (Linux, Homebrew pour sûr) zappent les statiques. Faisons la même chose.
+sudoku sh -c "cd \"$dest/lib\" && mkdir -p nss && mv *.a nss/"
 
-# On n'utilise pas, car NSS est un sacré bazar et installerait donc plein de machins en conflit avec les biblios "système".
-#sutiliser "$logiciel-$version"
-( cd "$INSTALLS/lib" ; destrel="../`basename "$dest"`/lib" ; sudo ln -s "$destrel/libssl3.so" "$destrel/libsmime3.so" "$destrel/libnss3.so" "$destrel/libnssutil3.so" ./ )
-
-rm -Rf "$TMP/$$"
+sutiliser
