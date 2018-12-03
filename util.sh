@@ -256,7 +256,7 @@ obtenirEtAllerDansDarcs()
 # Définit les variables permettant de centraliser les versions compilées des logiciels.
 _varsBinaireSilo()
 {
-	triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`"
+	triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`-`dirname "$dest" | sed -e 's#//*#_#g' -e 's#[-.]##g' -e 's#^__*##'`"
 	archive="`basename "$dest"`.bin.tar.gz"
 }
 
