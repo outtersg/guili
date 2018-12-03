@@ -46,17 +46,9 @@ argOptions="+perl_`echo "$v_perl" | tr . _`"
 
 # On doit mettre dans nos dépendances toutes celles d'svn, afin que le svn recompilé par perl dans son SVN::Core détecte toutes les biblios externes qui lui permettront d'accéder aux URL http://, https://, etc.
 # Notons que SVN::Core compile sa propre version de SVN; pour que les dépendances soient plus ou moins les mêmes, il nous faut une version approchante.
-v 1.0.0 && prerequis="perl sqlite apr apr-util expat svn < 1.9 `varsPrerequis prerequis-r "svn < 1.9"`" && modifs="exclusivementPrerequis proxyCpan" || true
+v 1.0.0 && prerequis="perl sqlite apr apr-util expat svn < 1.9 `varsPrerequis prerequis-r "svn < 1.9"`" && modifs="exclusivementPrerequis" || true
 
 # Modifications
-
-proxyCpan()
-{
-	case "$ALL_PROXY" in
-		http*|"") true ;;
-		?*) export ALL_PROXY="http://$ALL_PROXY" ;;
-	esac
-}
 
 # Variables
 
