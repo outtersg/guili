@@ -29,7 +29,7 @@ logiciel=bzip2
 v 1.0.6 && modifs="fpic meilleurCompilo" || true
 
 dest="$INSTALLS/$logiciel-$version"
-archive="http://www.bzip.org/$version/bzip2-$version.tar.gz"
+archive="https://netix.dl.sourceforge.net/project/bzip2/bzip2-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
