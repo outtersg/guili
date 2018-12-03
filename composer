@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=composer
-
 prerequis="php"
 
 v 1.3.1 || true
@@ -34,10 +32,9 @@ v 1.3.1 || true
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="https://getcomposer.org/download/$version/composer.phar"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -52,6 +49,4 @@ echo Installation… >&2
 sudo mkdir "$dest"
 sudo cp -R . "$dest/./."
 
-sutiliser $logiciel-$version
-
-rm -Rf $TMP/$$
+sutiliser -
