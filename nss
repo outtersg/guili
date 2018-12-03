@@ -34,7 +34,8 @@ v 3.29.3 && v_nspr="4.13.1" && prerequis="nspr $v_nspr" && modifs="pasGcc unistd
 
 pasGcc()
 {
-	filtrer coreconf/`uname`.mk sed -e 's/gcc/cc/g' -e 's/g\+\+/c++/g'
+	meilleurCompilo
+	filtrer coreconf/`uname`.mk sed -e "s/gcc/$CC/g" -e "s/g\\+\\+/$CXX/g"
 }
 
 unistd()
@@ -98,7 +99,8 @@ configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 #CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make nss_build_all # Si l'on embarque nspr avec.
-CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make
+#CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make
+CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 make
 
 echo Installation… >&2
 install
