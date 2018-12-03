@@ -29,6 +29,32 @@ commande()
 	command -v "$@" > /dev/null 2>&1
 }
 
+#- Réseau ----------------------------------------------------------------------
+
+# Paramètre le maximum de logiciels pour passer par un proxy donné.
+proxy()
+{
+	local param="$1"
+	[ "x$param" = "x-" ] && param="$ALL_PROXY" || true
+	case "$param" in
+		-) true ;;
+		*://*|"") ALL_PROXY="$param" ;;
+		*) ALL_PROXY="http://$param" ;;
+	esac
+	
+	# Variables d'environnement.
+	
+	export \
+		http_proxy="$ALL_PROXY" \
+		https_proxy="$ALL_PROXY" \
+		HTTP_PROXY="$ALL_PROXY" \
+		HTTPS_PROXY="$ALL_PROXY" \
+		ALL_PROXY
+	
+	# Logiciels spécifiques.
+	
+}
+
 #- Comptes ---------------------------------------------------------------------
 
 if ! commande usermod
