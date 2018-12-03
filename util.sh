@@ -253,13 +253,20 @@ obtenirEtAllerDansDarcs()
 	cd $endroit_oeadd
 }
 
+# Définit les variables permettant de centraliser les versions compilées des logiciels.
+_varsBinaireSilo()
+{
+	triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`"
+	archive="`basename "$dest"`.bin.tar.gz"
+}
+
 # Va chercher si un silo central a une version binaire de ce qu'on essaie de compiler.
 installerBinaireSilo()
 {
 	[ ! -z "$INSTALL_SILO" ] || return 0
 
-	local triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`"
-	local archive="`basename "$dest"`.bin.tar.gz"
+	local triplet archive
+	_varsBinaireSilo
 
 	if [ ! -f "$INSTALL_MEM/$archive" ]
 	then
@@ -279,8 +286,8 @@ pousserBinaireVersSilo()
 	local destLogiciel="$1"
 	if [ ! -z "$INSTALL_SILO" ]
 	then
-		local triplet="`uname -m`-`uname -s`-`uname -r | cut -d - -f 1`"
-		local archive="`basename "$dest"`.bin.tar.gz"
+		local triplet archive
+		_varsBinaireSilo
 		local silo_hote="`echo "$INSTALL_SILO" | cut -d : -f 1`"
 		local silo_chemin="`echo "$INSTALL_SILO" | cut -d : -f 2-`"
 		local ssh_opts="$INSTALL_SILO_SSH_OPTS -o ConnectTimeout=2"
