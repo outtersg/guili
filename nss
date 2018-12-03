@@ -27,6 +27,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 # Historique des versions gérées
 
 v 3.29.3 && v_nspr="4.13.1" && prerequis="nspr $v_nspr" && modifs="pasGcc unistd alertesZlib" || true
+v 3.40.1 && v_nspr="4.20" && prerequis="nspr $v_nspr" || true
 
 # Modifications
 
