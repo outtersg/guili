@@ -77,11 +77,10 @@ for modif in true $modifs ; do $modif "$@" ; done
 echo Installation… >&2
 if [ ! -z "$ALL_PROXY" ]
 then
-	npm config set proxy http://$ALL_PROXY
 	cat > .bowerrc <<TERMINE
 {
-	"https-proxy": "http://$ALL_PROXY",
-	"proxy": "http://$ALL_PROXY",
+	"https-proxy": "$ALL_PROXY",
+	"proxy": "$ALL_PROXY",
 	"directory": "bower_components",
 	"analytics": false,
 	"interactive": false
