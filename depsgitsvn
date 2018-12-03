@@ -64,6 +64,6 @@ PERL_MM_USE_DEFAULT=1 PERL_EXTUTILS_AUTOINSTALL="--defaultdeps" cpan install SVN
 sudoku mkdir -p "$dest" # Pour que sutiliser puisse y déposer son témoin de bonne installation.
 
 # Au moins pour le marqueur de bonne installation.
-sutiliser
+sutiliser -
 
 rm -Rf "$TMP/$$"
