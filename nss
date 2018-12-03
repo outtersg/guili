@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=nss
-
 # Historique des versions gérées
 
 v 3.29.3 && v_nspr="4.13.1" && prerequis="nspr $v_nspr" && modifs="pasGcc unistd alertesZlib" || true
@@ -82,9 +80,8 @@ install()
 
 #archive="https://ftp.mozilla.org/pub/security/nss/releases/NSS_`echo "$version" | tr . _`_RTM/src/nss-$version-with-nspr-$v_nspr.tar.gz"
 archive="https://ftp.mozilla.org/pub/security/nss/releases/NSS_`echo "$version" | tr . _`_RTM/src/nss-$version.tar.gz"
-dest="$INSTALLS/$logiciel-$version"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
