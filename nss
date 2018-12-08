@@ -27,9 +27,17 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 # Historique des versions gérées
 
 v 3.29.3 && v_nspr="4.13.1" && prerequis="nspr $v_nspr" && modifs="pasGcc unistd alertesZlib" || true
-v 3.40.1 && v_nspr="4.20" && prerequis="nspr $v_nspr" || true
+v 3.40.1 && v_nspr="4.20" && prerequis="nspr $v_nspr" && modifs="$modifs nonInitialisees" || true
 
 # Modifications
+
+nonInitialisees()
+{
+	# GCC 7 d'une Ubuntu 18.04 ne voit pas que certaines variables sont initialisées par macro, while(1) ou autre
+	# structure parfaitement suffisante; il génère une alerte, transmutée en erreur.
+	filtrer lib/libpkix/pkix_pl_nss/system/pkix_pl_oid.c sed -e '/^[ 	]*[_A-Za-z0-9]*[ 	]*cmpResult;/s/;/ = -1;/'
+	filtrer cmd/certutil/certext.c sed -e '/^[ 	]*[_A-Za-z0-9]*[ 	]*value;/s/;/ = 0;/'
+}
 
 pasGcc()
 {
