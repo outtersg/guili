@@ -106,6 +106,24 @@ TERMINE
 			npm config rm https-proxy
 		fi
 	fi
+	
+	( ls -d $HOME/.mozilla/firefox/*.default/ 2> /dev/null || true ) | while read dossierFF
+	do
+		(
+			cat >> "$dossierFF/user.js" 2> /dev/null <<TERMINE
+user_pref("network.proxy.ftp", "$phh");
+user_pref("network.proxy.ftp_port", $php);
+user_pref("network.proxy.http", "$phh");
+user_pref("network.proxy.http_port", $php);
+user_pref("network.proxy.share_proxy_settings", true);
+user_pref("network.proxy.socks", "$phh");
+user_pref("network.proxy.socks_port", $php);
+user_pref("network.proxy.ssl", "$psh");
+user_pref("network.proxy.ssl_port", $psp);
+user_pref("network.proxy.type", 1);
+TERMINE
+		) || true
+	done
 }
 
 #- Comptes ---------------------------------------------------------------------
