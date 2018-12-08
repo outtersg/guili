@@ -34,10 +34,18 @@ commande()
 # Paramètre le maximum de logiciels pour passer par un proxy donné.
 proxy()
 {
-	local param="$1"
-	[ "x$param" = "x-" ] && param="$ALL_PROXY" || true
+	local ecrire=non
+	local param
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-e|-w|-p) ecrire=oui ;; # écrire, write, persistence: le paramétrage est mis sur disque.
+			-) param="$ALL_PROXY" ;;
+			*) param="$1" ;;
+		esac
+		shift
+	done
 	case "$param" in
-		-) true ;;
 		*://*|"") ALL_PROXY="$param" ;;
 		*) ALL_PROXY="http://$param" ;;
 	esac
@@ -52,6 +60,8 @@ proxy()
 		ALL_PROXY
 	
 	# Logiciels spécifiques.
+	
+	[ $ecrire = oui ] || return 0 # À partir de maintenant on fait des modifs persistentes.
 	
 	if commande npm
 	then
