@@ -31,6 +31,12 @@ commande()
 
 #- Réseau ----------------------------------------------------------------------
 
+# Chope l'hôte et le port des URL passées sur l'entrée standard.
+hoteEtPort()
+{
+	sed -e h -e '/^[a-zA-Z0-9]*:\/\//!s/^.*$/80/' -e 's/:.*//' -e 's/^http$/80/' -e 's/^https$/443/' -e x -e 's#^[a-zA-Z0-9]*://##' -e 's#/.*$##' -e G -e 'y/\n/:/' -e 's/:/ /' -e 's/:.*//' -e 's/ /:/'
+}
+
 # Paramètre le maximum de logiciels pour passer par un proxy donné.
 proxy()
 {
