@@ -55,8 +55,18 @@ proxy()
 	
 	if commande npm
 	then
+		if [ ! -z "$http_proxy" ]
+		then
 		npm config set proxy "$http_proxy"
+		else
+			npm config rm proxy
+		fi
+		if [ ! -z "$https_proxy" ]
+		then
 		npm config set https-proxy "$https_proxy"
+		else
+			npm config rm https-proxy
+		fi
 	fi
 }
 
