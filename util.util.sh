@@ -65,6 +65,11 @@ proxy()
 		HTTPS_PROXY="$ALL_PROXY" \
 		ALL_PROXY
 	
+	local phh="`echo "$http_proxy" | hoteEtPort | cut -d : -f 1`"
+	local php="`echo "$http_proxy" | hoteEtPort | cut -d : -f 2`"
+	local psh="`echo "$https_proxy" | hoteEtPort | cut -d : -f 1`"
+	local psp="`echo "$https_proxy" | hoteEtPort | cut -d : -f 2`"
+	
 	# Logiciels spécifiques.
 	
 	[ $ecrire = oui ] || return 0 # À partir de maintenant on fait des modifs persistentes.
