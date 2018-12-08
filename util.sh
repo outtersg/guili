@@ -458,6 +458,7 @@ sudoku()
 		# Analyse des paramètres.
 		
 			enTantQue=root
+			ou="$INSTALLS"
 			sudo_env=
 			while [ "$#" -gt 0 ]
 			do
@@ -470,6 +471,7 @@ sudoku()
 						shift
 						;;
 					-u) shift ; enTantQue="$1" ; shift ;;
+					-d) shift ; ou="$1" ; shift ;;
 					*) break ;;
 				esac
 			done
@@ -477,7 +479,7 @@ sudoku()
 		# Qu'a-t-on à notre disposition?
 		
 		# sdk_ecris: peut-on écrire dans le dossier cible?
-		touch "$INSTALLS/.sudoku.temoin" 2> /dev/null && rm -f "$INSTALLS/.sudoku.temoin" 2> /dev/null && sdk_ecris=1 || sdk_ecris=0
+		touch "$ou/.sudoku.temoin" 2> /dev/null && rm -f "$ou/.sudoku.temoin" 2> /dev/null && sdk_ecris=1 || sdk_ecris=0
 		# sdk_vraiment: veut-on *vraiment* passer root?
 		# Du fait de notre malheureuse surcharge de sudo, parfois notre sudoku est appelé pour faire du vrai sudo où on a vraiment besoin de passer root (même si $INSTALLS est inscriptible; par exemple pour ajouter à /usr/local/etc/rc.d un lien symbolique vers un de nos fichiers "à nous"). Pour cette usage, appeler SANSSU=0 sudoku ….
 		[ "x$SANSSU" = x0 ] && sdk_vraiment=1 || sdk_vraiment=0
