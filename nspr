@@ -49,7 +49,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" $OPTIONS_CONF
+./configure --prefix="$dest" --enable-64bit $OPTIONS_CONF # Crétin de configure qui fait du 32 bits par défaut.
 
 echo Compilation… >&2
 make
