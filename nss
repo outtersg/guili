@@ -34,7 +34,7 @@ v 3.40.1 && v_nspr="4.20" && prerequis="nspr $v_nspr" || true
 pasGcc()
 {
 	meilleurCompilo
-	filtrer coreconf/`uname`.mk sed -e "s/gcc/$CC/g" -e "s/g\\+\\+/$CXX/g"
+	filtrer coreconf/`uname`.mk sed -e "s#gcc#$CC#g" -e "s#g++#$CXX#g"
 }
 
 unistd()
