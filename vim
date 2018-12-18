@@ -84,7 +84,7 @@ corr()
 		do
 			iFormate="`printf "%$formateur" "$i"`"
 			mv "`obtenir "$ou/$v_maj/$v_maj.$iFormate"`" ./
-			i=`expr $i - 1`
+			i=`expr $i - 1 || true` # Ce crétin d'expr sort en erreur 1 lorsque le résultat vaut 0…
 		done
 		tar czf "$mem" "$v_maj".*
 	fi
