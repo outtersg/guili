@@ -30,6 +30,7 @@ logiciel=libevent
 
 v 2.0.21 && prerequis="openssl < 1.1" || true
 v 2.0.22 || true
+v 2.1.8 || true
 
 # Modifications
 
