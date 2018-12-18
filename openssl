@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=openssl
-
 # Historique des versions gérées
 
 v 0.9.8.7 && prerequis="perl >= 5" && modifs="multiarch" || true
@@ -143,6 +141,6 @@ for modif in true $modifs ; do $modif ; done
 	echo Installation… >&2
 	sudo make install
 
-sutiliser "$logiciel-$version"
+sutiliser
 
-rm -Rf "$TMP/$$" "`pwd`"
+rm -Rf "`pwd`" # Ménage pour si on doit recompiler la version 32bits au même endroit.
