@@ -33,6 +33,7 @@ v 1.9a
 v 2.2
 v 2.6 || true # Sait correctement détecter ncursesw.
 v 2.7 || true
+v 2.8 || true
 
 prerequis
 
