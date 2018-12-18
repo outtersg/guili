@@ -50,6 +50,9 @@ case `uname` in
 			archive="https://downloads.haskell.org/~ghc/$version/ghc-$version-x86_64-portbld-freebsd.tar.xz"
 		fi
 		;;
+	Darwin)
+		archive="https://downloads.haskell.org/~ghc/$version/ghc-$version-x86_64-apple-darwin.tar.xz"
+		;;
 	*) echo "# Pas d'archive binaire connue pour `uname`." >&2 ; exit 1 ;;
 esac
 
