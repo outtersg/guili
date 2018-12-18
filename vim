@@ -42,6 +42,7 @@ v 7.4.1847 || true
 v 7.4.2296 || true
 v 8.0.311 && demarrage=".069" || true
 v 8.0.1240 && demarrage=".586" || true
+v 8.1.608 && demarrage="" || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
