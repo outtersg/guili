@@ -31,7 +31,7 @@ if option ossl10 ; then vossl=" < 1.1" ; fi
 
 v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="ncurses readline zlib openssl$vossl python < 3" || true
 v 8.0.3 || true
-v 9.1.2 && modifs="exclusivementPrerequis bsdAvecPythonThreade detectionPerl detectionReadline" || true
+v 9.1.2 && modifs="exclusivementPrerequis bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" || true
 v 9.2.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="$contribs hstore" || true
 v 9.2.9 || true
 v 9.2.18 || true
