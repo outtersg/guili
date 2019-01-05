@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=_postgresql
-
 # Historique des versions gérées
 
 prerequis="postgresql"
@@ -90,9 +88,8 @@ prerequis
 # Variables
 
 version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*://g' -e 's/ //g'`"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 if ! id "$compte" > /dev/null 2>&1
 then
