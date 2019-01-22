@@ -118,6 +118,10 @@ mkdir "$dest0"
 mkdir "$dest0/logs" "$dest0/temp" "$dest0/webapps"
 cp -R "$desttomcat/conf" "$dest0/conf"
 sinstaller -u "$compte" "$dest0" "$dest"
+# Sous FreeBSD, java est installé dans /usr/local/bin, qui n'est pas dans le $PATH de root au démarrage. Dommage…
+case `uname` in
+	FreeBSD) optionsServeur -pre 'export PATH="/usr/local/bin:$PATH"' ;;
+esac
 # Démarreur!
 # http://www.fourproc.com/2012/04/20/force-tomcat-to-use-ipv4-on-server-with-both-ipv6-and-ipv4-configured.html
 IFS="$zero3"
