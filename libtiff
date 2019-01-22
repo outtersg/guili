@@ -42,6 +42,10 @@ prerequis
 
 detectionGLMac()
 {
+	[ `uname` = Darwin ] || return 0
+	
+	OPTIONS_CONF="$OPTIONS_CONF --with-apple-opengl-framework"
+	
 	patch -p0 << TERMINE
 --- acinclude.m4	12 Sep 2004 09:15:05 -0000	1.4
 +++ acinclude.m4	5 May 2005 09:05:31 -0000
@@ -279,10 +283,11 @@ if [[ $version = *-* ]] ; then
 else
 	obtenirEtAllerDans "$archive"
 fi
+OPTIONS_CONF=
 for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" #--with-apple-opengl-framework
+./configure --prefix="$dest" $OPTIONS_CONF
 for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
