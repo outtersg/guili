@@ -33,6 +33,7 @@ v 0.30.2 || true
 v 0.32.4 || true
 v 0.32.6 || true
 v 0.34.0 || true
+v 0.36.0 || true
 
 archive=http://cairographics.org/releases/$logiciel-$version.tar.gz
 
