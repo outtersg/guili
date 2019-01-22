@@ -86,6 +86,24 @@ prerequis
 
 dest="$INSTALLS/$logiciel$suffixe"
 
+zero3="`printf '\003'`"
+optionsServeur=
+optionsServeurInitialise=
+optionsServeur()
+{
+	while [ $# -gt 0 ]
+	do
+		if [ -z "$optionsServeurInitialise" ]
+		then
+			optionsServeur="$1"
+			optionsServeurInitialise=oui
+		else
+			optionsServeur="$optionsServeur$zero3$1"
+		fi
+		shift
+	done
+}
+
 if ! id "$compte" > /dev/null 2>&1
 then
 	echo "Création de l'utilisateur…" >&2
@@ -102,6 +120,7 @@ cp -R "$desttomcat/conf" "$dest0/conf"
 sinstaller -u "$compte" "$dest0" "$dest"
 # Démarreur!
 # http://www.fourproc.com/2012/04/20/force-tomcat-to-use-ipv4-on-server-with-both-ipv6-and-ipv4-configured.html
-serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" CATALINA_PID="$dest/var/run/tomcat$suffixe.pid" CATALINA_OPTS="-Djava.net.preferIPv4Stack=true" "$desttomcat/bin/startup.sh"
+IFS="$zero3"
+tifs serveur -u "$compte" demon "tomcat$suffixe" CATALINA_BASE="$dest" CATALINA_PID="$dest/var/run/tomcat$suffixe.pid" CATALINA_OPTS="-Djava.net.preferIPv4Stack=true" $optionsServeur "$desttomcat/bin/startup.sh"
 
 rm -Rf "$TMP/$$"
