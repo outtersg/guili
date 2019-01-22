@@ -935,6 +935,7 @@ decoupePrerequis()
 varsPrerequis()
 {
 	local vp_vars=
+	local paramsInclure=
 	while [ $# -gt 0 ]
 	do
 		vp_vars="$vp_vars $1"
@@ -952,7 +953,10 @@ varsPrerequis()
 		case "$vp_logiciel" in
 			*\(\)) true ;;
 			*)
-				INSTALLS_AVEC_INFOS="$vp_vars" inclure "$vp_logiciel" "$vp_version" 6>&1 >&2
+				paramsInclure="$vp_logiciel"
+				[ -z "$vp_version" ] || paramsInclure="$paramsInclure|$vp_version"
+				IFS=\|
+				INSTALLS_AVEC_INFOS="$vp_vars" tifs inclure $paramsInclure 6>&1 >&2
 				;;
 		esac
 	done < $TMP/$$/temp.prerequis
