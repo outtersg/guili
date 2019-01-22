@@ -29,6 +29,7 @@ logiciel=unison
 v 2.40.63 && prerequis="ocaml < 4" && modifs="espaces" || true
 v 2.40.128 || true
 v 2.48.4 && prerequis="ocaml >= 4 < 4.04" && modifs="espaces sansVersionMac" || true
+v 2.51.2 && prerequis="ocaml >= 4" || true
 
 # Modifications
 
