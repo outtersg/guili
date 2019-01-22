@@ -27,11 +27,13 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 logiciel=libaesgm
 
 v 2007.12.20 && v_hummus=3.9 && prerequis="openssl" || true
+v 2007.12.21 && v_hummus=4.0 && prerequis="openssl" || true
 
 # Le site officiel de la libaesgm ne semble plus fonctionnel. On va donc le prélever dans l'empaqueté de HummusPDF (son seul usager, pour l'heure).
 archive_git=http://github.com/galkahana/PDF-Writer.git
 archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
 archive="PDFWriter`echo "$v_hummus" | tr . _`.zip"
+archive="https://github.com/galkahana/PDF-Writer/archive/$v_hummus.tar.gz" # Ouf, il est enfin passé chez Github!
 
 v_simple="`echo "$version" | sed -e 's/[.][^.]*.git$//'`"
 dest=$INSTALLS/$logiciel-$v_simple
