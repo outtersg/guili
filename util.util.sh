@@ -167,6 +167,140 @@ fi
 
 # À FAIRE: rapatrier filtrer, changerConf, etc.
 
+# Reconstitue dans une arbo les fichiers de conf en fusionnant les .defaut avec les modifications effectuées sur une arbo plus ancienne.
+# Utilisation:
+#   perso <cible> <existant>*
+#     <cible>
+#       Dossier sur lequel reporter les modifications d'un <existant>
+#     <existant>
+#       Dossier contenant des fichiers (ou dossiers) .original à côté d'un
+#       modifié.
+#       Si <existant> a la forme +<chemin>, alors on cherchera tout élément
+#       suffixé .original dans l'<existant>. Sinon on se contentera de ceux
+#       correspondant à un élément de <cible>.
+#       Le + a donc un intérêt pour rechercher les fichiers modifiés dans un
+#       existant n'ayant plus de correspondant dans la <cible>, signe que la
+#       <cible> ne pourra reprendre la personnalisation. D'un autre côté, il ne
+#       faut surtout pas utiliser le + sur une arbo complète, par exemple
+#       /usr/local, qui agrège les .original de plusieurs logiciels.
+# Ex.:
+#   # Si l'on s'apprête à déployer notre logiciel-2.0 en /usr/local/, où logiciel-1.0 s'était déjà installé, et avait été ensuite personnalisé.
+#   perso /tmp/logiciel-2.0 /usr/local
+perso()
+{
+	local suffixe=".original"
+	
+	local cible="$1" ; shift
+	local source
+	local modeListage
+	
+	# On crée les fichiers à partir de nos défauts.
+	
+	(
+		cd "$cible"
+		find . -name "*$suffixe" | while read defaut
+		do
+			fcible="`dirname "$defaut"`/`basename "$defaut" "$suffixe"`"
+			[ -e "$fcible" ] || cp -Rp "$defaut" "$fcible"
+		done
+	)
+	
+	# Dans les arbos de départ, on essaie de trouver des fichiers modifiés à côté de leur version d'origine.
+	
+	> /tmp/temp.perso.$$
+	> /tmp/temp.perso.$$.tar
+	for source in "$@"
+	do
+		modeListage=cible
+		case "$source" in
+			+*)
+				source="`echo "$source" | cut -c 2-`"
+				modeListage=source
+				;;
+		esac
+		(
+			if [ $modeListage = source ]
+			then
+				cd "$source" && find . -mindepth 1 -name "*$suffixe"
+			else
+				cd "$cible" && find . -mindepth 1 ! -name "*$suffixe" | sed -e "s/$/$suffixe/"
+			fi
+		) | tr '\012' '\000' | (
+			cd "$source"
+			( xargs -0 ls -d 2> /dev/null || true ) | grep -v -f /tmp/temp.perso.$$ | sed -e "s/$suffixe$//" | while read f
+			do
+				echo "$f" >> /tmp/temp.perso.$$
+				diff -rq "$f$suffixe" "$f" | grep -F "Only in $f: " | sed -e 's/^Only in //' -e 's#: #/#' || true
+				diff -ruw "$f$suffixe" "$f" >&7 || true
+			done | tr '\012' '\000' | xargs -0 tar cf - >> /tmp/temp.perso.$$.tar
+		) 7>&1
+	done | sed -e "s#^\(--- [^	]*\)$suffixe#\1#" | \
+	(
+		cd "$cible"
+		patch -p0 -l || \
+		(
+			echo "# Attention, les personnalisations de $* n'ont pu être appliquées. Consultez:"
+			find . -name "*.rej" | sed -e 's/^/  /'
+		) | rouge >&2
+		tar xf - < /tmp/temp.perso.$$.tar
+	)
+	rm /tmp/temp.perso.$$ /tmp/temp.perso.$$.tar
+}
+
+# Dans une arbo à la $INSTALLS de Guillaume (bin/toto -> ../toto-1.0.0/bin/toto), cherche le "logiciel" le plus référencé depuis des chemins d'un dossier local.
+# Utilisation:
+#   leplusdelienscommuns <dossier local> <référentiel>
+#     <dossier local>
+#       "Petit" dossier dont on va rechercher les fichiers dans le référentiel.
+#     <référentiel>
+#       Gros dossier supposé contenir des liens symboliques de la forme ../logiciel-version/….
+# Ex.:
+#   Avec un <dossier local> contenant:
+#     bin/toto
+#     bin/titi
+#     lib/libtoto.so
+#   Et un <référentiel> contenant:
+#     bin/toto -> ../toto-1.0.0/bin/toto
+#     bin/titi -> ../titi-0.9/bin/titi
+#     lib/libtoto.so -> ../toto-1.0.0/lib/libtoto.so
+#   Renverra:
+#     toto-1.0.0
+leplusdelienscommuns()
+{
+	local f
+	local dlocal="$1"
+	local dref="$2"
+	
+	( cd "$dlocal" && find . -mindepth 1 ) | \
+	(
+		cd "$dref"
+		while read f
+		do
+			if [ -L "$f" -a -e "$f" ]
+			then
+				readlink "$f"
+			fi
+		done | awk '{sub(/^(\.\.\/)*/,"");sub(/\/.*/,"");if(!n[$0])n[$0]=0;++n[$0]}END{nmax=0;for(i in n)if(n[i]>nmax){nmax=n[i];cmax=i}if(nmax)print cmax}'
+	)
+}
+
+# perso() pour une arbo "mode installs de Guillaume". On va chercher les éventuels originaux des fichiers de notre cible, mais aussi les originaux "orphelins" (n'ayant pas de correspondant de la source déterminée 
+iperso()
+{
+	local dossier
+	
+	# Recherche de liens symboliques à la sauce "installs de Guillaume".
+	# Comme ils sont noyés dans $INSTALLS au milieu des liens symboliques vers plein d'autres logiciels, on ne cherche que ceux correspondant à un fichier de notre cible. Il y aura sans doute quelques petites différences, mais sur le nombre on devrait avoir suffisamment de témoins pour pouvoir faire de la statistique et retrouver notre dossier source le plus probable.
+	
+	dossier="`leplusdelienscommuns "$1" "$INSTALLS"`"
+	if [ -z "$dossier" ]
+	then
+		perso "$@" "$INSTALLS"
+	else
+		perso "$@" "$INSTALLS" "+$INSTALLS/$dossier"
+	fi
+}
+
 #- Encodage / décodage ---------------------------------------------------------
 # Voir aussi garg.sh
 
