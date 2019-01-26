@@ -22,6 +22,27 @@
 # Ensemble de fonctions utilitaires autonomes (ne dépendant pas de variables globales).
 #-------------------------------------------------------------------------------
 
+#- Affichage -------------------------------------------------------------------
+
+couleur()
+{
+	local format="$1" ; shift
+	if [ $# -gt 0 ]
+	then
+		echo "[${format}m$@[0m"
+	else
+		sed -e "s/^/[${format}m/" -e "s/$/[0m/"
+	fi
+}
+
+rouge() { couleur 31 "$@" ; }
+jaune() { couleur 33 "$@" ; }
+vert() { couleur 32 "$@" ; }
+gris() { couleur 90 "$@" ; }
+bleu() { couleur 34 "$@" ; }
+cyan() { couleur 36 "$@" ; }
+magenta() { couleur 35 "$@" ; }
+
 #- Système ---------------------------------------------------------------------
 
 commande()
