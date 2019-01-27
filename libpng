@@ -24,8 +24,7 @@ set -e
 if [ "$SCRIPTS" = "" ] ; then SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
 . "$SCRIPTS/util.sh"
 
-
-logiciel=libpng
+prerequis=
 
 v 1.2.5
 v 1.2.25
@@ -44,7 +43,6 @@ v 1.6.34 || true
 v 1.6.35 || true
 v 1.6.36 || true
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://switch.dl.sourceforge.net/sourceforge/png-mng/$logiciel-$version.tar.bz2"
 pge $version 1.2.25 && archive="ftp://ftp.simplesystems.org/pub/libpng/png/src/$logiciel-$version.tar.bz2"
 vmin="`echo "$version" | sed -e 's/\.//' -e 's/\..*//'`"
@@ -58,7 +56,9 @@ compat12()
 '
 }
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
@@ -85,6 +85,4 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 sudo mkdir -p "$dest" && sudo make install
 pge 1.2.5 $version && [ "`uname -s`" = Darwin ] && sudo rm -f "$INSTALLS/lib/libpng.dylib" && sudo ln -s "$dest/lib/libpng.3.$version.dylib" "$INSTALLS/lib/libpng.dylib" # Ces couillons ont merdé leur Makefile, avec deux suffixes différents pour les biblios mais l'un est vide (d'où les libpng. qui traînent).
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
