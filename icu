@@ -38,6 +38,7 @@ v 52.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
 v 55.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate ldlproot" || true
 v 59.1 || true
 v 62.1 && modifs="$modifs types16" || true
+v 63.1 || true
 
 versiong="`echo "$version" | tr . _`"
 archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
