@@ -26,10 +26,7 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 
 logiciel=postgresql
 
-vossl=
-if option ossl10 ; then vossl=" < 1.1" ; fi
-
-v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="ncurses readline zlib openssl$vossl python < 3" || true
+v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="ncurses readline zlib openssl python < 3" || true
 v 8.0.3 || true
 v 9.1.2 && modifs="exclusivementPrerequis bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" || true
 v 9.2.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="$contribs hstore" || true
@@ -41,6 +38,14 @@ v 9.6.5 || true
 v 9.6.6 || true
 v 9.6.10 || true
 v 9.6.11 || true
+
+prerequisOpenssl()
+{
+	if option ossl10 || pge 9.3 $version # À FAIRE: à partir de quelle version PostgreSQL encaisse-t-il de l'OpenSSL 1.1? En tout cas en 9.2.1 il n'est pas prêt. Mettons 9.3 pour le moment.
+	then
+		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl < 1.1 #'`"
+	fi
+}
 
 prerequisMake()
 {
@@ -93,6 +98,7 @@ then
 	prerequis="$prerequis perl"
 fi
 prerequisMake
+prerequisOpenssl
 
 prerequis
 
