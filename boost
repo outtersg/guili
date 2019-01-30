@@ -91,7 +91,8 @@ pourMac()
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
-archive="http://switch.dl.sourceforge.net/project/$logiciel/$logiciel/$version/${logiciel}_`echo $version | tr . _`.tar.bz2"
+archive="http://heanet.dl.sourceforge.net/project/$logiciel/$logiciel/$version/${logiciel}_`echo $version | tr . _`.tar.bz2"
+archive="https://netix.dl.sourceforge.net/project/boost/boost/$version/boost_`echo $version | tr . _`.7z"
 
 [ -d "$dest" ] && exit 0
 
