@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=libatomicops
-
 # Historique des versions gérées
 
 v 7.4.2 || true
@@ -37,10 +35,9 @@ prerequis
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://www.ivmaisoft.com/_bin/atomic_ops/libatomic_ops-$version.tar.gz";
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -55,6 +52,4 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
