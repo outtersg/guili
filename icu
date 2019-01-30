@@ -37,13 +37,24 @@ v 50.1.2 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
 v 52.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
 v 55.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate ldlproot" || true
 v 59.1 || true
-v 62.1 || true
+v 62.1 && modifs="$modifs types16" || true
 
 versiong="`echo "$version" | tr . _`"
 archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
 pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version/${logiciel}4c-$versiong-src.tgz
 
 # Modifications
+
+types16()
+{
+	local char16
+	for char16 in char16_t __char16_t uint16_t rien
+	do
+		( echo '#include <sys/types.h>' ; echo "$char16 c;" ) > $TMP/1.c
+		cc -c -o $TMP/1.o $TMP/1.c 2> /dev/null && break || continue
+	done
+	filtrer source/common/unicode/umachine.h sed -e "s/typedef char16_t/typedef $char16/g"
+}
 
 moinsIPointAvantILocal()
 {
