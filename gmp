@@ -54,7 +54,9 @@ dest="$INSTALLS/$logiciel-$version"
 vmaj="`echo "$version" | sed -e 's/^\([^.]*\.[^.]*\.[^.]*\).*/\1/'`" ; vmin="`echo "$version" | sed -e "s/$vmaj//" -e 's/\.//'`" ; varchive="$vmaj`[ -z "$vmin" ] || ( echo obase=16 ; echo $vmin + 9 ) | bc | tr A-Z a-z`"
 archive="http://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2"
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 # Création de biblio multiarchi si nécessaire et possible.
 lipoenfler()
@@ -195,6 +197,4 @@ sudo make install
 
 lipoenfler
 
-sutiliser $logiciel-$version
-
-rm -Rf "$TMP/$$"
+sutiliser
