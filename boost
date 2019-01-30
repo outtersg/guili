@@ -30,6 +30,7 @@ v 1.45.0 && prerequis="icu python" && modifspostconfig="python105" && modifs="sa
 v 1.52.0 && true # On laisse les modifs actuelles.
 v 1.57.0 && modifs="" || true
 v 1.63.0 && modifs="toolset pythonPatate" || true
+v 1.69.0 || true
 
 # Modifications
 
