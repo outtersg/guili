@@ -26,7 +26,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 # Historique des versions gérées
 
-v 0.25.5 || true
+v 0.25.5 && prerequis="openssl < 1.1" || true
 v 0.29.6 || true
 v 0.30.1 || true
 
