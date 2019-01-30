@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=icu
-
 # Historique des versions gérées
 
 v 3.4
@@ -78,9 +76,9 @@ ldlproot()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
+prerequis
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -103,6 +101,4 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
