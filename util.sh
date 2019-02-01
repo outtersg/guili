@@ -33,12 +33,15 @@ INSTALL_SCRIPTS="$SCRIPTS" # Des fois que d'autres récupèrent ensuite la varia
 
 util_menage()
 {
+	if [ $? -eq 0 ] # En cas de meurtre, on ne fait pas disparaître les preuves.
+	then
 	# Un minimum de blindage pour éviter de supprimer / en cas de gros, gros problème (genre le shell ne saurait même plus fournir $$).
 	case "$TMP/$$" in
 		*/[0-9]*)
 			rm -Rf "$TMP/$$"
 			;;
 	esac
+	fi
 }
 util_mechantmenage()
 {
