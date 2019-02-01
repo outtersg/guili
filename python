@@ -342,7 +342,7 @@ echo Biblios standard… >&2
 if ! pge $version 3
 then
 	curl -O 'https://bootstrap.pypa.io/ez_setup.py'
-	sudo sh -c "SSL_CERT_FILE=$HOME/.curl-ca-bundle.crt LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY $dest/bin/python ez_setup.py"
+	sudoku sh -c "PATH=$INSTALLS/bin:\$PATH LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY $dest/bin/python ez_setup.py"
 fi
 
 sutiliser
