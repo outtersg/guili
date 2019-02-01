@@ -43,6 +43,7 @@ v 1.1.33 || true
 dest="$INSTALLS/$logiciel-$version"
 #archive=ftp://fr.rpmfind.net/pub/libxml/$logiciel-$version.tar.gz
 archive=ftp://xmlsoft.org/libxslt/$logiciel-$version.tar.gz
+archive=http://xmlsoft.org/sources/libxslt-$version.tar.gz
 
 [ -d "$dest" ] && exit 0
 
