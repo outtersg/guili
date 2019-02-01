@@ -232,7 +232,11 @@ perso()
 				echo "$f" >> /tmp/temp.perso.$$
 				diff -rq "$f$suffixe" "$f" | grep -F "Only in $f: " | sed -e 's/^Only in //' -e 's#: #/#' || true
 				diff -ruw "$f$suffixe" "$f" >&7 || true
-			done | tr '\012' '\000' | xargs -0 tar cf - >> /tmp/temp.perso.$$.tar
+			done | tr '\012' '\000' > /tmp/temp.perso.$$.only
+			if [ -s /tmp/temp.perso.$$.only ]
+			then
+				xargs -0 < /tmp/temp.perso.$$.only tar cf /tmp/temp.perso.$$.tar
+			fi
 		) 7>&1
 	done | sed -e "s#^\(--- [^	]*\)$suffixe#\1#" | \
 	(
@@ -242,9 +246,12 @@ perso()
 			echo "# Attention, les personnalisations de $* n'ont pu être appliquées. Consultez:"
 			find . -name "*.rej" | sed -e 's/^/  /'
 		) | rouge >&2
+		if [ -s /tmp/temp.perso.$$.tar ]
+		then
 		tar xf - < /tmp/temp.perso.$$.tar
+		fi
 	)
-	rm /tmp/temp.perso.$$ /tmp/temp.perso.$$.tar
+	rm -f /tmp/temp.perso.$$ /tmp/temp.perso.$$.only /tmp/temp.perso.$$.tar
 }
 
 # Dans une arbo à la $INSTALLS de Guillaume (bin/toto -> ../toto-1.0.0/bin/toto), cherche le "logiciel" le plus référencé depuis des chemins d'un dossier local.
