@@ -39,6 +39,7 @@ v 2.7.9 && modifs="incdirbourrin" || true
 v 2.7.11 && modifs="incdirbourrin nouveaumac" || true
 v 2.7.13 || true
 v 2.7.14 || true
+v 2.7.15 || true
 v 3.4.3 && modifs="incdirbourrin" && prerequis="sqlite gettext zlib" || true
 v 3.6.2 && prerequis="gettext zlib libffi" || true
 
