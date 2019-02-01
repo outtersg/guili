@@ -29,6 +29,7 @@ logiciel=patch
 # Historique des versions gérées
 
 v 2.7.4 && modifs="" || true
+v 2.7.6 || true
 
 prerequis
 
