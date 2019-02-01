@@ -39,7 +39,7 @@ prerequis
 
 dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.gnu.org/gnu/patch/patch-$version.tar.gz"
-archive="https://ftp.gnu.org/gnu/patch/patch-$version.tar.gz"
+archive="http://ftp.gnu.org/gnu/patch/patch-$version.tar.gz"
 
 [ -d "$dest" ] && exit 0
 
