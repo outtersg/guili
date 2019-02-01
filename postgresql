@@ -112,7 +112,8 @@ done
 
 echo Configuration… >&2
 
-./configure --prefix="$dest" --enable-thread-safety --with-python --with-pam --with-rendezvous --with-openssl $OPTIONS_CONF
+# À FAIRE: dans le temps je compilais avec --with-pam --with-rendezvous. Manifestement ça demande une détection et une condition.
+./configure --prefix="$dest" --enable-thread-safety --with-python --with-openssl $OPTIONS_CONF
 
 echo Compilation… >&2
 make
