@@ -24,38 +24,22 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
-logiciel=python
-
 # Historique des versions gérées
+
+OPTIONS_CONF=
 
 # Il nous faudra un cURL pour accéder à pypa.io.
 # zlib pour pip.
-prerequis="curl zlib"
-
-version=2.6
-modifs=
-OPTIONS_CONF=
-
-version=2.6.5
-inclure sqlite
-modifs="incdir"
-
-version=2.6.6
-inclure sqlite
-#modifs="incdir thrdlfbsd thrfbsd"
-#modifs="incdir fbsd"
-modifs="incdir fbsdopenssl"
-
-version=2.7
-inclure sqlite
-modifs="incdir fbsdopenssl"
-
+v 2.6 && modifs= && prerequis="sqlite curl zlib" || true
+v 2.6.5 && modifs="incdir" || true
+v 2.6.6 && modifs="incdir fbsdopenssl" || true
+v 2.7 || true
 v 2.7.2 && modifs="incdirbourrin fbsdopenssl" || true
 v 2.7.9 && modifs="incdirbourrin" || true
 v 2.7.11 && modifs="incdirbourrin nouveaumac" || true
 v 2.7.13 || true
 v 2.7.14 || true
-v 3.4.3 && modifs="incdirbourrin" && prerequis="gettext zlib" || true
+v 3.4.3 && modifs="incdirbourrin" && prerequis="sqlite gettext zlib" || true
 v 3.6.2 && prerequis="gettext zlib libffi" || true
 
 # Modifications
@@ -353,7 +337,6 @@ sudo make install
 # http://legacy.python.org/dev/peps/pep-3149/
 # Sur certains systèmes, Python suffixe un peu tout (ex.: include/python3.4m, avec un m pour -with-pymalloc; mais l'include/python3.4 n'existe pas). Pour permettre aux autres logiciels de s'y retrouver, on crée à l'emplacement de référence un lien symbolique vers une de ces versions.
 refsSansSuffixe
-sutiliser $logiciel-$version
 
 echo Biblios standard… >&2
 if ! pge $version 3
@@ -362,4 +345,4 @@ then
 	sudo sh -c "SSL_CERT_FILE=$HOME/.curl-ca-bundle.crt LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY $dest/bin/python ez_setup.py"
 fi
 
-rm -Rf /tmp/$$
+sutiliser
