@@ -845,7 +845,8 @@ reglagesCompil()
 	if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 	ACLOCAL="`echo "$ACLOCAL" | sed -e "s#aclocal#aclocal -I $dossierRequis/share/aclocal #"`"
 	fi
-	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL
+	CMAKE_INCLUDE_PATH="$dossierRequis/include:$CMAKE_INCLUDE_PATH"
+	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL CMAKE_INCLUDE_PATH
 }
 
 # Si l'on ne veut pas inclure d'office tout $INSTALLS (CPPFLAGS, LDFLAGS), on peut appeler cette chose. Devrait en fait être fait par défaut (pour que les logiciels ne se lient qu'aux prérequis explicites), mais trop de logiciels reposent sur ce $INSTALLS; on est donc en mode "liste rouge", les logiciels souhaitant se distancier de ce comportement devant appeler uniquementPrerequis.
