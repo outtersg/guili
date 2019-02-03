@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2005 Guillaume Outters
+# Copyright (c) 2005,2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,28 +21,19 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
-logiciel=libxml
-lv=${logiciel}2
-
-version=2.6.19
-
-version=2.6.22
-
-version=2.6.31
-
-#version=2.7.3 # Compil bof sous Mac OS X 10.4 PPC
-
-version=2.7.7
-
+v 2.6.19 || true
+v 2.6.22 || true
+v 2.6.31 || true
+#v 2.7.3 || true # Compil bof sous Mac OS X 10.4 PPC
+v 2.7.7 || true
 v 2.9.0 && modifs=pthread290 || true
 v 2.9.2 && modifs= || true
 v 2.9.7 || true
 v 2.9.9 || true
 
-archive=ftp://gd.tuwien.ac.at/pub/$logiciel/$lv-sources-$version.tar.gz
 archive=http://xmlsoft.org/sources/libxml2-$version.tar.gz
 
 forcagePython()
@@ -106,5 +97,3 @@ echo Installation… >&2
 sudo make install
 #[ -e "$dest/include/libxml" ] || sudo ln -s libxml2/libxml "$dest/include/libxml"
 sutiliser
-
-rm -Rf "$TMP/$$"
