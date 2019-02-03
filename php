@@ -260,7 +260,7 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 versionApache=
-`apxs -q SBINDIR`/`apxs -q TARGET` -v | grep version | grep -q 'Apache/2' && versionApache=2
+commande apxs && "`apxs -q SBINDIR`/`apxs -q TARGET`" -v | grep version | grep -q 'Apache/2' && versionApache=2 || true
 [ -z "$versionApache" ] || OPTIONS_CONF="$OPTIONS_CONF --with-apxs$versionApache"
 OPTIONS_CONF="$OPTIONS_CONF --enable-fpm"
 [ -z "$version_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
