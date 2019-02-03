@@ -32,8 +32,16 @@ v 5.3.0 && prerequis="libexecinfo py2()" && modifs="pasGcc cstds neReconstruisPa
 v 6.9.1 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
 v 6.10.0 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
 v 8.12.0 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
+v 10.15.1 && modifs="$modifs pasGArLd" || true
 
 archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
+
+pasGArLd()
+{
+	# GNU ar nous crée des .a bizarres avec un en-tête !<thin> qui plantent le ld FreeBSD 11.
+	[ `uname` = FreeBSD ] || return 0
+	export LINK="`command -v clang++`" AR=/usr/bin/ar LDFLAGS="-lstdc++ -lm"
+}
 
 py2()
 {
