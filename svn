@@ -38,6 +38,7 @@ v 1.9.4 || true
 v 1.9.5 || true
 v 1.9.7 || true
 v 1.9.9 || true
+v 1.9.10 || true
 # La 1.10.2 est super chiante, dans la résolution de conflits d'arbo (nouvelle fonctionnalité) elle mouline des dizaines de secondes avant de se planter complètement de diagnostic.
 #v 1.10.2 && modifs="moiDAbord lz4interne" && prerequis="$prerequis utf8proc" || true
 
