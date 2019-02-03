@@ -115,7 +115,7 @@ echo "Auto-démarrage…" >&2
 dest0="$TMP/$$/dest"
 rm -Rf "$dest0"
 mkdir "$dest0"
-mkdir "$dest0/logs" "$dest0/temp" "$dest0/webapps"
+mkdir -p "$dest0/logs" "$dest0/temp" "$dest0/webapps" "$dest0/var/run"
 cp -R "$desttomcat/conf" "$dest0/conf"
 sinstaller -u "$compte" "$dest0" "$dest"
 # Sous FreeBSD, java est installé dans /usr/local/bin, qui n'est pas dans le $PATH de root au démarrage. Dommage…
