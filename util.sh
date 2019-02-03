@@ -1435,6 +1435,8 @@ creeGroupe()
 
 creeCompte()
 {
+	local cc_opts_coquille=
+	
 	_analyserParametresCreeCompte "$@"
 	
 	# Options POSIX de groupe.
