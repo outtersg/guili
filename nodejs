@@ -26,8 +26,6 @@ calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$S
 calcScripts "$0"
 . "$SCRIPTS/util.sh"
 
-logiciel=nodejs
-
 v 0.10.33 && prerequis="libexecinfo py2()" && modifs="pasGcc" || true
 v 0.12.4 && prerequis="libexecinfo py2()" && modifs="pasGcc pthreadtInt doubleResult neReconstruisPasTout" || true
 v 5.3.0 && prerequis="libexecinfo py2()" && modifs="pasGcc cstds neReconstruisPasTout sansGold" || true
@@ -93,9 +91,7 @@ pasGcc()
 	export CC CXX
 }
 
-dest=$INSTALLS/$logiciel-$version
-
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -121,6 +117,4 @@ fi
 
 echo Installation… >&2
 sudo LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make install
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
