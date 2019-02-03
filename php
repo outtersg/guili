@@ -24,8 +24,6 @@ set -e
 SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
 . "$SCRIPTS/util.sh"
 
-logiciel=php
-
 OPTIONS_CONF=
 
 # Historique des versions gérées
@@ -313,4 +311,4 @@ a\
 	sudo cp php-fpm.conf sapi/fpm/init.d.php-fpm "$dest/etc/"
 fi
 
-sutiliser "$logiciel-$version"
+sutiliser
