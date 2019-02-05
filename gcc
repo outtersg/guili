@@ -231,7 +231,7 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 # Sans les --with-xxx, plutôt que d'utiliser $LDFLAGS, le configure définit par défaut les paramètres de lien à simplement -lxxx, sans -L, donc au final ld se vautre sauf sur les plates-formes où les biblios en question sont dans les chemins système (mais alors cela remet en cause tous les efforts que nous avons fait pour fournir notre version).
 # On peut, sur certains Linux mal foutus (gérant 32 et 64 bits, mais n'ayant pas les biblios pour les deux archis), vouloir utiliser le --disable-multilib pour se concentrer sur une archi.
-./configure --prefix="$dest" --enable-languages=c,c++,objc,obj-c++ --with-gmp=$destgmp --with-mpc=$destmpc --with-mpfr=$destmpfr # fortran me plante à la gueule sur FreeBSD, en 4.7 et en 4.9 (Segmentation fault quand le gfortran intermédiaire est appelé dans un configure intermédiaire), donc merde pour Fortran. À voir si ça n'est pas résolu avec mpfr en disable-shared, mais de toute façon on s'en fout de Fortran.
+./configure --prefix="$dest" --enable-languages=c,c++,objc,obj-c++ --with-gmp=$destgmp --with-mpc=$destmpc --with-mpfr=$destmpfr --disable-multilib # fortran me plante à la gueule sur FreeBSD, en 4.7 et en 4.9 (Segmentation fault quand le gfortran intermédiaire est appelé dans un configure intermédiaire), donc merde pour Fortran. À voir si ça n'est pas résolu avec mpfr en disable-shared, mais de toute façon on s'en fout de Fortran.
 
 fi
 
