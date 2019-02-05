@@ -24,8 +24,6 @@ set -e
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
-logiciel=redis
-
 # Historique des versions gérées
 
 v 3.2.11 && prerequis="" && modifs="afLocal" || true
@@ -42,11 +40,10 @@ afLocal()
 # Variables
 
 archive="http://download.redis.io/releases/redis-$version.tar.gz"
-dest="$INSTALLS/$logiciel-$version"
-
-[ -d "$dest" ] && exit 0
 
 prerequis
+
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -63,6 +60,4 @@ cp sentinel.conf dest/etc/redis-sentinel.default.conf
 sudo make PREFIX="$dest" install
 sinstaller dest "$dest"
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
