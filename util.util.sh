@@ -59,19 +59,38 @@ hoteEtPort()
 }
 
 # Paramètre le maximum de logiciels pour passer par un proxy donné.
+# Utilisation: proxy [-e|-w|-p] [-s] [<hôte>:<port>|-]
+#   -e|-w|-p
+#     Écris la config dans les fichiers persistents (.profile, etc.).
+#     (-e comme écrire, -w comme write, -p comme persistent)
+#   -s
+#     Écris les fichiers système (/etc/profile, etc.).
+#     Attention! Il est nécessaire de mentionner -w -s (par sécurité), sans quoi
+#     l'option est ignorée.
+#   <hôte>:<port>
+#     Proxy à taper.
+#   -
+#     Utiliser la valeur de $ALL_PROXY.
 proxy()
 {
 	local ecrire=non
+	local systeme=non
 	local param
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-e|-w|-p) ecrire=oui ;; # écrire, write, persistence: le paramétrage est mis sur disque.
+			-s) systeme=oui ;;
 			-) param="$ALL_PROXY" ;;
 			*) param="$1" ;;
 		esac
 		shift
 	done
+	if [ $ecrire = non -a $systeme = oui ]
+	then
+		echo "# proxy: précisez -w -s pour modifier le système." >&2
+		return 1
+	fi
 	case "$param" in
 		*://*|"") ALL_PROXY="$param" ;;
 		*) ALL_PROXY="http://$param" ;;
@@ -145,6 +164,10 @@ user_pref("network.proxy.type", 1);
 TERMINE
 		) || true
 	done
+	
+	[ $systeme = oui ] || return 0 # À partir de maintenant on fait des modifs système.
+	
+	# À FAIRE: /etc/profile
 }
 
 #- Comptes ---------------------------------------------------------------------
