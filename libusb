@@ -21,25 +21,22 @@
 
 set -e
 
-if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
-logiciel=libusb
-version=0.1.8
+v 0.1.8 || true
+v 0.1.12 || true
 
-version=0.1.12
+archive="https://github.com/libusb/libusb/archive/v$version.tar.gz"
 
-dest=/usr/local/$logiciel-$version
+destiner
 
-[ -d "$dest" ] && exit 0
-
-cd /tmp
 echo Obtention et décompression… >&2
-tar xzf `obtenir "http://ovh.dl.sourceforge.net/sourceforge/libusb/$logiciel-$version.tar.gz"`
-cd /tmp/$logiciel-$version
+obtenirEtAllerDansVersion
 
 echo Configuration… >&2
-./configure --prefix=/usr/local/$logiciel-$version
+[ -f configure ] || ./bootstrap.sh
+./configure --prefix="$dest"
 
 echo Correction… >&2
 filtrer libtool sed -e '1a\
@@ -52,4 +49,4 @@ make
 echo Installation… >&2
 sudo make install
 
-sutiliser $logiciel-$version
+sutiliser
