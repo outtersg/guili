@@ -34,7 +34,7 @@ case `basename "$0"` in
 esac
 OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
 
-v 5.9 && prerequis="pkgconfig" && modifs="exclusivementPrerequis fpic avecPkgconfig pointeurs" || true
+v 5.9 && prerequis="pkgconfig" && modifs="exclusivementPrerequis fpic avecPkgconfig pointeurs cppPrecomp" || true
 v 6.1 && modifs="exclusivementPrerequis fpic avecPkgconfig" || true
 
 archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
@@ -63,6 +63,11 @@ avecPkgconfig()
 				print "enable_pc_files=yes ; PKG_CONFIG_LIBDIR="destpc" ; echo \"$as_me:"NR": *** forçage fichiers .pc dans "destpc" ***\" >&5 ; echo \"forçage fichiers .pc: OUI MON GARS, dans "destpc"\" >&6";
 			}
 		'
+}
+
+cppPrecomp()
+{
+	filtrer configure sed -e 's/--*no-cpp-precomp//g'
 }
 
 pointeurs()
