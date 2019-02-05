@@ -34,6 +34,7 @@ v 1.12.16 && prerequis="pixman >= 0.30 glib libpng" || true
 v 1.12.18 && modifs="strndup" || true
 v 1.14.6 || true
 v 1.14.8 && prerequis="$prerequis freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
+#v 1.15.2 || true # Lien cassé?
 v 1.16.0 || true
 
 strndup()
