@@ -394,7 +394,7 @@ then
 				-o) params="$params$sep-O" ; sortie=oui ;;
 				-k) params="$params$sep--no-check-certificate" ;;
 				-s) params="$params$sep-q" ;;
-				-m) params="$params$sep-w" ;;
+				-m) params="$params$sep--timeout" ;;
 				-x) shift ; proxy="$1" ;;
 				*) params="$params$sep$1" ;;
 			esac
