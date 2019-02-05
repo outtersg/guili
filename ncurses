@@ -34,8 +34,8 @@ case `basename "$0"` in
 esac
 OPTIONS_CONF="$OPTIONS_CONF --enable-widec"
 
-v 5.9 && prerequis="pkgconfig" && modifs="pointeurs fpic avecPkgconfig" || true
-v 6.1 && modifs="fpic avecPkgconfig" || true
+v 5.9 && prerequis="pkgconfig" && modifs="exclusivementPrerequis fpic avecPkgconfig pointeurs" || true
+v 6.1 && modifs="exclusivementPrerequis fpic avecPkgconfig" || true
 
 archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
 
