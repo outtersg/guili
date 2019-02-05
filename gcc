@@ -211,6 +211,7 @@ TERMINE
 
 archive="http://mirror.bbln.org/gcc/releases/gcc-$version/gcc-$version.tar.bz2"
 archive="ftp://ftp.uvsq.fr/pub/gcc/releases/gcc-$version/gcc-$version.tar.bz2"
+archive="http://robotlab.itk.ppke.hu/gcc/releases/gcc-$version/gcc-$version.tar.bz2"
 pge $version 5.5 && archive="`echo "$archive" | sed -e 's/bz2$/xz/'`"
 
 destiner
