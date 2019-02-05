@@ -225,9 +225,9 @@ perso()
 			else
 				cd "$cible" && find . -mindepth 1 ! -name "*$suffixe" | sed -e "s/$/$suffixe/"
 			fi
-		) | tr '\012' '\000' | (
+		) | grep -v ^$ | tr '\012' '\000' | ( # Suppression des lignes vides: blindage contre les sed qui rajoutent une fin de ligne.
 			cd "$source"
-			( xargs -0 ls -d 2> /dev/null || true ) | grep -v -f /tmp/temp.perso.$$ | sed -e "s/$suffixe$//" | while read f
+			( xargs -r -0 ls -d 2> /dev/null || true ) | grep -v -f /tmp/temp.perso.$$ | sed -e "s/$suffixe$//" | while read f
 			do
 				echo "$f" >> /tmp/temp.perso.$$
 				diff -rq "$f$suffixe" "$f" | grep -F "Only in $f: " | sed -e 's/^Only in //' -e 's#: #/#' || true
