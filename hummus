@@ -32,7 +32,7 @@ v 3.0.0.99.1.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 
 v 3.2 || true
 v 3.5 && prerequis_libjpeg="libjpegturbo" prerequis="libtiff < 4 $prerequis_libjpeg freetype zlib" && modifs="monMake monMakeOrdonne" || true
 v 3.6 || true
-v 3.9 && prerequis="$prerequis libaesgm" || true
+v 3.9 && prerequis="$prerequis libpng libaesgm" || true
 v 4.0 || true
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
