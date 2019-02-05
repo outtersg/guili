@@ -26,6 +26,8 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 v 0.1.8 || true
 v 0.1.12 || true
+v 1.0.19 || true
+v 1.0.22 || true
 
 archive="https://github.com/libusb/libusb/archive/v$version.tar.gz"
 
