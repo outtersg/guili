@@ -67,6 +67,7 @@ avecPkgconfig()
 
 pointeurs()
 {
+	# http://lists.gnu.org/archive/html/bug-ncurses/2011-04/txtkWQqiQvcZe.txt
 	filtrer ./c++/cursesf.h sed -e '/NCursesUserForm.*NCursesFormField/s/NCursesFormField/NCursesFormField */'
 	filtrer ./c++/cursesm.h sed -e '/NCursesUserMenu.*NCursesMenuItem/s/NCursesMenuItem/NCursesMenuItem */'
 }
