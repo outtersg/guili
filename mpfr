@@ -28,6 +28,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 v 3.1.2 && modifs="fbsd8" || true
 v 4.0.1 || true
+v 4.0.2 || true
 
 prerequis
 
