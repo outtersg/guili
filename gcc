@@ -42,6 +42,7 @@ v 4.9.2 && prerequis="gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" && modifs="usrI
 v 4.9.4 || true
 v 6.4.0 && modifs="usrInclude libsPasDur sansCore sansCollate fbsdbinutils" || true
 v 7.3.0 && prerequis="gmp >= 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
+v 7.4.0 || true
 
 [ -z "$version" ] && echo "# Aucune règle pour compiler $logiciel $argVersion" >&2 && exit 1 || true
 prerequis
