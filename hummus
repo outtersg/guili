@@ -57,6 +57,9 @@ monMake()
 {
 	biblios="-ltiff -ljpeg -lfreetype -lz"
 	case "$prerequis" in
+		*libpng*) biblios="$biblios -lpng"
+	esac
+	case "$prerequis" in
 		*libaesgm*) biblios="$biblios -laesgm"
 	esac
 	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
