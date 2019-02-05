@@ -46,8 +46,8 @@ compiloSysVersion()
 	systeme="`uname`"
 	bienVoulu="`
 		case "$systeme" in
-			Linux) echo gcc ;;
-			*) echo clang ;;
+			Linux) echo gcc ; echo clang ;;
+			*) echo clang ; echo gcc ;;
 		esac | egrep "$bienVoulus" | head -1
 	`"
 	
