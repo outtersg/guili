@@ -42,8 +42,9 @@ util_menage()
 			;;
 	esac
 		# De même pour le dossier courant s'il contient un bout de /tmp/ dans son nom (ex.: dossier de compilation).
-		case "`pwd`" in
-			*/tmp/[_A-Za-z0-9]*) cd && rm -Rf "`pwd`" ;;
+		local dossierCourant="`pwd`"
+		case "$dossierCourant" in
+			*/tmp/[_A-Za-z0-9]*) cd /tmp/ && rm -Rf "$dossierCourant" ;;
 		esac
 	fi
 }
