@@ -41,6 +41,10 @@ util_menage()
 			rm -Rf "$TMP/$$"
 			;;
 	esac
+		# De même pour le dossier courant s'il contient un bout de /tmp/ dans son nom (ex.: dossier de compilation).
+		case "`pwd`" in
+			*/tmp/[_A-Za-z0-9]*) cd && rm -Rf "`pwd`" ;;
+		esac
 	fi
 }
 util_mechantmenage()
