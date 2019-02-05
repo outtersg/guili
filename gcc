@@ -21,10 +21,8 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
-
-logiciel=gcc
 
 # Si on a déjà une version système qui convient, pas la peine de compiler.
 
@@ -214,9 +212,8 @@ TERMINE
 archive="http://mirror.bbln.org/gcc/releases/gcc-$version/gcc-$version.tar.bz2"
 archive="ftp://ftp.uvsq.fr/pub/gcc/releases/gcc-$version/gcc-$version.tar.bz2"
 pge $version 5.5 && archive="`echo "$archive" | sed -e 's/bz2$/xz/'`"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 if false ; then
 	cd /tmp/gcc-$version
@@ -244,6 +241,4 @@ make -j 4
 echo Installation… >&2
 sudo make install
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
