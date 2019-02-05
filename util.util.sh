@@ -168,6 +168,26 @@ TERMINE
 	[ $systeme = oui ] || return 0 # À partir de maintenant on fait des modifs système.
 	
 	# À FAIRE: /etc/profile
+	
+	if commande snap && [ -f /etc/environment ]
+	then
+		sudoku -d /etc/ sh -c "
+cd /etc/ \\
+&& \\
+( \\
+	egrep -v '^((http|https)_proxy|(HTTP|HTTPS|ALL)_PROXY)=' < environment \\
+	&& cat <<TERMINE
+http_proxy=\"$http_proxy\"
+https_proxy=\"$https_proxy\"
+HTTP_PROXY=\"$HTTP_PROXY\"
+HTTPS_PROXY=\"$HTTPS_PROXY\"
+ALL_PROXY=\"$ALL_PROXY\"
+TERMINE
+) \\
+> environment.temp && cat environment.temp > environment && rm environment.temp
+"
+		sudoku -d /etc/ systemctl restart snapd
+	fi
 }
 
 #- Comptes ---------------------------------------------------------------------
