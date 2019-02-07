@@ -203,7 +203,16 @@ TERMINE
 	
 	[ $systeme = oui ] || return 0 # À partir de maintenant on fait des modifs système.
 	
-	# À FAIRE: /etc/profile
+	if [ -f /etc/environment ]
+	then
+		retaperVarsProxy /etc/environment
+	fi
+	if [ -d /etc/profile.d ]
+	then
+		retaperVarsProxy -e /etc/profile.d/proxy.sh
+	else
+		retaperVarsProxy -e /etc/profile
+	fi
 	
 	if commande snap && [ -f /etc/environment ]
 	then
