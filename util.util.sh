@@ -154,17 +154,7 @@ proxy()
 	for f in "$HOME/.profile" "$HOME/.shrc" "$HOME/.bashrc"
 	do
 		[ -e "$f" ] || continue
-		filtrer "$f" sed -e '/^# Proxy$/,/^# Fin proxy$/d'
-		cat >> "$f" <<TERMINE
-# Proxy
-export \\
-	http_proxy="$http_proxy" \\
-	https_proxy="$https_proxy" \\
-	HTTP_PROXY="$HTTP_PROXY" \\
-	HTTPS_PROXY="$HTTPS_PROXY" \\
-	ALL_PROXY="$ALL_PROXY"
-# Fin proxy
-TERMINE
+		filtrer "$f" ajouterVarsProxy
 	done
 	
 	if commande npm
