@@ -58,6 +58,42 @@ hoteEtPort()
 	sed -e h -e '/^[a-zA-Z0-9]*:\/\//!s/^.*$/80/' -e 's/:.*//' -e 's/^http$/80/' -e 's/^https$/443/' -e x -e 's#^[a-zA-Z0-9]*://##' -e 's#/.*$##' -e G -e 'y/\n/:/' -e 's/:/ /' -e 's/:.*//' -e 's/ /:/'
 }
 
+# Pond une liste d'affectation de variables proxy.
+varsProxy()
+{
+	cat <<TERMINE
+http_proxy="$http_proxy"
+https_proxy="$https_proxy"
+HTTP_PROXY="$HTTP_PROXY"
+HTTPS_PROXY="$HTTPS_PROXY"
+ALL_PROXY="$ALL_PROXY"
+TERMINE
+}
+
+# Pond sur son stdout le contenu de son stdin additionné d'affectation de variables proxy.
+# Appelée avec un -e, y ajoute un export de ces dernières.
+ajouterVarsProxy()
+{
+	egrep -v '^((http|https)_proxy|(HTTP|HTTPS|ALL)_PROXY)='
+	varsProxy
+	[ "x$1" = x-e ] && echo "export http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY"
+}
+
+# Ajoute à un fichier (supposé shell) les déclarations de variables de proxy.
+retaperVarsProxy()
+{
+	local e= f d
+	
+	for f in "$@"
+	do
+		[ "x$f" = x-e ] && e="-e" && continue || true
+		d="`dirname "$f"`"
+		if [ -e "$f" ] ; then cat "$f" ; else true ; fi \
+		| ajouterVarsProxy $e \
+		| sudoku -d "$d" sh -c "cat > \"$f.temp\" && cat \"$f.temp\" > \"$f\" && rm \"$f.temp\""
+	done
+}
+
 # Paramètre le maximum de logiciels pour passer par un proxy donné.
 # Utilisation: proxy [-e|-w|-p] [-s] [<hôte>:<port>|-]
 #   -e|-w|-p
