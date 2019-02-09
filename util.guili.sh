@@ -20,3 +20,6 @@
 
 # GUILI: Grosse Usine à Installs Locales Interdépendantes
 # GuiLI: Guillaume's Lightweight Installers
+
+#- Prérequis -------------------------------------------------------------------
+
