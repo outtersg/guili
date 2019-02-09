@@ -362,6 +362,7 @@ iperso()
 	# Recherche de liens symboliques à la sauce "installs de Guillaume".
 	# Comme ils sont noyés dans $INSTALLS au milieu des liens symboliques vers plein d'autres logiciels, on ne cherche que ceux correspondant à un fichier de notre cible. Il y aura sans doute quelques petites différences, mais sur le nombre on devrait avoir suffisamment de témoins pour pouvoir faire de la statistique et retrouver notre dossier source le plus probable.
 	
+	perso "$1" # Sans autre paramètre, simple recopie des .original en leur fichier cible: ça aidera leplusdelienscommuns() à trouver des liens (si les liens existent vers la cible mais pas vers le .original).
 	dossier="`leplusdelienscommuns "$1" "$INSTALLS"`"
 	if [ -z "$dossier" ]
 	then
