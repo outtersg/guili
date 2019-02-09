@@ -28,7 +28,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml openssl < 1.1 libssh" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses || true
+v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml openssl < 1.1 libssh" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses lcplusplus || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -115,6 +115,15 @@ doubleEgalEnShDansLeConfigure()
 haveLibReadline()
 {
 	filtrer sapi/phpdbg/phpdbg.h sed -e 's/ifdef LIBREADLINE/ifdef HAVE_LIBREADLINE/g'
+}
+
+lcplusplus()
+{
+	# Petit souci de "DSO missing from command line" sur une Ubuntu 18.04 / GCC 7.3.0
+	if [ `uname` = Linux ]
+	then
+		LDFLAGS="$LDFLAGS -lstdc++"
+	fi
 }
 
 readlineNcurses()
