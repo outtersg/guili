@@ -542,6 +542,13 @@ utiler()
 utiliser="$SCRIPTS/utiliser"
 command -v $utiliser 2> /dev/null >&2 || utiliser=utiliser # Si SCRIPTS n'est pas définie, on espère trouver un utiliser dans le PATH.
 
+# Surchargeable par les logiciels pour une petite passe après compil ou installation d'un paquet binaire.
+# Appelée après déploiement réussi; permet en particulier de personnaliser pour usage local: recopie d'extensions non embarquées dans la version officielle, etc.
+finaliserInstall()
+{
+	true
+}
+
 # Utilisation: sutiliser [-|+]
 #   -|+
 #	 Si +, et si $INSTALL_SILO est définie, on pousse une archive binaire de notre $dest installé vers ce silo. Cela permettra à de futurs installant de récupérer notre produit de compil plutôt que de tout recompiler.
@@ -570,6 +577,8 @@ sutiliser()
 	then
 		pousserBinaireVersSilo "$sut_lv"
 	fi
+	
+	finaliserInstall
 	
 	logicielParam="`echo "$sut_lv" | sed -e 's/-[0-9].*//'`"
 	derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$sut_lv-.*/$sut_lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
