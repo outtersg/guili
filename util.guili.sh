@@ -23,3 +23,15 @@
 
 #- Prérequis -------------------------------------------------------------------
 
+# Vire des logiciels de la liste $prerequis.
+# Ex.:
+#   v 1.0 && prerequis="autre < 0.6" || true
+#   v 2.0 && prerequis="autre < 1" || true
+#   option autre || commande autre || virerPrerequis autre
+#   prerequis
+# Il est suggéré de fonctionner de cette façon (déclarer le maximum de prérequis, et trouilloter ensuite si telle ou telle condition n'est finalement pas remplie sur la plate-forme, ou si le logiciel n'est pas demandé par une option explicite), car ainsi pour chaque version du logiciel (fonctions v()) on peut définir dans quelle version le prérequis devra être inclus au cas où il reste en lice.
+virerPrerequis()
+{
+	local aVirer="`echo "$*" | tr ' ' '|'`"
+	prerequis="`echo " $prerequis " | sed -E -e 's/ /  /g' -e "s# ($aVirer)([ <=>0-9.]+)* # #g"`"
+}
