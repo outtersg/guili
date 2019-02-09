@@ -1,0 +1,112 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+. "$SCRIPTS/util.sh"
+
+# Si la cible ressemble à des "installs de Guillaume", le chemin commence par $INSTALLS/curl-n.mm.l, où se trouve une arbo complète de cURL.
+# Pour augmenter les chances d'iperso() (cf. la suite) de trouver une version personnalisée de la liste d'AC, on calque notre arborescence sur celle de cURL. Il nous fait alors savoir où dans l'arborescence placer notre certificat.
+# Sinon on s'en fiche, la version simplifiée perso() se contentera d'un dossier à plat.
+affecterArboSiArboDeGuillaume()
+{
+	case "$destac" in
+		"$INSTALLS"/curl[-+]*) install="$INSTALLS/curl[-+][^/]*" ;;
+		"$INSTALLS/"*) install="$INSTALLS" ;;
+		*) return 0 ;; # On n'affecte pas, ça ne ressemble pas à quelque chose de chez moi.
+	esac
+	arbo="`echo "$dossierac/" | sed -e "s#^$install/##" -e 's#/$##'`"
+}
+
+# Installe une version récente de la liste d'AC cURL.
+# Utilisation: installerAC [--sans-perso] <option curl>*
+#   --sans-perso
+#     Ne pas rechercher les personnalisations de la liste actuellement
+#     installée. Cependant les calculer, pour pouvoir les appliquer lors d'un
+#     second appel (sans --sans-perso de toute évidence, mais en ayant conservé
+#     $TMP/$$).
+#     Cette mémorisation est indispensable: si on calculait les anciennes
+#     personnalisations lors d'une seconde passe n'ayant aucune connaissance de
+#     la première, elle tomberait sur la liste tout juste installée par la
+#     première passe, donc ne comportant aucune personnalisation.
+#   <option curl>
+#     Par exemple un -k s'il s'agit d'une première installation.
+installerAC()
+{
+	local pousserperso=oui
+	
+	# Analyse des paramètres.
+	
+	[ "x$1" = "x--sans-perso" ] && pousserperso=non && shift || true
+	
+	# Tout le reste sera passé à curl.
+	
+	# Des fois qu'une surcharge de curl sous forme de fonction shell soit en place, on va chercher le vrai binaire.
+	local bin="`IFS=: ; for chemin in $PATH ; do [ -x "$chemin/curl" -a -x "$chemin/curl-config" ] && echo "$chemin" && break || true ; done`"
+	[ -d "$bin" ] || ! echo "# curl et curl-config introuvables dans le \$PATH ($PATH)." >&2 || exit 1
+	local destac="`"$bin/curl-config" --ca`"
+	local dossierac="`dirname "$destac"`"
+	local arbo=.
+	affecterArboSiArboDeGuillaume
+	local desto="$TMP/$$/destcurlcabundle"
+	local destoac="$desto/$arbo/`basename "$destac"`"
+	local destp="$TMP/$$/destcurlcabundlep"
+	local dest0="$destp"
+	
+	if [ ! -s "$destoac" ]
+	then
+		mkdir -p "$desto/$arbo"
+		"$bin/curl" -s "$@" -L http://curl.haxx.se/ca/cacert.pem -o "$destoac.original"
+		cp "$destoac.original" "$destoac" # Équivalent d'un perso "$destp"
+		rm -Rf "$destp"
+	fi
+	
+	# Des personnalisations ont-elles été effectuées sur la dernière liste installée (AC locale)?
+	# Si oui, on va récupérer ces personnalisations.
+	# Si l'on se trouve dans un dossiers d'"installs de Guillaume", on utilise iperso, qui en plus du dossier d'install (/usr/local/curl-n.mm.l/share) ira fouiller celui de fusion (/usr/local/share) ainsi que l'éventuel dossier d'installation d'une précédente version (/usr/local/curl-n.mm.k/share).
+	
+	if [ ! -d "$destp" ]
+	then
+		cp -Rp "$desto" "$destp"
+		case "$bin" in
+			"$INSTALLS/"*)
+				iperso "$destp"
+				;;
+			*)
+				perso "$destp" "$dossierac"
+				;;
+		esac
+	fi
+	
+	if [ $pousserperso = non ]
+	then
+		dest0="$desto"
+	fi
+	
+	# Installation!
+	
+	sudoku -d "$dossierac" cp -R "$dest0/$arbo/." "$dossierac/."
+}
+
+# Si on est appelés par inclusion, on ne fait rien (notre appelant appellera notre installerAC comme bon lui semble).
+# En autonome, on fait notre boulot.
+[ "x$logiciel" != xcurlcabundle ] || installerAC "$@"
