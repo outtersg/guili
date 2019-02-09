@@ -1944,6 +1944,7 @@ analyserParametresInstall "$@"
 
 [ ! -e "$SCRIPTS/util.compilo.sh" ] || . "$SCRIPTS/util.compilo.sh"
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
+[ ! -e "$SCRIPTS/util.guili.sh" ] || . "$SCRIPTS/util.guili.sh"
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
 
 _initPrerequisLibJpeg
