@@ -301,20 +301,23 @@ perso()
 				xargs -0 < /tmp/temp.perso.$$.only tar cf /tmp/temp.perso.$$.tar
 			fi
 		) 7>&1
-	done | sed -e "s#^\(--- [^	]*\)$suffixe#\1#" | \
+	done | sed -e "s#^\(--- [^	]*\)$suffixe#\1#" > /tmp/temp.perso.$$.patch
 	(
 		cd "$cible"
-		patch -p0 -l || \
+		if grep -q . < /tmp/temp.perso.$$.patch
+		then
+			patch -p0 -l < /tmp/temp.perso.$$.patch || \
 		(
 			echo "# Attention, les personnalisations de $* n'ont pu être appliquées. Consultez:"
 			find . -name "*.rej" | sed -e 's/^/  /'
 		) | rouge >&2
+		fi
 		if [ -s /tmp/temp.perso.$$.tar ]
 		then
 		tar xf - < /tmp/temp.perso.$$.tar
 		fi
 	)
-	rm -f /tmp/temp.perso.$$ /tmp/temp.perso.$$.only /tmp/temp.perso.$$.tar
+	rm -f /tmp/temp.perso.$$ /tmp/temp.perso.$$.only /tmp/temp.perso.$$.tar /tmp/temp.perso.$$.patch
 }
 
 # Dans une arbo à la $INSTALLS de Guillaume (bin/toto -> ../toto-1.0.0/bin/toto), cherche le "logiciel" le plus référencé depuis des chemins d'un dossier local.
