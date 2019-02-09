@@ -83,19 +83,18 @@ multiarchPrecombiner()
 	sed -e "s/-arch $1//g" < "$f" > "$TMP/$$/temp.filtrer" && sudo sh -c "cat $TMP/$$/temp.filtrer > $f"
 }
 
-installerAC()
+if [ -e "$SCRIPTS/curlcabundle" ]
+then
+	. "$SCRIPTS/curlcabundle"
+	installerACDest() { PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC "$@" ; }
+else
+	installerACDest() { true ; }
+fi
+
+finaliserInstall()
 {
-	echo "=== Installation des certificats AC ==="
-	(
-		export PATH="$dest/bin:$PATH"
-		export LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH"
-		# On précise exactement le curl que l'on veut charger, des fois qu'une surcharge sous forme de fonction shell soit en place.
-		"$dest/bin/curl" -k -L http://curl.haxx.se/ca/cacert.pem > .curl-ca-bundle.crt
-		destac="`"$dest/bin/curl-config" --ca`"
-		sudo mkdir -p "`dirname "$destac"`"
-		sudo cp .curl-ca-bundle.crt "$destac"
-		cp .curl-ca-bundle.crt "$HOME/"
-	)
+	# On installe notre liste d'AC, personnalisations locales incluses.
+	installerACDest
 }
 
 # Variables
@@ -119,6 +118,9 @@ for modif in true $modifs ; do $modif ; done
 	
 	echo Installation… >&2
 	sudo make install
-installerAC
+
+# On installe une première version de l'AC. Ce avant le sutiliser, pour qu'elle soit embarquée dans l'éventuel paquet compilé.
+# On lui demande de préparer la version personnalisée, mais sans l'installer: le paquet compilé ne doit pas inclure les personnalisations.
+installerACDest --sans-perso -k
 
 sutiliser
