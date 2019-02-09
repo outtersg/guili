@@ -257,6 +257,11 @@ perso()
 	local source
 	local modeListage
 	
+	case "$cible" in
+		/*) true ;;
+		*) cible="`pwd`/$cible" ;;
+	esac
+	
 	# On crée les fichiers à partir de nos défauts.
 	
 	(
@@ -280,6 +285,8 @@ perso()
 				source="`echo "$source" | cut -c 2-`"
 				modeListage=source
 				;;
+			/*) true ;;
+			*) source="`pwd`/$source" ;;
 		esac
 		(
 			if [ $modeListage = source ]
