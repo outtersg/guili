@@ -35,3 +35,36 @@ virerPrerequis()
 	local aVirer="`echo "$*" | tr ' ' '|'`"
 	prerequis="`echo " $prerequis " | sed -E -e 's/ /  /g' -e "s# ($aVirer)([ <=>0-9.]+)* # #g"`"
 }
+
+# Fusionne les prérequis, de manière à ce que plusieurs occurrences du même prérequis n'en fassent plus qu'une.
+# Ex.: ( echo "postgresql+ossl10 < 10" ; echo "postgresql >= 8" ; echo riensansrien ) | fusionnerPrerequis | tr '\012' ' ' -> postgresql+ossl10 < 10 >= 8 riensansrien
+fusionnerPrerequis()
+{
+	# On souhaite avoir en sortie l'ordre d'apparition en entrée. Le for(tableau) n'est pas prédictible (certains awk sortent par ordre d'arrivée, d'autre par ordre alphabétique). On utilise donc un tableau d'ordre à indices numériques, prédictibles.
+	awk '
+BEGIN{ nPrerequis = 0; }
+{
+	lo=$1;
+	l=lo;
+	sub(/[+].*/,"",l);
+	o=lo;
+	sub(/^[^+]*/,"",o);
+	v=$0;
+	sub(/^[^ ]* */,"",v);
+	if(!logiciels[l])
+	{
+		ordre[nPrerequis++]=l;
+		logiciels[l]=1;
+	}
+	options[l]=options[l]""o;
+	versions[l]=versions[l]" "v;
+}
+END{
+	for(i = 0; i < nPrerequis; ++i)
+	{
+		l = ordre[i];
+		print l""options[l]" "versions[l];
+	}
+}
+'
+}
