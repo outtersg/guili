@@ -59,6 +59,7 @@ v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && aj
 v 5.2.15
 v 5.2.17 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql < 5.5.20 libxml < 2.8 icu < 56 openssl < 1.1 libssh" || true
 v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml icu < 56 openssl < 1.1 libssh" || true # mysql
+v 5.3.19 || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
