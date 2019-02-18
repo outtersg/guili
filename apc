@@ -24,24 +24,7 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-analyserParametres()
-{
-	prerequis=
-	while [ $# -gt 0 ]
-	do
-		case "$1" in
-			-d) shift ; export PATH="$1/bin:$PATH" ;;
-			--pour=*)
-				prerequis="$prerequis `echo "$1" | cut -d = -f 2-`"
-				prerequis
-				;;
-		esac
-		shift
-	done
-	argOptions="$argOptions+php_`php-config --version | tr . _`"
-}
-
-analyserParametres "$@"
+analyserParametresPour --pour php "$@"
 
 case `php-config --version | cut -d . -f 1-2` in
 	[1-9][0-9].*) argVersion="$argVersion >= 5" ;;
