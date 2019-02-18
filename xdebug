@@ -57,6 +57,7 @@ esac
 v 2.1.0 && prerequis="autoconf" || true
 v 2.2.1 || true
 v 2.2.5 || true
+v 2.2.7 || true
 v 2.4.1 || true
 v 2.5.5 || true
 v 2.6.0 || true
