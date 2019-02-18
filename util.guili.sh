@@ -73,3 +73,38 @@ END{
 }
 '
 }
+
+#- Gestion des paramètres ------------------------------------------------------
+
+# Recherche les paramètres de type -d <dossier GuiLI> ou --pour "<logiciel GuiLI> <options de version GuiLI>" et:
+# - les ajoute à $prerequis
+# - invoque ces prérequis
+# - ajoute à $argOptions de quoi "marquer" que le logiciel courant aura été compilé pour telle version du prérequis
+# Ex.:
+#   ./xdebug --pour "php < 7"
+# cherchera (ou installera à défaut) un PHP < 7, et mettra dans argOptions quelque chose comme:
+#   argOptions="+php_5_6_40"
+analyserParametresPour()
+{
+	prerequisPour=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-d) shift ; export PATH="$1/bin:$PATH" ;;
+			--pour) prerequisPour="$2" ; shift ;;
+			--pour=*) prerequisPour="$prerequisPour `echo "$1" | cut -d = -f 2-`" ;;
+		esac
+		shift
+	done
+	if [ ! -z "$prerequisPour" ]
+	then
+		prerequis=$prerequisPour prerequis
+		local logicielPrerequis logicielsPrerequis="`decoupePrerequis "$prerequisPour" | cut -d ' ' -f 1 | grep -v '[()]' | cut -d + -f 1 | sort`" # Le sort en vue de générer une liste d'argOptions (tenue d'être ordonnée).
+		local v_prerequis
+		for logicielPrerequis in $logicielsPrerequis
+		do
+			eval v_prerequis=\$version_$logicielPrerequis
+			argOptions="$argOptions+${logicielPrerequis}_`echo "$v_prerequis" | tr . _`"
+		done
+	fi
+}
