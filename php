@@ -245,6 +245,7 @@ i\
 
 archive="http://de.php.net/distributions/$logiciel-$version.tar.bz2"
 archive="http://de2.php.net/distributions/$logiciel-$version.tar.bz2"
+pge $version 5.3.27 || archive="http://museum.php.net/php`echo $version | cut -d -f 1`/php-$version.tar.bz2"
 
 if false
 then
