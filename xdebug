@@ -43,6 +43,7 @@ quelphp
 argOptions="+php_`php-config --version | tr . _`"
 
 case `php-config --version | cut -d . -f 1-2` in
+	5.3) argVersion="$argVersion < 2.3" ;;
 	5.4) argVersion="$argVersion < 2.5" ;;
 	5.5) argVersion="$argVersion < 2.6" ;;
 	7.0) argVersion="$argVersion >= 2.4" ;;
