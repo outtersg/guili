@@ -108,6 +108,12 @@ version="$version_php"
 destiner
 
 echo "Auto-démarrage…" >&2
+# Si le suffixe vaut x, xx, xxx, etc., on remplace par les éléments de version correspondants.
+if echo "$suffixe" | grep -q '^xx*$'
+then
+	nElementsSuffixe="`printf "%s" "$suffixe" | wc -c | tr -d ' '`"
+	suffixe="`echo "$version_php" | cut -d . -f "1-$nElementsSuffixe" | tr -d .`"
+fi
 		conf="$dest/etc/php-fpm$suffixe.conf"
 pid="$dest/var/run/php-fpm$suffixe.pid"
 		
