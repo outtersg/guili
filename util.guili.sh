@@ -23,6 +23,11 @@
 
 #- Prérequis -------------------------------------------------------------------
 
+decoupePrerequis()
+{
+	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | fusionnerPrerequis
+}
+
 # Vire des logiciels de la liste $prerequis.
 # Ex.:
 #   v 1.0 && prerequis="autre < 0.6" || true

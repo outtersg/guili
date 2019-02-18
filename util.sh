@@ -941,11 +941,6 @@ prerequis()
 	unset IFS
 }
 
-decoupePrerequis()
-{
-	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/'
-}
-
 # Plusieurs modes de fonctionnement:
 # - par défaut: cherche une version parmi celles installées; si trouvée, elle fait foi; sinon installe.
 # - -i: installe la dernière version si pas déjà en place.
