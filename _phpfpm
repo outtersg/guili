@@ -103,10 +103,9 @@ prerequis
 
 # Variables
 
-version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*://g' -e 's/ //g'`"
-dest=$INSTALLS/$logiciel-$version
+version="$version_php"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 echo "Auto-démarrage…" >&2
 		conf="$dest/etc/php-fpm$suffixe.conf"
@@ -131,6 +130,4 @@ LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis ; echo "$LD_LIBRARY_P
 serveur -d "$dest" -p "$pid" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" demon php-fpm$suffixe \
 	"$destphp/sbin/php-fpm --fpm-config $conf"
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser -
