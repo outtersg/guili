@@ -28,19 +28,7 @@ logiciel=xdebug
 
 # Travail préalable: notre PHP donne des contraintes de version.
 
-params="$*"
-
-quelphp()
-{
-	case "$params" in
-		*-d*)
-			PATH="`echo "xxx $params" | sed -e 's/.* -d //g'`/bin:$PATH"
-			;;
-	esac
-}
-
-quelphp
-argOptions="+php_`php-config --version | tr . _`"
+analyserParametresPour --pour php "$@"
 
 case `php-config --version | cut -d . -f 1-2` in
 	5.3) argVersion="$argVersion < 2.3" ;;
@@ -54,7 +42,7 @@ esac
 
 # Historique des versions gérées
 
-v 2.1.0 && prerequis="autoconf" || true
+v 2.1.0 && prerequis="$prerequis autoconf" || true
 v 2.2.1 || true
 v 2.2.5 || true
 v 2.2.7 || true
