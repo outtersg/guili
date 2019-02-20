@@ -74,6 +74,12 @@ END{
 '
 }
 
+ecosysteme()
+{
+	[ -x "$SCRIPTS/util.guili.ecosysteme" ] || cc -o "$SCRIPTS/util.guili.ecosysteme" "$SCRIPTS/util.guili.ecosysteme.c"
+	"$SCRIPTS/util.guili.ecosysteme" "$@"
+}
+
 #- Gestion des paramètres ------------------------------------------------------
 
 # Recherche les paramètres de type -d <dossier GuiLI> ou --pour "<logiciel GuiLI> <options de version GuiLI>" et:
