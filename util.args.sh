@@ -170,6 +170,11 @@ apAffecter()
 
 decoupePrerequis()
 {
+	ecosysteme -d "$@" || decoupePrerequisSansCompilo "$@"
+}
+
+decoupePrerequisSansCompilo()
+{
 	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | fusionnerPrerequis
 }
 
