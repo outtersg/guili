@@ -238,11 +238,26 @@ void afficherPrerequis(T * t)
 
 /*- Travail ------------------------------------------------------------------*/
 
+#define MODE_TOUT 0
+#define MODE_DECOUPE 1
+
 int main(int argc, char ** argv)
 {
 	T * prerequis = T_creer();
-	int i;
-	for(i = 0; ++i < argc;)
+	int mode = MODE_TOUT;
+	
+	int i = 0;
+	if(argc >= 2 && 0 == strcmp(argv[1], "-d"))
+	{
+		mode = MODE_DECOUPE;
+		++i;
+	}
+	while(++i < argc)
 		decouperPrerequis(argv[i], prerequis);
+	switch(mode)
+	{
+		case MODE_DECOUPE:
 	afficherPrerequis(prerequis);
+			break;
+	}
 }
