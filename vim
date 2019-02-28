@@ -99,7 +99,7 @@ corr()
 
 syntaxephp()
 {
-	filtrer runtime/syntax/php.vim sed -e 's/\\h\\w/[A-Za-z0-9_âàçéêèëîïôöûùüÿ]/g' # A priori les majuscules sont couvertes aussi, puisque le caractère UTF-8 en minuscule est composé de deux octets, ex. à = a`, donc le [Aaà] est en fait équivalent à [Aaa`] et inclut donc aussi le À qui est la combinaison A`.
+	filtrer runtime/syntax/php.vim sed -e 's/\\h\\w/[A-Za-z0-9_âàæÆçéêèëîïôöœŒûùüÿ]/g' # A priori les majuscules sont couvertes aussi, puisque le caractère UTF-8 en minuscule est composé de deux octets, ex. à = a`, donc le [Aaà] est en fait équivalent à [Aaa`] et inclut donc aussi le À qui est la combinaison A`.
 }
 
 mavericks()
