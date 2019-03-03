@@ -115,7 +115,7 @@ configManuel()
 
 # Variables
 
-v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{print $1"."$2"."$3""($4?substr(t,$4,1):"")}'`"
+v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c="";n=$4;while(n>25){n-=25;c=c"z"}if(n)c=c""substr(t,n,1);print $1"."$2"."$3""c}'`"
 archive=http://www.openssl.org/source/$logiciel-$v_alpha.tar.gz
 # Difficile maintenant de trouver la source sur un serveur HTTP non 'S'.
 archive=http://artfiles.org/openssl.org/source/$logiciel-$v_alpha.tar.gz
