@@ -23,9 +23,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <signal.h>
 
 #include "U.h"
 #include "L.h"
+#include "E.h"
 #include "Prerequis.h"
 
 int g_trace = 0;
@@ -106,11 +108,31 @@ void afficherPrerequis(L * t)
 
 /*- Travail ------------------------------------------------------------------*/
 
+void boum(int signal)
+{
+	int i, n = 0;
+	for(i = -1; ++i < E_taches->n;)
+		if(((E *)E_taches->vals[i])->etat != E_FINI)
+			++n;
+	if(n > 0)
+	{
+		fprintf(stderr, "# Attente de %d processus fils\n", n);
+		E_attendreFinLances(E_taches);
+		exit(3);
+	}
+}
+
 #define MODE_TOUT 0
 #define MODE_DECOUPE 1
 
 int main(int argc, char ** argv)
 {
+	struct sigaction accrocheBoum;
+	accrocheBoum.sa_handler = &boum;
+	accrocheBoum.sa_flags = SA_RESTART;
+	sigfillset(&accrocheBoum.sa_mask);
+	sigaction(SIGINT, &accrocheBoum, NULL);
+	
 	L * prerequis = L_creer();
 	int mode = MODE_TOUT;
 	
