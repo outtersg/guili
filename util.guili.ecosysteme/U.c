@@ -34,3 +34,16 @@ void errmem(unsigned long taille)
 	fprintf(stderr, "# Impossible d'allouer %lu octets. Boum.\n", taille);
 	exit(126);
 }
+
+int errerrno(char * descr)
+{
+	fprintf(stderr, "# %s: %s\n", descr, strerror(errno));
+	return -1;
+}
+
+void * emalloc(unsigned long taille)
+{
+	void * r;
+	if(!(r = malloc(taille))) errmem(taille);
+	return r;
+}

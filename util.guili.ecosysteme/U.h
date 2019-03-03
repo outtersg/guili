@@ -25,3 +25,5 @@
 extern int g_trace;
 
 void errmem(unsigned long taille);
+int errerrno(char * descr);
+void * emalloc(unsigned long taille);
