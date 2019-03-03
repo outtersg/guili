@@ -113,13 +113,13 @@ int main(int argc, char ** argv)
 	int mode = MODE_TOUT;
 	
 	int i = 0;
-	if(argc >= 2 && 0 == strcmp(argv[1], "-d"))
-	{
-		mode = MODE_DECOUPE;
-		++i;
-	}
 	while(++i < argc)
+	{
+		if(0 == strcmp(argv[i], "-d"))
+			mode = MODE_DECOUPE;
+		else
 		decouperPrerequis(argv[i], prerequis);
+	}
 	switch(mode)
 	{
 		case MODE_DECOUPE:
