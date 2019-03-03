@@ -22,4 +22,6 @@
 
 /*- Utilitaires --------------------------------------------------------------*/
 
+extern int g_trace;
+
 void errmem(unsigned long taille);

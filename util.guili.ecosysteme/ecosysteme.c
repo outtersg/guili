@@ -28,6 +28,8 @@
 #include "L.h"
 #include "Prerequis.h"
 
+int g_trace = 0;
+
 /*- Chaînes de prérequis -----------------------------------------------------*/
 
 void pousserPrerequis(char * ptrL, int tL, char * ptrO, int tO, char * ptrV, int tV, L * resultatAgrege)
@@ -117,6 +119,8 @@ int main(int argc, char ** argv)
 	{
 		if(0 == strcmp(argv[i], "-d"))
 			mode = MODE_DECOUPE;
+		else if(0 == strcmp(argv[i], "-v"))
+			++g_trace;
 		else
 		decouperPrerequis(argv[i], prerequis);
 	}
