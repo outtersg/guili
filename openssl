@@ -34,7 +34,7 @@ v 1.0.0.1 || true
 mac && archis=oui
 modifspostconf="dyld105postconf"
 
-v 1.0.0.5 && modifs="multiarch perlredir" || true
+v 1.0.0.5 && modifs="multiarch perlredir sansdoc" || true
 v 1.0.1.5 && modifs="multiarch perlredir sansdoc uniquementPrerequis" || true
 v 1.0.1.7 || true
 v 1.0.1.8 || true
