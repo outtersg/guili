@@ -76,8 +76,8 @@ END{
 
 ecosysteme()
 {
-	[ -x "$SCRIPTS/util.guili.ecosysteme" ] || cc -o "$SCRIPTS/util.guili.ecosysteme" "$SCRIPTS/util.guili.ecosysteme.c"
-	"$SCRIPTS/util.guili.ecosysteme" "$@"
+	[ -x "$SCRIPTS/ecosysteme" ] || cc -o "$SCRIPTS/ecosysteme" "$SCRIPTS/util.guili.ecosysteme"/*.c
+	"$SCRIPTS/ecosysteme" "$@"
 }
 
 #- Gestion des paramètres ------------------------------------------------------
