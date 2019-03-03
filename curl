@@ -84,7 +84,15 @@ multiarchPrecombiner()
 	sed -e "s/-arch $1//g" < "$f" > "$TMP/$$/temp.filtrer" && sudo sh -c "cat $TMP/$$/temp.filtrer > $f"
 }
 
-if [ -e "$SCRIPTS/curlcabundle" ]
+faitDuTls11()
+{
+	case "$version_openssl" in
+		1*) return 0 ;;
+	esac
+	return 1
+}
+# Si on a de quoi récupérer la liste d'AC cURL, et qu'on est liés à un OpenSSL TLS 1.1 (parce qu'il peut arriver en 2019 qu'on cherche à réinstaller un serveur "façon 2012", auquel cas notre OpenSSL, ne sachant pas causer que TLS 1.0, se vautrera à coup sûr).
+if [ -e "$SCRIPTS/curlcabundle" ] && faitDuTls11
 then
 	. "$SCRIPTS/curlcabundle"
 	installerACDest() { PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC "$@" ; }
