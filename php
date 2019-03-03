@@ -100,6 +100,13 @@ fi
 
 option mysql || commande mysql || virerPrerequis mysql
 
+# Sur de très vieilles machines, PHP 7, qui utilise du sed -E, va se vautrer. Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
+PATH_EP="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`" # Le PATH sous lequel tournera le configure sera celui d'exclusivementPrerequis.
+case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
+	plop) true ;;
+	*) prerequis="sed < 4.3 $prerequis" ;;
+esac
+
 prerequis
 
 # Modifs
