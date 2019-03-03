@@ -26,7 +26,9 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 # Historique des versions gérées
 
-v 0.9.8.7 && prerequis="perl >= 5" && modifs="multiarch" || true
+v 0.9.8.7 && prerequis="perl >= 5" && modifs="multiarch sansdoc" || true
+v 0.9.8.13 || true # Première version à ne pas planter sur une Ubuntu 18.04 GCC 7.3.0 64 bits (avant, un bout d'assembleur mal ficelé vautre).
+v 0.9.8.33 || true
 v 1.0.0 || true
 v 1.0.0.1 || true
 mac && archis=oui
@@ -119,6 +121,9 @@ v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c=""
 archive=http://www.openssl.org/source/$logiciel-$v_alpha.tar.gz
 # Difficile maintenant de trouver la source sur un serveur HTTP non 'S'.
 archive=http://artfiles.org/openssl.org/source/$logiciel-$v_alpha.tar.gz
+case "$version" in
+	0.9.*) archive="https://ftp.openssl.org/source/old/0.9.x/openssl-$v_alpha.tar.gz" ;;
+esac
 
 destiner
 
