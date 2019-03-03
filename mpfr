@@ -53,7 +53,7 @@ fbsd8()
 
 # Variables
 
-archive="http://www.mpfr.org/mpfr-current/mpfr-$version.tar.bz2"
+archive="http://www.mpfr.org/mpfr-$version/mpfr-$version.tar.bz2"
 
 prerequis
 
