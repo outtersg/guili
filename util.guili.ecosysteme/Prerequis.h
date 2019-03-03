@@ -33,3 +33,14 @@ Prerequis;
 Prerequis * Prerequis_creerN(char * ptrL, int tL, char * ptrO, int tO, char * ptrV, int tV);
 void Prerequis_fusionnerN(Prerequis * p, char * ptrO, int tO, char * ptrV, int tV);
 void Prerequis_afficher(Prerequis * p);
+
+/*- Implémentation -----------------------------------------------------------*/
+
+typedef struct
+{
+	int (*prerequis)(Prerequis * p);
+	int (*lancer)(Prerequis * p);
+}
+PrerequisImpl;
+
+extern PrerequisImpl Prerequis_impl;

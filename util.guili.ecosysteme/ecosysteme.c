@@ -106,6 +106,18 @@ void afficherPrerequis(L * t)
 		Prerequis_afficher((Prerequis *)t->vals[i]);
 }
 
+int resoudrePrerequis(L * t)
+{
+	int i;
+	Prerequis * p;
+	for(i = -1; ++i < t->n;)
+	{
+		Prerequis_impl.prerequis(t->vals[i]);
+	}
+	
+	return E_attendreFinLances(E_taches);
+}
+
 /*- Travail ------------------------------------------------------------------*/
 
 void boum(int signal)
@@ -151,5 +163,7 @@ int main(int argc, char ** argv)
 		case MODE_DECOUPE:
 	afficherPrerequis(prerequis);
 			break;
+		case MODE_TOUT:
+			return resoudrePrerequis(prerequis);
 	}
 }
