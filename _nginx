@@ -24,8 +24,6 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
-logiciel=_nginx
-
 # Historique des versions gérées
 
 prerequis="nginx"
@@ -114,6 +112,4 @@ sudo cp -R "$dest0/." "$dest/."
 # N.B.: il est probable que le -u soit root, du fait de la nécessité d'ouvrir les ports privilégiés. Le passage en compte sous-privilégié sera à faire dans le fichier de conf (le processus maître, piloté par ce -u, sera root; les fils, pilotés par la conf, pourront être autre chose).
 serveur -p "$dest/logs/nginx.pid" -r httpd -r apache2 -u "$compteMaitre" demon nginx -pre "umask 007" extra_commands=reload -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/$conf/nginx.conf"
 
-sutiliser "`basename "$dest"`"
-
-rm -Rf "$TMP/$$"
+sutiliser -
