@@ -162,7 +162,7 @@ int main(int argc, char ** argv)
 	{
 		case MODE_DECOUPE:
 	afficherPrerequis(prerequis);
-			break;
+			return 0;
 		case MODE_TOUT:
 			return resoudrePrerequis(prerequis);
 	}
