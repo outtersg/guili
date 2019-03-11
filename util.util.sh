@@ -74,9 +74,9 @@ TERMINE
 # Appelée avec un -e, y ajoute un export de ces dernières.
 ajouterVarsProxy()
 {
-	egrep -v '^((http|https)_proxy|(HTTP|HTTPS|ALL)_PROXY)='
+	egrep -v '^((http|https)_proxy|(HTTP|HTTPS|ALL)_PROXY)=' || true
 	varsProxy
-	[ "x$1" = x-e ] && echo "export http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY"
+	[ "x$1" = x-e ] && echo "export http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY" || true
 }
 
 # Ajoute à un fichier (supposé shell) les déclarations de variables de proxy.
