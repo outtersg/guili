@@ -43,7 +43,7 @@ v 8.5.35 || true
 # Variables
 
 v_maj="`echo "$version" | cut -d . -f 1`"
-archive="http://mirror.ibcp.fr/pub/apache/tomcat/tomcat-$v_maj/v$version/bin/apache-tomcat-$version.tar.gz"
+archive="https://archive.apache.org/dist/tomcat/tomcat-$v_maj/v$version/bin/apache-tomcat-$version.tar.gz"
 
 destiner
 
