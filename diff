@@ -29,6 +29,7 @@ logiciel=diff
 # Historique des versions gérées
 
 v 3.6 || true
+v 3.7 || true
 
 # Modifications
 
