@@ -92,6 +92,10 @@ faitDuTls11()
 	esac
 	return 1
 }
+
+# Doit être appelée après prerequis() (on dépend de son résultat), mais avant obtenirEtAllerDansVersion() (elle peut nous utiliser).
+determinerFinalisationInstallSelonPrerequis()
+{
 # Si on a de quoi récupérer la liste d'AC cURL, et qu'on est liés à un OpenSSL TLS 1.1 (parce qu'il peut arriver en 2019 qu'on cherche à réinstaller un serveur "façon 2012", auquel cas notre OpenSSL, ne sachant pas causer que TLS 1.0, se vautrera à coup sûr).
 if [ -e "$SCRIPTS/curlcabundle" ] && faitDuTls11
 then
@@ -100,6 +104,7 @@ then
 else
 	installerACDest() { true ; }
 fi
+}
 
 finaliserInstall()
 {
@@ -114,6 +119,8 @@ archive="http://curl.haxx.se/download/$logiciel-$version.tar.bz2"
 destiner
 
 prerequis
+
+determinerFinalisationInstallSelonPrerequis
 
 obtenirEtAllerDansVersion
 
