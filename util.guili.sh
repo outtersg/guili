@@ -26,11 +26,17 @@
 # Renvoie les versions pour un logiciel donnée, triées par version croissante.
 versions()
 {
+	local GUILI_PATH="$GUILI_PATH"
+	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
+	
 	versions_expr_version='[0-9.]+'
 	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
 	versions_logiciel="`echo "$1" | cut -d + -f 1`"
 	versions_expr="/$versions_logiciel`options "$1" | sed -e 's#[+]#([+][^+]*)*[+]#g'`([+][^+]*)*-$versions_expr_version$"
-	find "$INSTALLS" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \) | egrep "$versions_expr" | filtrerVersions "$2" | triversions
+	(
+		IFS=:
+		find $GUILI_PATH -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
+	) | egrep "$versions_expr" | filtrerVersions "$2" | triversions
 }
 
 #- Prérequis -------------------------------------------------------------------
