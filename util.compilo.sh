@@ -26,6 +26,24 @@ versionCompiloChemin()
 	esac
 }
 
+# S'assure d'avoir un compilo bien comme il faut d'installé.
+# Utilisation: compiloSysVersion [+] (<compilo> [<version>])+
+#   +
+#     Si précisé, on va chercher non seulement dans $GUILI_PATH/*/bin avant
+#     $PATH.
+#     Notons que dans la majorité des cas, le compilo le plus récent installé
+#     dans un $GUILI_PATH/*/bin, possède un lien symbolique dans le $PATH/bin:
+#     en ce cas il est inutile de préciser le +.
+#     Cependant il peut arriver que le lien symbolique du $PATH pointe vers une
+#     version antérieure (ex.: une qui corresponde à celle du compilo livré
+#     initialement avec le système). En ce cas le + ira chercher les déjà
+#     installés masqués.
+#   <compilo> [<version>]
+#     <compilo>: clang, gcc
+#     Si plusieurs compilos sont précisés, sera choisi le plus adapté à l'OS
+#     (gcc sous Linux, clang sous FreeBSD, Darwin).
+#     <version>: peut être précisé pour ajouter une contrainte de version, ex.:
+#     clang >= 7.
 compiloSysVersion()
 {
 	local systeme
@@ -33,6 +51,9 @@ compiloSysVersion()
 	local bienTente
 	local bienVoulus
 	local versionVoulue
+	local chercherTousInstalles=non
+	
+	[ "x$1" = "x+" ] && shift && chercherTousInstalles=oui || true
 	
 	# Quels compilos nos paramètres connaissent-ils?
 	bienVoulus="`
@@ -60,14 +81,47 @@ compiloSysVersion()
 		done
 	`"
 	
-	# Concentrons-nous sur celui-ci. La version actuellement dans notre $PATH répond-elle au besoin?
-	if commande "$bienVoulu"
+	# Concentrons-nous sur celui-ci.
+	
+	local binaire="`_compiloBinaire "$bienVoulu"`"
+	if [ -z "$binaire" ]
 	then
-		if testerVersion "`versionCompiloChemin "$bienVoulu"`" $versionVoulue
-		then
-			return 0
-		fi
+	prerequerir "$bienVoulu" "$versionVoulue"
+	else
+		# Ce binaire a-t-il été installé par GuiLI? En ce cas il n'est certainement pas dans un dossier système, donc il faudra aussi aller chercher tout son environnement (lib, include, etc.).
+		reglagesCompilSiGuili "$binaire"
 	fi
 	
-	prerequerir "$bienVoulu" "$versionVoulue"
+	varsCc "$bienVoulu"
+}
+
+_compiloBinaire()
+{
+	if [ $chercherTousInstalles = oui ]
+	then
+		local r=0 # $? vaudra 0 pour aucun tour de boucle.
+		versions "$bienVoulu" "$versionVoulue" | tail -1 | while read chemin
+		do
+			echo "$chemin/bin/$bienVoulu"
+			# Le return suivant nous fait sortir du sous-shell, pas de la fonction. On lui donne donc une valeur repérable par la fonction pour qu'elle la transforme en retour.
+			return 42
+		done || r=$?
+		[ $r -eq 42 -o $r -eq 0 ] || return $r
+		[ $r -eq 0 ] || return 0
+	fi
+		
+	# La version actuellement dans notre $PATH répond-elle au besoin?
+	if commande "$bienVoulu" && testerVersion "`versionCompiloChemin "$bienVoulu"`" $versionVoulue
+	then
+		command -v "$bienVoulu"
+	fi
+}
+
+varsCc()
+{
+	case "$1" in
+		clang) export CC=clang CXX=clang++ ;;
+		gcc) export CC=gcc CXX=g++ ;;
+		*) export CC=cc CXX=c++ ;;
+	esac
 }
