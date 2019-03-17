@@ -39,6 +39,29 @@ versions()
 	) | egrep "$versions_expr" | filtrerVersions "$2" | triversions
 }
 
+# rlvo: Racine - Logiciel - Version - Options
+# Découpe un chemin:
+#   /usr/local/logiciel+option0+option1-version/bin/logiciel
+# en:
+#   /usr/local/logiciel+option0+option1-version logiciel version +option0+option1
+rlvo()
+{
+	local truc racine eRacine
+	local GUILI_PATH="$GUILI_PATH"
+	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
+	IFS=:
+	for racine in $GUILI_PATH
+	do
+		unset IFS
+		eRacine="/^`echo "$racine/" | sed -e 's#//*#/#g' -e 's#/#\\\\/#g'`"'\([^/+]*\)\(\(+[^/+]*\)*\)-\([0-9][.0-9]*\)\/.*/'
+		for truc in "$@"
+		do
+			echo "$truc/" | sed -e "$eRacine!d" -e "//s##$racine/\\1\\2-\\4 \\1 \\4 \\2#"
+		done
+	done
+	unset IFS
+}
+
 #- Prérequis -------------------------------------------------------------------
 
 decoupePrerequis()
