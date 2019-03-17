@@ -1569,52 +1569,6 @@ ccMac()
 	esac
 }
 
-meilleurCompilo()
-{
-	# À FAIRE:
-	# - classer les compilos disponibles par date de publication. Pour ce faire, établir une correspondance version -> date (la date donnée par certains compilos est celle de leur compilation, pas de leur publication initiale).
-	# - pouvoir privilégier un compilo en lui ajoutant virtuellement un certain nombre d'années d'avance sur les autres.
-	# - pouvoir spécifier un --systeme pour se cantonner au compilo livré avec le système (par exemple pour compiler une extension noyau, ou avoir accès aux saloperies de spécificités de Frameworks sous Mac OS X).
-	if command -v clang 2> /dev/null >&2 && command -v clang++ 2> /dev/null >&2
-	then
-	export CC=clang CXX=clang++
-	elif command -v gcc 2> /dev/null >&2 && command -v g++ 2> /dev/null >&2
-	then
-		export CC=gcc CXX=g++
-	else
-		export CC=cc CXX=c++
-	fi
-	case `uname` in
-		Darwin)
-			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
-			for f in /System/Library/SDKSettingsPlist/SDKSettings.plist /Library/Developer//CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.plist
-			do
-				if [ -e "$f" ]
-				then
-					export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$f" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
-					break
-				fi
-			done
-			;;
-	esac
-}
-
-meilleurCompilo
-
-# Peut être utilisé en prérequis, pour aller fouiller éventuellement dans les compilos préinstallés.
-meilleurCompiloInstalle()
-{
-	if versions clang | grep -q .
-	then
-		reglagesCompilPrerequis clang
-	fi
-	if versions gcc | grep -q .
-	then
-		reglagesCompilPrerequis gcc
-	fi
-	meilleurCompilo
-}
-
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
 # Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
 libtool3264()
@@ -1940,6 +1894,7 @@ analyserParametresInstall "$@"
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
 
 prerequis= # Certains installeurs appellent prerequis(), mais sans avoir initialisé $prerequis. Résultat, ils héritent de l'environnement; pour peu que quelqu'un prérequière un de ces logiciels, ses prerequis seront donc lui-même, et nous voilà partis pour une boucle infinie…
+meilleurCompilo
 _initPrerequisLibJpeg
 proxy -
 

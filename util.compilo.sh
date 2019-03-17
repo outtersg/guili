@@ -125,3 +125,30 @@ varsCc()
 		*) export CC=cc CXX=c++ ;;
 	esac
 }
+
+meilleurCompilo()
+{
+	# À FAIRE:
+	# - classer les compilos disponibles par date de publication. Pour ce faire, établir une correspondance version -> date (la date donnée par certains compilos est celle de leur compilation, pas de leur publication initiale).
+	# - pouvoir privilégier un compilo en lui ajoutant virtuellement un certain nombre d'années d'avance sur les autres.
+	# - pouvoir spécifier un --systeme pour se cantonner au compilo livré avec le système (par exemple pour compiler une extension noyau, ou avoir accès aux saloperies de spécificités de Frameworks sous Mac OS X).
+	
+	compiloSysVersion + clang gcc
+	
+	case `uname` in
+		Darwin)
+			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
+			for f in /System/Library/SDKSettingsPlist/SDKSettings.plist /Library/Developer//CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.plist
+			do
+				if [ -e "$f" ]
+				then
+					export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$f" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
+					break
+				fi
+			done
+			;;
+	esac
+}
+
+# Pour compatibilité.
+meilleurCompiloInstalle() { meilleurCompilo "$@" ; }
