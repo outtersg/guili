@@ -93,6 +93,14 @@ compiloSysVersion()
 	fi
 	
 	varsCc "$bienVoulu"
+	
+	# En général le compilo vient avec sa libc++.
+	
+	eval "cheminBienVoulu=\$dest$bienVoulu"
+	if [ -d "$cheminBienVoulu" -a -d "$cheminBienVoulu/include/c++/v1" ]
+	then
+		export CPPFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CPPFLAGS" CXXFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CXXFLAGS"
+	fi
 }
 
 _compiloBinaire()
