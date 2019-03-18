@@ -49,6 +49,8 @@ v 5.0.0 || true
 v 5.0.1 && modifs="$modifs emmintrim" || true # Tout à la fin, que l'on compile avec un 3.9.1 ou un 4.0.1: make[2]: *** [tools/clang/runtime/CMakeFiles/compiler-rt.dir/build.make:107: tools/clang/runtime/compiler-rt-stamps/compiler-rt-configure] Segmentation fault (core dumped); si on relance, il finit sa compil + install.
 v 5.0.2 || true
 v 6.0.0 || true
+v 6.0.1 && prerequis="cmake" || true
+v 7.0.1 || true
 
 # Si le clang système est suffisant, on le prend.
 if commande clang
