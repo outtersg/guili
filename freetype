@@ -35,6 +35,7 @@ v 2.4.12
 v 2.5.5
 v 2.6.5
 v 2.7.1 || true
+v 2.9.1 || true
 
 dest="$INSTALLS/$logiciel-$version"
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
