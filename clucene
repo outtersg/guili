@@ -29,9 +29,28 @@ logiciel=clucene
 # Historique des versions gérées
 
 v 20130621.4f62f2a90ecbea0d6d14e4bc0902056996144023.git && modifs="pthr wcstoll" || true
-v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="pthr wcstoll wcscpp contribs" || true
+v 20130812.e8e3d20f20da5ee3e37d347207b01890829a5475.git && modifs="pthr wcstoll wcscpp champsdebits contribs" || true
 
 # Modifications
+
+champsdebits()
+{
+	find src \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs -0 egrep -l 'jj_la1_0|jjbitVec2' | while read f
+	do
+		filtrer "$f" sed \
+			-e '/jj_la1_0/s/ int32_t/ uint32_t/g' \
+			-e '/jjbitVec[02].*=.*{/{
+:-|
+s/}/}/
+t-)
+N
+b-|
+:-)
+}' \
+			-e '/jjbitVec[02]/s/ int64_t/ uint64_t/g' \
+			-e '/jjbitVec[02]/s/_ILONGLONG(\([^)]*\))/\1ULL/g'
+	done
+}
 
 contribs()
 {
