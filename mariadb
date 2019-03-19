@@ -21,20 +21,14 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
-calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
-calcScripts "$0"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
-
-logiciel=mariadb
 
 v 5.5.34 && prerequis="" || true
 
-archive="http://ftp.igh.cnrs.fr/pub/mariadb/mariadb-$version/kvm-tarbake-jaunty-x86/mariadb-$version.tar.gz"
+archive="http://mariadb.mirrors.ovh.net/MariaDB//mariadb-$version/source/mariadb-$version.tar.gz"
 
-dest=$INSTALLS/$logiciel-$version
-
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -51,6 +45,4 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
