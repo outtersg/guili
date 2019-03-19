@@ -25,6 +25,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 . "$SCRIPTS/util.sh"
 
 v 5.5.34 && prerequis="" || true
+v 10.3.13 || true
 
 archive="http://mariadb.mirrors.ovh.net/MariaDB//mariadb-$version/source/mariadb-$version.tar.gz"
 
