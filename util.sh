@@ -160,7 +160,7 @@ obtenirEtAllerDans()
 	if [ -z "$fichier" ]
 	then
 		fichier="`basename "$1"`"
-		echo "$1" | egrep '/archive/v[0-9][0-9.]*(\.tar|\.gz|\.tgz|\.xz|\.bz2|\.7z|\.zip|\.Z){1,2}$' && fichier="`echo "$1" | sed -e 's#/archive/v#-#' -e 's#.*/##'`" || true
+		echo "$1" | egrep '/archive/v*[0-9][0-9.]*(\.tar|\.gz|\.tgz|\.xz|\.bz2|\.7z|\.zip|\.Z){1,2}$' && fichier="`echo "$1" | sed -e 's#/archive/v*#-#' -e 's#.*/##'`" || true
 	fi
 	archive=`obtenir "$1" "$fichier"`
 	[ -f "$archive" ] || exit 1
