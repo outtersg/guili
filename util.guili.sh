@@ -171,3 +171,21 @@ reglagesCompilSiGuili()
 		_reglagesCompil $rlvo
 	fi
 }
+
+#- Installation ----------------------------------------------------------------
+
+# Surchargeable par les logiciels pour une petite passe après compil ou installation d'un paquet binaire.
+# Appelée après déploiement réussi; permet en particulier de personnaliser pour usage local: recopie d'extensions non embarquées dans la version officielle, etc.
+guili_localiser=
+guili_localiser()
+{
+	# Si dans une guili_localiser on appelle sutiliser - (ex.: après avoir installé dans $destextensionpython, on recopie celle-ci dans $INSTALLS/touteslesextensionspython et on sutilise - ce dernier), il ne faut pas que ce sutiliser réappelle récursivement notre guili_localiser.
+	[ -z "$guili_localiserEnCours" ] || return 0
+	guili_localiserEnCours=1
+	local f
+	for f in $guili_localiser true
+	do
+		"$f"
+	done
+	guili_localiserEnCours=
+}
