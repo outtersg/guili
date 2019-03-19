@@ -106,11 +106,12 @@ else
 fi
 }
 
-finaliserInstall()
+finaliserInstallCurl()
 {
 	# On installe notre liste d'AC, personnalisations locales incluses.
 	installerACDest
 }
+guili_localiser="$guili_localiser finaliserInstallCurl"
 
 # Variables
 
