@@ -43,6 +43,16 @@ bleu() { couleur 34 "$@" ; }
 cyan() { couleur 36 "$@" ; }
 magenta() { couleur 35 "$@" ; }
 
+# Exécute une commande, après l'avoir affichée façon set -x (ce dernier point seulement s'il s'agit d'un vrai binaire, et non pas une fonction shell encapsulante).
+affSiBinaire()
+{
+	case "`command -v "$1" 2> /dev/null || true`" in
+		/*) gris "$@" >&2
+	esac
+	
+	"$@"
+}
+
 #- Système ---------------------------------------------------------------------
 
 commande()
