@@ -26,10 +26,27 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 v 5.5.34 && prerequis="" || true
 v 5.5.63 || true
-v 10.2.22 || true
+v 10.2.22 && modifs="sansLto sansRelro" || true
 v 10.3.13 || true
 
 archive="http://mariadb.mirrors.ovh.net/MariaDB//mariadb-$version/source/mariadb-$version.tar.gz"
+
+sansRelro()
+{
+	# Les versions récentes des linkers (gnu ld entre autres) incluent des protections contre la réécriture de la section code.
+	# Malheureusement sur mon FreeBSD 10.2 + clang 7.0.1 + GNU ld récent, avec cette option, un programme tout simple comme comp_sql segfault au lancement.
+	# On désactive donc.
+	filtrer CMakeLists.txt egrep -ve "-z,relro|-z,now"
+}
+
+sansLto()
+{
+	# Sur mon FreeBSD 10.2 (avec un clang monté en 7 + un binutils GNU), pétage lorsque tokudb essaie d'ajouter les Link-Time Optimizations:
+	# celles-ci requièrent en effet un greffon à ld (celui de GNU dans mon cas), greffon qui doit être mis à disposition par le compilo.
+	# Or le greffon n'est pas compilé par défaut avec Clang (et il semble même déconseillé de le faire, cf. https://llvm.org/docs/GoldPlugin.html).
+	# Donc on désactive et puis c'est tout.
+	filtrer storage/tokudb/CMakeLists.txt sed -e 's/ -flto //g' -e 's/ -fuse-linker-plugin//g'
+}
 
 destiner
 
