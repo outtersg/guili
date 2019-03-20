@@ -150,7 +150,6 @@ listeZip()
 # Téléchargege $1 et va dans le dossier obtenu en décompressant.
 obtenirEtAllerDans()
 {
-	echo "=== $logiciel$argOptions $version ===" >&2
 	for i in liste dec archive dossier fichier ; do local $i ; done 2> /dev/null
 	
 	cd "$TMP"
@@ -314,6 +313,8 @@ pousserBinaireVersSilo()
 # Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {
+	echo "=== $logiciel$argOptions $version ===" >&2
+	
 	# A-t-on un binaire déjà compilé?
 	installerBinaireSilo
 	# A-t-on déjà une copie des sources?
