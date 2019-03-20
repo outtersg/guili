@@ -104,7 +104,7 @@ obtenir()
 		echo "Téléchargement de ${fichier}…" >&2
 		commande=curl
 		[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
-		$commande -L -k -s "$1" > "$dest" || rm -f "$dest"
+		affSiBinaire $commande -L -k -s "$1" > "$dest" || rm -f "$dest"
 		[ -e "$dest" ] || return 1
 	fi
 	echo "$dest"
@@ -377,7 +377,7 @@ then
 		params="`echo "$params" | cut -c 2-`"
 		(
 			IFS="$sep"
-			http_proxy=$proxy fetch $params
+			http_proxy=$proxy affSiBinaire fetch $params
 		)
 	}
 	curlwget()
@@ -406,7 +406,7 @@ then
 		fi
 		(
 			IFS="$sep"
-			http_proxy=$proxy https_proxy=$proxy $params
+			http_proxy=$proxy https_proxy=$proxy affSiBinaire $params
 		)
 	}
 	curl()
@@ -414,7 +414,7 @@ then
 		local curl="`unset -f curl ; command -v curl 2> /dev/null || true`"
 		if [ ! -z "$curl" ]
 		then
-			"$curl" "$@"
+			affSiBinaire "$curl" "$@"
 		elif commande fetch
 		then
 			curlfetch "$@"
