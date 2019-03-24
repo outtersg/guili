@@ -33,9 +33,22 @@ v 0.24.4 && modifs="llongmax" || true
 v 0.32.0 && modifs="llongmax" && prerequis="libopenjp2" || true
 v 0.34.0 || true
 v 0.52.0 && prerequis="libopenjp2 cairo libtiff curl" || true
-v 0.72.0 || true
+v 0.72.0 && modifs="$modifs nssVisible" && prerequis="$prerequis nss curl" || true # Pour la signature des PDF.
+v 0.75.0 || true
 
 # Modifications
+
+nssVisible()
+{
+	if true
+	then
+		export CPPFLAGS="-I$destnss/include/nss $CPPFLAGS"
+		export CXXFLAGS="-I$destnss/include/nss $CXXFLAGS"
+		export CFLAGS="-I$destnss/include/nss $CFLAGS"
+	else
+	filtrer poppler/SignatureHandler.h sed -E -e '/<(cert|cms|cryptohi|sec[a-z]*)\.h>/s#<#<nss//#'
+	fi
+}
 
 llongmax()
 {
@@ -79,7 +92,14 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if pge $version 0.60 # Quelle version exactement? > 0.52 < 0.72
+then
+	mkdir -p build
+	cd build
+	cmake -DCMAKE_INSTALL_PREFIX="$dest" ..
+else
 ./configure --prefix="$dest"
+fi
 
 echo Compilation… >&2
 make
