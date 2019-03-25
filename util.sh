@@ -64,24 +64,6 @@ then
 fi
 mkdir -p "$INSTALL_MEM"
 
-export PATH="`echo $TMP/$$:$INSTALLS/bin:$PATH | sed -e 's/^\.://' -e 's/:\.://g' -e 's/::*/:/g'`"
-export LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
-export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
-export CMAKE_LIBRARY_PATH="$INSTALLS"
-
-CPPFLAGS="-I$INSTALLS/include $CPPFLAGS"
-#CFLAGS="-I$INSTALLS/include $CFLAGS"
-#CXXFLAGS="-I$INSTALLS/include $CXXFLAGS"
-LDFLAGS="-L$INSTALLS/lib64 -L$INSTALLS/lib $LDFLAGS"
-PKG_CONFIG_PATH="$INSTALLS/lib/pkgconfig"
-CFLAGS="-O3 $CFLAGS" # Trop de logiciels (PHP\xe2\x80\xa6) se compilent par d\xc3\xa9faut sans optimisation. C'est ballot.
-CXXFLAGS="-O3 $CXXFLAGS"
-export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH
-export ACLOCAL="aclocal -I $INSTALLS/share/aclocal"
-export ACLOCAL_PATH="$INSTALLS/share/aclocal" # À FAIRE?: le faire participer à reglagesCompilPrerequis.
-
-. "$SCRIPTS/util.util.sh"
-
 ajouterModif()
 {
 	modifs="$modifs $*"
@@ -346,6 +328,25 @@ obtenirEtAllerDansVersion()
 		*) obtenirEtAllerDans "$archive" "$@" ;;
 	esac
 }
+
+#- Initialisation --------------------------------------------------------------
+
+cheminsGuili()
+{
+	local GUILI_PATH="$GUILI_PATH"
+	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
+	IFS=:
+# Les -I n'ont rien à faire dans les C(XX)FLAGS. Les logiciels doivent aller piocher dans CPPFLAGS, sinon c'est qu'ils sont foireux et doivent recevoir une rustine spécifique. Ajouter les -I aux CFLAGS empêche par exemple PostgreSQL de se compiler: il fait un cc $CFLAGS -I../src/include $CPPFLAGS, ce qui fait que si /usr/local/include est dans CFLAGS, et possède mettons des .h de la 9.2, ceux-ci sont inclus avant les .h de la 9.5 lors de la compilation de celui-ci.
+	chemins --sans-c-cxx $GUILI_PATH
+	unset IFS
+	export PATH="`echo $TMP/$$:$PATH | sed -e 's/^\.://' -e 's/:\.:/:/g' -e 's/::*/:/g'`"
+	# Trop de logiciels (PHP…) se compilent par défaut sans optimisation. C'est ballot.
+	export CFLAGS="-O3 $CFLAGS"
+	export CXXFLAGS="-O3 $CXXFLAGS"
+}
+chemins_init=cheminsGuili
+
+. "$SCRIPTS/util.util.sh"
 
 # Remplacements de commandes (pour la phase d'amorçage).
 
@@ -776,25 +777,6 @@ inclureBiblios()
 			inclure $dou$b $v || true
 		fi
 	done
-}
-
-preCFlag()
-{
-	CPPFLAGS="$* $CPPFLAGS"
-	CFLAGS="$* $CFLAGS"
-	CXXFLAGS="$* $CXXFLAGS"
-	export CPPFLAGS CFLAGS CXXFLAGS
-}
-
-preChemine()
-{
-	local d
-	preCFlag "-I$1/include"
-	for d in $1/lib64 $1/lib
-	do
-		[ ! -d "$d" ] || LDFLAGS="-L$d $LDFLAGS"
-	done
-	export LDFLAGS
 }
 
 prerequerir()

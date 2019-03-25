@@ -60,6 +60,74 @@ commande()
 	command -v "$@" > /dev/null 2>&1
 }
 
+# Règle tous les chemins pour aller taper dans une arbo conventionnelle (bin, lib, include, etc.).
+chemins()
+{
+	unset IFS # Des fois que notre appelant l'ait réglé à :
+	local optionsPreChemin=
+	[ "x$1" = x--sans-c-cxx ] && optionsPreChemin="$1" && shift || true
+	local i=$#
+	local racine
+	# Si on appelle chemins /usr/local /usr sur un $PATH qui contient déjà /bin, on voudra finir avec /usr/local/bin:/usr/bin:/bin.
+	# Une petite gymnastique est donc requise pour les introduire dans le bon ordre.
+	while [ $i -gt 0 ]
+	do
+		eval racine=\$$i
+		
+		PATH="$racine/bin:$PATH"
+
+		preChemine "$racine"
+		DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+		
+		CMAKE_LIBRARY_PATH="$racine:$CMAKE_LIBRARY_PATH"
+
+		PKG_CONFIG_PATH="$racine/lib/pkgconfig:$PKG_CONFIG_PATH"
+		[ ! -z "$ACLOCAL" ] || ACLOCAL=aclocal
+		ACLOCAL="`echo "$ACLOCAL " | sed -e "s# # -I $racine/share/aclocal #"`"
+		ACLOCAL_PATH="$racine/share/aclocal:$ACLOCAL_PATH" # À FAIRE?: le faire participer à reglagesCompilPrerequis.
+		
+		i=`expr $i - 1` || break # Crétin d'expr qui sort si son résultat est 0. Pas grave, c'est aussi notre condition de sortie.
+	done
+	export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH CMAKE_LIBRARY_PATH CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH ACLOCAL ACLOCAL_PATH
+}
+
+preCFlag()
+{
+	if [ "x$1" = x--sans-c-cxx ]
+	then
+		shift
+	else
+		CFLAGS="$* $CFLAGS"
+		CXXFLAGS="$* $CXXFLAGS"
+	fi
+	CPPFLAGS="$* $CPPFLAGS"
+	export CPPFLAGS CFLAGS CXXFLAGS
+}
+
+preChemine()
+{
+	local d
+	local paramsPreCFlag=
+	if [ "x$1" = x--sans-c-cxx ]
+	then
+		paramsPreCFlag="$1"
+		shift
+	fi
+	preCFlag $paramsPreCFlag "-I$1/include"
+	for d in $1/lib64 $1/lib
+	do
+		[ ! -d "$d" ] || LDFLAGS="-L$d $LDFLAGS"
+	done
+	export LDFLAGS
+}
+
+# Petite exception à notre règle "pas de variable globale dans ce fichier": dès qu'on a défini chemin(), on charge un éventuel environnement, afin de pouvoir dans ce qui suit détecter de nouveaux logiciels (et donc mettre en place ou non des palliatifs).
+
+if [ ! -z "$chemins_init" ]
+then
+	$chemins_init
+fi
+
 #- Réseau ----------------------------------------------------------------------
 
 # Chope l'hôte et le port des URL passées sur l'entrée standard.
