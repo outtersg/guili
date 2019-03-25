@@ -26,7 +26,7 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 
 logiciel=fontconfig
 
-v 2.3.2 && prerequis="freetype expat gperf" || true
+v 2.3.2 && prerequis="zlib freetype expat gperf" || true
 # La 2.3.2 est boguée, leur FcObjectStaticName n'est pas généralisé et du coup
 # les comparaisons de chaînes par pointeur ne marchent pas partout.
 version=2005-06-28
