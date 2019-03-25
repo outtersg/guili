@@ -31,6 +31,7 @@ logiciel=harfbuzz
 v 0.9.29 || true
 v 0.9.37 || true
 v 1.3.2 || true
+v 2.3.1 || true
 
 # Modifications
 
