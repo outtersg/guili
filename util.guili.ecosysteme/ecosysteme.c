@@ -75,7 +75,15 @@ void decouperPrerequis(char * chaine, L * resultatAgrege)
 	while(*chaine)
 	{
 		ptrL = chaine;
-		while(*chaine && *chaine != '+' && *chaine != ' ' && *chaine != '<' && *chaine != '>' && *chaine != '=') ++chaine;
+		while(*chaine && *chaine != '+' && *chaine != ' ' && *chaine != '<' && *chaine != '>' && *chaine != '=' && *chaine != '(') ++chaine;
+		if(*chaine == '(')
+			while(*++chaine)
+				if(*chaine == ')')
+				{
+					++chaine;
+					break;
+				}
+				
 		tL = chaine - ptrL;
 		while(*chaine == ' ') ++chaine;
 		ptrO = chaine;
