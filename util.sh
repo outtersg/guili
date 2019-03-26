@@ -886,12 +886,6 @@ _initPrerequisLibJpeg()
 export prerequis_libjpeg
 }
 
-analyserParamsPrerequis()
-{
-	requis="$1" ; shift
-	versionRequis="$*"
-}
-
 prerequis()
 {
 	# Si l'environnement est configuré pour que nous renvoyons simplement nos prérequis, on obtempère ici (on considère qu'un GuiLI qui atteint ce point n'a plus rien à faire qui puisse influer sur le calcul de $prerequis.
@@ -911,13 +905,14 @@ prerequis()
 	for prcourant in $prdecoupes
 	do
 		unset IFS
-		analyserParamsPrerequis $prcourant
-		case "$requis" in
-			*\(\))
-				"`echo "$requis" | tr -d '()'`" $versionRequis
+		case "$prcourant" in
+			*\(*\))
+				local appel="`echo "$prcourant" | sed -e 's/ *( */,/' -e 's/ *)[^)]*$//' -e 's/ *, */,/'`"
+				IFS=,
+				tifs $appel
 				;;
 			*)
-				prerequerir "$requis" "$versionRequis"
+				prerequerir $prcourant
 				;;
 		esac
 	done
@@ -947,7 +942,7 @@ varsPrerequis()
 	while read vp_logiciel vp_version
 	do
 		case "$vp_logiciel" in
-			*\(\)) true ;;
+			*\(*\)) true ;;
 			*)
 				paramsInclure="$vp_logiciel"
 				[ -z "$vp_version" ] || paramsInclure="$paramsInclure|$vp_version"
