@@ -24,12 +24,14 @@ set -e
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
+sep="`printf '\003'`"
+
 logiciel=boost
 
 v 1.45.0 && prerequis="icu python" && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis optionsBjam" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
 v 1.52.0 && true # On laisse les modifs actuelles.
-v 1.57.0 && modifs="" || true
-v 1.63.0 && modifs="toolset pythonPatate" || true
+v 1.57.0 && modifs="optionsBjam" || true
+v 1.63.0 && modifs="optionsBjam toolset pythonPatate" || true
 v 1.69.0 || true
 
 # Modifications
@@ -88,6 +90,11 @@ pourMac()
 	optionsBjam="address-model=32_64 architecture=combined macosx-version=10.5"
 }
 
+optionsBjam()
+{
+	optionsBjam="linkflags=$LDFLAGS${sep}cflags=$CFLAGS${sep}cxxflags=$CXXFLAGS"
+}
+
 # Variables
 
 dest="$INSTALLS/$logiciel-$version"
@@ -110,9 +117,11 @@ for modif in true $modifspostconfig ; do $modif ; done
 
 echo Compilation… >&2
 # Ici il faudrait vérifier que l'ulimit n'est pas trop basse. En outre, alors que GCC 4.2 arrive à tourner sur une petite machine à 512 Mo de RAM (et à peu près autant en swap) en -j4, GCC 4.9 bouffe jusqu'à 1 Go par compil. Donc une seconde passe en -j1.
-./bjam -j4 $optionsBjam
+IFS="$sep"
+tifs ./bjam -j4 $optionsBjam
 
 echo Installation… >&2
-sudo ./bjam $optionsBjam install
+IFS="$sep"
+tifs sudo ./bjam $optionsBjam install
 
 sutiliser
