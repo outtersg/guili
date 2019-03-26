@@ -75,9 +75,11 @@ chemins()
 		eval racine=\$$i
 		
 		PATH="$racine/bin:$PATH"
+		LD_LIBRARY_PATH="$racine/lib:$LD_LIBRARY_PATH"
+		[ ! -e "$racine/lib64" ] || LD_LIBRARY_PATH="$racine/lib64:$LD_LIBRARY_PATH"
+		DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 
 		preChemine "$racine"
-		DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 		
 		CMAKE_LIBRARY_PATH="$racine:$CMAKE_LIBRARY_PATH"
 
