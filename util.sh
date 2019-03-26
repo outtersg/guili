@@ -1089,7 +1089,7 @@ destiner()
 {
 	if [ -z "$install_dest" ]
 	then
-		dest="`versions -v "$version" "$logiciel$argOptions" | tail -1`"
+		dest="`GUILI_PATH=$INSTALLS versions -v "$version" "$logiciel$argOptions" | tail -1`"
 		if [ -z "$dest" ]
 		then
 			dest="$INSTALLS/$logiciel$argOptions-$version"
