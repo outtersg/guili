@@ -24,11 +24,6 @@ set -e
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
-# Si on a déjà une version système qui convient, pas la peine de compiler.
-
-vsysteme="`command -v gcc > /dev/null && gcc -v 2>&1 | grep 'gcc version' | sed -e 's/.*gcc version //' -e 's/ .*//'`" || true
-[ ! -z "$vsysteme" ] && testerVersion $vsysteme $argVersion && exit 0 || true
-
 # Historique des versions gérées
 
 v 4.2.4 || true
