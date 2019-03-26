@@ -37,7 +37,8 @@ v 3.5.2 || true
 v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
 v 3.6.2 || true
 v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7" || true
-v 3.9.1 && modifsDyn="macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
+# cmake: pour un clang 5.0.2, cmake 3.13.1 nous pète en "do not use OLD behavior, puis core dumped". Le 3.5 passe.
+v 3.9.1 && modifsDyn="macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
