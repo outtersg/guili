@@ -38,7 +38,7 @@ v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt path
 v 3.6.2 || true
 v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7" || true
 # cmake: pour un clang 5.0.2, cmake 3.13.1 nous pète en "do not use OLD behavior, puis core dumped". Le 3.5 passe.
-v 3.9.1 && modifsDyn="macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
+v 3.9.1 && modifsDyn="macMath macLibtool unwind laisserCxxISystem" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
@@ -53,6 +53,16 @@ pge $version 3.5 || suffixe=gz
 archive=http://llvm.org/releases/$version/llvm-$version.src.tar.$suffixe
 
 # Modifs.
+
+laisserCxxISystem()
+{
+	# clang, dans sa libc++, possède un stddef.h qui fait grosso modo du #ifndef MOI #define MOI #include_next <stddef.h>.
+	# Si clang est compilé par un clang même version, le #define MOI du premier va empêcher le second d'appeler à son tour #include_next.
+	# En conséquence, le <stddef.h> système ne sera jamais appelé, résultant en du "size_t not defined".
+	export \
+		CPPFLAGS="`echo "$CPPFLAGS" | sed -e 's#-cxx-isystem [^ ]*##g'`" \
+		CXXFLAGS="`echo "$CXXFLAGS" | sed -e 's#-cxx-isystem [^ ]*##g'`"
+}
 
 emmintrim()
 {
