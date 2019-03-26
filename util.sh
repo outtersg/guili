@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+set -e
+
 INSTALL_MEM="$HOME/tmp/paquets"
 [ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
 [ -z "$TMP" ] && TMP=/tmp || true
