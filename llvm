@@ -21,13 +21,8 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
-calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
-calcScripts "$0"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
-
-logiciel=llvm
-[ "`basename "$0"`" = clang ] && logiciel=clang || true
 
 # Chemin de compilation pour un FreeBSD 10.2 (clang 3.5): clang 3.7.1, clang 3.9.1.
 # Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
@@ -65,8 +60,6 @@ fi
 suffixe=xz
 pge $version 3.5 || suffixe=gz
 archive=http://llvm.org/releases/$version/llvm-$version.src.tar.$suffixe
-
-dest=$INSTALLS/$logiciel-$version
 
 # Modifs.
 
@@ -197,7 +190,7 @@ complications()
 	#filtrer tools/lldb/source/Host/macosx/Host.mm sed -e 's/_handler (source, ^{/_handler_f (source, [](dispatch_source_t source){/'
 }
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -271,6 +264,4 @@ sudo make install
 
 # Pas de compil' libc++: en versions avant cmake, le Makefile de libcxx laisse penser qu'il va s'installer comme un cochon dans /usr/lib; et en cmake (3.9.1, par exemple), elle a été compilée en même temps que clang.
 
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
