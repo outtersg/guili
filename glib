@@ -37,7 +37,7 @@ v 2.40.0 && modifs="pasBesoinDeCarbon micMacGnuIconv sansDtrace" || true
 v 2.41.2 || true
 v 2.42.1 || true
 v 2.44.0 || true
-v 2.48.0 && prerequis="gettext libffi >= 3 python pkgconfig pcre" || true
+v 2.48.0 && prerequis="libtool gettext libffi >= 3 python pkgconfig pcre" || true # libtool car en 2.58.3 en tout cas, sans, il reste une macro LT_PREREQ dans le configure.
 v 2.48.1 || true
 v 2.48.2 || true
 v 2.52.1 || true
