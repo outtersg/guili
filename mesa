@@ -21,10 +21,8 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
-
-logiciel=mesa
 
 # Historique des versions gérées
 
@@ -129,11 +127,10 @@ i\
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.freedesktop.org/pub/mesa/$version/mesa-$version.tar.xz"
 archive="http://mesa.freedesktop.org/archive/mesa-$version.tar.xz"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -150,6 +147,4 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+sutiliser
