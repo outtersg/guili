@@ -30,8 +30,20 @@ logiciel=mesa
 
 v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
 v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie log2" || true
+v 18.3.5 && modifs="choixSortie elf_nhdr" || true
 
 # Modifications
+
+elf_nhdr()
+{
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=225302
+	if [ -f /usr/include/sys/elf_common.h ] && ! grep -q Elf_Nhdr /usr/include/sys/elf_common.h
+	then
+		filtrer src/util/build_id.c sed -e '/^struct build_id_note/i\
+typedef Elf_Note Elf_Nhdr;
+'
+	fi
+}
 
 choixSortie()
 {
