@@ -29,6 +29,7 @@ logiciel=nasm
 # Historique des versions gérées
 
 v 2.12.02 || true
+v 2.14.02 || true
 
 prerequis
 
