@@ -1867,6 +1867,10 @@ analyserParametresInstall "$@"
 [ ! -e "$SCRIPTS/util.compilo.sh" ] || . "$SCRIPTS/util.compilo.sh"
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
 [ ! -e "$SCRIPTS/util.guili.sh" ] || . "$SCRIPTS/util.guili.sh"
+for f in "$SCRIPTS/util.guili."*".sh"
+do
+	[ ! -e "$f" ] || . "$f"
+done
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
 [ ! -e "$SCRIPTS/util.python.sh" ] || . "$SCRIPTS/util.python.sh"
 
