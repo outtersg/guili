@@ -30,13 +30,13 @@
 Prerequis * Prerequis_creerN(char * ptrL, int tL, char * ptrO, int tO, char * ptrV, int tV)
 {
 	Prerequis * p = (Prerequis *)malloc(sizeof(Prerequis));
-	p->logiciel = (char *)malloc(tL);
+	p->logiciel = (char *)malloc(tL + 1);
 	strncpy(p->logiciel, ptrL, tL);
 	p->logiciel[tL] = 0;
-	p->options = (char *)malloc(tO);
+	p->options = (char *)malloc(tO + 1);
 	strncpy(p->options, ptrO, tO);
 	p->options[tO] = 0;
-	p->version = (char *)malloc(tV);
+	p->version = (char *)malloc(tV + 1);
 	strncpy(p->version, ptrV, tV);
 	p->version[tV] = 0;
 	return p;
