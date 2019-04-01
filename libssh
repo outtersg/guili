@@ -33,14 +33,6 @@ v 1.8.0 || true
 
 # Modifications
 
-prerequisOpenssl()
-{
-	if option ossl10
-	then
-		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl < 1.1 #'`"
-	fi
-}
-
 # Variables
 
 archive=http://www.libssh2.org/download/libssh2-$version.tar.gz
