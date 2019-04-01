@@ -31,6 +31,7 @@ logiciel=libjpegturbo
 v 1.4.0 || true
 v 1.5.0 && prerequis="nasm" || true
 v 1.5.3 || true
+v 2.0.2 && prerequis="cmake nasm" || true
 
 prerequis
 
@@ -50,7 +51,12 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if pge $version 2 # En fait cmake est supporté dès la 1.1; mais le configure y étant éprouvé, on l'y garde.
+then
+	cmake -DCMAKE_INSTALL_PREFIX="$dest"
+else
 ./configure --prefix="$dest" --with-jpeg8
+fi
 
 echo Compilation… >&2
 make
