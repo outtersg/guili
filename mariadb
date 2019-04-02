@@ -24,12 +24,20 @@ set -e
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
-v 5.5.34 && prerequis="" || true
+v 5.5.34 && modifs="exclusivementPrerequis" && prerequis="zlib libexecinfo iconv cmake lz4 openssl libevent" || true
 v 5.5.63 || true
-v 10.2.22 && modifs="sansLto sansRelro" || true
+v 10.2.22 && modifs="exclusivementPrerequis pasDUsrLocalInclude sansLto sansRelro" || true
 v 10.3.13 || true
 
 archive="http://mariadb.mirrors.ovh.net/MariaDB//mariadb-$version/source/mariadb-$version.tar.gz"
+
+# Modifications
+
+pasDUsrLocalInclude()
+{
+	# Ils codent en dur /usr/local pour libexecinfo. Problème: ça va nous ramener tout plein de trucs non forcément désirés (dont par exemple une OpenSSL récente, alors qu'on a peut-être demandé une 1.0).
+	filtrer cmake/os/FreeBSD.cmake sed -e "s#/usr/local#$destlibexecinfo#g"
+}
 
 sansRelro()
 {
@@ -50,6 +58,7 @@ sansLto()
 
 destiner
 
+prerequisOpenssl
 prerequis
 
 obtenirEtAllerDansVersion
