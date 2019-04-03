@@ -1219,12 +1219,6 @@ filtrerVersions()
 	done
 }
 
-# Renvoie les options dans l'ordre de référence (alphabétique).
-options()
-{
-	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort | sed -e 's/^/+/' | tr '\012' ' ' | sed -e 's/ $//'
-}
-
 option()
 {
 	case "$argOptions+" in
@@ -1862,11 +1856,12 @@ statf()
 	esac
 }
 
+[ ! -e "$SCRIPTS/util.guili.sh" ] || . "$SCRIPTS/util.guili.sh"
+
 analyserParametresInstall "$@"
 
 [ ! -e "$SCRIPTS/util.compilo.sh" ] || . "$SCRIPTS/util.compilo.sh"
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
-[ ! -e "$SCRIPTS/util.guili.sh" ] || . "$SCRIPTS/util.guili.sh"
 for f in "$SCRIPTS/util.guili."*".sh"
 do
 	[ ! -e "$f" ] || . "$f"

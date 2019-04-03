@@ -156,6 +156,12 @@ analyserParametresPour()
 	fi
 }
 
+# Renvoie les options dans l'ordre de référence (alphabétique).
+options()
+{
+	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort -u | sed -e 's/^/+/' | tr '\012' ' ' | sed -e 's/ $//'
+}
+
 # Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
 # Renvoie 0 si in fine l'option est placée, 1 sinon (penser à lui accoler un || true)
 optionSi()
