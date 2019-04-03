@@ -26,12 +26,17 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 # Historique des versions gérées
 
-v 0.9.29 || true
+OPTIONS_CONF=
+
+v 0.9.29 && prerequis="icu graphite" || true
 v 0.9.37 || true
 v 1.3.2 || true
 v 2.3.1 || true
 
 # Modifications
+
+optionSi icu || true
+optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || true
 
 # Variables
 
@@ -47,7 +52,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
