@@ -156,6 +156,19 @@ analyserParametresPour()
 	fi
 }
 
+# Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
+# Renvoie 0 si in fine l'option est placée, 1 sinon (penser à lui accoler un || true)
+optionSi()
+{
+	local l="$1"
+	if ! option "$l" && versions "$l" | grep -q .
+	then
+		argOptions="`options "$argOptions+$l"`"
+	fi
+	option "$l" && return 0 || virerPrerequis "$l"
+	return 1
+}
+
 #- Environnement ---------------------------------------------------------------
 
 # Modifie l'environnement si un truc est dans une arbo GuiLI.
