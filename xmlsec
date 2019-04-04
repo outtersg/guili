@@ -23,22 +23,30 @@ set -e
 
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.guili.nss.sh"
 
 # Historique des versions gérées
 
 OPTIONS_CONF=
 
-v 1.2.27 && prerequis="libtool libxml libxslt openssl nss" && modifs="incl" || true
+v 1.2.27 && prerequis="libtool libxml libxslt openssl nss" && modifs="inclusions inclusionsNss" || true
 
 option nss && virerPrerequis openssl || virerPrerequis nss
 option nss && OPTIONS_CONF="$OPTIONS_CONF --with-nss --without-openssl --with-default-crypto=nss" || true
 
 # Modifications
 
-incl()
+inclusions()
 {
-	# Mais pourquoi pensent-ils tous que nss.h est installé à la racine des include?
-	export CPPFLAGS="-I$destnss/include/nss $CPPFLAGS"
+	filtrer configure sed \
+		-e '/^COMMON_INCLUDE_DIR=/{
+s#=.*#="'"$CMAKE_INCLUDE_PATH"'"#
+s/:/ /g
+}' \
+		-e '/^COMMON_LIB_DIR=/{
+s#=.*#="'"$CMAKE_LIBRARY_PATH"'"#
+s/:/ /g
+}'
 }
 
 # Variables
