@@ -487,3 +487,36 @@ tifs()
 	unset IFS
 	"$@"
 }
+
+# Ajoute des valeurs à une variable.
+# Utilisation: plus [-d <délimiteur>] <NOM_VARIABLE> <ajout>*
+# Ex.:
+#  OPTIONS_CONF="--with-bidule"
+#  plus OPTIONS_CONF --with-truc --with-machin
+#  echo "$OPTIONS_CONF"
+#  # -> --with-bidule --with-truc --with-machin
+plus()
+{
+	local sep=" "
+	[ "x$1" = x-d ] && sep="$2" && shift && shift || true
+	local var="$1" ; shift
+	local val="$*"
+	eval "$var=\"\$$var\$sep\$val\""
+}
+
+# Retire des valeurs d'une variable.
+# Utilisation: moins [-d <délimiteur>] <NOM_VARIABLE> <à supprimer>*
+# Ex.:
+#  OPTIONS_CONF="--with-bidule --with-truc --with-machin"
+#  moins OPTIONS_CONF --with-truc --with-machin
+#  echo "$OPTIONS_CONF"
+#  # -> --with-bidule
+moins()
+{
+	local sep=" "
+	[ "x$1" = x-d ] && sep="$2" && shift && shift || true
+	local var="$1" ; shift
+	local exprExcl="`echo "$*" | sed -e 's/  */|/g'`"
+	local val
+	eval "$var=\"\`echo \"\$$var\" | tr \"\$sep\" '\\012' | egrep -v \"^(\$exprExcl)\\\$\" || true\`\""
+}
