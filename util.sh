@@ -450,17 +450,6 @@ suer()
 	return 1
 }
 
-# Si on n'a pas déjà remplacé sudo (multiples inclusions d'util.sh), faisons-le: on gérera des cas tordus.
-# L'usage principal de notre sudo surchargé est l'installation dans les dossiers privilégiés; 
-# En effet nous utilisons le sudo pour installer dans $INSTALLS, mais parfois ce n'est pas nécessaire de passer su pour cela.
-
-if [ "x`command -v sudoku 2> /dev/null`" != xsudoku ] # On se protège contre une double inclusion…
-then
-	sudo="`command -v sudo 2> /dev/null || true`" # … ne serait-ce que pour éviter qu'ici notre mémorisation du vrai sudo soit l'alias sudo qu'on déclare juste ci-dessous.
-	# Malheureusement, historiquement, on a un peu abusé du sudo pour nos installs (au lieu d'utiliser le sudoku dédié, qui n'est arrivé qu'après); du coup, pour compatibilité, on doit conserver cette surcharge sudo = sudoku.
-	sudo() { sudoku "$@" ; }
-fi
-
 # sudoku: Super User DO KUrsaal (sudo destiné aux installs dans des emplacements partagés, donc a priori protégés: quand on est dans un kursaal, on respecte le mobilier, n'est-ce pas?)
 sudoku()
 {
@@ -1861,6 +1850,7 @@ statf()
 analyserParametresInstall "$@"
 
 [ ! -e "$SCRIPTS/util.compilo.sh" ] || . "$SCRIPTS/util.compilo.sh"
+[ ! -e "$SCRIPTS/util.sudo.sh" ] || . "$SCRIPTS/util.sudo.sh"
 [ ! -e "$SCRIPTS/util.serveur.sh" ] || . "$SCRIPTS/util.serveur.sh"
 for f in "$SCRIPTS/util.guili."*".sh"
 do
