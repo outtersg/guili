@@ -30,7 +30,7 @@ inclusionsNss()
 	local exprH="`cd "$destnss/include/nss" && find . -maxdepth 1 -name "*.h" | sed -e 's#^\./##' | tr '\012' \| | sed -e 's#|$##'`"
 	find $ou -name configure -o -name "*.h" -o -name "*.c" -o -name "*.hxx" -o -name "*.cxx" | while read f
 	do
-		filtrer "$f" sed -E -e "/^[ 	]*#[ 	]*include[ 	]*<$exprH>/s#<#<nss/#"
+		filtrer "$f" sed -E -e "/^[ 	]*#[ 	]*include[ 	]*<($exprH)>/s#<#<nss/#"
 		# Pour dans du #if NSS:
 		#filtrer "$f" awk 'dedans&&/#endif/{dedans=0}dedans&&/#include <('"$exprH"'glouglou)>/{sub(/</,"<nss/")}{print}/^ *#.*if .*NSS/{dedans=1}'
 	done
