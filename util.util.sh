@@ -81,7 +81,8 @@ chemins()
 
 		preChemine "$racine"
 		
-		CMAKE_LIBRARY_PATH="$racine:$CMAKE_LIBRARY_PATH"
+		CMAKE_LIBRARY_PATH="$LD_LIBRARY_PATH"
+		CMAKE_INCLUDE_PATH="$racine/include:$CMAKE_INCLUDE_PATH"
 
 		PKG_CONFIG_PATH="$racine/lib/pkgconfig:$PKG_CONFIG_PATH"
 		[ ! -z "$ACLOCAL" ] || ACLOCAL=aclocal
@@ -90,7 +91,7 @@ chemins()
 		
 		i=`expr $i - 1` || break # Crétin d'expr qui sort si son résultat est 0. Pas grave, c'est aussi notre condition de sortie.
 	done
-	export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH CMAKE_LIBRARY_PATH CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PKG_CONFIG_PATH ACLOCAL ACLOCAL_PATH
+	export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH CMAKE_LIBRARY_PATH CPPFLAGS CFLAGS CXXFLAGS CMAKE_INCLUDE_PATH LDFLAGS PKG_CONFIG_PATH ACLOCAL ACLOCAL_PATH
 }
 
 preCFlag()
