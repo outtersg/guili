@@ -86,7 +86,9 @@ compiloSysVersion()
 	local binaire="`_compiloBinaire "$bienVoulu"`"
 	if [ -z "$binaire" ]
 	then
-	prerequerir "$bienVoulu" "$versionVoulue"
+		echo "# Attention, vous n'avez aucun compilateur d'installé. La suite des opérations risque d'être compliquée." >&2
+		true
+		#prerequerir "$bienVoulu" "$versionVoulue"
 	else
 		# Ce binaire a-t-il été installé par GuiLI? En ce cas il n'est certainement pas dans un dossier système, donc il faudra aussi aller chercher tout son environnement (lib, include, etc.).
 		reglagesCompilSiGuili "$binaire"
