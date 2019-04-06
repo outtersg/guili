@@ -60,6 +60,27 @@ commande()
 	command -v "$@" > /dev/null 2>&1
 }
 
+#- Système: environnement chemins ----------------------------------------------
+
+reglagesCompil() { reglagesCheminsPrerequis "$@" ; }
+reglagesCheminsPrerequis()
+{
+	# L'option -l permet de travailler avec des variables locales, afin d'accumuler sans incidence sur l'environnement (on exportera en une fois, à la fin).
+	# Ceci sert par exemple lorsque l'on boucle sur les prérequis d'un gros logiciel, dont libjpeg puis openssl: si l'on exporte dès après avoir compilé libjpeg, openssl se retrouve à compiler avec tous les -Llibjpeg dont il n'a que faire. Ça ne devrait pas poser problème mais c'est malpropre.
+	
+	local rc_local=
+	[ "x$1" = x-l ] && rc_local=oui && shift || true
+	
+	local rc_logiciel="$1"
+	local versionInclus="$2"
+	local dossierRequis="$3"
+	
+	PREINCLUS="$PREINCLUS $rc_logiciel:$versionInclus"
+	eval "dest`echo "$1" | tr +- __`=$dossierRequis"
+	eval "version_`echo "$1" | tr +- __`=$versionInclus"
+	chemins "$dossierRequis"
+}
+
 # Règle tous les chemins pour aller taper dans une arbo conventionnelle (bin, lib, include, etc.).
 chemins()
 {
@@ -74,24 +95,61 @@ chemins()
 	do
 		eval racine=\$$i
 		
-		PATH="$racine/bin:$PATH"
-		LD_LIBRARY_PATH="$racine/lib:$LD_LIBRARY_PATH"
-		[ ! -e "$racine/lib64" ] || LD_LIBRARY_PATH="$racine/lib64:$LD_LIBRARY_PATH"
-		DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+		guili_xpath="$racine/bin:$guili_xpath"
+		guili_lpath="$racine/lib:$guili_lpath"
+		[ ! -e "$racine/lib64" ] || guili_lpath="$racine/lib64:$guili_lpath"
+		guili_ipath="$racine/include:$guili_ipath"
 
-		preChemine "$racine"
-		
-		CMAKE_LIBRARY_PATH="$LD_LIBRARY_PATH"
-		CMAKE_INCLUDE_PATH="$racine/include:$CMAKE_INCLUDE_PATH"
+		preParamsCompil "$racine"
 
-		PKG_CONFIG_PATH="$racine/lib/pkgconfig:$PKG_CONFIG_PATH"
-		[ ! -z "$ACLOCAL" ] || ACLOCAL=aclocal
-		ACLOCAL="`echo "$ACLOCAL " | sed -e "s# # -I $racine/share/aclocal #"`"
-		ACLOCAL_PATH="$racine/share/aclocal:$ACLOCAL_PATH" # À FAIRE?: le faire participer à reglagesCompilPrerequis.
+		guili_pcpath="$racine/lib/pkgconfig:$guili_pcpath"
+		if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
+			guili_acpath="$racine/share/aclocal:$guili_acpath"
+		fi
 		
 		i=`expr $i - 1` || break # Crétin d'expr qui sort si son résultat est 0. Pas grave, c'est aussi notre condition de sortie.
 	done
-	export PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH CMAKE_LIBRARY_PATH CPPFLAGS CFLAGS CXXFLAGS CMAKE_INCLUDE_PATH LDFLAGS PKG_CONFIG_PATH ACLOCAL ACLOCAL_PATH
+	[ oui = "$rc_local" ] || _cheminsExportes
+}
+
+_pverso()
+{
+	local option="$1" ; shift
+	echo "$*" | sed -e 's/^:*/:/' -e 's/:*$//' -e 's/::*/:/g' -e "s#:# $option #g"
+}
+
+_cheminsExportes()
+{
+	local guili_acflags="`_pverso -I "$guili_acpath"`"
+	ACLOCAL="`echo "$ACLOCAL" | sed -e 's/^ *$/aclocal/' -e "s#aclocal#aclocal$guili_acflags#"`"
+	export \
+		PATH="$guili_xpath$PATH" \
+		LD_LIBRARY_PATH="$guili_lpath$LD_LIBRARY_PATH" \
+		DYLD_LIBRARY_PATH="$guili_lpath$DYLD_LIBRARY_PATH" \
+		CMAKE_LIBRARY_PATH="$guili_lpath$CMAKE_LIBRARY_PATH" \
+		LDFLAGS="$guili_lflags $LDFLAGS" \
+		CPPFLAGS="$guili_cppflags $CPPFLAGS" \
+		CFLAGS="$guili_cflags $CFLAGS" \
+		CXXFLAGS="$guili_cxxflags $CXXFLAGS" \
+		CMAKE_INCLUDE_PATH="$guili_ipath$CMAKE_INCLUDE_PATH" \
+		PKG_CONFIG_PATH="$guili_pcpath$PKG_CONFIG_PATH" \
+		ACLOCAL \
+		ACLOCAL_PATH="$guili_acpath$ACLOCAL_PATH"
+}
+
+_rc_export()
+{
+	[ -z "$rc_local" ] || return 0
+	
+	local sep=" "
+	[ "x$1" = x-d ] && sep="$2" && shift && shift || true
+	
+	while [ $# -gt 0 ]
+	do
+		eval "export $1=\"\$2\$sep\$$1\""
+		shift
+		shift
+	done
 }
 
 preCFlag()
@@ -100,14 +158,15 @@ preCFlag()
 	then
 		shift
 	else
-		CFLAGS="$* $CFLAGS"
-		CXXFLAGS="$* $CXXFLAGS"
+		guili_cxxflags="$* $guili_cflags"
+		guili_cxxflags="$* $guili_cxxflags"
+		_rc_export CFLAGS "$*" CXXFLAGS "$*"
 	fi
-	CPPFLAGS="$* $CPPFLAGS"
-	export CPPFLAGS CFLAGS CXXFLAGS
+	guili_cppflags="$* $guili_cppflags"
+	_rc_export CPPFLAGS "$*"
 }
 
-preChemine()
+preParamsCompil()
 {
 	local d
 	local paramsPreCFlag=
@@ -119,9 +178,12 @@ preChemine()
 	preCFlag $paramsPreCFlag "-I$1/include"
 	for d in $1/lib64 $1/lib
 	do
-		[ ! -d "$d" ] || LDFLAGS="-L$d $LDFLAGS"
+		if [ -d "$d" ]
+		then
+			guili_lflags="-L$d $guili_lflags"
+			_rc_export LDFLAGS "-L$d"
+		fi
 	done
-	export LDFLAGS
 }
 
 # Petite exception à notre règle "pas de variable globale dans ce fichier": dès qu'on a défini chemin(), on charge un éventuel environnement, afin de pouvoir dans ce qui suit détecter de nouveaux logiciels (et donc mettre en place ou non des palliatifs).

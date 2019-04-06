@@ -810,33 +810,6 @@ reglagesCompilPrerequis()
 	reglagesCompil "$pr_logiciel" "$pr_version" "$pr_dest"
 }
 
-reglagesCompil()
-{
-	# À FAIRE: faire ça dans une variable locale, à n'exporter que quand on attaque vraiment le logiciel. Sinon si le logiciel a par exemple pour dépendances libjpeg et openssl, prerequis libjpeg ajoute -I/usr/local/libjpeg-x.x/lib à LDFLAGS, et openssl en hérite, se retrouvant à compiler OpenSSL avec un lien vers les biblios libjpeg.
-	
-	rc_logiciel="$1"
-	versionInclus="$2"
-	dossierRequis="$3"
-	
-	PREINCLUS="$PREINCLUS $1:$versionInclus"
-	eval "dest`echo "$1" | tr +- __`=$dossierRequis"
-	export "version_`echo "$1" | tr +- __`=$versionInclus"
-	preChemine "$dossierRequis"
-	PATH="$dossierRequis/bin:$PATH" # Pour les machins qui ont besoin de lancer des exécutables (xml2-config etc.) de leurs prérequis.
-	local d
-	for d in lib64 lib
-	do
-		[ ! -d "$dossierRequis/$d" ] || LD_LIBRARY_PATH="$dossierRequis/$d:$LD_LIBRARY_PATH"
-	done
-	PKG_CONFIG_PATH="$dossierRequis/lib/pkgconfig:$PKG_CONFIG_PATH"
-	if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
-	ACLOCAL="`echo "$ACLOCAL" | sed -e "s#aclocal#aclocal -I $dossierRequis/share/aclocal #"`"
-	fi
-	CMAKE_LIBRARY_PATH="$LD_LIBRARY_PATH"
-	CMAKE_INCLUDE_PATH="$dossierRequis/include:$CMAKE_INCLUDE_PATH"
-	export CPPFLAGS CFLAGS CXXFLAGS LDFLAGS PATH LD_LIBRARY_PATH PKG_CONFIG_PATH ACLOCAL CMAKE_LIBRARY_PATH CMAKE_INCLUDE_PATH
-}
-
 # Si l'on ne veut pas inclure d'office tout $INSTALLS (CPPFLAGS, LDFLAGS), on peut appeler cette chose. Devrait en fait être fait par défaut (pour que les logiciels ne se lient qu'aux prérequis explicites), mais trop de logiciels reposent sur ce $INSTALLS; on est donc en mode "liste rouge", les logiciels souhaitant se distancier de ce comportement devant appeler uniquementPrerequis.
 # Ex.: openssl, dans sa compil, ajoute -L. à la fin de ses paramètres de lien (après ceux qu'on lui a passés dans $LDFLAGS). Résultat, pour le lien de libssl.so, qui fait un -lcrypto, si LDFLAGS contient -L/usr/local/lib, il trouvera la libcrypto d'une version plus ancienne déjà installée dans /usr/local/lib, plutôt que celle qu'il vient de compiler dans .
 # ATTENTION: ne plus utiliser, préférer exclusivementPrerequis (qui gère aussi le PATH et autres joyeusetés).
