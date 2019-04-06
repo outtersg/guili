@@ -772,6 +772,8 @@ inclureBiblios()
 
 prerequerir()
 {
+	local paramLocal=
+	[ "x$1" = x-l ] && paramLocal="$1" && shift || true
 	local paraml="$1" ; shift
 	local paramv="$*"
 	
@@ -786,7 +788,7 @@ prerequerir()
 	esac
 	> "$TMP/$$/temp.inclureAvecInfos"
 	
-	reglagesCompil "$pr_logiciel" "$pr_version" "$pr_dest"
+	reglagesCheminsPrerequis $paramLocal "$pr_logiciel" "$pr_version" "$pr_dest"
 	
 	# Pour répondre à ma question "Comment faire pour avoir en plus de stdout et stderr une stdversunsousshellderetraitement" (question qui s'est posée un moment dans l'élaboration d'inclureAvecInfos):
 	# ( ( echo Un ; sleep 2 ; echo Trois >&3 ; sleep 2 ; echo Deux >&2 ; sleep 2 ; echo Trois >&3 ) 3>&1 >&4 | sed -e 's/^/== /' ) 4>&1
