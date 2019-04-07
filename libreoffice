@@ -21,10 +21,8 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
-
-logiciel=libreoffice
 
 # Historique des versions gérées
 
@@ -231,11 +229,10 @@ log10()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 vmin="`echo "$version" | cut -d . -f 1-3`"
 archive="http://download.documentfoundation.org/libreoffice/src/$vmin/libreoffice-$version.tar.xz"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 if true ; then
 	if [ -z "$continuer" ] ; then
@@ -314,6 +311,5 @@ touch instdir/program/ui-previewer instdir/program/libchartopengllo.so workdir/P
 creerDestBinSoffice
 sudo make install
 sudo cp -R dest/. "$dest/."
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
