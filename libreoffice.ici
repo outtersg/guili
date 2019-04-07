@@ -1,9 +1,16 @@
 #!/bin/sh
 
-export SANSSU=1 INSTALLS=/tmp/local
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+
+# Si on reprend la compil' d'une autre version, bien penser à faire sauter /tmp/local et /tmp/soustmp
+export SANSSU=1 INSTALLS=/tmp/local GUILI_PATH=/tmp/local:/usr/local
 export PREFIXE_UTILISER="$INSTALLS"
 export TMP=/tmp/soustmp
-mkdir "$TMP"
+mkdir -p "$TMP"
+
+# Des fois qu'/usr/local se soit installé partout dans le $PATH.
+export PATH=/usr/bin:/usr/sbin:/bin:/sbin
+export CPPFLAGS= LD_LIBRARY_PATH= PYTHONPATH=
 
 set -e
 
@@ -14,22 +21,46 @@ else # Pour finir uniquement.
 
 # La 5.3.1.2 est livrée avec des bouts possédant un libtool 2.4.2, d'autre avec un libtool 2.4.6. Et libtool gueule quand il détecte qu'il est lancé avec des macros d'une autre version que lui. Donc on doit y aller de façon incrémentale: avancer au maximum dans la compilation avec le libtool par défaut, basculer en 2.4.2 pour passer les bouts livrés avec un libtool 2.4.2, repasser en 2.4.6 lorsque l'on a pu avancer jusqu'à un morceau qui maintenant plante parce que lui est en 2.4.6, etc.
 
+./7zip # Pour décompresser certaines archives (poppler).
 ./bison # Celui corrigé pour _Noreturn, sera utilisé à plusieurs endroits.
 ./python '>= 3' # libxml n'est pas contre compiler son liant Python, encore faut-il qu'il puisse l'installer quelque part.
-./llvm # Pas strictement nécessaire, mais mesa est destabilisé par le fait de trouver un llvm (dans mon /usr/local) et pas ses biblios dans $INSTALLS.
-./libssh # Idem, curl est déchiré entre sa version d'/usr/local compilée avec libssh, et celle d'$INSTALLS qui initialement ne l'avait pas.
-./openssl '< 1.1' # Pour que curl sache faire de l'HTTPS.
-./libreoffice || true
-export continuer=1
-export v_libtool=2.4.2
-./libreoffice || true
-export v_libtool=2.4.6
-./libreoffice || true
-./libreoffice
+# LLVM (ou clang) n'est pas strictement nécessaire, mais mesa est destabilisé par le fait de trouver un llvm (dans mon /usr/local) et pas ses biblios dans $INSTALLS.
+v_clang="< 6" # Pour LO 5
+v_clang="< 8" # LO 6
+./clang "$v_clang" || ./clang "$v_clang" || ./clang "$v_clang" # La compil finit par passer.
+./binutils # Si on a déjà compilé un binutils, mieux vaut le recompiler avec conscience du nouveau clang (là: /usr/local/bin/ld : /usr/local/clang-7.0.1/bin/../lib/LLVMgold.so : erreur lors du chargement du greffon : Cannot open "/usr/local/clang-7.0.1/bin/../lib/LLVMgold.so").
+./libssh +ossl10 # Idem, curl est déchiré entre sa version d'/usr/local compilée avec libssh, et celle d'$INSTALLS qui initialement ne l'avait pas.
+./curl +ossl10
+
+# À partir de là, les outils que l'on a installés doivent suffire à compiler libreoffice. On enlève donc notre tuteur.
+unset GUILI_PATH
+
+tourner()
+{
+	while [ $# -gt 0 ]
+	do
+		export v_libtool="$1"
+		shift
+		./libreoffice + && return 0 || true
+		export continuer=1
+	done
+	# Si on est arrivés jusqu'ici, c'est qu'aucune compil n'a satisfait.
+	false
+}
+
+# 5.3.1.2
+#tourner "" 2.4.2 2.4.6 2.4.2 2.4.6
+tourner ""
 
 fi # Pour finir uniquement.
 
-monooo="`ls "$INSTALLS/libreoffice-"* | tail -1`"
-monooo="`basename "$monooo"`"
-sudo cp -R "$INSTALLS/$monooo" /usr/local/
-sudo ./utiliser "$monooo"
+. "$SCRIPTS/util.sh"
+
+monooo="`versions libreoffice | tail -1`"
+
+unset INSTALLS
+. "$SCRIPTS/util.sh"
+
+# À FAIRE: copier les biblios n'existant pas déjà dans un dossier propre, et ajouter celui-ci en tête de LD_LIBRARY_PATH dans le lanceur. En espérant que ça ne le gêne pas qu'on ait déplacé les biblios (dépend des OS).
+sudo cp -R "$monooo" /usr/local/
+sudo ./utiliser "`basename "$monooo"`"
