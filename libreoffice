@@ -23,6 +23,7 @@ set -e
 
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.guili.nss.sh"
 
 # Historique des versions gérées
 
@@ -33,10 +34,91 @@ v 5.3.1.1 && modifs="log10 vraiSh enTetesNss mesa eteteComplet cluceneFbsd pytho
 # v_libtool à faire varier entre 2.4.6 et 2.4.2, car certains bouts sont restés en 2.4.2 et pètent s'ils sont compilés par un 2.4.6. Donc pour aller jusqu'au bout, il faut commencer avec l'une, changer quand ça pète pour faire passer le point de blocage, rebasculer, etc.
 v 5.3.1.2 && modifsDyn="enTetesNss" modifs="$modifsDyn log10 vraiSh mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne envpourri" && prerequis="patch zip automake libtool $v_libtool boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
 v 5.3.2.2 || true
+v 6.1.5.1 && modifsPostTel="fbsdSansAucunGL" && modifs="$modifs pasetime pthread_np prioPasConst sysmacros cheminOpenssl tribool opensslOuNss inclusionsNssLocales lepoxy selectionhandlers sansMenageOpenSsl sansMenageExceptions" && prerequis="bash patch zip automake libtool $v_libtool boost >= 1.47 nspr nss curl libjpegturbo lcms cairo >= 1.2.0 `varsPrerequis prerequis-r "cairo >= 1.2.0"` icu harfbuzz+icu+graphite >= 0.9.42 mesa glew >= 2 glu postgresql+ossl10 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1 openssl < 1.1 libepoxy mariadb poppler+xpdf xmlsec+nss" || true # OpenSSL < 1.1 car CryptTools.cppxx repose sur evp_cipher_ctx_st passé en opaque en 1.1 (https://unix.stackexchange.com/questions/477481/evp-cipher-ctx-in-openssl-1-1-x).
+v 6.2.2.1 || true
 
 prerequis
 
 # Modifications
+
+fbsdSansAucunGL()
+{
+	# Il y a des définitions pour Linux, Mac, Windows, mais pas FreeBSD en étêté.
+	[ ! -f workdir/UnpackedTarball/epoxy/src/dispatch_common.h ] || \
+	filtrer workdir/UnpackedTarball/epoxy/src/dispatch_common.h sed -e '/__APPLE__/{
+i\
+#elif defined(__FreeBSD__)
+i\
+#define PLATFORM_HAS_EGL 0
+i\
+#define PLATFORM_HAS_GLX 0
+i\
+#define PLATFORM_HAS_WGL 0
+}'
+}
+
+selectionhandlers()
+{
+	# Une jolie directive dit "si Linux ou *BSD ou Darwin installer ce bidule", sauf qu'il n'existe pas. Sans doute du fait de notre DISABLE_GUI.
+	filtrer Repository.mk grep -v libreofficekit_selectionhandles
+}
+
+lepoxy()
+{
+	# On s'embête à trouver (configure) des EPOXY_LIBS, à définir une macro (RepositoryExternal.mk) pour l'intégrer, à appeler cette macro depuis une super-macro, sauf qu'au moment d'appeler la super-macro, on oublie de mentionner qu'il faut appeler la macro epoxy.
+	# Bon, c'est parce qu'epoxy n'est chargé que si DISABLE_GUI est vide. N'empêche, moi j'ai bien des machins qui sont inclus dans libvcllo.so, qui appellent du code epoxy. Donc il y a peut-être quelque chose à aller corriger de ce côté.
+	# Mais pour le moment, puisque j'ai réussi à compiler un epoxy, autant s'y lier.
+	filtrer vcl/Library_vcl.mk awk '
+dedans&&/epoxy/{dedans=2}
+dedans&&/endif/{if(dedans>1)print"else\n"mem;dedans=0}
+dedans{mem=mem"\n"$0}
+/ifeq.*DISABLE_GUI/{dedans=1;mem=""}
+{print}'
+}
+
+inclusionsNssLocales()
+{
+	# Ah cette manie de s'installer à la racine des include! Forçons un préfixe propre à NSS (de toute façon notre install est ainsi faite).
+	inclusionsNss */source/crypto */source/xmlsec/nss
+}
+
+opensslOuNss()
+{
+	# À certains endroits, on a bien du #if USE_TLS_OPENSSL #elif USE_TLS_NSS; mais à d'autres, ça ne le dérange pas d'inclure les deux d'affilée (deux #if). Or les deux implémentations semblent légèrement incompatibles.
+	filtrer oox/source/crypto/CryptTools.cxx awk 'accu&&/^[ 	]*$/{accu=accu"\n"$0;next}accu&&/#if USE_TLS_NSS/{print"#elif USE_TLS_NSS";accu="";next}accu{print accu;accu=""}/^#endif/{accu=$0;next}{print}'
+}
+
+tribool()
+{
+	# https://svnweb.freebsd.org/ports/head/multimedia/mkvtoolnix/files/patch-boost-1.69?view=markup&pathrev=482787
+	# http://www.slackware.com/~alien/slackbuilds/libreoffice/build/patches/libreoffice.boost_1.69.patch
+	filtrer sfx2/source/appl/shutdownicon.cxx sed -e 's/return loaded/return bool{loaded}/g'
+}
+
+pasetime()
+{
+	# system.hxx code en dur un #define ETIME ETIMEDOUT pour FreeBSD. Sauf que si on a recompilé un clang récent, il définit un ETIME distinct d'ETIMEDOUT. Redéfinir à ETIMEDOUT fait péter uunxapi.cxx, dans lequel on a un case pour chacun dans un switch.
+	filtrer sal/osl/unx/system.hxx grep -v '^# *define  *ETIME '
+}
+
+pthread_np()
+{
+	filtrer sal/osl/unx/thread.cxx awk '!fait&&/typedef/{print"#ifdef __FreeBSD_kernel__\n#include <pthread_np.h>\n#define pthread_setname_np pthread_set_name_np\n#endif";fait=1}{print}'
+}
+
+prioPasConst()
+{
+	filtrer sal/osl/unx/thread.cxx sed -e 's/int const m_/int m_/'
+	filtrer sal/osl/unx/thread.cxx sed -e '/const.*m_priority/s/ const / /g'
+}
+
+sysmacros()
+{
+	case `uname` in
+		Linux) true ;;
+		*) filtrer desktop/unx/source/pagein.c grep -v sysmacros.h ;;
+	esac
+}
 
 creerDestBinSoffice()
 {
@@ -85,6 +167,13 @@ envpourri()
 	fi
 	
 	# Un très étrange problème de corruption d'environnement sous FreeBSD (10): une commande, lancée avec un environnement pas si énorme (un poi plus de 32 Ko), explose en "environment corrupt; missing value for xxxxx', xxxxx représentant le début arbitraire de la dernière variable mentionnée par un env (ex. d'un cas: l'env se terminait par "GIT_SSL_CAINFO=/home/bas/.curl-ca-bundle.crt", la commande suivante (gengal.bin en l'occurrence) péta, de façon absolument reproductible), avec le "missing value for GIT_SSL_xx", les xx étant les deux octets 0x8102). On efface donc cette variable de l'environnement… et on la remet, et ça marche.
+	if true
+	then
+		# Bon c'est peut-être aussi qu'on lui met 0 image dans sa galerie. Court-circuitons.
+		filtrer solenv/gbuild/Gallery.mk sed -e '/call gb_Executable_get_command/i\
+		true || \\
+'
+	else
 	filtrer solenv/gbuild/Gallery.mk sed -e '/call gb_Executable_get_command/{
 i\
 		varpourrie=`env | tail -1` && \\
@@ -93,6 +182,7 @@ i\
 i\
 		export "$$varpourrie" && \\
 }'
+	fi
 }
 
 boostMentionne()
@@ -188,6 +278,9 @@ a\
 a\
 	vcl/opengl/texture \\
 }'
+	# En 6: OpenGLWrapper.hxx a bien un #ifdef LIBO_HEADLESS (si oui, isVCLOpenGLEnabled est définie en inline, et getBufferSwapCounter n'est pas déclarée), mais l'implémentation dans OpenGLContext.cxx n'en tient pas compte.
+	filtrer vcl/source/opengl/OpenGLContext.cxx awk '/getBufferSwapCounter/{print "#ifndef LIBO_HEADLESS";dedans=1}{print}dedans&&/^}/{print "#endif";dedans=0}'
+	filtrer vcl/source/opengl/OpenGLHelper.cxx awk '/^bool .*::isVCLOpenGLEnabled/{print "#ifndef LIBO_HEADLESS";dedans=1}{print}dedans&&/^}/{print "#endif";dedans=0}'
 }
 
 mesa()
@@ -199,6 +292,14 @@ mesa()
 enTetesNss()
 {
 	preCFlag "-I$destnss/include/nss"
+}
+
+cheminOpenssl()
+{
+	# LibreOffice, et ses composants, ont une fâcheuse tendance à inclure <nss.h> au lieu de <nss/nss.h>, idem pour OpenSSL.
+	# On doit donc ajouter explicitement les sous-dossiers nss et openssl.
+	# De plus la chose se complique pour cms.h, que les deux fournissent; LibreOffice semblant privilégier NSS, il nous faut tomber sur le cms.h de NSS avant celui d'OpenSSL.
+	preCFlag "-I$destnss/include/nss" "-I$destopenssl/include/openssl"
 }
 
 vraiSh()
@@ -261,18 +362,39 @@ else
 # coinmp: parce que le paquet que tente de télécharger libreoffice finit vide.
 # neon: problème de compilation: la compil dans le cadre de libreoffice passe par un "#define GMTOFF(t) (-timezone + ((t).tm_isdst > 0 ? 3600 : 0))", sauf que sous FreeBSD timezone est une fonction.
 # clucene: les contribs-lib ne sont pas prises en compte dans celui à la sauce libreoffice.
+# epoxy, mariadb, poppler, xmlsec, harfbuzz, graphite: en 6
+# pdfium: en 6, mais ne compile pas
+OPTIONS_CONF=
+pge 0 $version || plus OPTIONS_CONF --with-system-nspr --with-system-glew --disable-gconf --disable-lockdown --disable-gltf --disable-collada
+pge 6 $version || moins OPTIONS_CONF --with-system-nspr --with-system-glew --disable-gconf --disable-lockdown --disable-gltf --disable-collada
+pge 6 $version || plus OPTIONS_CONF --with-system-epoxy --with-system-mariadb --with-system-poppler --with-system-xmlsec --with-system-graphite --with-system-harfbuzz --disable-pdfium
+
+#plus OPTIONS_CONF --enable-debug
+sansMenageExceptions()
+{
+	# Le ménage d'exceptions fait une manip bizarre avec l'exception (du genre un -- sur son pointeur), et se vautre ensuite. On désactive, et on remplace par l'affichage de l'exception à sa levée.
+	filtrer bridges/source/cpp_uno/gcc3_linux_x86-64/except.cxx awk '{print}prochain&&/{/{prochain=0;print "return;"}/void.*deleteException/{prochain=1}'
+	filtrer bridges/source/cpp_uno/gcc3_linux_x86-64/except.cxx awk 'prochain&&/#if.*OSL_DEBUG_LEVEL/{prochain=0;$0="#if 1"}{print}/void.*raiseException/{prochain=1}'
+}
+
+sansMenageOpenSsl()
+{
+	# Pétage dans EVP_MD_CTX_destroy. Pourtant deux printf montrent que le pointeur que l'on supprime a été alloué comme il se doit auparavant, et la pile, qui montre que c'est deux niveaux en dessous de l'EVP_MD_CTX_destroy que ça pète, laisse penser qu'il n'y a pas eu corruption de mémoire.
+	# Mais comme on ne prépare notre LibreOffice que pour faire de la conversion en PDF, on se fiche qu'il y ait des fuites mémoire => on désactive le ménage.
+	filtrer comphelper/source/misc/hash.cxx sed -e '/EVP_MD_CTX_destroy/s/^/if(0) /'
+}
+
 ./configure --prefix="$dest" \
 	--with-tls=openssl \
 	--without-system-libs \
 	--without-system-libxml \
 	--with-system-boost \
 	--with-system-openssl \
-	--with-system-nspr \
 	--with-system-nss \
 	--with-system-curl \
+	--with-system-jpeg \
 	--with-system-lcms2 \
 	--with-system-cairo \
-	--with-system-glew \
 	--with-system-postgresql \
 	--with-system-coinmp \
 	--with-system-neon \
@@ -282,12 +404,8 @@ else
 	--disable-gui --with-theme=no \
 	--without-java \
 	--disable-cups \
-	--disable-gconf \
-	--disable-lockdown \
 	--disable-lotuswordpro \
 	--disable-firebird-sdbc \
-	--disable-gltf \
-	--disable-collada \
 	--disable-scripting-beanshell \
 	--without-helppack-integration \
 	--without-system-jars \
@@ -303,7 +421,12 @@ else
 fi
 
 echo Compilation… >&2
-make
+# Premières passes pour faire télécharger des paquets externes, les corriger, et relancer en espérant que notre correction ne sera pas réécrasée.
+if ! make -j 4
+then
+	for modif in true $modifsPostTel ; do $modif ; done
+	make
+fi
 
 echo Installation… >&2
 # Apparemment la compil en headless oublie de produire trois fichiers, en tout cas oublie de prévenir l'installeur qu'ils ne sont pas utiles en étêté.
