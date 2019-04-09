@@ -89,6 +89,7 @@ v 7.2.4 || true
 v 7.2.10 || true
 v 7.2.11 || true
 v 7.2.14 || true
+v 7.2.17 || true
 v 7.3.1 && prerequis="$prerequis libzip+ossl10" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
