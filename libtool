@@ -28,7 +28,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 v 1.5.22 || true
 v 2.4.2 || true
-v 2.4.6 || true
+v 2.4.6 && prerequis="m4 >= 1.4.16" || true
 
 # Modifications
 
