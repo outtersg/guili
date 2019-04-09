@@ -88,7 +88,16 @@ cd debugclient
 ./configure --prefix="$dest"
 [ -e install.sh ] && chmod a+x install.sh
 [ -e install-sh ] && chmod a+x install-sh
+# La 2.7.1, étrangement, n'inclut plus l'install du debugclient.
+if pge "$version" 2.7
+then
+	make
+	sudo mkdir -p "$dest/bin"
+	sudo cp debugclient "$dest/bin/"
+else
 sudo make install
+fi
+cd ..
 
 sutiliser -
 
