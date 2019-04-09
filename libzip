@@ -26,7 +26,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 # Historique des versions gérées
 
-prerequis="cmake zlib bzip2 openssl < 1.1"
+prerequis="cmake zlib bzip2 openssl"
 
 v 1.5.1 || true
 
@@ -36,6 +36,7 @@ v 1.5.1 || true
 
 archive="https://libzip.org/download/libzip-$version.tar.gz"
 
+prerequisOpenssl
 prerequis
 
 destiner
