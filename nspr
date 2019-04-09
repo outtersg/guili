@@ -28,7 +28,7 @@ logiciel=nspr
 
 # Historique des versions gérées
 
-v 4.13.1 && prerequis="" && modifs="" || true
+v 4.13.1 && prerequis="make" && modifs="" || true
 v 4.20 || true
 
 # Modifications
