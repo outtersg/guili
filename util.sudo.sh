@@ -23,12 +23,22 @@
 # En effet nous utilisons le sudo pour installer dans $INSTALLS, mais parfois ce n'est pas nécessaire de passer su pour cela.
 detecterSudo()
 {
-	local _sudo="`unalias sudo > /dev/null 2>&1 || true ; unset -f sudo > /dev/null 2>&1 || true ; command -v sudo`"
-	case "$_sudo" in
-		/*) sudo="$_sudo" ;;
-	esac
+	sudo="vraisudo" # sudoku a besoin que $sudo soit définie.
 	# Malheureusement, historiquement, on a un peu abusé du sudo pour nos installs (au lieu d'utiliser le sudoku dédié, qui n'est arrivé qu'après); du coup, pour compatibilité, on doit conserver cette surcharge sudo = sudoku.
 	sudo() { sudoku "$@" ; }
+}
+
+vraisudo()
+{
+	if [ -z "$sudo" -o "x$sudo" = xvraisudo ]
+	then
+		local _sudo="`unalias sudo > /dev/null 2>&1 || true ; unset -f sudo > /dev/null 2>&1 || true ; command -v sudo`"
+		case "$_sudo" in
+			/*) sudo="$_sudo" ;;
+			*) echo "# sudo introuvable dans le PATH \"$PATH\" (pour \"sudo $@\")" >&2 && return 1 ;;
+		esac
+	fi
+	$sudo "$@"
 }
 
 detecterSudo
