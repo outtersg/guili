@@ -143,13 +143,30 @@ _rc_export()
 	
 	local sep=" "
 	[ "x$1" = x-d ] && sep="$2" && shift && shift || true
+	local ajout souhaite existant
+	
+	IFS="$sep" # Tant que sep ne fait qu'un caractère…
+	_rc_manger() { ajout="$ajout$1$sep" ; shift ; souhaite="$*" ; }
 	
 	while [ $# -gt 0 ]
 	do
-		eval "export $1=\"\$2\$sep\$$1\""
+		# Quelle portion de la fin de notre ajout correspond au début de l'existant? En effet il ne servira à rien de mettre d'affilée deux fois la même séquence (ex.: -L/usr/local/lib -L/usr/lib -L/usr/local/lib -L/usr/lib).
+		# Ceci ne vaut que pour la fin de l'ajout préfixé et le début de l'existant, pas les milieux: l'ordre de prise en compte pouvant varier selon les compilos, pour s'assurer qu'un élément sera toujours pris en priorité on peut souhaiter l'accoler au début ET à la fin, en ce cas il ne faut pas qu'on supprime la fin parce qu'elle ressemble au début.
+		ajout=
+		souhaite="$2"
+		eval "existant=\"\$$1\""
+		while [ ! -z "$souhaite" ]
+		do
+			case "$existant" in
+				"$souhaite"*) break ;;
+			esac
+			_rc_manger $souhaite
+		done
+		eval "export $1=\"\$ajout\$$1\""
 		shift
 		shift
 	done
+	unset IFS
 }
 
 preCFlag()
