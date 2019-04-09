@@ -841,11 +841,12 @@ prerequis()
 				tifs $appel
 				;;
 			*)
-				prerequerir $prcourant
+				prerequerir -l $prcourant
 				;;
 		esac
 	done
 	unset IFS
+	_cheminsExportes
 }
 
 # Plusieurs modes de fonctionnement:
