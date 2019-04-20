@@ -43,6 +43,9 @@ v 7.4.2296 || true
 v 8.0.311 && demarrage=".069" || true
 v 8.0.1240 && demarrage=".586" || true
 v 8.1.608 && demarrage="" || true
+v 8.1.804 || true
+#v 8.1.805 || true # digraph.c:16:2: error: unterminated conditional directive: #if defined(FEAT_DIGRAPHS) || defined(PROTO)
+#v 8.1.1176 || true # Toujours pas corrigé
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
