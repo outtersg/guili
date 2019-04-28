@@ -148,7 +148,25 @@ TERMINE
 	
 	mkdir -p dest/lib/libreoffice/ext/
 	IFS=:
-	for biblio in libboost_system libssl3 libsmime3 libnss3 libnssutil3 libplds4 libplc4 libnspr4 liblcms2 libcairo libOSMesa libGLEW libboost_iostreams libboost_filesystem libpixman-1 libglapi libclucene-contribs-lib ; do
+	for biblio in \
+		libboost_system \
+		libssl3 \
+		libsmime3 \
+		libnss3 \
+		libnssutil3 \
+		libplds4 \
+		libplc4 \
+		libnspr4 \
+		liblcms2 \
+		libcairo \
+		libOSMesa \
+		libGLEW \
+		libboost_iostreams \
+		libboost_filesystem \
+		libpixman-1 \
+		libglapi \
+		libclucene-contribs-lib
+	do
 		for chemin in $LD_LIBRARY_PATH ; do
 			if [ -e "$chemin/$biblio.so" ] ; then
 				cp "$chemin/$biblio.so"* dest/lib/libreoffice/ext/
