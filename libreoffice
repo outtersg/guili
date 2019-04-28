@@ -165,7 +165,11 @@ TERMINE
 		libboost_filesystem \
 		libpixman-1 \
 		libglapi \
-		libclucene-contribs-lib
+		libclucene-contribs-lib \
+		libjpeg \
+		libgraphite2 \
+		libharfbuzz \
+		libharfbuzz-icu
 	do
 		for chemin in $LD_LIBRARY_PATH ; do
 			if [ -e "$chemin/$biblio.so" ] ; then
