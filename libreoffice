@@ -140,7 +140,7 @@ LD_LIBRARY_PATH="\$SCRIPTS/../lib/libreoffice/ext:$INSTALLS/lib:\$LD_LIBRARY_PAT
 
 $envpourri
 
-soffice.bin "\$@"
+soffice.bin "\$@" 2>&1 | grep -v '^> uno exception occurred: com.sun.star.ucb.InteractiveAugmentedIOException$' # L'activation des traces un peu plus haut lance ce genre de trucs qui n'apporte rien mais pollue beaucoup.
 TERMINE
 	chmod a+x dest/bin/soffice
 	
