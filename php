@@ -57,14 +57,14 @@ v 5.2.8
 v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
-v 5.2.17 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql < 5.5.20 libxml < 2.8 icu < 56 openssl < 1.1 libssh" || true
-v 5.3.13 && retirerModif libpng14 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml icu < 56 openssl < 1.1 libssh" || true # mysql
+v 5.2.17 && remplacerPrerequis "mysql < 5.5.20" "libxml < 2.8" || true
+v 5.3.13 && retirerModif libpng14 && remplacerPrerequis mysql libxml || true
 v 5.3.19 || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
-v 5.4.11 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 < 56 libjpegturbo openssl < 1.1 libssh" || true # mysql < 5.6
+v 5.4.11 && remplacerPrerequis "icu >= 50 < 56" libjpegturbo || true
 v 5.4.33 || true
 v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfault.
 v 5.4.39 || true
@@ -75,7 +75,7 @@ v 5.5.8 || true
 v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
-v 5.6.10 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv libxml icu >= 50 < 56 libjpegturbo openssl < 1.1 libssh" || true
+v 5.6.10 || true
 v 5.6.25 || true
 v 5.6.40 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite || true
