@@ -115,6 +115,12 @@ END{
 '
 }
 
+remplacerPrerequis()
+{
+	local remplAwk="`for r in "$@" ; do echo "$r" ; done | sed -e 's/^[^ <=>]*/r["&"]="&/' -e 's/$/";/'`"
+	prerequis="`decoupePrerequis "$prerequis" | awk 'BEGIN{ '"$remplAwk"' }{ if(r[$1]) { print r[$1]; delete r[$1]; } else print; }END{ for(p in r) print r[p]; }' | tr '\012' ' ' | sed -e 's/   */ /g' -e 's/ $//'`"
+}
+
 ecosysteme()
 {
 	[ -x "$SCRIPTS/ecosysteme" ] || cc -o "$SCRIPTS/ecosysteme" "$SCRIPTS/util.guili.ecosysteme"/*.c
