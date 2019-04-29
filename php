@@ -28,7 +28,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml openssl < 1.1 libssh" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses lcplusplus || true
+v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml openssl < 1.1 libssh+ossl10" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses lcplusplus || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
