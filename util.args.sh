@@ -72,3 +72,20 @@ args_reduc()
 }
 '
 }
+
+args_suppr()
+{
+	local e=
+	local vars=
+	local var
+	[ "x$1" = x-e ] && e=oui && shift || true
+	while [ $# -gt 0 ]
+	do
+		vars="$vars $1"
+		var="`eval 'echo " $'"$1"' "' | sed -e 's/ /  /g' -e "s# $2 # #g"`"
+		eval "$1=\"\$var\""
+		shift
+		shift
+	done
+	[ -z "$e" ] || export $vars
+}
