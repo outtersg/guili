@@ -49,7 +49,7 @@ lock()
 	filtrer apc_lock.h sed -e '/define apc_lck_rdunlock/s/&//'
 }
 
-destiner
+destiner ":$destphp"
 
 prerequis
 
