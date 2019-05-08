@@ -28,6 +28,7 @@ analyserParametresPour --pour php "$@"
 
 case `php-config --version | cut -d . -f 1-2` in
 	[1-9][0-9].*) argVersion="$argVersion >= 5" ;;
+	5.[56]) argVersion="$argVersion >= 4 < 5" ;;
 	[45]*) argVersion="$argVersion < 4" ;;
 esac
 
