@@ -78,7 +78,6 @@ extension = '"$apcso"'
 a\
 apc.enabled = 1
 }' -e '/extension = .*apc.*\.so/d' -e '/apc.enabled/d'
-sudoku mkdir "$dest" # Pour placement du fichier témoin par sutiliser.
 
 sutiliser -
 
