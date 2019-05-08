@@ -77,6 +77,7 @@ v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
 v 5.6.10 || true
 v 5.6.25 || true
+v 5.6.39 || true
 v 5.6.40 || true
 v 7.0.2 && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite || true
 v 7.0.8 || true
