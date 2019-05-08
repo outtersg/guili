@@ -267,3 +267,62 @@ guili_localiser()
 	done
 	guili_localiserEnCours=
 }
+
+# Définit, ou liste, des fichiers-témoin dans la ou les arbos cible.
+# Le principe du fichier-témoin est d'être installé à la racine d'un dossier dans lequel le logiciel installe des bidules: ainsi si le dossier est supprimé (et les installations avec), le fichier-témoin est censé disparaître.
+# Utilisations:
+#   guili_temoins # Sans paramètre, liste les témoins définis pour l'install en cours.
+#   guili_temoins <racine normale> <racine secondaire>:<racine secondaire>
+#   guili_temoins <racine normale> :<racine réelle>
+# Paramètres:
+#   <racine normale>
+#     Racine principale du logiciel (sa racine d'installation).
+#   <racine secondaire>
+#     Racine dans laquelle le logiciel installe aussi des choses. Si le témoin de la racine principale ou d'une des racines secondaires disparaît, il faut tout réinstaller.
+#   <racine réelle>
+#     Le logiciel ne fait qu'installer des trucs dans <racine réelle>. Le <racine normale> qui lui était réservé ne sera même pas utilisé (donc le seul fichier-témoin qui importera sera celui dans <racine réelle>).
+guili_temoins=
+guili_temoins()
+{
+	if [ $# -gt 0 ]
+	then
+		# Définition.
+		IFS=: _def_guili_temoins "$@"
+	else
+		# Consultation.
+		(
+			[ -z "$guili_temoins" ] && _def_guili_temoins "$dest" || true
+			echo "$guili_temoins" | tr : ' '
+		)
+	fi
+}
+
+_def_guili_temoins()
+{
+	local moi="`basename "$1"`"
+	guili_temoins="$1/.complet"
+	shift
+	local param
+	for param in "$@"
+	do
+		for bout in $param # Repose sur l'appel de guili_temoins avec un IFS de défini.
+		do
+			if [ -z "$bout" ] # Bout vide -> réinitialisation (le prochain remplacera ce qui a été défini jusque-là).
+			then
+				guili_temoins=
+			else
+				[ -z "$guili_temoins" ] || guili_temoins="$guili_temoins:"
+				guili_temoins="$guili_temoins$bout/.complet.$moi"
+			fi
+		done
+	done
+}
+
+guili_temoinsPresents()
+{
+	local temoin
+	for temoin in `guili_temoins`
+	do
+		[ -e "$temoin" ] || return 1
+	done
+}
