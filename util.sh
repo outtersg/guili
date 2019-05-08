@@ -771,18 +771,6 @@ inclureBiblios()
 	done
 }
 
-# Si l'on ne veut pas inclure d'office tout $INSTALLS (CPPFLAGS, LDFLAGS), on peut appeler cette chose. Devrait en fait être fait par défaut (pour que les logiciels ne se lient qu'aux prérequis explicites), mais trop de logiciels reposent sur ce $INSTALLS; on est donc en mode "liste rouge", les logiciels souhaitant se distancier de ce comportement devant appeler uniquementPrerequis.
-# Ex.: openssl, dans sa compil, ajoute -L. à la fin de ses paramètres de lien (après ceux qu'on lui a passés dans $LDFLAGS). Résultat, pour le lien de libssl.so, qui fait un -lcrypto, si LDFLAGS contient -L/usr/local/lib, il trouvera la libcrypto d'une version plus ancienne déjà installée dans /usr/local/lib, plutôt que celle qu'il vient de compiler dans .
-# ATTENTION: ne plus utiliser, préférer exclusivementPrerequis (qui gère aussi le PATH et autres joyeusetés).
-# NOTE: avantages / inconvénients
-# Avantages: lorsque la même version d'un prérequis est recompilée avec des options différentes (ex.: libtiff+jpeg8 / libtiff+jpegturbo, ou postgresql+ossl10 / postgresql+ossl11), les deux vont créer leurs liens symboliques au même endroit dans $INSTALLS, donc notre logiciel risque de pointer sur l'un au lieu de l'autre (par exemple un php sans exclusivementPrerequis va se compiler sur un postgresql+ossl10, donc sera liée indirectement à openssl 1.0.x, mais le jour où on installe postgresql+ossl11, $INSTALLS/lib/libpq.so sera remplacée et notre php pétera, lié à openssl 1.0.x et à libpq lui-même lié à openssl 1.1.x); exclusivementPrerequis permet de faire pointer le logiciel vers les biblios obtenues par prerequis, donc avec leur version codée en dur (dans notre exemple: il utilisera $INSTALLS/postgresql+ossl10/lib/libpq.so).
-# Inconvénient: les chemins étant codés en dur, on ne peut monter en version de façon transparente un des prérequis du logiciel sans le recompiler.
-uniquementPrerequis()
-{
-	export CPPFLAGS="`echo " $CPPFLAGS " | sed -e 's/ /  /g' -e "s# -I$INSTALLS/include # #g"`"
-	export LDFLAGS="`echo " $LDFLAGS " | sed -E -e 's/ /  /g' -e "s# -L$INSTALLS/lib(64)? # #g"`"
-}
-
 exclusivementPrerequis()
 {
 	uniquementPrerequis
