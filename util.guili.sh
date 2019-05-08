@@ -211,12 +211,12 @@ analyserParametresPour()
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
-			-d) shift ; export PATH="$1/bin:$PATH" ;;
-			--pour) prerequisPour="$2" ; shift ;;
-			--pour=*) prerequisPour="$prerequisPour `echo "$1" | cut -d = -f 2-`" ;;
+			--pour|-d) _nouveauPour "$2" ; shift ;;
+			--pour=*) _nouveauPour "`echo "$1" | cut -d = -f 2-`" ;;
 		esac
 		shift
 	done
+	
 	if [ ! -z "$prerequisPour" ]
 	then
 		prerequis=$prerequisPour prerequis
@@ -228,6 +228,28 @@ analyserParametresPour()
 			argOptions="$argOptions+${logicielPrerequis}_`echo "$v_prerequis" | tr . _`"
 		done
 	fi
+}
+
+_nouveauPour()
+{
+	local p
+	case "$1" in
+		# Si c'est chez nous, on en fait un prérequis.
+		"$INSTALLS/"*)
+			p="`basename "$1" | sed -e 's/-\([0-9]\)/ \1/'`"
+			;;
+		# Un chemin pas chez nous: on l'ajoute juste au $PATH, histoire que le binaire soit détecté par l'éventuel configure qui suivra, mais c'est moche.
+		/*)
+			export PATH="$1/bin:$PATH"
+			return
+			;;
+		# Tout le reste est un prérequis déjà sous la bonne forme.
+		*)
+			p="$1"
+			;;
+	esac
+	
+	prerequisPour="$prerequisPour $p"
 }
 
 # Renvoie les options dans l'ordre de référence (alphabétique).
