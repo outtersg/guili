@@ -238,10 +238,17 @@ options()
 
 # Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
 # Renvoie 0 si in fine l'option est placée, 1 sinon (penser à lui accoler un || true)
+# Utilisation: optionSi <logiciel> [<commande> <arg>*]
+# Paramètres:
+#   <logiciel>
+#     Logiciel dont tester la présence (doit avoir été installé par GuiLI).
+#   <commande> <arg>*
+#     Optionnellement, commande à jouer comme seconde chance d'installer le logiciel (par exemple si, bien que non installé par GuiLI, la présence de certains include système doit déclencher ce prérequis).
 optionSi()
 {
 	local l="$1"
-	if ! option "$l" && versions "$l" | grep -q .
+	shift
+	if ! option "$l" && ( versions "$l" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
 	then
 		argOptions="`options "$argOptions+$l"`"
 	fi
