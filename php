@@ -356,4 +356,7 @@ a\
 	sudo cp php-fpm.conf sapi/fpm/init.d.php-fpm "$dest/etc/"
 fi
 
+! option apc || ./apc --pour "$dest"
+! option xdebug || ./xdebug --pour "$dest"
+
 sutiliser
