@@ -28,11 +28,21 @@ detecterSudo()
 	sudo() { sudoku "$@" ; }
 }
 
+_commandMoinsVSudo()
+{
+	unalias sudo > /dev/null 2>&1 || true
+	unset -f sudo > /dev/null 2>&1 || true
+	# Des fois qu'on ait été compilé avec un $PATH minimal des seuls prérequis du logiciel (exclusivementPrerequis), pour les opérations avérées root (ex.: install) il va bien falloir s'adjoindre un sudo même s'il n'est pas prérequis explicite.
+	sudoguili="`versions sudo | tail -1 || true`"
+	[ -z "$sudoguili" ] || PATH="$PATH:$sudoguili/bin"
+	command -v sudo
+}
+
 vraisudo()
 {
 	if [ -z "$sudo" -o "x$sudo" = xvraisudo ]
 	then
-		local _sudo="`unalias sudo > /dev/null 2>&1 || true ; unset -f sudo > /dev/null 2>&1 || true ; command -v sudo`"
+		local _sudo="`_commandMoinsVSudo`"
 		case "$_sudo" in
 			/*) sudo="$_sudo" ;;
 			*) echo "# sudo introuvable dans le PATH \"$PATH\" (pour \"sudo $@\")" >&2 && return 1 ;;
