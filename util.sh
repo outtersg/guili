@@ -547,7 +547,7 @@ sutiliser()
 	[ "x$1" = "x-" -o "x$1" = "x+" ] && biner="$1" && shift || true
 
 	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
-	sudo touch "$dest/.complet"
+	sudo touch `guili_temoins`
 	
 	sut_lv="$1"
 	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
@@ -977,7 +977,7 @@ infosInstall()
 	# - soit on va de toute façon ne lister que ce qui est déjà installé, via versions(), donc on sortira puisqu'on demande à se cantonner à l'installé, donc à ne pas installer.
 	if [ "x$1" = x-s ]
 	then
-		if [ -e "$dest/.complet" ]
+		if guili_temoinsPresents
 		then
 			sortie=oui # Déjà installé dans la version voulue, donc on va pouvoir poursuivre.
 			feu=vert
@@ -1023,6 +1023,7 @@ destiner()
 	else
 	dest="$install_dest"
 	fi
+	guili_temoins "$dest" "$1"
 	infosInstall -s
 }
 
