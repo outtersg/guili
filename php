@@ -28,7 +28,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql libxml openssl < 1.1 libssh+ossl10" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses lcplusplus || true
+v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && modifs="exclusivementPrerequis" && ajouterModif readlineNcurses lcplusplus || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -94,10 +94,9 @@ v 7.3.1 && prerequis="$prerequis libzip+ossl10" || true # "Notre" libzip requise
 v 7.3.4 || true
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
-if psql --version 2> /dev/null | grep -q PostgreSQL
+if optionSi postgresql sh -c 'psql --version 2> /dev/null | grep -q PostgreSQL'
 then
 	OPTIONS_CONF="$OPTIONS_CONF --with-pgsql --with-pdo-pgsql"
-	prerequis="$prerequis postgresql+ossl10"
 fi
 
 option mysql || commande mysql || virerPrerequis mysql
