@@ -432,7 +432,8 @@ sansMenageOpenSsl()
 	--without-helppack-integration \
 	--without-system-jars \
 	--without-system-dicts \
-	--without-doxygen
+	--without-doxygen \
+	$OPTIONS_CONF
 	#--without-system-liblangtag \
 	#--disable-liblangtag \
 fi
