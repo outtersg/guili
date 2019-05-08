@@ -255,7 +255,7 @@ _nouveauPour()
 # Renvoie les options dans l'ordre de référence (alphabétique).
 options()
 {
-	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort -u | sed -e 's/^/+/' | tr '\012' ' ' | sed -e 's/ $//'
+	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort -u | sed -e 's/^/+/' | tr -d '\012'
 }
 
 # Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
