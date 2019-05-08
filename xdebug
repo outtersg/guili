@@ -33,7 +33,7 @@ analyserParametresPour --pour php "$@"
 case `php-config --version | cut -d . -f 1-2` in
 	5.3) argVersion="$argVersion < 2.3" ;;
 	5.4) argVersion="$argVersion < 2.5" ;;
-	5.5) argVersion="$argVersion < 2.6" ;;
+	5.[56]) argVersion="$argVersion < 2.6" ;;
 	7.0) argVersion="$argVersion >= 2.4" ;;
 	7.1) argVersion="$argVersion >= 2.5" ;;
 	7.2) argVersion="$argVersion >= 2.6" ;;
