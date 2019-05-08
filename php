@@ -147,6 +147,14 @@ lcplusplus()
 	if [ `uname` = Linux ]
 	then
 		LDFLAGS="$LDFLAGS -lstdc++"
+	else
+		# Le configure 5.6 impose du stdc++ même avec du clang++ / libc++.
+		case "$CXX" in
+			clang++*)
+				echo '#include <iostream> @ int main() { std::cout << "Salut" << std::endl; return 0; }' | tr @ '\012' > /tmp/1.cxx
+				$CXX -o /tmp/1 /tmp/1.cxx -lc++ && filtrer configure sed -e 's#-lstdc++#-lc++#g'
+				;;
+		esac
 	fi
 }
 
