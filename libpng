@@ -24,7 +24,7 @@ set -e
 if [ "$SCRIPTS" = "" ] ; then SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
 . "$SCRIPTS/util.sh"
 
-prerequis=
+prerequis=zlib
 
 v 1.2.5
 v 1.2.25
