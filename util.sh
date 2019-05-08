@@ -577,7 +577,7 @@ sutiliser()
 			return 0
 		fi
 	fi
-	sudo $utiliser "$INSTALLS/$sut_lv"
+	[ ! -d "$INSTALLS/$sut_lv" ] || sudo $utiliser "$INSTALLS/$sut_lv"
 	
 	infosInstall
 }
