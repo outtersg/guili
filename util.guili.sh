@@ -141,6 +141,7 @@ prerequerir()
 	
 	local pr_logiciel= pr_version= pr_dest=
 	IFS=: read pr_logiciel pr_logicielEtOptions pr_version pr_dest < "$TMP/$$/temp.inclureAvecInfos" || true
+	unset IFS # Le sh sur certains Linux ne sait pas cantonner le changement de variable à l'appel de la fonction.
 	[ ! -z "$pr_logiciel" ] || pr_logiciel="$paraml" # Pour les logiciels qui ne savent pas être inclusAvecInfos (qui ne renseignent pas les variables).
 	
 	retrouverPrerequisEtReglerChemins $paramLocal "$pr_logiciel" "$pr_version" "$pr_dest"
@@ -339,6 +340,7 @@ guili_temoins()
 	then
 		# Définition.
 		IFS=: _def_guili_temoins "$@"
+		unset IFS # Le sh sur certains Linux ne sait pas cantonner le changement de variable à l'appel de la fonction.
 	else
 		# Consultation.
 		(
