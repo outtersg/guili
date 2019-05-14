@@ -349,4 +349,4 @@ fi
 sutiliser
 
 # Cet abruti crée des .pyc en root dans l'arbo de compil (appartenant au compte courant). Le ménage effectué par trap EXIT va se planter si ces fichiers persistent. Il faut donc faire un pré-ménage.
-find . \( -name __pycache__ -o -user root \) -print0 | xargs -0 sudo rm -Rf
+find . \( -name __pycache__ -o -user root \) -print0 | sudoku xargs -0 rm -Rf
