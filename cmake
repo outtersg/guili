@@ -110,6 +110,8 @@ havefchdir()
 v="`echo "$version" | cut -d . -f 1,2`"
 archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
 
+prerequis
+
 destiner
 
 obtenirEtAllerDansVersion
