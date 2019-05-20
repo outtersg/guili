@@ -115,6 +115,9 @@ archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
 # CMake a une fâcheuse tendance à détecter les logiciels présents ainsi, et à en conclure qu'il doit se compiler avec; malheureusement, sur certaines distributions Linux, le binaire peut être présent sans les inclusions (livrées dans un paquet optionnel en "-dev"): dans cette situation, le configure de CMake va vouloir lier au logiciel tierce, et va échouer ne trouvant pas les inclusions.
 # Pour ces détections de logiciels tierces, on préfère alors prendre les devants en imposant (via prerequis) que ce soit la version GuiLI qui soit utilisée: GuiLI installe toujours conjointement binaires et inclusions.
 
+! commande openssl || prerequis="$prerequis openssl"
+prerequisOpenssl
+
 prerequis
 
 destiner
