@@ -283,7 +283,7 @@ optionSi()
 greffon()
 {
 	sudoku touch "$dest/.complet" # Le greffon repose sans doute sur la complétude de notre installation; simulons le résultat post-sutiliser.
-	! option "$1" || "$SCRIPTS/$1" --pour "$dest" || ( sudoku rm "$dest/.complet" ; false )
+	! option "$1" || ( cd "$SCRIPTS" ; "$SCRIPTS/$1" --pour "$dest" ) || ( sudoku rm "$dest/.complet" ; false )
 }
 
 #- Environnement ---------------------------------------------------------------
