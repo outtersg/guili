@@ -46,10 +46,10 @@ servir()
 				[ -f "$racine/$initds/$serveur" ] || continue # On ne teste pas en -x, car on n'est pas forcément root, donc s'il est exécutable simplement par root le -x renverra faux.
 				case "$action" in
 					remove)
-						SANSSU=0 sudoku rm -f "$dest/$initds/$serveur" `find "$racine"/etc/rc[0-9].d/ -type f 2> /dev/null | grep "/[SK][0-9]*$serveur$"`
+						sudoku -f rm -f "$dest/$initds/$serveur" `find "$racine"/etc/rc[0-9].d/ -type f 2> /dev/null | grep "/[SK][0-9]*$serveur$"`
 						;;
 					*)
-						SANSSU=0 sudoku "$racine/$initds/$serveur" "$action"
+						sudoku -f "$racine/$initds/$serveur" "$action"
 						;;
 				esac
 				break
@@ -58,10 +58,10 @@ servir()
 		systemd)
 			case "$action" in
 				remove)
-					SANSSU=0 sudoku systemctl disable "$serveur"
+					sudoku -f systemctl disable "$serveur"
 					;;
 				*)
-					SANSSU=0 sudoku systemctl "$action" "$serveur"
+					sudoku -f systemctl "$action" "$serveur"
 					;;
 			esac
 	esac
@@ -294,11 +294,11 @@ TERMINE
 	chmod u+x "$desttemp/etc/rc.d/$nom"
 	if [ "x$serveur_puisCopier" = xoui ]
 	then
-		SANSSU=0 sudoku sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
+		sudoku -f sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
 	fi
 	if [ ! -z "$remplacer" ]
 	then
-		SANSSU=0 sudoku "$SCRIPTS/rcconfer" ${nomPropre}_enable=YES
+		sudoku -f "$SCRIPTS/rcconfer" ${nomPropre}_enable=YES
 	fi
 	
 	# On l'installe dans le système, si possible de façon compatible avec sutiliser (liens relatifs).
@@ -309,7 +309,7 @@ TERMINE
 	esac
 	if [ ! -z "$relatif" ]
 	then
-		SANSSU=0 sudoku sh <<TERMINE
+		sudoku -f sh <<TERMINE
 set -e
 d="$usrLocal/etc/rc.d/$nom"
 s="$relatif/etc/rc.d/$nom"
@@ -373,14 +373,14 @@ WantedBy=multi-user.target
 TERMINE
 	if [ $serveur_puisCopier = oui ]
 	then
-		SANSSU=0 sudoku cp "$desttemp/etc/systemd/system/${nom}.service" /etc/systemd/system/
+		sudoku -f cp "$desttemp/etc/systemd/system/${nom}.service" /etc/systemd/system/
 	fi
 	if [ ! -z "$remplacer" ]
 	then
-		SANSSU=0 sudoku systemctl daemon-reload
-		SANSSU=0 sudoku systemctl unmask ${nom}.service > /dev/null 2>&1 || true # Des fois qu'un service avec le même nom existe à l'ancienne (init.d).
+		sudoku -f systemctl daemon-reload
+		sudoku -f systemctl unmask ${nom} > /dev/null 2>&1 || true # Des fois qu'un service avec le même nom existe à l'ancienne (init.d).
 		servir "$nom" start
-		SANSSU=0 sudoku systemctl enable ${nom}.service
+		sudoku -f systemctl enable ${nom}
 	fi
 	if [ ! -z "$compte" ]
 	then
