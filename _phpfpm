@@ -132,7 +132,10 @@ filtrerConfs `find "$TMP/$$/dest/etc" -type f`
 		
 sudo mkdir -p "$dest"
 sudo cp -Rp "$TMP/$$/dest/." "$dest/."
+if [ "$compte" != "`id -un`" ]
+then
 SANSSU=0 sudo chown -R "$compte:" "$dest/var/run"
+fi
 
 LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis"`"
 serveur -d "$dest" -p "$pid" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR demon php-fpm$suffixe \
