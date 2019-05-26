@@ -24,6 +24,8 @@ set -e
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
+argVersion="`argVersionSauf "-p -s" "$@"`" # Un suffixe indiqué en "-s 7.2" ne veut pas dire qu'on force à la version 7.2 (qui n'existe pas d'ailleurs).
+
 # Historique des versions gérées
 
 prerequis="php $argVersion"
