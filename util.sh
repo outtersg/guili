@@ -909,25 +909,6 @@ vmaj()
 	echo "$1" | sed -e 's/^\([^.]*.[^.]*\).*$/\1/'
 }
 
-engrangerArgVersion()
-{
-	local param sortie
-	sortie=1
-	for param in "$@"
-	do
-		if echo "$param" | grep -q '^\(\(\(>=\|<\) \)*[0-9.]* *\)*$' && [ ! -z "$param" ]
-		then
-			argVersion="$argVersion $param"
-			sortie=0
-			shift
-		fi
-	done
-	return $sortie
-}
-
-argVersion=
-engrangerArgVersion "$@" || true
-
 analyserParametresInstall()
 {
 	argOptions=
@@ -1773,6 +1754,7 @@ statf()
 
 [ ! -e "$SCRIPTS/util.guili.sh" ] || . "$SCRIPTS/util.guili.sh"
 
+argVersion="`argVersion "$@"`"
 analyserParametresInstall "$@"
 
 [ ! -e "$SCRIPTS/util.compilo.sh" ] || . "$SCRIPTS/util.compilo.sh"
