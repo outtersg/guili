@@ -473,6 +473,7 @@ sudoku()
 						;;
 					-u) shift ; enTantQue="$1" ;;
 					-d) shift ; ou="$1" ;;
+					-f) SANSSU=0 ;;
 					*) break ;;
 				esac
 				shift
