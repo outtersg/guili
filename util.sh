@@ -470,12 +470,12 @@ sudoku()
 						export "`echo "$1" | cut -d = -f 1`"
 						# À FAIRE: utiliser garg si présent.
 						sudo_env="$sudo_env $1"
-						shift
 						;;
-					-u) shift ; enTantQue="$1" ; shift ;;
-					-d) shift ; ou="$1" ; shift ;;
+					-u) shift ; enTantQue="$1" ;;
+					-d) shift ; ou="$1" ;;
 					*) break ;;
 				esac
+				shift
 			done
 		
 		# Qu'a-t-on à notre disposition?
