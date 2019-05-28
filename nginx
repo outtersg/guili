@@ -62,6 +62,10 @@ moduleNginxSiOption()
 
 OPTIONS_CONF=
 
+moduleNginxSiOption realip http_realip_module
+moduleNginxSiOption upstreamcheck https://github.com/yaoweibin/nginx_upstream_check_module/archive/master.zip
+moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-module/archive/master.zip
+
 # Boulot
 
 destiner
