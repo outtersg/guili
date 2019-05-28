@@ -281,6 +281,17 @@ options()
 	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort -u | sed -e 's/^/+/' | tr -d '\012'
 }
 
+option()
+{
+	case "$argOptions+" in
+		*+$1+*)
+			argOptionsDemandees="`echo "$argOptionsDemandees" | sed -e "s/[+]$1[+]/+/"`"
+			return 0
+			;;
+	esac
+	return 1
+}
+
 # Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
 # Renvoie 0 si in fine l'option est placée, 1 sinon (penser à lui accoler un || true)
 # Utilisation: optionSi <logiciel> [<commande> <arg>*]
@@ -299,6 +310,19 @@ optionSi()
 	fi
 	option "$l" && return 0 || virerPrerequis "$l"
 	return 1
+}
+
+# S'assure que toutes les options mentionnées en arguments ont été utilisées (le logiciel a appelé option() dessus).
+verifierConsommationOptions()
+{
+	if ! [ -z "$argOptionsDemandees" -o "x$argOptionsDemandees" = x+ ]
+	then
+		local aod="`echo "$argOptionsDemandees" | sed -e 's/[+]$//' -e 's/[+]/, +/g' -e 's/^, //'`"
+		local s=
+		echo "$aod" | grep -q '^[+][^+]*$' || s=s
+		echo "# Option$s $aod non reconnue$s par $logiciel" >&2
+		return 1
+	fi
 }
 
 # À invoquer juste avant sutiliser, pour installer (si demandé par option) un greffon.

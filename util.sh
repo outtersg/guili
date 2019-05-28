@@ -924,6 +924,7 @@ analyserParametresInstall()
 		shift
 	done
 	argOptions="`options "$argOptions" | tr -d ' '`"
+	argOptionsDemandees="$argOptions+"
 }
 
 case "$0" in
@@ -983,6 +984,7 @@ infosInstall()
 
 destiner()
 {
+	verifierConsommationOptions
 	if [ -z "$install_dest" ]
 	then
 		dest="`GUILI_PATH=$INSTALLS versions -v "$version" "$logiciel$argOptions" | tail -1`"
@@ -1114,14 +1116,6 @@ filtrerVersions()
 			echo "$chemin"
 		fi
 	done
-}
-
-option()
-{
-	case "$argOptions+" in
-		*+$1+*) return 0
-	esac
-	return 1
 }
 
 ### Fonctions utilitaires dans le cadre des modifs. ###
