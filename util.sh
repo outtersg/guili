@@ -21,15 +21,18 @@
 
 set -e
 
-INSTALL_MEM="$HOME/tmp/paquets"
-[ -z "$INSTALLS" ] && INSTALLS="/usr/local" || true
-[ -z "$TMP" ] && TMP=/tmp || true
-
 if [ -z "$SCRIPTS" ] || ! grep -q CEstBienCeFichierCiQuiDoitSeTrouverAuBoutDeSCRIPTS < "$SCRIPTS/util.sh"
 then
 	echo "# Merci de ne pas appeler util.sh directement, mais de définir \$SCRIPTS puis inclure \$SCRIPTS/util.sh." >&2
 	return 1
 fi
+
+. "$SCRIPTS/util.local.sh"
+
+[ -n "$INSTALL_MEM" ] || INSTALL_MEM="$HOME/tmp/paquets"
+[ -n "$INSTALLS" ] || INSTALLS="$HOME/local" || true
+[ -n "$TMP" ] || TMP="$HOME/tmp" || true
+[ -n "$SANSSU" ] || SANSSU=1 || true
 
 INSTALL_SCRIPTS="$SCRIPTS" # Des fois que d'autres récupèrent ensuite la variable $SCRIPTS.
 
