@@ -1721,6 +1721,8 @@ meilleurCompilo
 _initPrerequisLibJpeg
 proxy -
 
+initSilo
+
 ! commande pypadest || export PYTHONPATH="`pypadest`"
 
 # Initialisation standard.
