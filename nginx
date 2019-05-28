@@ -33,6 +33,12 @@ v 1.15.12 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
+# Variables
+
+OPTIONS_CONF=
+
+# Boulot
+
 destiner
 
 prerequis
@@ -44,7 +50,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-http_ssl_module --with-cc-opt="$CPPFLAGS $CFLAGS" --with-ld-opt="$LDFLAGS"
+./configure --prefix="$dest" --with-http_ssl_module --with-cc-opt="$CPPFLAGS $CFLAGS" --with-ld-opt="$LDFLAGS" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
