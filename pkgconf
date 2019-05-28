@@ -26,7 +26,8 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 # Historique des versions gérées
 
-v 1.6.0 && prerequis="automake" || true
+v 1.5.4 && prerequis="automake libtool" || true
+v 1.6.0 || true
 
 # Modifications
 
