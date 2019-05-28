@@ -67,7 +67,14 @@ installerBinaireSilo()
 	then
 		local ddest="`dirname "$dest"`" # Normalement égal à $INSTALLS
 		local bdest="`basename "$dest"`"
-		sudoku sh -c "cd $ddest && mkdir $bdest.temp && ( cd $bdest.temp && tar xzf "$INSTALL_MEM/$archive" ) && mv $bdest.temp $bdest" && sutiliser - && exit 0 || true
+		sudoku sh -c "
+			cd \"$ddest\" \\
+			&& rm -Rf \"$bdest.temp\" \\
+			&& mkdir \"$bdest.temp\" \\
+			&& ( cd \"$bdest.temp\" && tar xzf \"$INSTALL_MEM/$archive\" ) \\
+			&& mv \"$bdest.temp\" \"$bdest\" \\
+			|| ( rm -Rf \"$dest.temp\" && false )
+		" && sutiliser - && exit 0 || true
 	fi
 }
 
