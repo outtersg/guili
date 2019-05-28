@@ -29,8 +29,57 @@ util_var()
 	varsPrerequis "$@"
 }
 
+# Combine une recherche de déjà installé, et son installation si besoin.
+# Utilisation: guili <logiciel> <option>* <contrainte version>* <param install>*
+guili()
+{
+	local err_deja=0
+	local err_installee=0
+	local err_err=-1
+	
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--si-deja) shift ; err_deja="$1" ;;
+			--si-installee) shift ; err_installee="$1" ;;
+			*)
+				if ! _guiliChercher "$@"
+				then
+					_guiliInstaller "$@" || return "$?"
+					return $err_installee
+				fi
+				return $err_deja
+				;;
+		esac
+		shift
+	done
+}
+
+_guiliChercher()
+{
+	(
+		local l="$1"
+		analyserParametresInstall "$@"
+		versions "$l$argOptions" "`argVersion "$@"`" | grep -q .
+	)
+}
+
+_guiliInstaller()
+{
+	local l="$1" ; shift
+	local o=
+	case "$l" in
+		*+*)
+			o="+`echo "$l" | cut -d + -f 2-`"
+			l="`echo "$l" | cut -d + -f 1`"
+			;;
+	esac
+	"$SCRIPTS/$l" $o "$@"
+}
+
 util_commande="$1" ; shift
 case "$util_commande" in
+	guili) guili "$@" ;;
 	versions) versions "$@" ;;
 	var) util_var "$@" ;;
 	*) echo "# Commande inconnue '$util_commande'." >&2 ; exit 1 ;;
