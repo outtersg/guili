@@ -31,6 +31,7 @@ util_var()
 
 util_commande="$1" ; shift
 case "$util_commande" in
+	versions) versions "$@" ;;
 	var) util_var "$@" ;;
 	*) echo "# Commande inconnue '$util_commande'." >&2 ; exit 1 ;;
 esac
