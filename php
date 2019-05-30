@@ -284,6 +284,9 @@ then
 	bash
 else
 
+# Les options qui ne sont exploitées que plus tard doivent être au moins consommées, pour les marquer comme vraiment exploitées. Car destiner() va les inclure dans le chemin final: il refusera de mettre des options qui ne servent à rien.
+option apc || true
+option xdebug || true
 destiner # Après prerequis, afin de pouvoir interroger le résultat de reglagesCompilPrerequis (LD_LIBRARY_PATH, etc.).
 
 case "$version" in
