@@ -82,5 +82,5 @@ case "$util_commande" in
 	guili) guili "$@" ;;
 	versions) versions "$@" ;;
 	var) util_var "$@" ;;
-	*) echo "# Commande inconnue '$util_commande'." >&2 ; exit 1 ;;
+	*) "$util_commande" "$@" ;;
 esac
