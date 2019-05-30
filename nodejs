@@ -36,12 +36,6 @@ v 10.15.1 && prerequis="cpp14()" && modifs="$modifs pasGArLd" || true
 
 archive="http://nodejs.org/dist/v$version/node-v$version.tar.gz"
 
-cpp14()
-{
-	# Il nous faut un C++14 pour Node 10, qui fait usage de make_unique.
-	compiloSysVersion "clang >= 3.5" "gcc >= 5" # clang 3.4 supporte, mais en -std=c++1y.
-}
-
 pasGArLd()
 {
 	# GNU ar nous crée des .a bizarres avec un en-tête !<thin> qui plantent le ld FreeBSD 11.
