@@ -169,3 +169,13 @@ meilleurCompilo()
 
 # Pour compatibilité.
 meilleurCompiloInstalle() { meilleurCompilo "$@" ; }
+
+cpp14()
+{
+	compiloSysVersion "clang >= 3.5" "gcc >= 5" # clang 3.4 supporte, mais en -std=c++1y.
+}
+
+cpp11()
+{
+	compiloSysVersion "clang >= 3.3" "gcc >= 4.8.1"
+}
