@@ -48,13 +48,27 @@ pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version
 
 types16()
 {
+	# Sur certains vieux compilos à la limite de gérer le char16_t (du genre: sortis à peu près en même temps que C++11), il y a un peu de fouille à faire pour dénicher les bons paramètres d'appel pour le lui faire trouver. Voire brancher directement le type interne dessus.
 	local char16
-	for char16 in char16_t __char16_t uint16_t rien
-	do
-		( echo '#include <sys/types.h>' ; echo "$char16 c;" ) > $TMP/1.c
-		cc -c -o $TMP/1.o $TMP/1.c 2> /dev/null && break || continue
-	done
+	local cflags
+	_varsTypes16()
+	{
+		for char16 in char16_t __char16_t __CHAR16_TYPE__ uint16_t impossible_de_trouver_un_char16_t_dans_votre_compilo
+		do
+			for cflags in "" "-std=c++11"
+			do
+				( echo '#include <uchar.h>' ; echo "$char16 c;" ) > $TMP/1.c
+				# En réalité il faudrait sans doute tester la chose avec du c++.
+				CFLAGS="$CFLAGS $cflags" c++ -c -o $TMP/1.o $TMP/1.c 2> /dev/null && return || continue
+			done
+		done
+	}
+	_varsTypes16
+	case "$char16" in
+		impossible*) echo "# Votre compilateur n'a rien qui puisse servir de char16_t, malgré tous mes efforts." >&2 ; return 1 ;;
+	esac
 	filtrer source/common/unicode/umachine.h sed -e "s/typedef char16_t/typedef $char16/g"
+	export CFLAGS="$CFLAGS $cflags"
 }
 
 moinsIPointAvantILocal()
