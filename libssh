@@ -37,6 +37,8 @@ v 1.8.0 || true
 
 archive=http://www.libssh2.org/download/libssh2-$version.tar.gz
 
+option ossl10 || true # L'option ossl10 sera utilisée plus tard, mais il faut au moins qu'on la consomme avant destiner(), qui s'assure que seules des options exploitées nous ont été spécifiées.
+
 destiner
 
 prerequisOpenssl
