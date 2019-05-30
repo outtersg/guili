@@ -79,8 +79,6 @@ _guiliInstaller()
 
 util_commande="$1" ; shift
 case "$util_commande" in
-	guili) guili "$@" ;;
-	versions) versions "$@" ;;
 	var) util_var "$@" ;;
 	*) "$util_commande" "$@" ;;
 esac
