@@ -39,7 +39,7 @@ args_reduc()
 {
     local sep=" "
     [ "x$1" = x-d ] && sep="$2" && shift && shift || true
-    echo "$*" | awk -F "$sep" '
+    ( if [ $# -gt 0 ] ; then echo "$*" ; else cat ; fi ) | awk -F "$sep" '
 {
     n = split($0, t);
     # On cherche des sous-chaînes de plus en plus longues.
