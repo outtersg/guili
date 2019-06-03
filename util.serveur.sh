@@ -145,6 +145,12 @@ serveurParamEnv()
 			*=*) true ;;
 			*) var="$var=`eval 'echo "$'"$var"'"'`" ;;
 		esac
+		# Simplification des variables connues.
+		# Ce crétin de systemd figurez-vous ne lit pas les lignes de plus de 2048 octets (et pète fort heureusement une erreur de syntaxe à la ligne suivante, ou plus exactement le reste de la ligne qu'il croit être la ligne suivante, disant qu'il manque un =, ce qui nous met la puce à l'oreille). On devra donc sans doute introduire des retours à la ligne, mais on peut commencer par simplifier les expressions qu'on lui fournit (et la lisibilité en bénéficiera sur les autres systèmes).
+		if echo "$var" | grep -q '^[^=]*PATH=.*:.*:.*:'
+		then
+			var="`echo "$var" | cut -d = -f 1`=`echo "$var" | cut -d = -f 2- | args_reduc -d :`"
+		fi
 		[ -z "$serveur_env" ] || serveur_env="$serveur_env$serveur_sep"
 		serveur_env="$serveur_env$var"
 	done
