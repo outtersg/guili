@@ -1706,6 +1706,7 @@ done
 [ ! -e "$SCRIPTS/util.python.sh" ] || . "$SCRIPTS/util.python.sh"
 
 prerequis= # Certains installeurs appellent prerequis(), mais sans avoir initialisé $prerequis. Résultat, ils héritent de l'environnement; pour peu que quelqu'un prérequière un de ces logiciels, ses prerequis seront donc lui-même, et nous voilà partis pour une boucle infinie…
+guili__xpath=
 meilleurCompilo
 _initPrerequisLibJpeg
 proxy -

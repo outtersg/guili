@@ -123,7 +123,7 @@ _cheminsExportes()
 	local guili_acflags="`_pverso -I "$guili_acpath"`"
 	ACLOCAL="`echo "$ACLOCAL" | sed -e 's/^ *$/aclocal/' -e "s#aclocal#aclocal$guili_acflags#"`"
 	export \
-		PATH="$guili_xpath$PATH" \
+		PATH="$guili__xpath$guili_xpath$PATH" \
 		LD_LIBRARY_PATH="$guili_lpath$LD_LIBRARY_PATH" \
 		DYLD_LIBRARY_PATH="$guili_lpath$DYLD_LIBRARY_PATH" \
 		CMAKE_LIBRARY_PATH="$guili_lpath$CMAKE_LIBRARY_PATH" \
