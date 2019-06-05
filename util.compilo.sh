@@ -110,6 +110,43 @@ compiloSysVersion()
 		#export CPPFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CPPFLAGS"
 		export 	CXXFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CXXFLAGS"
 	fi
+	
+	case "$bienVoulu" in
+		gcc) enrobeurCompilos gcc g++ ;;
+	esac
+}
+
+_tmpBinEnTeteDePath()
+{
+	export PATH="$TMP/$$:$PATH"
+}
+
+enrobeurCompilos()
+{
+	# GCC a besoin de libgmp, libmpfr et libmpc à l'exécution.
+	# Certains GuiLI purgent des $PATH et $LD_LIBRARY_PATH tout dossier "générique" (ex.: /usr/local/lib) après avoir extrait le dossier spécifique au compilo (ex.: /usr/local/gcc-x.y.z/lib). Problème: notre nouveau $LD_LIBRARY_PATH, avec chemin spécifique, permettra bien à gcc d'atteindre sa libgcc.so, mais pas la libmpfr.so, installée dans un autre dossier spécifique.
+	# Première possibilité: demander au binaire gcc, au moment où on a encore un $LD_LIBRARY_PATH complet, à quelles libmpfr.so etc. il se lie, et les copier à côté du gcc pour constituer un dossier autosuffisant. Mais bon, ça nous demande pas mal d'introspection.
+	# Seconde solution: le gcc tournera exceptionnellement avec le chemin "générique".
+	# Ajoutons donc au $LD_LIBRARY_PATH sous lequel tournera gcc, le dossier contenant lesdites bibliothèques indispensables, pour être sûrs que notre gcc se lancera. Mais plutôt que de polluer le $LD_LIBRARY_PATH global (lu par les configure par exemple; on irait à l'encontre de la purge effectuée par l'appelant!), on va se créer un enrobeur de gcc qui ne modifiera que celui qui sert à invoquer gcc.
+	
+	local GUILI_PATH="$GUILI_PATH"
+	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
+	
+	# Création du détournement.
+	
+	local llp_compilo="`IFS=: ; for chemin in $GUILI_PATH ; do echo "$chemin/lib64:$chemin/lib:" ; done`"
+	for outil in "$@"
+	do
+		sed < "$SCRIPTS/util.filtreargs.sh" > "$TMP/$$/$outil" -e '/^faire$/i\
+export LD_LIBRARY_PATH='"$llp_compilo"'$LD_LIBRARY_PATH
+'
+		chmod a+x "$TMP/$$/$outil"
+	done
+	
+	# On s'assure que notre dossier de surcharges passe avant celui du compilo, mis en tête de liste dans compiloSysVersion (qui normalement nous appelle).
+	# Le PATH recevant les prérequis (dont éventuellement le compilo) dans prerequis(), qui sont définis après nous donc dont les dossiers apparaîtront avant le nôtre dans le LD_LIBRARY_PATH, nous nous inscrivons dans la variable réservée au fonctionnement interne des GuiLI, pour précisément passer devant tout le monde.
+	
+	guili__xpath="$TMP/$$:$guili__xpath"
 }
 
 _compiloBinaire()
