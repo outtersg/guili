@@ -89,3 +89,42 @@ args_suppr()
 	done
 	[ -z "$e" ] || export $vars
 }
+
+#- Options ---------------------------------------------------------------------
+
+# Affecte une valeur à la prochaine variable d'une liste $vars de noms de variable; fait à peu près le même boulot que getopt.
+# Décale $vars.
+# Appelle auSecours() si plus aucune variable n'est à remplir.
+# Utilisation:
+#   vars="prenom nom"
+#   superutilisateur=non
+#   while [ $# -gt 0 ]
+#   do
+#       case "$1" in
+#           -s) superutilisateur=oui ;;
+#           *) apAffecter "$1" $vars ;;
+#       esac
+#   done
+#   [ -z "$vars" ] || auSecours # Les paramètres obligatoires n'ont pas été fournis.
+# (N.B.: ap comme analyserParametres)
+apAffecter()
+{
+	# On considère que, tournant dans le cadre d'un script ayant inclus util.sh, tout paramètre ressemblant à une contrainte de version n'est pas destiné à l'appelant, mais a déjà été mis de côté dans $argVersion.
+	if [ -n "$1" ]
+	then
+		case "`argVersion "$1"`" in
+			"$1"*) return 0 ;; # Avec un * car argVersion a tendance à rajouter des espaces.
+		esac
+	fi
+	# Si l'on n'a plus de variable à laquelle affecter, on pète.
+	if [ $# -lt 2 ]
+	then
+		auSecours
+		return 1
+	fi
+	# Allez, c'est validé, bossons.
+	eval $2='"$1"'
+	shift
+	shift
+	vars="$*"
+}
