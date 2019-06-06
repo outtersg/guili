@@ -52,18 +52,12 @@ analyserParametres()
 			-p) port="$2" ; shift ;;
 			-u) shift ; compte="$1" ;;
 			*)
-				[ -z "$vars" ] && auSecours
-				for i in $vars
-				do
-					if [ "$i" = reste ]
-					then
-						reste="$reste $1"
-					else
-						eval $i="$1"
-					fi
-					break
-				done
-				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
+				if [ "x$vars" = xreste ]
+				then
+					reste="$reste $1"
+				else
+					apAffecter "$1" $vars
+				fi
 				;;
 		esac
 		shift
