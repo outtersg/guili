@@ -1184,7 +1184,7 @@ susermod()
 
 _analyserParametresCreeCompte()
 {
-	cc_vars="cc_qui cc_id"
+	local vars="cc_qui cc_id"
 	cc_ou=
 	cc_qui=
 	cc_id=
@@ -1198,15 +1198,7 @@ _analyserParametresCreeCompte()
 			-d) cc_ou="$2" ; shift ;;
 			-g) cc_groupes="`echo "$2" | tr ': ' ',,'`" ; shift ;;
 			--mdp) cc_mdp="$2" ; shift ;;
-			*)
-				[ -z "$cc_vars" ] && auSecours
-				for i in $cc_vars
-				do
-					export $i="$1"
-					break
-				done
-				cc_vars="`echo "$cc_vars" | sed -e 's/[^ ]* //'`"
-				;;
+			*) apAffecter "$1" $vars ;;
 		esac
 		shift
 	done
