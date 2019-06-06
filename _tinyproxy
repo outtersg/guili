@@ -66,16 +66,9 @@ analyserParametres()
 				if [ "$vars" = rien ]
 				then
 					echo "$1" >> $TMP/$$/regles
-					shift
-					continue
+				else
+					 apAffecter "$1" $vars
 				fi
-				[ -z "$vars" ] && auSecours
-				for i in $vars
-				do
-					eval $i="$1"
-					break
-				done
-				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
 				;;
 		esac
 		shift
