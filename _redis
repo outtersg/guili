@@ -56,16 +56,7 @@ analyserParametres()
 			-s) shift ; suffixe="$1" ;;
 			-u) shift ; compte="$1" ;;
 			-g) generique=oui ;;
-			*)
-				engrangerArgVersion "$1" && shift && continue || true
-				[ -z "$vars" ] && auSecours
-				for i in $vars
-				do
-					eval $i="$1"
-					break
-				done
-				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
-				;;
+			*) apAffecter "$1" $vars ;;
 		esac
 		shift
 	done
