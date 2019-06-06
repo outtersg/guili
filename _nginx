@@ -47,15 +47,7 @@ analyserParametres()
 			"") true ;; # Version bidon passée par exemple par varsPrerequis.
 			-U) shift ; compteMaitre="$1" ; [ -z "$compte" -a "c$1" != croot ] && compte="$1" || true ;;
 			-u) shift ; compte="$1" ;;
-			*)
-				[ "x$1" = "x$argVersion" ] && shift && continue || true
-				[ -z "$vars" ] && auSecours
-				for i in $vars ; do
-					export $i="$1"
-					break
-				done
-				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
-				;;
+			*) apAffecter "$1" $vars ;;
 		esac
 		shift
 	done
