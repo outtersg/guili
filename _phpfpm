@@ -41,7 +41,7 @@ TERMINE
 
 analyserParametres()
 {
-	vars="limitation"
+	vars=""
 	port=9000
 	suffixe=
 	PARAMS_SERVEUR=
@@ -56,7 +56,6 @@ analyserParametres()
 		esac
 		shift
 	done
-	[ -z "$limitation" ] || prerequis="php $limitation"
 
 	if [ -z "$compte" ]
 	then
