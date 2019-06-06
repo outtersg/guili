@@ -190,15 +190,7 @@ analyserParametresServeur()
 			*=*) serveurParamEnv "$1" ;;
 			-e) shift ; serveurParamEnv "$1" ;;
 			-pre) shift ; avant="$avant$serveur_sep$1" ;;
-			*)
-				[ -z "$vars" ] && auSecours
-				for i in $vars
-				do
-					eval $i='"$1"'
-					break
-				done
-				vars="`echo "$vars" | sed -e 's/[^ ]* //'`"
-				;;
+			*) apAffecter "$1" $vars ;;
 		esac
 		shift
 	done
