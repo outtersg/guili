@@ -28,6 +28,9 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 
 OPTIONS_CONF=
 
+# Options correspondant à des modules Python à embarquer dans la distribution que l'on crée.
+optionsModules=""
+
 # Il nous faudra un cURL pour accéder à pypa.io.
 # zlib pour pip.
 v 2.6 && modifs= && prerequis="sqlite curl zlib" || true
@@ -315,6 +318,7 @@ then
 	bash
 else
 
+for option in $optionsModules ; do option "$option" || true ; done # Assurons destiner() que nous prenons en charge ces options (qui entreront dans le nom du dossier $dest), même si on ne les exploite qu'un peu plus loin.
 destiner
 
 prerequis
@@ -348,6 +352,16 @@ then
 		export PATH=$dest/bin:$INSTALLS/bin:\$PATH LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY
 		python ez_setup.py
 		python -m ensurepip
+	"
+fi
+
+modules="`for option in $optionsModules ; do option "$option" && echo "$option" || true ; done`"
+if [ -n "$modules" ]
+then
+	sudoku sh -c \
+	"
+		export PATH=$dest/bin:$INSTALLS/bin:\$PATH LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY
+		pip install $modules
 	"
 fi
 
