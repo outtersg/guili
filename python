@@ -29,7 +29,7 @@ SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" |
 OPTIONS_CONF=
 
 # Options correspondant à des modules Python à embarquer dans la distribution que l'on crée.
-optionsModules=""
+optionsModules="selinux"
 
 # Il nous faudra un cURL pour accéder à pypa.io.
 # zlib pour pip.
