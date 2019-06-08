@@ -302,6 +302,7 @@ cheminsGuili()
 chemins_init=cheminsGuili
 
 . "$SCRIPTS/util.args.sh"
+. "$SCRIPTS/util.guili.sed.sh" # Va nous servir pour beaucoup de choses.
 . "$SCRIPTS/util.util.sh"
 
 # Remplacements de commandes (pour la phase d'amorçage).
