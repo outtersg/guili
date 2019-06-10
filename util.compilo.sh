@@ -96,6 +96,10 @@ compiloSysVersion()
 		echo "# Attention, vous n'avez aucun compilateur d'installé. La suite des opérations risque d'être compliquée." >&2
 		fi
 	else
+		case "$bienVoulu" in
+			gcc) enrobeurCompilos gcc g++ ;;
+		esac
+		
 		# Ce binaire a-t-il été installé par GuiLI? En ce cas il n'est certainement pas dans un dossier système, donc il faudra aussi aller chercher tout son environnement (lib, include, etc.).
 		reglagesCompilSiGuili "$binaire"
 	fi
@@ -110,10 +114,6 @@ compiloSysVersion()
 		#export CPPFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CPPFLAGS"
 		export 	CXXFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CXXFLAGS"
 	fi
-	
-	case "$bienVoulu" in
-		gcc) enrobeurCompilos gcc g++ ;;
-	esac
 }
 
 _tmpBinEnTeteDePath()
