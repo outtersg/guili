@@ -135,7 +135,7 @@ enrobeurCompilos()
 	
 	# Où aller chercher nos bibliothèques?
 	
-	local llp_compilo=
+	local llp_compilo='$LD_LIBRARY_PATH'
 	local llpt
 	local p
 	for p in "$@"
@@ -153,14 +153,29 @@ enrobeurCompilos()
 		esac
 	done
 	llp_compilo="`args_reduc -d : "$llp_compilo" | sed -e 's/::*/:/g' -e 's/^://' -e 's/:*$/:/'`"
-	llp_compilo="`IFS=: ; for chemin in $llp_compilo ; do [ -n "$chemin" ] || continue ; for l in lib64 lib ; do [ -d "$chemin/$l" ] && printf '%s:' "$chemin/$l" || true ; done ; done`"
+	llp_compilo="`
+		IFS=:
+		for chemin in $llp_compilo
+		do
+			case "$chemin" in
+				"") true ;;
+				'$LD_LIBRARY_PATH') printf '%s:' "$chemin" ;;
+				*)
+					for l in lib64 lib
+					do
+						[ -d "$chemin/$l" ] && printf '%s:' "$chemin/$l" || true
+					done
+					;;
+			esac
+		done | sed -e 's/::*$//'
+	`"
 	
 	# Création du détournement.
 	
 	for outil in "$@"
 	do
 		sed < "$SCRIPTS/util.filtreargs.sh" > "$TMP/$$/$outil" -e '/^faire$/i\
-export LD_LIBRARY_PATH='"$llp_compilo"'$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH='"$llp_compilo"'
 '
 		chmod a+x "$TMP/$$/$outil"
 	done
