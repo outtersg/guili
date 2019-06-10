@@ -29,9 +29,9 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 v 4.2.4 || true
 v 4.3.6 || true
 v 4.4.7 || true
-v 4.5.4 || true
-v 4.7.4 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
-v 4.8.3 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
+v 4.5.4 && prerequis="compiloSysVersion(gcc >= 4.0 < $version) gmp >= 4.2 < 6 mpfr >= 2.3.1 mpc >= 0.8.0" || true
+v 4.7.4 && prerequis="compiloSysVersion(gcc >= 4.2 < $version) gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
+v 4.8.3 && prerequis="compiloSysVersion(gcc >= 4.2 < $version) gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
 #v 4.9.2 && prerequis="gcc >= 4.2 < $version gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" || true
 v 4.9.2 && prerequis="gmp >= 4.2 < 6 mpfr >= 2.4.0 mpc >= 0.8.0" && modifs="usrInclude libsPasDur sansCore lambdaObjC sansCollate fbsdbinutils" || true
 v 4.9.4 || true
