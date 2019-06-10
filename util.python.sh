@@ -20,7 +20,7 @@
 
 pyp()
 {
-	local pvc="`python --version 2>&1 | sed -e 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/'`" # Python version courte
+	local pvc="`python -V 2>&1 | sed -e 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/'`" # Python version courte
 	echo "lib/python$pvc/site-packages"
 }
 
