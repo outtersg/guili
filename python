@@ -364,6 +364,14 @@ then
 		pip install $modules
 	"
 fi
+if option selinux
+then
+	# Ces orifices du postérieur codent en dur un chemin vers Python sans même avoir vérifié qu'il existât.
+	grep -rl /usr/bin/python "$dest"/lib/python*/site-packages/selinux | grep py$ | while read retape
+	do
+		sufiltrer "$retape" sed -e 's#/usr/bin/python#python#g'
+	done
+fi
 
 sutiliser
 
