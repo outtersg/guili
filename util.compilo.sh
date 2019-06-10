@@ -128,13 +128,35 @@ enrobeurCompilos()
 	# Première possibilité: demander au binaire gcc, au moment où on a encore un $LD_LIBRARY_PATH complet, à quelles libmpfr.so etc. il se lie, et les copier à côté du gcc pour constituer un dossier autosuffisant. Mais bon, ça nous demande pas mal d'introspection.
 	# Seconde solution: le gcc tournera exceptionnellement avec le chemin "générique".
 	# Ajoutons donc au $LD_LIBRARY_PATH sous lequel tournera gcc, le dossier contenant lesdites bibliothèques indispensables, pour être sûrs que notre gcc se lancera. Mais plutôt que de polluer le $LD_LIBRARY_PATH global (lu par les configure par exemple; on irait à l'encontre de la purge effectuée par l'appelant!), on va se créer un enrobeur de gcc qui ne modifiera que celui qui sert à invoquer gcc.
+	# Attention cependant: idéalement on ne lui inclura que les chemins vers les biblios dédiées (gmp, mpc, mpfr). On aura toujours la possibilité, en dernier recours, d'ajouter $GUILI_PATH, mais celui-ci est un fourre-tout, et l'on risque des incohérences, à compiler avec un LD_LIBRARY_PATH=$GUILI_PATH/lib gcc -Lxxx. Ainsi le configure de curl, appelant LD_LIBRARY_PATH=~/local/lib gcc -L~/local/openssl-1.0.x/lib, peut-il exploser en trouvant par exemple dans ~/local/lib une libssh liée à OpenSSL 1.1, mais une libssl 1.0 dans le -L.
 	
 	local GUILI_PATH="$GUILI_PATH"
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	
+	# Où aller chercher nos bibliothèques?
+	
+	local llp_compilo=
+	local llpt
+	local p
+	for p in "$@"
+	do
+		llpt=
+		case "$p" in
+			gcc|g++) llpt="`_bibliosGcc`" ;;
+		esac
+		llp_compilo="$llpt$llp_compilo"
+		# S'il manque toutes ou une bibliothèque, on ajoute à contrecœur le $GUILI_PATH.
+		case "$llpt" in
+			""|*::*)
+				llp_compilo="$llp_compilo:$GUILI_PATH"
+				;;
+		esac
+	done
+	llp_compilo="`args_reduc -d : "$llp_compilo" | sed -e 's/::*/:/g' -e 's/^://' -e 's/:*$/:/'`"
+	llp_compilo="`IFS=: ; for chemin in $llp_compilo ; do [ -n "$chemin" ] || continue ; for l in lib64 lib ; do [ -d "$chemin/$l" ] && printf '%s:' "$chemin/$l" || true ; done ; done`"
+	
 	# Création du détournement.
 	
-	local llp_compilo="`IFS=: ; for chemin in $GUILI_PATH ; do echo "$chemin/lib64:$chemin/lib:" ; done`"
 	for outil in "$@"
 	do
 		sed < "$SCRIPTS/util.filtreargs.sh" > "$TMP/$$/$outil" -e '/^faire$/i\
@@ -147,6 +169,16 @@ export LD_LIBRARY_PATH='"$llp_compilo"'$LD_LIBRARY_PATH
 	# Le PATH recevant les prérequis (dont éventuellement le compilo) dans prerequis(), qui sont définis après nous donc dont les dossiers apparaîtront avant le nôtre dans le LD_LIBRARY_PATH, nous nous inscrivons dans la variable réservée au fonctionnement interne des GuiLI, pour précisément passer devant tout le monde.
 	
 	guili__xpath="$TMP/$$:$guili__xpath"
+}
+
+_bibliosGcc()
+{
+	local biblios="gmp mpc mpfr"
+	local biblio
+	local eBiblios="`printf "$biblios" | tr ' ' '|'`"
+	for biblio in $biblios ; do local bb_$biblio= ; done
+	eval "`LC_ALL=C gcc -v 2>&1 | grep '^Configured with:' | tr ' ' '\012' | egrep "^--with-($eBiblios)=/" | sed -e 's/^--with-/bb_/'`"
+	eval "echo \"`printf '%s' " $biblios:" | sed -e 's/ /:$bb_/g'`\""
 }
 
 _compiloBinaire()
