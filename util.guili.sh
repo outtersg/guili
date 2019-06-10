@@ -156,7 +156,7 @@ prerequerir()
 	local paraml="$1" ; shift
 	local paramv="$*"
 	
-	( INSTALLS_AVEC_INFOS=1 inclure "$paraml" "$paramv" ) 6> "$TMP/$$/temp.inclureAvecInfos"
+	( INSTALLS_AVEC_INFOS=1 inclure "$paraml" "$paramv" ) 6> "$TMP/$$/temp.inclureAvecInfos" || return $?
 	
 	# L'idéal est que l'inclusion ait reconnu INSTALLS_AVEC_INFOS et nous ait sorti ses propres variables, à la pkg-config, en appelant infosInstall() en fin (réussie) d'installation.
 	# Dans le cas contraire (inclusion ancienne mode peu diserte), on recherche parmi les paquets installés celui qui répond le plus probablement à notre demande, via reglagesCompilPrerequis.
