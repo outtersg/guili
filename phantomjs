@@ -45,11 +45,14 @@ g_numFiltreAvant=0
 filtreAvant()
 {
 	g_numFiltreAvant="`expr 1 + $g_numFiltreAvant`"
+	local fa="$TMP/$$/filtreAvant.$g_numFiltreAvant"
 	cat > "$TMP/$$/filtreAvant.$g_numFiltreAvant" <<TERMINE
 #!/bin/sh
 export SCRIPTS="$SCRIPTS"
 . "$SCRIPTS/util.sh"
+# Pour éviter un ménage un peu expéditif, on surcharge l'util_menage appelée par la sortie des scripts util.sh:
 TERMINE
+	sed -e '/^util_menage(/,/^}/!d' -e 's/\$dossierCourant/zogouzogou/g' < "$SCRIPTS/util.sh" >> "$fa"
 	cat >> "$TMP/$$/filtreAvant.$g_numFiltreAvant"
 	exprAvantSh="$1"
 	exprAvantPy="$1"
