@@ -68,6 +68,27 @@ biblios()
 	esac | grep '^	.*(.*)$' | sed -e 's/^	//' -e 's/ *([^)]*)$//' -e 's/^[^/]* => //' | grep -v '[(>]' | grep '^/'
 }
 
+readlinky()
+{
+	case `uname` in
+		Linux) readlink -e "$@" ;;
+		*)
+			local c="$1"
+			local l
+			while [ -L "$c" ]
+			do
+				l="`readlink "$c"`"
+				case "$l" in
+					/*) c="$l" ;;
+					*) c="`dirname "$c"`/$l" ;;
+				esac
+			done
+			[ -e "$c" ] || return 1
+			echo "$c"
+			;;
+	esac
+}
+
 #- Système: environnement chemins ----------------------------------------------
 
 reglagesCompil() { reglagesCheminsPrerequis "$@" ; }
