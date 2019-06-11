@@ -29,6 +29,8 @@ feu()
 
 feuFirewalld()
 {
+	local paramFw
+	
 	for feu_port in "$@"
 	do
 		# On essaie de trouver un service qui ouvre ce port. Si plusieurs services disponibles, on prend le plus petit (celui qui ouvre juste le port en question plutôt que le fourre-tout).
@@ -36,10 +38,11 @@ feuFirewalld()
 		feu_err=0
 		if [ -z "$feu_service" ]
 		then
-			firewall-cmd -q --zone=public --permanent --add-port=$feu_port/tcp || feu_err=$?
+			paramFw="--add-port=$feu_port/tcp"
 		else
-			firewall-cmd -q --zone=public --permanent --add-service=$feu_service || feu_err=$?
+			paramFw="--add-service=$feu_service"
 		fi
+		LD_LIBRARY_PATH= sudoku -f firewall-cmd -q --zone=public --permanent $paramFw || feu_err=$?
 		case "$feu_err" in
 			0) true ;;
 			252) return 0 ;; # Pas démarré, donc pas de pare-feu, donc on passe.
