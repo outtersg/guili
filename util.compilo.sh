@@ -188,7 +188,7 @@ export LD_LIBRARY_PATH='"$llp_compilo"'
 
 _bibliosGcc()
 {
-	local biblios="gmp mpc mpfr"
+	local biblios="gmp mpc mpfr gettext"
 	local biblio
 	local eBiblios="`printf "$biblios" | tr ' ' '|'`"
 	for biblio in $biblios ; do local bb_$biblio= ; done
