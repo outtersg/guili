@@ -191,9 +191,29 @@ _bibliosGcc()
 	local biblios="gmp mpc mpfr gettext"
 	local biblio
 	local eBiblios="`printf "$biblios" | tr ' ' '|'`"
+	local chemin=
+	
 	for biblio in $biblios ; do local bb_$biblio= ; done
 	eval "`LC_ALL=C gcc -v 2>&1 | grep '^Configured with:' | tr ' ' '\012' | egrep "^--with-($eBiblios)=/" | sed -e 's/^--with-/bb_/'`"
-	eval "echo \"`printf '%s' " $biblios:" | sed -e 's/ /:$bb_/g'`\""
+	eval "chemin=\"`printf '%s' " $biblios:" | sed -e 's/ /:$bb_/g'`\""
+	
+	local outils="`LC_ALL=C gcc -v 2>&1 | grep ^COLLECT_LTO_WRAPPER= | cut -d = -f 2-`"
+	local outil
+	if [ -x "$outils" ]
+	then
+		# Si on déniche les outils internes à GCC, on va pouvoir trouver à quelles bibliothèques ils sont liés.
+		
+		outils="`dirname "$outils"`"
+		mkdir -p "$TMP/$$/libgcc/lib"
+		( export LD_LIBRARY_PATH="$chemin$LD_LIBRARY_PATH" ; biblios "$outils"/* 2> /dev/null || true ) | sort -u | egrep -v '^/(lib|lib64|usr/lib|usr/lib64)/' | while read biblio
+		do
+			cp -H "$biblio" "$TMP/$$/libgcc/lib/"
+		done
+		echo "$TMP/$$/libgcc:"
+	else
+		# Sinon on prend ce qui a été trouvé comme adjonctions de configuration de GCC. Ça ne nous donne que les dossiers, c'est déjà ça.
+		echo "$chemin"
+	fi
 }
 
 _compiloBinaire()
