@@ -145,12 +145,6 @@ enrobeurCompilos()
 			gcc|g++) llpt="`_bibliosGcc`" ;;
 		esac
 		llp_compilo="$llpt$llp_compilo"
-		# S'il manque toutes ou une bibliothèque, on ajoute à contrecœur le $GUILI_PATH.
-		case "$llpt" in
-			""|*::*)
-				llp_compilo="$llp_compilo:$GUILI_PATH"
-				;;
-		esac
 	done
 	llp_compilo="`args_reduc -d : "$llp_compilo" | sed -e 's/::*/:/g' -e 's/^://' -e 's/:*$/:/'`"
 	llp_compilo="`
