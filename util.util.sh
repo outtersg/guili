@@ -635,3 +635,8 @@ moins()
 	local val
 	eval "$var=\"\`echo \"\$$var\" | tr \"\$sep\" '\\012' | egrep -v \"^(\$exprExcl)\\\$\" || true\`\""
 }
+
+for f in "$SCRIPTS"/util.util.*.sh
+do
+	. "$f"
+done
