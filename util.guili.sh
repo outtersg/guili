@@ -215,7 +215,8 @@ uniquementPrerequis()
 		CFLAGS "-I$INSTALLS/include" \
 		CXXFLAGS "-I$INSTALLS/include" \
 		CPPFLAGS "-I$INSTALLS/include" \
-		LDFLAGS "-L$INSTALLS/lib(64)?"
+		LDFLAGS "-L$INSTALLS/lib" \
+		LDFLAGS "-L$INSTALLS/lib64"
 }
 
 #- Gestion des paramètres ------------------------------------------------------
