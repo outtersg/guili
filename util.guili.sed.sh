@@ -20,11 +20,17 @@
 
 # Sur de très vieilles machines, le sed GNU ne fait de la regex étendue que sur -r, au lieu du -E POSIX arrivé plus tard.
 # Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
-if [ "x`basename "$0"`" != xsed ]
-then
+guiliHomologuerSed()
+{
+	case "$1" in
+		sed|*/sed) return 0 ;;
+	esac
+	
 	guili_sed="`unalias sed 2> /dev/null || true ; unset -f sed 2> /dev/null || true ; command -v sed`"
 	case "`echo gloc | $guili_sed -E -e 's/g|c/p/g' 2> /dev/null`" in
 		plop) true ;;
 		*) "$SCRIPTS/sed" "< 4.3" ;;
 	esac
-fi
+}
+
+guiliHomologuerSed "$0" "$@"
