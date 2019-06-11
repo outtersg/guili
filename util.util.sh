@@ -60,6 +60,14 @@ commande()
 	command -v "$@" > /dev/null 2>&1
 }
 
+biblios()
+{
+	case `uname` in
+		Darwin) otool -L "$@" ;;
+		*) ldd "$@" ;;
+	esac | grep '^	.*(.*)$' | sed -e 's/^	//' -e 's/ *([^)]*)$//' -e 's/^[^/]* => //' | grep -v '[(>]' | grep '^/'
+}
+
 #- Système: environnement chemins ----------------------------------------------
 
 reglagesCompil() { reglagesCheminsPrerequis "$@" ; }
