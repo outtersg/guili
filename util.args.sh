@@ -73,12 +73,37 @@ args_reduc()
 '
 }
 
+# Sur son entrée standard, vire tous les blocs mentionnés (un bloc étant délimité par un séparateur donné, par défaut l'espace).
+# Ex.: echo a b z c d z e z | stdin_suppr z # Donne a b c d e
+stdin_suppr()
+{
+	local sep=" "
+	local S="#" # Séparateur sed, nécessairement différent du $sep fonctionnel.
+	local SP="`printf '\005'`"
+	local dollar='$'
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-d) sep="$2" ; shift ;;
+			*) break ;;
+		esac
+		shift
+	done
+	[ "x$S" != "x$sep" ] || S="/"
+	local paramsSed=
+	while [ $# -gt 0 ]
+	do
+		[ -z "$paramsSed" ] || paramsSed="$paramsSed$SP"
+		paramsSed="$paramsSed-e${SP}s${S}$sep$1$sep${S}$sep${S}g"
+		shift
+	done
+	( IFS="$SP" ; sed -e "s${S}$sep${S}$sep$sep${S}g" -e "s${S}^${S}$sep${S}" -e "s${S}$dollar${S}$sep${S}" $paramsSed -e "s${S}$sep$sep$sep*${S}$sep${S}g" -e "s${S}^$sep${S}${S}" -e "s${S}$sep$dollar${S}${S}" )
+}
+
 args_suppr()
 {
 	local e=
 	local sep=" "
-	local S="#" # Séparateur sed, nécessairement différent du $sep fonctionnel.
-	local dollar='$'
 	local vars=
 	local var
 	while [ $# -gt 0 ]
@@ -90,11 +115,10 @@ args_suppr()
 		esac
 		shift
 	done
-	[ "x$ss" != "x$sep" ] || ss="/"
 	while [ $# -gt 0 ]
 	do
 		vars="$vars $1"
-		var="`eval 'echo "$sep$'"$1"'$sep"' | sed -e "s${S}$sep${S}$sep$sep${S}g" -e "s${S}$sep$2$sep${S}$sep${S}g" -e "s${S}$sep$sep$sep*${S}$sep${S}g" -e "s${S}^$sep${S}${S}" -e "s${S}$sep$dollar${S}${S}"`"
+		var="`eval 'echo "$sep$'"$1"'$sep"' | stdin_suppr -d "$sep" "$2"`"
 		eval "$1=\"\$var\""
 		shift
 		shift
