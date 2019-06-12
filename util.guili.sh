@@ -205,23 +205,37 @@ _prerequerirRetrouver()
 
 exclusivementPrerequis()
 {
+	local GUILI_PATH="$GUILI_PATH"
+	[ -n "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
+	IFS=:
+	local INSTALLS=
+	for INSTALLS in $GUILI_PATH
+	do
+		unset IFS
 	uniquementPrerequis
-	export PATH="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`"
-	export LD_LIBRARY_PATH="`echo "$LD_LIBRARY_PATH" | tr : '\012' | egrep -v "^$INSTALLS/lib(64)?$" | tr '\012' ':' | sed -e 's/:$//'`"
-	export PKG_CONFIG_PATH="`echo "$PKG_CONFIG_PATH" | tr : '\012' | egrep -v "^$INSTALLS/lib/pkgconfig$" | tr '\012' ':' | sed -e 's/:$//'`"
+		args_suppr -d : -e \
+			PATH "$INSTALLS/bin" \
+			PATH "$INSTALLS/sbin" \
+			LD_LIBRARY_PATH "$INSTALLS/lib" \
+			LD_LIBRARY_PATH "$INSTALLS/lib64" \
+			PKG_CONFIG_PATH "$INSTALLS/lib/pkgconfig" \
+			CMAKE_INCLUDE_PATH "$INSTALLS/include"
 	export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 	export CMAKE_LIBRARY_PATH="$LD_LIBRARY_PATH"
-	export CMAKE_INCLUDE_PATH="`echo "$CMAKE_INCLUDE_PATH" | tr : '\012' | egrep -v "^$INSTALLS/include$" | tr '\012' ':' | sed -e 's/:$//'`"
 	# On se protège aussi contre les inclusions que nos éventuels prérequis voudront nous faire ajouter. Si nous passons par le contraignant exclusivementPrerequis ça n'est pas pour laisser nos sous-paquets décider.
 	exp_pkgconfig="`command -v pkg-config 2>&1 || true`"
 	if [ ! -z "$exp_pkgconfig" -a "$exp_pkgconfig" != "$TMP/$$/pkg-config" ]
 	then
 		cat > "$TMP/$$/pkg-config" <<TERMINE
 #!/bin/sh
-$exp_pkgconfig "\$@" | sed -E -e 's/ /  /g' -e 's/^/ /' -e 's/$/ /' -e 's# -L$INSTALLS/(bin|sbin|lib|lib64) ##g'
+SCRIPTS="$SCRIPTS"
+. "\$SCRIPTS/util.args.sh"
+$exp_pkgconfig "\$@" | stdin_suppr "-L$INSTALLS/lib" "-L$INSTALLS/lib64"
 TERMINE
 		chmod a+x "$TMP/$$/pkg-config"
 	fi
+	done
+	unset IFS
 }
 
 # Si l'on ne veut pas inclure d'office tout $INSTALLS (CPPFLAGS, LDFLAGS), on peut appeler cette chose. Devrait en fait être fait par défaut (pour que les logiciels ne se lient qu'aux prérequis explicites), mais trop de logiciels reposent sur ce $INSTALLS; on est donc en mode "liste rouge", les logiciels souhaitant se distancier de ce comportement devant appeler uniquementPrerequis.
