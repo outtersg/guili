@@ -76,13 +76,25 @@ args_reduc()
 args_suppr()
 {
 	local e=
+	local sep=" "
+	local S="#" # Séparateur sed, nécessairement différent du $sep fonctionnel.
+	local dollar='$'
 	local vars=
 	local var
-	[ "x$1" = x-e ] && e=oui && shift || true
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-e) e=oui ;;
+			-d) sep="$2" ; shift ;;
+			*) break ;;
+		esac
+		shift
+	done
+	[ "x$ss" != "x$sep" ] || ss="/"
 	while [ $# -gt 0 ]
 	do
 		vars="$vars $1"
-		var="`eval 'echo " $'"$1"' "' | sed -e 's/ /  /g' -e "s# $2 # #g"`"
+		var="`eval 'echo "$sep$'"$1"'$sep"' | sed -e "s${S}$sep${S}$sep$sep${S}g" -e "s${S}$sep$2$sep${S}$sep${S}g"`"
 		eval "$1=\"\$var\""
 		shift
 		shift
