@@ -94,7 +94,7 @@ args_suppr()
 	while [ $# -gt 0 ]
 	do
 		vars="$vars $1"
-		var="`eval 'echo "$sep$'"$1"'$sep"' | sed -e "s${S}$sep${S}$sep$sep${S}g" -e "s${S}$sep$2$sep${S}$sep${S}g"`"
+		var="`eval 'echo "$sep$'"$1"'$sep"' | sed -e "s${S}$sep${S}$sep$sep${S}g" -e "s${S}$sep$2$sep${S}$sep${S}g" -e "s${S}$sep$sep$sep*${S}$sep${S}g" -e "s${S}^$sep${S}${S}" -e "s${S}$sep$dollar${S}${S}"`"
 		eval "$1=\"\$var\""
 		shift
 		shift
