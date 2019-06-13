@@ -26,16 +26,42 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 logiciel=m4
 
+modifs="libcStatique"
+
 v 1.4.15 || true
 v 1.4.16 || true
 v 1.4.17 || true
 v 1.4.18 || true
+
+libcStatique()
+{
+	# https://stackoverflow.com/questions/15285776/multiple-definitions-when-linking-collect2-error-ld-returned-1-exit-status
+	# https://github.com/jedisct1/libsodium/issues/202
+	# Une certaine version de Linux, avec une certaine version de gcc, fait que les fonctions de la libc sont dupliquées
+	# dans chaque .o de m4. À l'édition de liens, ça explose, forcément.
+	
+	case "$CC" in
+		gcc|*/gcc|"gcc "*|*"/gcc "*) true ;;
+		*) return 0 ;;
+	esac
+	
+	( echo "#include <stdlib.h>" ; echo "int main(int argc, char ** argv) { return 0; }" ) > $TMP/$$/1.c
+	echo "#include <stdlib.h>" > $TMP/$$/2.c
+	if $CC -O2 -D_FORTIFY_SOURCE=2 -std=c99 $TMP/$$/[12].c -o $TMP/$$/1 2>&1 | grep 'ultiple definitions'
+	then
+		export CFLAGS="-fgnu89-inline $CFLAGS"
+		export CPPFLAGS="-fgnu89-inline $CPPFLAGS"
+	fi
+}
 
 archive=http://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 
 destiner
 
 obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
