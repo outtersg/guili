@@ -458,10 +458,12 @@ TERMINE
 	then
 		for i in 0 1 6
 		do
+			mkdir -p "$desttemp/etc/rc$i.d"
 			ln -s "../init.d/$nom" "$desttemp/etc/rc$i.d/K05$nom"
 		done
 		for i in 2 3 4 5
 		do
+			mkdir -p "$desttemp/etc/rc$i.d"
 			ln -s "../init.d/$nom" "$desttemp/etc/rc$i.d/S95$nom"
 		done
 	fi
