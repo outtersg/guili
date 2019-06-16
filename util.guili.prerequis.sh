@@ -27,6 +27,20 @@ prerequis()
 		echo "#p:$prerequis"
 		exit 0
 	fi
+	# exclusivementPrerequis devrait systématiquement être appelé, pour s'assurer que l'environnement ne pointe que vers les prérequis explicites, et n'embarque pas des dépendances implicites. Cependant, le rattrapage pour migrer tout le monde est monumental, donc nous nous contentons d'une alerte.
+	case "$modifs" in
+		*exclusivementPrerequis*) true ;;
+		*)
+			case "$prerequis" in
+				*openssl*)
+					rouge "# Vous êtes joueur"\!" En prérequérant OpenSSL sans appeler exclusivementPrerequis, vous vous exposez à ce que $logiciel soit lié à la mauvaise version d'OpenSSL."
+					;;
+				*)
+					jaune "# Attention, en n'appelant pas exclusivementPrerequis vous vous exposez à ce que le logiciel compilé se lie à des dépendances non désirées."
+					;;
+			esac
+			;;
+	esac
 	# Initialement on pondait dans un fichier, sur lequel on faisait un while read requis versionRequis ; do … ; done < $TMP/$$/temp.prerequis
 	# (ce < après le done pour ne pas faire un cat $TMP/$$/temp.prerequis | while, qui aurait exécuté le while dans un sous-shell donc ne modifiant pas nos variables)
 	# Problème: sous certains Linux, lorsque prerequerir() donne lieu à la compil d'un logiciel (car non encore présent sur la machine), mystérieusement le prochain tour de boucle renvoie false (comme si le prerequerir avait fait un fseek($TMP/$$/temp.prerequis, 0, SEEK_END).
