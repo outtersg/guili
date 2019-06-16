@@ -24,7 +24,7 @@ set -e
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
-v 1.9.0 && prerequis="openssl < 1.1" && modifs="exclusivementPrerequis preconf makeBsd pasDeRev" || true
+v 1.9.0 && prerequis="openssl < 1.1" && modifs="exclusivementPrerequis preconf makeCppflags makeBsd pasDeRev" || true
 
 archive="http://kent.dl.sourceforge.net/project/proxytunnel/proxytunnel%20source%20tarballs/proxytunnel%20$version/proxytunnel-$version.tgz"
 
@@ -73,6 +73,11 @@ precree "\$@"
 install "\$@"
 TERMINE
     chmod u+x configure moninstall
+}
+
+makeCppflags()
+{
+	filtrer Makefile sed -e "/-c -o/s#-c#$CPPFLAGS -c#"
 }
 
 makeBsd()
