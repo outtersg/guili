@@ -736,6 +736,7 @@ analyserParametresInstall()
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
+			--force) GUILI_INSTALLER_VIEILLE=oui ;;
 			--src) shift ; install_obtenu="$1" ;;
 			--dest) shift ; install_dest="$1" ;;
 			+) export INSTALLS_MAX=1 ;;

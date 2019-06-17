@@ -29,7 +29,7 @@ utiliserSiDerniere()
 	local derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$lv-.*/$lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
 	if [ ! -z "$derniere" ]
 	then
-		if [ "$lv" != "$derniere" ]
+		if [ "$lv" != "$derniere" -a -z "$GUILI_INSTALLER_VIEILLE" ]
 		then
 			echo "# Attention, $lv ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $lv" >&2
 			return 0
