@@ -522,17 +522,7 @@ sutiliser()
 	
 	guili_localiser
 	
-	logicielParam="`echo "$sut_lv" | sed -e 's/-[0-9].*//'`"
-	derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$sut_lv-.*/$sut_lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
-	if [ ! -z "$derniere" ]
-	then
-		if [ "$sut_lv" != "$derniere" ]
-		then
-			echo "# Attention, $sut_lv ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $sut_lv" >&2
-			return 0
-		fi
-	fi
-	[ ! -d "$INSTALLS/$sut_lv" ] || sudo $utiliser "$INSTALLS/$sut_lv"
+	utiliserSiDerniere "$INSTALLS/$sut_lv"
 	
 	infosInstall
 }
