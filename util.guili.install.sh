@@ -25,7 +25,7 @@ utiliserSiDerniere()
 	[ -n "$1" ] || dest="$1"
 	local lv="`basename "$dest"`"
 	
-	local logicielParam="`echo "$lv" | sed -e 's/-[0-9].*//'`"
+	local logicielParam="`echo "$lv" | sed -e 's/-[0-9].*//' -e 's/+[^-]*$//'`"
 	local derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$lv-.*/$lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
 	if [ ! -z "$derniere" ]
 	then
