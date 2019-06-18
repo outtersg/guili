@@ -128,7 +128,7 @@ then
 SANSSU=0 sudo chown -R "$compte:" "$dest/var/run"
 fi
 
-LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis"`"
+LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis > /dev/null 2>&1 ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis" 2> /dev/null`"
 serveur -d "$dest" -p "$pid" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR demon php-fpm$suffixe \
 	"$destphp/sbin/php-fpm --fpm-config $conf"
 
