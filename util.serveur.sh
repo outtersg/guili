@@ -61,7 +61,13 @@ servir()
 					sudoku -f systemctl disable "$serveur"
 					;;
 				*)
-					sudoku -f systemctl "$action" "$serveur"
+					local r=0
+					sudoku -f systemctl "$action" "$serveur" || r=$?
+					if [ $r -ne 0 ]
+					then
+						sudoku -f journalctl -xeu "$serveur.service"
+						return $r
+					fi
 					;;
 			esac
 	esac
