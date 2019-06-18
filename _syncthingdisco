@@ -79,7 +79,7 @@ prerequis
 
 # Variables
 
-version="`echo " $PREINCLUS" | sed -e 's/ *[^ ]*://g' -e 's/ //g'`"
+version="$version_syncthing" # On prend pour numéro de version installée celui de notre logiciel sous-jacent.
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
