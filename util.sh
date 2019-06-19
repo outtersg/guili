@@ -730,24 +730,6 @@ vmaj()
 	echo "$1" | sed -e 's/^\([^.]*.[^.]*\).*$/\1/'
 }
 
-analyserParametresInstall()
-{
-	argOptions=
-	while [ $# -gt 0 ]
-	do
-		case "$1" in
-			--force) GUILI_INSTALLER_VIEILLE=oui ;;
-			--src) shift ; install_obtenu="$1" ;;
-			--dest) shift ; install_dest="$1" ;;
-			+) export INSTALLS_MAX=1 ;;
-			+[a-z]*) argOptions="$argOptions$1" ;;
-		esac
-		shift
-	done
-	argOptions="`options "$argOptions" | tr -d ' '`"
-	argOptionsDemandees="$argOptions+"
-}
-
 case "$0" in
 	-*) true ;;
 	*)

@@ -256,6 +256,25 @@ uniquementPrerequis()
 
 #- Gestion des paramètres ------------------------------------------------------
 
+# Interprète parmi les paramètres ceux standardisés GuiLI.
+analyserParametresInstall()
+{
+	argOptions=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--force) GUILI_INSTALLER_VIEILLE=oui ;;
+			--src) shift ; install_obtenu="$1" ;;
+			--dest) shift ; install_dest="$1" ;;
+			+) export INSTALLS_MAX=1 ;;
+			+[a-z]*) argOptions="$argOptions$1" ;;
+		esac
+		shift
+	done
+	argOptions="`options "$argOptions" | tr -d ' '`"
+	argOptionsDemandees="$argOptions+"
+}
+
 # Recherche les paramètres de type -d <dossier GuiLI> ou --pour "<logiciel GuiLI> <options de version GuiLI>" et:
 # - les ajoute à $prerequis
 # - invoque ces prérequis
