@@ -786,23 +786,6 @@ infosInstall()
 	[ $feu = vert -a $sortie = oui ] && exit 0 || true
 }
 
-destiner()
-{
-	verifierConsommationOptions
-	if [ -z "$install_dest" ]
-	then
-		dest="`versions -v "$version" "$logiciel$argOptions" | tail -1`"
-		if [ -z "$dest" ]
-		then
-			dest="$INSTALLS/$logiciel$argOptions-$version"
-		fi
-	else
-	dest="$install_dest"
-	fi
-	guili_temoins "$dest" "$1"
-	infosInstall -s
-}
-
 # Inscrit une version comme gérée; la retient comme version à compiler si elle rentre dans les critères spécifiés en paramètres du script; renvoie true si la version a compilée est supérieure ou égale à celle-ci, false sinon.
 v()
 {

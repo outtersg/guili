@@ -19,6 +19,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+destiner()
+{
+	verifierConsommationOptions
+	if [ -z "$install_dest" ]
+	then
+		dest="`versions -v "$version" "$logiciel$argOptions" | tail -1`"
+		if [ -z "$dest" ]
+		then
+			dest="$INSTALLS/$logiciel$argOptions-$version"
+		fi
+	else
+	dest="$install_dest"
+	fi
+	guili_temoins "$dest" "$1"
+	infosInstall -s
+}
+
 utiliserSiDerniere()
 {
 	local dest="$dest"
