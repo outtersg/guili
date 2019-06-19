@@ -756,7 +756,7 @@ infosInstall()
 			case "$ii_var" in
 				-i) true ;;
 				-n) feu=vert ; sortie=oui ;;
-		1) echo "$logiciel:$logiciel$argOptions:$version:$dest" ;;
+		1) echo "$logiciel:$logiciel`argOptions`:$version:$dest" ;;
 		vars0) echo "dest=$dest version=$version prerequis=\"$prerequis\"" ;;
 		vars) echo "dest$logiciel=$dest version_$logiciel=$version prerequis_$logiciel=\"$prerequis\"" ;;
 		"") true ;;
