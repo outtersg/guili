@@ -27,7 +27,7 @@ destiner()
 		dest="`versions -v "$version" "$logiciel$argOptions" | tail -1`"
 		if [ -z "$dest" ]
 		then
-			dest="$INSTALLS/$logiciel$argOptions-$version"
+			dest="$INSTALLS/$logiciel`argOptions`-$version"
 		fi
 	else
 	dest="$install_dest"
