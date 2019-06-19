@@ -41,6 +41,9 @@ then
 		done
 	}
 	export TESTUTIL=1
+	tester 'options -toto +toto -toto =toto' '^-toto$'
+	tester 'options +toto -toto +toto =toto' '^\+toto$'
+	tester 'options =toto' '^\+toto$'
 	tester "$SCRIPTS/testutil" '^(dest: .*/testutil-1.0.0|prerequis: *oui *)$'
 	tester "( export PATH=/tmp:\$PATH ; touch /tmp/toto ; chmod a+x /tmp/toto ; ./testutil )" '^(dest: .*/testutil\+toto-1.0.0|prerequis: *oui *toto *)$'
 	exit 0
