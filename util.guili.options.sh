@@ -22,12 +22,39 @@
 # Renvoie les options dans l'ordre de référence (alphabétique).
 argOptions()
 {
-	options "$argOptions"
+	options "$argOptions" | sed -e 's/[-=+]/@&/g' | tr @ '\012' | grep -v ^$ | grep -v '^[^+]' | sort -u | tr -d '\012'
 }
 
+# "Compile" les options (de deux mentions + et - pour une option, garde la dernière; le = devient + si aucun - ne le précède).
 options()
 {
-	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort -u | sed -e 's/^/+/' | tr -d '\012'
+	echo "$*" | awk \
+	'{
+		l = $0;
+		sub(/^[^-=+]*/, "", l);
+		gsub(/[-=+]/, "@&", l);
+		nBouts = split(l, bouts, /@/);
+		for(i = 0; ++i <= nBouts;)
+		{
+			signe = substr(bouts[i], 1, 1);
+			bout = substr(bouts[i], 2);
+			gsub(/ /, "", bout);
+			
+			if(signe == "=")
+				if(signeBouts[bout])
+					continue;
+				else
+					signe = "+";
+			signeBouts[bout] = signe;
+			boutsParPos[i] = bout;
+			posBouts[bout] = i;
+		}
+		r = "";
+		for(i = 0; ++i <= nBouts;)
+			if(posBouts[bout = boutsParPos[i]] == i) # Si le bout déclaré en i n a pas été écrasé par une déclaration ultérieure.
+				r = r""signeBouts[bout]""bout;
+		print r;
+	}'
 }
 
 option()
