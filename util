@@ -60,7 +60,7 @@ _guiliChercher()
 	(
 		local l="$1"
 		analyserParametresInstall "$@"
-		versions "$l$argOptions" "`argVersion "$@"`" | grep -q .
+		versions "$l+$argOptions" "`argVersion "$@"`" | grep -q .
 	)
 }
 
