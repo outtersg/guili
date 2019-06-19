@@ -20,6 +20,11 @@
 # SOFTWARE.
 
 # Renvoie les options dans l'ordre de référence (alphabétique).
+argOptions()
+{
+	options "$argOptions"
+}
+
 options()
 {
 	echo "$*" | sed -e 's/^[^+]*//' | tr + '\012' | grep -v ^$ | sort -u | sed -e 's/^/+/' | tr -d '\012'
