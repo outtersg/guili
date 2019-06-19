@@ -22,7 +22,7 @@
 # Renvoie les options dans l'ordre de référence (alphabétique).
 argOptions()
 {
-	options "$argOptions" | sed -e 's/[-=+]/@&/g' | tr @ '\012' | grep -v ^$ | grep -v '^[^+]' | sort -u | tr -d '\012'
+	argOptionsBrut | sed -e 's/[-=+]/@&/g' | tr @ '\012' | grep -v ^$ | grep -v '^[^+]' | sort -u | tr -d '\012'
 }
 
 # Renvoie `options "$argOptions"`
