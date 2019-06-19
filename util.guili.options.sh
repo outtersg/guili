@@ -25,6 +25,18 @@ argOptions()
 	options "$argOptions" | sed -e 's/[-=+]/@&/g' | tr @ '\012' | grep -v ^$ | grep -v '^[^+]' | sort -u | tr -d '\012'
 }
 
+# Renvoie `options "$argOptions"`
+# Implémente un cache sur le dernier calcul effectué.
+argOptionsBrut()
+{
+	if [ "x$argOptions" != "x$_guili_argOptionsDernierCache" ]
+	then
+		_guili_argOptionsBrut="`options "$argOptions"`"
+		_guili_argOptionsDernierCache="$argOptions"
+	fi
+	echo "$_guili_argOptionsBrut"
+}
+
 # "Compile" les options (de deux mentions + et - pour une option, garde la dernière; le = devient + si aucun - ne le précède).
 options()
 {
