@@ -681,18 +681,6 @@ avec()
 	echo "$AVEC" | grep -q ",$1,"
 }
 
-# Les programmes qui veulent se lier à libjpeg, libjpeg < 9, ou libjpegturbo, peuvent utiliser cette variable, toujours définie, et surchargeable par l'appelant "du dessus".
-_initPrerequisLibJpeg()
-{
-	case "$argOptions+" in
-		*+jpeg9+*) prerequis_libjpeg="libjpeg >= 9" ;;
-		*+jpeg8+*) prerequis_libjpeg="libjpeg < 9" ;;
-		*+jpegturbo+*) prerequis_libjpeg="libjpegturbo" ;;
-	esac
-[ ! -z "$prerequis_libjpeg" ] || prerequis_libjpeg="libjpeg"
-export prerequis_libjpeg
-}
-
 # Sort le chemin d'installation de chacun des prérequis passés en paramètres.
 # Appelle prerequis et ne sort que l'info de chemin. L'idée est de pouvoir l'appeler depuis un sous-shell pour connaître le chemin sans modifier tout l'environnement (LDFLAGS et compagnie), par exemple:
 #   echo "Le dernier PHP avant la 7 se trouve dans `cible "php < 7"`"
