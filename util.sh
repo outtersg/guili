@@ -1482,10 +1482,6 @@ statf()
 }
 
 [ ! -e "$SCRIPTS/util.guili.sh" ] || . "$SCRIPTS/util.guili.sh"
-
-argVersion="`argVersion "$@"`"
-analyserParametresInstall "$@"
-
 for util_module in silo
 do
 	[ ! -e "$SCRIPTS/util.$util_module.sh" ] || . "$SCRIPTS/util.$util_module.sh"
@@ -1499,6 +1495,9 @@ do
 done
 [ ! -e "$SCRIPTS/util.multiarch.sh" ] || . "$SCRIPTS/util.multiarch.sh"
 [ ! -e "$SCRIPTS/util.python.sh" ] || . "$SCRIPTS/util.python.sh"
+
+argVersion="`argVersion "$@"`"
+analyserParametresInstall "$@"
 
 prerequis= # Certains installeurs appellent prerequis(), mais sans avoir initialisé $prerequis. Résultat, ils héritent de l'environnement; pour peu que quelqu'un prérequière un de ces logiciels, ses prerequis seront donc lui-même, et nous voilà partis pour une boucle infinie…
 guili__xpath=
