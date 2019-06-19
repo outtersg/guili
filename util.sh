@@ -1488,7 +1488,7 @@ case " $INSTALLS_AVEC_INFOS " in
 	*" -n "*|*" -i "*|"  ") true ;; # En mode INSTALLS_AVEC_INFOS -n ou -i, ou sans INSTALLS_AVEC_INFOS, on laisse dérouler, car on souhaite atteindre la plus haute version qui réponde aux critères définis dans la suite des opérations.
 	*)
 		# En mode INSTALLS_AVEC_INFOS par défaut, changement de stratégie: on ne veut pas installer selon des critères, juste savoir ce qu'il y a déjà d'installé qui réponde aux critères…
-		argVersionExistante="`versions "$logiciel$argOptions" "$argVersion" | tail -1 | sed -e 's/^.*-//'`"
+		argVersionExistante="`versions "$logiciel+$argOptions" "$argVersion" | tail -1 | sed -e 's/^.*-//'`"
 		# … sauf si on ne trouve décidément rien d'installé.
 		[ -z "$argVersionExistante" ] || argVersion="$argVersionExistante"
 		;;
