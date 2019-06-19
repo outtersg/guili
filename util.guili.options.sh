@@ -32,13 +32,14 @@ options()
 
 option()
 {
+	local r
 	case "$argOptions+" in
-		*+$1+*)
-			argOptionsDemandees="`echo "$argOptionsDemandees" | sed -e "s/[+]$1[+]/+/"`"
-			return 0
-			;;
+		*-$1[-+]*) r=1 ;;
+		*+$1[-+]*) r=0 ;;
+		*) return 1 ;;
 	esac
-	return 1
+	argOptionsDemandees="`echo "$argOptionsDemandees" | sed -e "s/[-+]$1\\([-+]\\)/\\1/"`"
+	return $r
 }
 
 # Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
