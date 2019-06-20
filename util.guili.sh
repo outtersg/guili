@@ -276,6 +276,7 @@ analyserParametresInstall()
 			--dest) shift ; install_dest="$1" ;;
 			+) export INSTALLS_MAX=1 ;;
 			+[a-z]*) argOptions="$argOptions$1" ;;
+			--sans-*) argOptions="$argOptions-`echo "$1" | cut -d - -f 4-`" ;;
 		esac
 		shift
 	done
