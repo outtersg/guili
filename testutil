@@ -46,6 +46,7 @@ then
 	tester 'options =toto' '^\+toto$'
 	tester "$SCRIPTS/testutil" '^(dest: .*/testutil-1.0.0|prerequis: *oui *)$'
 	tester "( export PATH=/tmp:\$PATH ; touch /tmp/toto ; chmod a+x /tmp/toto ; ./testutil )" '^(dest: .*/testutil\+toto-1.0.0|prerequis: *oui *toto *)$'
+	tester "( export PATH=/tmp:\$PATH ; touch /tmp/toto ; chmod a+x /tmp/toto ; ./testutil --sans-toto )" '^(dest: .*/testutil-1.0.0|prerequis: *oui *)$'
 	exit 0
 fi
 
