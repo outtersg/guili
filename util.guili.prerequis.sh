@@ -66,6 +66,19 @@ prerequis()
 	_cheminsExportes
 }
 
+presentOuPrerequis()
+{
+	local present="`versions "$1" "$2" | tail -1`"
+	if [ -z "$present" ]
+	then
+		prerequis="$prerequis $1 $2"
+	else
+		local rlvo="`rlvo "$present/"`"
+		_reglagesCheminsPrerequis() { reglagesCheminsPrerequis -l "$2" "$3" "$1" ; }
+		_reglagesCheminsPrerequis $rlvo
+	fi
+}
+
 # Plusieurs modes de fonctionnement:
 # - par défaut: cherche une version parmi celles installées; si trouvée, elle fait foi; sinon installe.
 # - -i: installe la dernière version si pas déjà en place.
