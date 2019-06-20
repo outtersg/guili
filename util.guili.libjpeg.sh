@@ -22,9 +22,9 @@
 _initPrerequisLibJpeg()
 {
 	case "`argOptions`+" in
-		*+jpeg9+*) prerequis_libjpeg="libjpeg >= 9" ;;
-		*+jpeg8+*) prerequis_libjpeg="libjpeg < 9" ;;
-		*+jpegturbo+*) prerequis_libjpeg="libjpegturbo" ;;
+		*+jpeg9[-+]*) prerequis_libjpeg="libjpeg >= 9" ;;
+		*+jpeg8[-+]*) prerequis_libjpeg="libjpeg < 9" ;;
+		*+jpegturbo[-+]*) prerequis_libjpeg="libjpegturbo" ;;
 	esac
 	[ ! -z "$prerequis_libjpeg" ] || prerequis_libjpeg="libjpeg"
 	export prerequis_libjpeg
