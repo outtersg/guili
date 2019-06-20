@@ -100,7 +100,10 @@ then
 	OPTIONS_CONF="$OPTIONS_CONF --with-pgsql --with-pdo-pgsql"
 fi
 
-option mysql || commande mysql || virerPrerequis mysql
+if ! optionSi mysql commande mysql
+then
+	OPTIONS_CONF="$OPTIONS_CONF --without-mysql --without-pdo-mysql"
+fi
 
 # Sur de très vieilles machines, PHP 7, qui utilise du sed -E, va se vautrer. Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
 PATH_EP="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`" # Le PATH sous lequel tournera le configure sera celui d'exclusivementPrerequis.
