@@ -28,7 +28,7 @@ argVersion="`argVersionSauf "-p -s" "$@"`" # Un suffixe indiqué en "-s 7.2" ne 
 
 # Historique des versions gérées
 
-prerequis="php $argVersion"
+presentOuPrerequis "php+$argOptions" "$argVersion"
 
 auSecours()
 {
