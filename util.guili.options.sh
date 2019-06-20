@@ -95,7 +95,7 @@ optionSi()
 	shift
 	if ! option "$l" && ( versions "$l" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
 	then
-		argOptions="`options "$argOptions+$l"`"
+		argOptions="`options "$argOptions=$l"`"
 	fi
 	option "$l" && return 0 || virerPrerequis "$l"
 	return 1
