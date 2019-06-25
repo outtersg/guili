@@ -164,7 +164,7 @@ serveurParamEnv()
 
 serveurEnvPourExport()
 {
-	echo "$serveur_env" | sed -e "s/^/$serveur_sep/" -e "s/$/$serveur_sep/" -e "s#$serveur_sep\([^=]*=\)#\" \\1\"#g" -e "s/$serveur_sep/\"/g" | sed -e 's/^ *" *//'
+	echo "$serveur_env" | sed -e 's/"/\\"/g' -e "s/^/$serveur_sep/" -e "s/$/$serveur_sep/" -e "s#$serveur_sep\([^=]*=\)#\" \\1\"#g" -e "s/$serveur_sep/\"/g" | sed -e 's/^ *" *//' -e '/^"$/d'
 }
 
 analyserParametresServeur()
