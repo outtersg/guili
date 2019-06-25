@@ -329,16 +329,7 @@ TERMINE
 		"$usrLocal") relatif= ;; # On installe directement dans /usr/local, donc inutile de faire un lien vers lui-même.
 		"$usrLocal/`basename "$dest"`") relatif="../.." ;; # Vers un dossier au standard sutiliser.
 	esac
-	if [ ! -z "$relatif" ]
-	then
-		sudoku -f sh <<TERMINE
-set -e
-d="$usrLocal/etc/rc.d/$nom"
-s="$relatif/etc/rc.d/$nom"
-[ -L "\$d" ] && rm "\$d" || true
-ln -s "\$s" "\$d"
-TERMINE
-	fi
+	[ -z "$relatif" ] || serveur_lner "$relatif" "$usrLocal" "etc/rc.d/$nom"
 	
 	# Ajout au sudoers.
 	if [ ! -z "$compte" ]
