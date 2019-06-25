@@ -229,6 +229,27 @@ analyserParametresServeur()
 	esac
 }
 
+serveur_lner()
+{
+	local ds="$1" ; shift
+	local dd="$1" ; shift
+	sudoku -d "$dd" sh <<TERMINE
+set -e
+ds="$ds"
+dd="$dd"
+IFS=@
+fichiers="`IFS=@ ; echo "$*"`"
+for f in \$fichiers
+do
+	d="\$dd/\$f"
+	s="\$ds/\$f"
+	mkdir -p "\`dirname "\$d"\`"
+	[ -L "\$d" ] && rm "\$d" || true
+	ln -s "\$s" "\$d"
+done
+TERMINE
+}
+
 serveurFreebsd()
 {
 	local usrLocal=/usr/local
