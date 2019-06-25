@@ -23,30 +23,6 @@
 
 #- Versions --------------------------------------------------------------------
 
-# Renvoie les versions pour un logiciel donnée, triées par version croissante.
-versions()
-{
-	local GUILI_PATH="$GUILI_PATH"
-	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
-	
-	versions_expr_version='[0-9.]+'
-	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
-	versions_logiciel="`echo "$1" | cut -d + -f 1`"
-	local options="`echo "$1" | cut -s -d + -f 2-`" # Le -s est super important!
-	options="`options "+$options" | sed -e 's/[-=+][-=+]*\([-=+]\)/\1/g' -e 's/[-=+]$//'`"
-	local versions_expr= versions_expr_excl=
-	case "$options" in
-		*+*) versions_expr="/$versions_logiciel`argOptions="$options" argOptions | sed -e 's/-[^-=+]*//g' -e 's#[+]#([+][^+]*)*[+]#g'`([+][^+]*)*-$versions_expr_version$" ;;
-	esac
-	case "$options" in
-		*-*) versions_expr_excl="/$versions_logiciel([+][^+]*)*`echo "$options" | sed -e 's/[+][^-=+]*//g' -e 's#-#|[+]#g' -e 's#|#(#'`)([+][^+]*)*-$versions_expr_version$" ;;
-	esac
-	(
-		IFS=:
-		find $GUILI_PATH -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
-	) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$2" | triversions
-}
-
 # rlvo: Racine - Logiciel - Version - Options
 # Découpe un chemin:
 #   /usr/local/logiciel+option0+option1-version/bin/logiciel
