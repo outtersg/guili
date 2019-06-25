@@ -164,7 +164,7 @@ serveurParamEnv()
 
 serveurEnvPourExport()
 {
-	echo "$serveur_env" | sed -e 's/"/\\"/g' -e "s/^/$serveur_sep/" -e "s/$/$serveur_sep/" -e "s#$serveur_sep\([^=]*=\)#\" \\1\"#g" -e "s/$serveur_sep/\"/g" | sed -e 's/^ *" *//' -e '/^"$/d'
+	echo "$serveur_env" | sed -e 's/"/\\"/g' -e "s/^/$serveur_sep/" -e "s/$/$serveur_sep/" -e "s#$serveur_sep\([^=]*=\)#\" \\1\"#g" -e "s/$serveur_sep/\"/g" | sed -e 's/^ *" *//' -e '/^"$/d' -e '/=/s/^/export /'
 }
 
 analyserParametresServeur()
@@ -256,10 +256,6 @@ serveurFreebsd()
 			;;
 	esac
 	
-	if [ ! -z "$serveur_env" ]
-	then
-		avant="$avant${serveur_sep}export `serveurEnvPourExport`"
-	fi
 	mkdir -p "$desttemp/etc/rc.d" "$desttemp/var/run"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
 #!/bin/sh
@@ -275,6 +271,7 @@ load_rc_config "\$name"
 : \${${nomPropre}_enable="NO"}
 
 `echo "$avant" | tr "$serveur_sep" '\012'`
+`serveurEnvPourExport`
 
 # La fonction du rc.subr est chiante, elle souhaite vérifier que le PID correspond à un process avec un nom retrouvable. Mais moi une fois que je dis à un lanceur de mettre son PID dans tel fichier, je ne vais pas me poser la question de si le processus qui tournera ce sera lui ou un des innombrables sous-shells ou sous-processus qu'il lancera. Donc on est laxistes.
 _find_processes()
