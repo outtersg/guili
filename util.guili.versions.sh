@@ -29,10 +29,11 @@ versions()
 	versions_logiciel="`echo "$1" | cut -d + -f 1`"
 	local options="`echo "$1" | cut -s -d + -f 2-`" # Le -s est super important!
 	options="`options "+$options" | sed -e 's/[-=+][-=+]*\([-=+]\)/\1/g' -e 's/[-=+]$//'`"
-	local versions_expr= versions_expr_excl=
+	local versions_expr_options= versions_expr_excl=
 	case "$options" in
-		*+*) versions_expr="/$versions_logiciel`argOptions="$options" argOptions | sed -e 's/-[^-=+]*//g' -e 's#[+]#([+][^+]*)*[+]#g'`([+][^+]*)*-$versions_expr_version$" ;;
+		*+*) versions_expr_options="`argOptions="$options" argOptions | sed -e 's/-[^-=+]*//g' -e 's#[+]#([+][^+]*)*[+]#g'`" ;;
 	esac
+	local versions_expr="/$versions_logiciel$versions_expr_options([+][^+]*)*-$versions_expr_version$"
 	case "$options" in
 		*-*) versions_expr_excl="/$versions_logiciel([+][^+]*)*`echo "$options" | sed -e 's/[+][^-=+]*//g' -e 's#-#|[+]#g' -e 's#|#(#'`)([+][^+]*)*-$versions_expr_version$" ;;
 	esac
