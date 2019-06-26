@@ -113,7 +113,8 @@ pid="$dest/var/run/php-fpm$suffixe.pid"
 desttemp="$TMP/$$/dest"
 rm -Rf "$desttemp"
 		
-mkdir -p "$TMP/$$/dest/etc/rc.d" "$TMP/$$/dest/var/run"
+mkdir -p "$desttemp/etc/rc.d"
+[ -d "$dest/var/run" ] || mkdir -p "$desttemp/var/run" # S'il existe déjà (précédente install) à la cible, inutile de le recréer dans notre patron.
 cp "$destphp/etc/php-fpm.conf" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
 changerconf -c \; pid="$pid" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
 if [ -d "$destphp/etc/php-fpm.d" ]
