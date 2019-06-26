@@ -112,6 +112,8 @@ fi
 		conf="$dest/etc/php-fpm$suffixe.conf"
 pid="$dest/var/run/php-fpm$suffixe.pid"
 
+_phpfpm_patronTemp()
+{
 desttemp="$TMP/$$/dest"
 rm -Rf "$desttemp"
 		
@@ -126,6 +128,9 @@ then
 	[ -e "$destpointd/www.conf.default" ] && mv "$destpointd/www.conf.default" "$destpointd/www.conf" || true
 fi
 filtrerConfs `find "$TMP/$$/dest/etc" -type f`
+}
+
+_phpfpm_patronTemp
 		
 sudo mkdir -p "$dest"
 sudo cp -Rp "$TMP/$$/dest/." "$dest/."
