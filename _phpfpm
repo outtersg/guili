@@ -112,9 +112,9 @@ fi
 		conf="$dest/etc/php-fpm$suffixe.conf"
 pid="$dest/var/run/php-fpm$suffixe.pid"
 
-_phpfpm_patronTemp()
+_patronTemp()
 {
-desttemp="$TMP/$$/dest"
+	local desttemp="$1"
 rm -Rf "$desttemp"
 		
 mkdir -p "$desttemp/etc/rc.d"
@@ -130,12 +130,18 @@ fi
 filtrerConfs `find "$TMP/$$/dest/etc" -type f`
 }
 
-_phpfpm_patronTemp
-		
+_pousserPatronTemp()
+{
+	local desttemp="$1" dest="$2"
 sudo mkdir -p "$dest"
-sudo cp -Rp "$TMP/$$/dest/." "$dest/."
+	sudo cp -Rp "$desttemp/." "$dest/."
 	serveur_chownVars
+}
 
+desttemp="$TMP/$$/dest"
+_patronTemp "$desttemp"
+_pousserPatronTemp "$desttemp" "$dest"
+		
 LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis > /dev/null 2>&1 ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis" 2> /dev/null`"
 serveur -d "$dest" -p "$pid" -u "$compteMaitre" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR demon php-fpm$suffixe \
 	"$destphp/sbin/php-fpm --fpm-config $conf"
