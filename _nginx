@@ -84,8 +84,11 @@ if ! id "$compte" > /dev/null 2>&1 ; then
 fi
 
 echo "Auto-démarrage…" >&2
+_patronTemp()
+{
+	local dest0="$1"
+	
 # Constitution.
-dest0="$TMP/$$/dest"
 conf="etc/nginx.original" # Doit être différent de conf (standard nginx), sans quoi nginx et _nginx se disputeront le lien symbolique $INSTALLS/conf. De plus, suffixe .original pour permettre les personnalisations.
 mkdir -p "$dest0/$conf"
 cp -R "$destnginx/conf/." "$dest0/$conf/."
@@ -95,13 +98,25 @@ filtrer "$dest0/$conf/nginx.conf" sed -e "1i\\
 user $compte;
 "
 touch "$dest0/$conf/nginx.local.conf"
-mkdir "$dest0/logs"
+	serveur_patronVars "$dest0" logs
 conf="`echo "$conf" | sed -e 's#\.original$##'`"
 # Personnalisation.
 iperso "$dest0"
+}
+
+_pousserPatronTemp()
+{
+	local dest0="$1" dest="$2"
+	
 # Copie.
 sudo mkdir -p "$dest"
 sudo cp -R "$dest0/." "$dest/."
+	serveur_chownVars
+}
+
+_patronTemp "$TMP/$$/dest"
+_pousserPatronTemp "$TMP/$$/dest" "$dest"
+
 # Démarreur.
 # N.B.: il est probable que le -u soit root, du fait de la nécessité d'ouvrir les ports privilégiés. Le passage en compte sous-privilégié sera à faire dans le fichier de conf (le processus maître, piloté par ce -u, sera root; les fils, pilotés par la conf, pourront être autre chose).
 serveur -p "$dest/logs/nginx.pid" -r httpd -r apache2 -u "$compteMaitre" $PARAMS_SERVEUR demon nginx -pre "umask 007" extra_commands=reload -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/$conf/nginx.conf"
