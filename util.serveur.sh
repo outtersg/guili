@@ -412,7 +412,7 @@ serveurLinux()
 	then
 		fpid=$dest/var/run/$nom.pid
 	fi
-	[ -z "$compte" ] || commande="su $compte sh -c \"`echo "$commande" | sed -e 's/"/\\"/g'`\""
+	[ -z "$compte" ] || commande="suer $compte $commande"
 	case "$type" in
 		simple)
 			commande="daemon $commande"
@@ -432,12 +432,19 @@ serveurLinux()
 daemon()
 {
 	"\$@" < /dev/null >> "$ftrace" 2>&1 &
+	echo \$! > "\$pidfile"
+}
+
+suer()
+{
+	local compte="\$1" ; shift
+	export pidfile
+	su \$compte -c "\`sed -e '/^daemon(/,/^}$/!d' < "\$0"\` ; \$*"
 }
 
 lance()
 {
 	$commande
-	echo \$! > "\$pidfile"
 }
 
 tue()
