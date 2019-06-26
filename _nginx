@@ -42,6 +42,7 @@ analyserParametres()
 	vars=""
 	compteMaitre=root
 	compte=
+	PARAMS_SERVEUR=
 	while [ $# -gt 0 ] ; do
 		case "$1" in
 			"") true ;; # Version bidon passée par exemple par varsPrerequis.
@@ -102,6 +103,6 @@ sudo mkdir -p "$dest"
 sudo cp -R "$dest0/." "$dest/."
 # Démarreur.
 # N.B.: il est probable que le -u soit root, du fait de la nécessité d'ouvrir les ports privilégiés. Le passage en compte sous-privilégié sera à faire dans le fichier de conf (le processus maître, piloté par ce -u, sera root; les fils, pilotés par la conf, pourront être autre chose).
-serveur -p "$dest/logs/nginx.pid" -r httpd -r apache2 -u "$compteMaitre" demon nginx -pre "umask 007" extra_commands=reload -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/$conf/nginx.conf"
+serveur -p "$dest/logs/nginx.pid" -r httpd -r apache2 -u "$compteMaitre" $PARAMS_SERVEUR demon nginx -pre "umask 007" extra_commands=reload -e LD_LIBRARY_PATH "$destnginx/sbin/nginx -p $dest -c $dest/$conf/nginx.conf"
 
 sutiliser -
