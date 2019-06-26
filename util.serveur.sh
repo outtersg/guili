@@ -412,7 +412,7 @@ serveurLinux()
 	then
 		fpid=$dest/var/run/$nom.pid
 	fi
-	[ -z "$compte" ] || commande="suer $compte $commande"
+	[ -z "$compte" -o "$compte" = root ] || commande="suer $compte $commande"
 	case "$type" in
 		simple)
 			commande="daemon $commande"
