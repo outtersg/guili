@@ -42,6 +42,7 @@ TERMINE
 analyserParametres()
 {
 	vars=""
+	compteMaitre=root
 	port=9000
 	suffixe=
 	PARAMS_SERVEUR=
@@ -49,6 +50,7 @@ analyserParametres()
 	do
 		case "$1" in
 			-r) PARAMS_SERVEUR="$PARAMS_SERVEUR $1 $2" ; shift ;;
+			-U) shift ; compteMaitre="$1" ; [ -z "$compte" -a "c$1" != croot ] && compte="$1" || true ;;
 			-u) compte="$2" ; shift ;;
 			-s) suffixe="$2" ; shift ;;
 			-p) port="$2" ; shift ;;
@@ -133,7 +135,7 @@ SANSSU=0 sudo chown -R "$compte:" "$dest/var/run"
 fi
 
 LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis > /dev/null 2>&1 ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis" 2> /dev/null`"
-serveur -d "$dest" -p "$pid" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR demon php-fpm$suffixe \
+serveur -d "$dest" -p "$pid" -u "$compteMaitre" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR demon php-fpm$suffixe \
 	"$destphp/sbin/php-fpm --fpm-config $conf"
 
 sutiliser -
