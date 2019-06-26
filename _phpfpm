@@ -118,13 +118,7 @@ desttemp="$TMP/$$/dest"
 rm -Rf "$desttemp"
 		
 mkdir -p "$desttemp/etc/rc.d"
-	vars="var/run var/log"
-	local var
-	for var in $vars
-	do
-		# S'il existe déjà (précédente install) à la cible, inutile de le recréer dans notre patron, surtout qu'à la cible il appartiendra à $compte et nous ne pourrons sans doute pas installer le nôtre.
-		[ -d "$dest/$var" ] || mkdir -p "$desttemp/$var"
-	done
+	serveur_patronVars "$desttemp" var/run var/log
 cp "$destphp/etc/php-fpm.conf" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
 	changerconf -c \; pid="$pid" error_log="$dest/var/log/php-fpm.log" "$desttemp/etc/php-fpm$suffixe.conf"
 if [ -d "$destphp/etc/php-fpm.d" ]
@@ -140,7 +134,7 @@ _phpfpm_patronTemp
 		
 sudo mkdir -p "$dest"
 sudo cp -Rp "$TMP/$$/dest/." "$dest/."
-[ "$compte" = "`id -un`" ] || ( cd "$dest" && sudoku -f chown -R "$compte:" $vars )
+	serveur_chownVars
 
 LD_LIBRARY_PATH_PHP_ET_DEPS="`LD_LIBRARY_PATH= ; prerequis > /dev/null 2>&1 ; echo "$LD_LIBRARY_PATH"``varsPrerequis LD_LIBRARY_PATH "$prerequis" 2> /dev/null`"
 serveur -d "$dest" -p "$pid" -u "$compteMaitre" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR demon php-fpm$suffixe \
