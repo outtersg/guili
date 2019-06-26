@@ -109,6 +109,9 @@ then
 fi
 		conf="$dest/etc/php-fpm$suffixe.conf"
 pid="$dest/var/run/php-fpm$suffixe.pid"
+
+desttemp="$TMP/$$/dest"
+rm -Rf "$desttemp"
 		
 mkdir -p "$TMP/$$/dest/etc/rc.d" "$TMP/$$/dest/var/run"
 cp "$destphp/etc/php-fpm.conf" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
