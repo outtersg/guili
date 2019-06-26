@@ -496,3 +496,38 @@ TERMINE
 	
 	servir "$nom" start
 }
+
+#- Utilitaires -----------------------------------------------------------------
+
+# Crée les dossiers /var/ (à usage d'écriture par le serveur) dans le patron (précopie en compte local de ce qui deviendra $dest).
+# Env:
+#   $dest
+#     Emplacement où le patron sera copié in fine.
+# Utilisation: serveur_patronVars <dossier patron> <sous-dossier var>+
+#   <dossier patron>
+#     Dossier de travail où constituer l'arborescence destinée à $dest.
+#   <sous-dossier var>
+#     Sous-dossier à créer. S'il existe déjà un $dest/<sous-dossier var>, il *ne sera pas créé* (on considère qu'une précédente version du serveur installée à cet endroit a déjà commencé à le remplir, et que le précréer dans le patron ne servirait à rien, voire nous causerait des soucis si le patron essaie de remplacer celui "de production" par le sien).
+serveur_patronVars()
+{
+	local desttemp="$1" ; shift
+	serveur_patronVars="$*"
+	
+	local var
+	for var in $serveur_patronVars
+	do
+		# S'il existe déjà (précédente install) à la cible, inutile de le recréer dans notre patron, surtout qu'à la cible il appartiendra à $compte et nous ne pourrons sans doute pas installer le nôtre.
+		[ -d "$dest/$var" ] || mkdir -p "$desttemp/$var"
+	done
+}
+
+# chown des dossiers /var/ (tels que passés initialement à serveur_patronVars).
+# Env:
+#   $serveur_patronVars Initialisée par un appel préalable à serveur_patronVars()
+#   $dest
+#   $compte
+# Utilisation: serveur_chownVars
+serveur_chownVars()
+{
+	[ "$compte" = "`id -un`" ] || ( cd "$dest" && sudoku -f chown -R "$compte:" $serveur_patronVars )
+}
