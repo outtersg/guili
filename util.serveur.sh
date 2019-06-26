@@ -403,14 +403,14 @@ TERMINE
 
 serveurLinux()
 {
-	[ ! -z "$dest" ] || dest=
+	local destsys=/
+	
+	[ -n "$dest" ] || dest="$destsys"
 	
 	[ ! -z "$desttemp" ] || desttemp="$dest"
 	if [ -z "$fpid" ]
 	then
 		fpid=$dest/var/run/$nom.pid
-		# Bizarre, la doc de daemon dit qu'il faut utiliser -P pour tuer le démon plutôt que le fils (sinon le démon redémarre le fils), mais en pratique ce faisant le stop ne trouve pas le pid. Et comme apparemment le démon ne relance pas le fils, partons sur du -p.
-		optionfpiddaemon="-p $fpid"
 	fi
 	[ -z "$compte" ] || commande="su $compte sh -c \"`echo "$commande" | sed -e 's/"/\\"/g'`\""
 	case "$type" in
@@ -427,9 +427,7 @@ serveurLinux()
 	cat > "$desttemp/etc/init.d/$nom" <<TERMINE
 #!/bin/sh
 
-PATH="$INSTALLS/bin:\$PATH"
-LD_LIBRARY_PATH="$INSTALLS/lib:\$LD_LIBRARY_PATH"
-export PATH LD_LIBRARY_PATH
+`serveurEnvPourExport`
 
 daemon()
 {
@@ -471,6 +469,7 @@ TERMINE
 	chmod u+x "$desttemp/etc/init.d/$nom"
 	if [ ! -z "$remplacer" ]
 	then
+		serveur_lner "$desttemp" "$destsys" "etc/init.d/$nom"
 		for i in 0 1 6
 		do
 			mkdir -p "$desttemp/etc/rc$i.d"
@@ -481,6 +480,7 @@ TERMINE
 			mkdir -p "$desttemp/etc/rc$i.d"
 			ln -s "../init.d/$nom" "$desttemp/etc/rc$i.d/S95$nom"
 		done
+		sudoku -d "$destsys/etc" sh -c "( cd $desttemp && tar cf - etc/rc?.d/?[09]5$nom ) | ( cd "$destsys" && tar xf - --no-same-owner )"
 	fi
 	if [ ! -z "$compte" ]
 	then
