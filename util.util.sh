@@ -124,6 +124,7 @@ chemins()
 	do
 		eval racine=\$$i
 		
+		guili_ppath="$racine:$guili_ppath" # p comme prérequis, ou préfixes.
 		guili_xpath="$racine/bin:$guili_xpath"
 		guili_lpath="$racine/lib:$guili_lpath"
 		[ ! -e "$racine/lib64" ] || guili_lpath="$racine/lib64:$guili_lpath"
