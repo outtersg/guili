@@ -36,6 +36,42 @@ destiner()
 	infosInstall -s
 }
 
+# Utilisation: sutiliser [-|+]
+#   -|+
+#	 Si +, et si $INSTALL_SILO est définie, on pousse une archive binaire de notre $dest installé vers ce silo. Cela permettra à de futurs installant de récupérer notre produit de compil plutôt que de tout recompiler.
+#	 Si -, notre produit de compil ne sera pas poussé (à mentionner par exemple s'il installe des bouts ailleurs que dans $dest, car alors l'archive de $dest sera incomplète).
+#	 Si non mentionné: comportement de - si on est un amorceur (car supposé installer des trucs dans le système, un peu partout ailleurs que dans $dest); sinon comportement de +.
+sutiliser()
+{
+	local biner=
+	[ "x$1" = "x-" -o "x$1" = "x+" ] && biner="$1" && shift || true
+
+	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
+	sudo touch `guili_temoins`
+	
+	sut_lv="$1"
+	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
+	
+	# Si on est censés pousser notre binaire vers un silo central, on le fait.
+	if [ -z "$biner" ]
+	then
+		case "$sut_lv" in
+			_*) biner=- ;; # Par défaut, un amorceur n'est pas silotable (car il s'installe un peu partout dans le système: rc.d, init.d, systemd, etc.).
+			*) biner=+ ;;
+		esac
+	fi
+	if [ "x$biner" = "x+" ]
+	then
+		pousserBinaireVersSilo "$sut_lv"
+	fi
+	
+	guili_localiser
+	
+	utiliserSiDerniere "$INSTALLS/$sut_lv"
+	
+	infosInstall
+}
+
 utiliserSiDerniere()
 {
 	local dest="$dest"
@@ -52,7 +88,7 @@ utiliserSiDerniere()
 			return 0
 		fi
 	fi
-	[ ! -d "$dest" ] || sudoku $utiliser "$dest"
+	[ ! -d "$dest" ] || sudoku "$SCRIPTS/utiliser" "$dest"
 }
 
 guili_deps_crc()
