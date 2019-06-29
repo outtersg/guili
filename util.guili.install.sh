@@ -48,6 +48,7 @@ sutiliser()
 
 	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
 	sudo touch `guili_temoins`
+	guili_deps_pondre
 	
 	sut_lv="$1"
 	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
