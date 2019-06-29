@@ -121,14 +121,21 @@ guili_deps_pondre()
 	
 	local cPrerequis="`guili_prerequis_path`"
 	(
+		echo "$cPrerequis" | tr : '\012' | ( grep -v ^$ || true )
 		IFS=:
 		for cPrerequi in $cPrerequis
 		do
-			[ -e "$cPrerequi/.guili.dependances" ] && grep -q "^$dest$" < "$cPrerequi/.guili.dependances" || echo "$dest" | sudoku -d "$cPrerequi" sh -c "cat >> $cPrerequi/.guili.dependances" || true
-			crc="`( cat "$cPrerequi/.guili.prerequis" 2> /dev/null || true ) | guili_deps_crc`"
-			echo "$crc|$cPrerequi"
+			pdeps="$cPrerequi/.guili.dependances"
+			preqs="$cPrerequi/.guili.prerequis"
+			[ -e "$pdeps" ] && grep -q "^$dest$" < "$pdeps" || echo "$dest" | sudoku -d "$cPrerequi" sh -c "cat >> $pdeps" || true
+			if [ -s "$preqs" ]
+			then
+				echo "@ $preqs"
+				cat "$preqs"
+			fi
 		done
-	) > "$fpr.encours"
+	) | sed -e 's/^#/##/' -e 's/^@/#/' > "$fpr.encours"
+	# À FAIRE?: générer un fichier alternatif avec une séparation entre la racine et le logiciel, pour qu'on puisse reconstituer par exemple si le $GUILI_PATH a changé mais possède les mêmes logiciels.
 	# À FAIRE: générer aussi un .pc pour les logiciels qui ne viennent pas avec le leur.
 	
 	# Et on historise notre liste de prérequis.
