@@ -21,10 +21,8 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
-
-logiciel=iconv
 
 # Historique des versions gérées
 
@@ -36,9 +34,10 @@ v 1.15 || true
 # Variables
 
 archive="http://ftp.gnu.org/pub/gnu/libiconv/libiconv-$version.tar.gz"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+prerequis
+
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -55,6 +54,4 @@ echo Installation… >&2
 sudo make install
 # Le .la, c'est bien gentil, mais ça ne vaut pas un .so qui pointe vers le .so.x.x.
 ( cd "$dest/lib" && for i in lib*.so.* ; do lib="`echo "$i" | sed -e 's/\.so\..*/.so/'`" ; [ -e "$lib" ] || sudo ln -s "$i" "$lib" ; done )
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
