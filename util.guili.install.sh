@@ -54,3 +54,56 @@ utiliserSiDerniere()
 	fi
 	[ ! -d "$dest" ] || sudoku $utiliser "$dest"
 }
+
+guili_deps_crc()
+{
+	if commande sha1
+	then
+		sha1
+	elif commande sha1sum
+	then
+		sha1sum | awk '{print$1}'
+	fi
+}
+
+guili_prerequis_path()
+{
+	local GUILI_PATH="$GUILI_PATH"
+	[ -n "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
+	local r="$guili_ppath"
+	args_suppr -d : `IFS=: ; for racine in $GUILI_PATH ; do printf "r %s" "$racine" ; done`
+	echo "$r"
+}
+
+# Dépose un fichier-témoin des dépendances utilisées.
+guili_deps_pondre()
+{
+	local fpr="$dest/.guili.prerequis"
+	
+	# On se marque comme dépendances de nos prérequis, qu'ils sachent que s'ils se désinstallent ils nous mettent dans la mouise (histoire de leur donner mauvaise conscience).
+	
+	local cPrerequis="`guili_prerequis_path`"
+	(
+		IFS=:
+		for cPrerequi in $cPrerequis
+		do
+			[ -e "$cPrerequi/.guili.dependances" ] && grep -q "^$dest$" < "$cPrerequi/.guili.dependances" || echo "$dest" | sudoku -d "$cPrerequi" sh -c "cat >> $cPrerequi/.guili.dependances" || true
+			crc="`( cat "$cPrerequi/.guili.prerequis" 2> /dev/null || true ) | guili_deps_crc`"
+			echo "$crc|$cPrerequi"
+		done
+	) > "$fpr.encours"
+	# À FAIRE: générer aussi un .pc pour les logiciels qui ne viennent pas avec le leur.
+	
+	# Et on historise notre liste de prérequis.
+	
+	if [ -e "$fpr" ] && ! diff -q "$fpr" "$fpr.encours"
+	then
+		# Deux cas si l'on arrive ici:
+		# - on a récupéré un paquet précompilé, venant avec son .prerequis; il faut alors signaler que nous n'installons pas exactement dans le même environnement que la source.
+		# - ou bien on vient de recompiler sur la présente machine, et on écrase une précédente install'. Cependant ceci ne peut arriver que si le .complet a été dégommé (et le .prerequis a de fortes chances de l'avoir été aussi), ou si un passage outre est effectué (mais dans ce cas on suppose la situation maîtrisée).
+		jaune "# Attention, ce paquet est installé dans un environnement différent de celui pour lequel il a originellement été compilé:" >&2
+		diff "$fpr" "$fpr.encours" | jaune >&2
+		mv "$fpr" "$fpr.orig"
+	fi
+	mv "$fpr.encours" "$fpr"
+}
