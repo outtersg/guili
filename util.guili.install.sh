@@ -116,6 +116,10 @@ guili_prerequis_path()
 guili_deps_pondre()
 {
 	local fpr="$dest/.guili.prerequis"
+	local fprt="$TMP/$$/.guili.prerequis"
+	local dests="`guili_temoins | tr ' ' '\012' | while read temoin ; do dirname "$temoin" ; done`"
+	
+	[ -n "$dests" ] || return 0 # Si nous sommes des nomades ne nous installant nulle part…
 	
 	# On se marque comme dépendances de nos prérequis, qu'ils sachent que s'ils se désinstallent ils nous mettent dans la mouise (histoire de leur donner mauvaise conscience).
 	
@@ -127,27 +131,47 @@ guili_deps_pondre()
 		do
 			pdeps="$cPrerequi/.guili.dependances"
 			preqs="$cPrerequi/.guili.prerequis"
-			[ -e "$pdeps" ] && grep -q "^$dest$" < "$pdeps" || echo "$dest" | sudoku -d "$cPrerequi" sh -c "cat >> $pdeps" || true
+			for destbis in $dests
+			do
+				[ -e "$pdeps" ] && grep -q "^$destbis$" < "$pdeps" || echo "$destbis"
+			done | sudoku -d "$cPrerequi" sh -c "cat >> $pdeps" || true
 			if [ -s "$preqs" ]
 			then
 				echo "@ $preqs"
 				cat "$preqs"
 			fi
 		done
-	) | sed -e 's/^#/##/' -e 's/^@/#/' > "$fpr.encours"
+	) | sed -e 's/^#/##/' -e 's/^@/#/' > "$fprt"
 	# À FAIRE?: générer un fichier alternatif avec une séparation entre la racine et le logiciel, pour qu'on puisse reconstituer par exemple si le $GUILI_PATH a changé mais possède les mêmes logiciels.
 	# À FAIRE: générer aussi un .pc pour les logiciels qui ne viennent pas avec le leur.
 	
 	# Et on historise notre liste de prérequis.
 	
-	if [ -e "$fpr" ] && ! diff -q "$fpr" "$fpr.encours"
+	if [ -e "$fpr" ] && ! diff -q "$fpr" "$fprt"
 	then
 		# Deux cas si l'on arrive ici:
 		# - on a récupéré un paquet précompilé, venant avec son .prerequis; il faut alors signaler que nous n'installons pas exactement dans le même environnement que la source.
 		# - ou bien on vient de recompiler sur la présente machine, et on écrase une précédente install'. Cependant ceci ne peut arriver que si le .complet a été dégommé (et le .prerequis a de fortes chances de l'avoir été aussi), ou si un passage outre est effectué (mais dans ce cas on suppose la situation maîtrisée).
 		jaune "# Attention, ce paquet est installé dans un environnement différent de celui pour lequel il a originellement été compilé:" >&2
-		diff "$fpr" "$fpr.encours" | jaune >&2
+		diff "$fpr" "$fprt" | jaune >&2
 		mv "$fpr" "$fpr.orig"
 	fi
-	mv "$fpr.encours" "$fpr"
+	
+	local temoin destbis
+	for destbis in $dests
+	do
+		case "$destbis" in
+			"$dest") cat "$fprt" > "$fpr" ;;
+			*)
+				if [ "`wc -l < "$fprt"`" -ge 1 ]
+				then
+					(
+						echo "#+++ `basename "$dest"` +++"
+						cat "$fprt"
+						echo "#--- `basename "$dest"` ---"
+					) | sudoku -d "$destbis" sh -c "cat >> \"$destbis/.guili.prerequis\"" || true
+				fi
+				;;
+		esac
+	done
 }
