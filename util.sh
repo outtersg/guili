@@ -359,6 +359,7 @@ then
 			esac
 			shift
 		done
+		params="$params$sep-t${sep}2" # Par défaut wget tente 20 fois. On a autre chose à faire que d'attendre. 2 fois parce qu'on est bons.
 		if [ -z "$sortie" ]
 		then
 			params="$params$sep-O$sep-"
