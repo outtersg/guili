@@ -133,7 +133,7 @@ guili_deps_pondre()
 			preqs="$cPrerequi/.guili.prerequis"
 			for destbis in $dests
 			do
-				[ -e "$pdeps" ] && grep -q "^$destbis$" < "$pdeps" || echo "$destbis"
+				[ -e "$pdeps" ] && grep -q "^$destbis$" < "$pdeps" || echo "$destbis" | grep -v "^$cPrerequi$" # Si notre cible est notre prérequis, elle ne s'inscrit pas comme dépendance d'elle-même (ex.: apc s'installe dans php tout en le prérequérant).
 			done | sudoku -d "$cPrerequi" sh -c "cat >> $pdeps" || true
 			if [ -s "$preqs" ]
 			then
@@ -163,11 +163,11 @@ guili_deps_pondre()
 		case "$destbis" in
 			"$dest") cat "$fprt" > "$fpr" ;;
 			*)
-				if [ "`wc -l < "$fprt"`" -ge 1 ]
+				if [ "`grep -v "^$destbis$" < "$fprt" | wc -l`" -ge 1 ]
 				then
 					(
 						echo "#+++ `basename "$dest"` +++"
-						cat "$fprt"
+						grep -v "^$destbis$" < "$fprt"
 						echo "#--- `basename "$dest"` ---"
 					) | sudoku -d "$destbis" sh -c "cat >> \"$destbis/.guili.prerequis\"" || true
 				fi
