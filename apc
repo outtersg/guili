@@ -21,7 +21,7 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
 
 analyserParametresPour --pour php "$@"
@@ -31,8 +31,6 @@ case `php-config --version | cut -d . -f 1-2` in
 	5.[56]) argVersion="$argVersion >= 4 < 5" ;;
 	[45]*) argVersion="$argVersion < 4" ;;
 esac
-
-logiciel=apc
 
 v 3.1.9 && modifs="lock" && prerequis="$prerequis autoconf" || true
 v 3.1.13 && modifs= || true
@@ -84,5 +82,3 @@ apc.enabled = 1
 }' -e '/extension = .*apc.*\.so/d' -e '/apc.enabled/d'
 
 sutiliser -
-
-rm -Rf "$TMP/$$"
