@@ -280,6 +280,7 @@ analyserParametresPour()
 		shift
 	done
 	
+	prerequisPour="`decoupePrerequis "$prerequisPour"`" # decoupePrerequis dédoublonne et combine, par exemple si on a deux directives --pour "php >= 7" --pour "php+postgresql"
 	if [ ! -z "$prerequisPour" ]
 	then
 		prerequis=$prerequisPour prerequis
