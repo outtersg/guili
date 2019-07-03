@@ -109,7 +109,13 @@ guili_prerequis_path()
 	[ -n "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	local r="$guili_ppath"
 	args_suppr -d : `IFS=: ; for racine in $GUILI_PATH ; do printf "r %s" "$racine" ; done`
-	echo "$r"
+	# NOTE: args_reduc
+	# args_reduc pour les greffons qui font un double prerequis:
+	# - un dans le cadre de l'analyserParametresPour (ne comportant alors comme prérequis que le logiciel auquel se greffer, sans personnalisation)
+	# - un à titre personnel (recomportant le logiciel, mais aussi les dépendances perso).
+	# On évitera ainsi la disgracieuse présence en double du logiciel dans la variable résultante.
+	# Ceci ne marche évidemment que si les deux occurrences du logiciel se suivent; dans le cas contraire, le mécanisme d'args_reduc, dicté par la prudence, conservera les deux: si un autre bidule s'intercale, on ne peut supprimer une occurrence du logiciel sans atteindre au comportement, car si toto:titi:toto nous assure que toto écrasera titi, les simplifications toto:titi ou titi:toto ont des résultats différents selon que le système a une politique "le premier arrivé prime" ou "le dernier écrase tout".
+	echo "$r" | args_reduc -d :
 }
 
 # Dépose un fichier-témoin des dépendances utilisées.
