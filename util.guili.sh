@@ -283,7 +283,7 @@ analyserParametresPour()
 	prerequisPour="`decoupePrerequis "$prerequisPour"`" # decoupePrerequis dédoublonne et combine, par exemple si on a deux directives --pour "php >= 7" --pour "php+postgresql"
 	if [ ! -z "$prerequisPour" ]
 	then
-		prerequis=$prerequisPour prerequis
+		prerequis="$prerequisPour" prerequis
 		local logicielPrerequis logicielsPrerequis="`decoupePrerequis "$prerequisPour" | cut -d ' ' -f 1 | grep -v '[()]' | cut -d + -f 1 | sort`" # Le sort en vue de générer une liste d'argOptions (tenue d'être ordonnée).
 		local v_prerequis
 		for logicielPrerequis in $logicielsPrerequis
