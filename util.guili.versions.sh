@@ -25,13 +25,12 @@ versions()
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	
 	versions_expr_version='[0-9.]+'
-	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
-	
 	local filtreTrouves=cat
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-1) filtreTrouves="tail -1" ;;
+			-v) versions_expr_version="$2" ; shift ;;
 			*) break ;;
 		esac
 		shift
