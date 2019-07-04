@@ -119,6 +119,7 @@ guili_prerequis_path()
 }
 
 # Dépose un fichier-témoin des dépendances utilisées.
+# À FAIRE: distinguer prérequis de compil des prérequis d'exécution. Cf. commentaire sur "auto-dépendance" dans ecosysteme.c.
 guili_deps_pondre()
 {
 	local fpr="$dest/.guili.prerequis"
