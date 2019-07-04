@@ -53,6 +53,13 @@ affSiBinaire()
 	"$@"
 }
 
+# Notifie d'une erreur, et sort en erreur shell (ce qui, combiné à un set -e, est fatal à moins d'être récupéré par un || true).
+err()
+{
+	rouge "$@" >&2
+	return 1
+}
+
 fatal()
 {
 	rouge "$@" >&2
