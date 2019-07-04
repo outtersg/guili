@@ -1,14 +1,13 @@
 #!/bin/sh
 
-SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; absolutiseScripts() { case "$SCRIPTS" in /*) true ;; *) SCRIPTS="$1/$SCRIPTS" ;; esac ; } ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS0="$SCRIPTS" ; SCRIPTS="`readlink "$SCRIPTS"`" ; absolutiseScripts "`dirname "$SCRIPTS0"`" ; done ; } ; absolutiseScripts "`pwd`" ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+delieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; delieS ; s="`dirname "$s"`" ; delieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 destsys=/usr/local/share/fonts/
 
 set -e
 
-logiciel=msfonts
-version="0.0.1"
+v 0.0.1 || true
 
 destiner
 
@@ -47,5 +46,3 @@ SANSSU=0 sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH "`command -v fc-list`"
 
 sudo mkdir "$dest" # Pour poser notre témoin de bonne installation.
 sutiliser -
-
-rm -Rf "$TMP/$$"
