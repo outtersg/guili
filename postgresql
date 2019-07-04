@@ -24,13 +24,13 @@ set -e
 delieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; delieS ; s="`dirname "$s"`" ; delieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="ncurses readline zlib openssl < 1.1 python < 3" || true
+v 8.0.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python < 3 \\ ncurses readline zlib openssl < 1.1" || true
 v 8.0.3 || true
 v 9.1.2 && modifs="exclusivementPrerequis bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" || true
 v 9.2.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline" && contribs="$contribs hstore" || true
 v 9.2.9 || true
 v 9.2.18 || true
-v 9.5.3 && prerequis="ncurses readline zlib openssl python < 3" || true
+v 9.5.3 && remplacerPrerequis openssl || true # OpenSSL désormais sans filtre de version.
 v 9.6.1 && modifs="exclusivementPrerequis detectionPerl detectionReadline pathZic" || true
 v 9.6.5 || true
 v 9.6.6 || true
@@ -44,7 +44,7 @@ prerequisMake()
 	# On va donc dire que si on est sur Linux, la version en place est suffisante pour compiler PostgreSQL.
 	case `uname` in
 		Linux) true ;;
-		*) prerequis="$prerequis make" ;;
+		*) prerequis="make $prerequis" ;;
 	esac
 }
 
@@ -87,7 +87,7 @@ destiner
 # Si on détecte perl, on laissera le configure le détecter, mais uniquement dans notre version prérequise.
 if command -v perl > /dev/null 2>&1
 then
-	prerequis="$prerequis perl"
+	prerequis="perl $prerequis"
 fi
 prerequisMake
 prerequisOpenssl
