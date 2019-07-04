@@ -83,21 +83,27 @@ option()
 
 # Ajoute une option avec pour nom celui d'un logiciel, si celui-ci est détecté dans l'environnement.
 # Renvoie 0 si in fine l'option est placée, 1 sinon (penser à lui accoler un || true)
-# Utilisation: optionSi <logiciel> [<commande> <arg>*]
+# Dans ce dernier cas, retire logiciel des prérequis s'il y était.
+# Utilisation: optionSi [<option>/]<logiciel> [<commande> <arg>*]
 # Paramètres:
 #   <logiciel>
 #     Logiciel dont tester la présence (doit avoir été installé par GuiLI).
+#     La forme <option>/<logiciel> permet d'avoir un nom d'option différent de celui du logiciel ciblé.
 #   <commande> <arg>*
 #     Optionnellement, commande à jouer comme seconde chance d'installer le logiciel (par exemple si, bien que non installé par GuiLI, la présence de certains include système doit déclencher ce prérequis).
 optionSi()
 {
 	local l="$1"
+	local app="$l"
+	case "$l" in
+		*/*) l="`echo "$l" | cut -d / -f 1`" ; app="`echo "$app" | cut -d / -f 2`" ;;
+	esac
 	shift
-	if ! option "$l" && ( versions "$l" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
+	if ! option "$l" && ( versions "$app" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
 	then
 		argOptions="`options "$argOptions=$l"`"
 	fi
-	option "$l" && return 0 || virerPrerequis "$l"
+	option "$l" && return 0 || virerPrerequis "$app"
 	return 1
 }
 
