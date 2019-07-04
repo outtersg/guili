@@ -207,12 +207,16 @@ prereqs()
 		shift
 	done
 	[ -n "$suffixes" ] || suffixes=:
-	local d="`versions "$@" | tail -1`"
-	[ -n "$d" -a -d "$d" ] || err "# Je n'ai pas trouvé $*"
-	[ -f "$d/.guili.prerequis" ] || err "# Je n'ai pas trouvé $d/.guili.prerequis"
-	
+	local dossiers="`versions -1 "$@"`" d
+	[ -n "$dossiers" ] || err "# Je n'ai pas trouvé $*"
 	local initAwk="nSuffixes = 0; `IFS=: ; for s in $suffixes ; do echo 'c = "'"$s"'"; suffixes[++nSuffixes] = c ? "/"c : "";' ; done`"
-	( echo "$d" ; cat "$d/.guili.prerequis" ) | awk "BEGIN{$initAwk}/^#/{next}{ $testDeja for(n = 0; ++n <= nSuffixes;) print \$0\"\"suffixes[n]; }" | while read d
+	
+	for d in $dossiers
+	do
+		[ -f "$d/.guili.prerequis" ] || rouge "# Je n'ai pas trouvé $d/.guili.prerequis"
+		echo "$d"
+		cat "$d/.guili.prerequis"
+	done | awk "BEGIN{$initAwk}/^#/{next}{ $testDeja for(n = 0; ++n <= nSuffixes;) print \$0\"\"suffixes[n]; }" | while read d
 	do
 		[ ! -d "$d" ] || echo "$d"
 	done | tr '\012' : | sed -e 's/:$//'
