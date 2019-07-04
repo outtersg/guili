@@ -27,6 +27,14 @@ versions()
 	versions_expr_version='[0-9.]+'
 	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
 	
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			*) break ;;
+		esac
+		shift
+	done
+	
 	local logiciel options filtreVersion
 	while [ $# -gt 0 ]
 	do
