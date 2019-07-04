@@ -26,9 +26,43 @@ versions()
 	
 	versions_expr_version='[0-9.]+'
 	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
-	versions_logiciel="`echo "$1" | cut -d + -f 1`"
-	local options="`echo "$1" | cut -s -d + -f 2-`" # Le -s est super important!
+	
+	local logiciel options filtreVersion
+	while [ $# -gt 0 ]
+	do
+		# Découpage des paramètres: logiciel, options, filtre version.
+		
+		logiciel="`echo "$1" | sed -e 's/[<>]/ &/g'`" ; shift
+		case "$logiciel" in
+			*" "*)
+				filtreVersion="`echo "$logiciel" | cut -d ' ' -f 2-`"
+				logiciel="`echo "$logiciel" | cut -d ' ' -f 1`"
+				;;
+			*) filtreVersion= ;;
+		esac
+		case "$logiciel" in
+			*+*)
+				options="`echo "$logiciel" | cut -d + -f 2-`"
+				logiciel="`echo "$logiciel" | cut -d + -f 1`"
+				;;
+			*) options= ;;
+		esac
+		while [ $# -gt 0 ]
+		do
+			case "$1" in
+				+*) options="$options$1" ;;
+				"<"*|">"*) filtreVersion="$filtreVersion $1" ;;
+				[0-9]*) argVersion "$1" || break ; filtreVersion="$filtreVersion $1" ;;
+				*) break ;;
+			esac
+			shift
+		done
 	options="`options "+$options" | sed -e 's/[-=+][-=+]*\([-=+]\)/\1/g' -e 's/[-=+]$//'`"
+		
+		versions_logiciel="$logiciel" # Pour compatibilité, du temps où je préfixais les variables du nom de la fonction, ne sachant pas qu'on pouvait faire du local.
+		
+		# Calcul des expressions sed correspondantes.
+		
 	local versions_expr_options= versions_expr_excl=
 	case "$options" in
 		*+*) versions_expr_options="`argOptions="$options" argOptions | sed -e 's/-[^-=+]*//g' -e 's#[+]#([+][^+]*)*[+]#g'`" ;;
@@ -40,5 +74,6 @@ versions()
 	(
 		IFS=:
 		find $GUILI_PATH -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
-	) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$2" | triversions
+		) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$filtreVersion" | triversions
+	done
 }
