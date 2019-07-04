@@ -108,7 +108,7 @@ guili_prerequis_path()
 	local GUILI_PATH="$GUILI_PATH"
 	[ -n "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	local r="$guili_ppath"
-	args_suppr -d : `IFS=: ; for racine in $GUILI_PATH ; do printf "r %s" "$racine" ; done`
+	args_suppr -d : `IFS=: ; for racine in $GUILI_PATH ; do printf "r %s " "$racine" ; done`
 	# NOTE: args_reduc
 	# args_reduc pour les greffons qui font un double prerequis:
 	# - un dans le cadre de l'analyserParametresPour (ne comportant alors comme prérequis que le logiciel auquel se greffer, sans personnalisation)
