@@ -27,9 +27,11 @@ versions()
 	versions_expr_version='[0-9.]+'
 	[ "x$1" = x-v ] && versions_expr_version="$2" && shift && shift || true
 	
+	local filtreTrouves=cat
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
+			-1) filtreTrouves="tail -1" ;;
 			*) break ;;
 		esac
 		shift
@@ -82,6 +84,6 @@ versions()
 	(
 		IFS=:
 		find $GUILI_PATH -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
-		) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$filtreVersion" | triversions
+		) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$filtreVersion" | triversions | $filtreTrouves
 	done
 }
