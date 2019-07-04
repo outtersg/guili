@@ -33,10 +33,21 @@ v 2.4.12
 v 2.5.5
 v 2.6.5
 v 2.7.1 || true
-v 2.9.1 || true
+v 2.9.1 && prerequis="$prerequis harfbuzz+ft >= 2" || true
 
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
 archive=http://download.savannah.gnu.org/releases/freetype/$logiciel-$version.tar.bz2
+
+# À moins qu'on ne nous désactive explicitement harfbuzz, on l'embarque.
+case "$prerequis" in
+	*harfbuzz+ft*)
+		case "$argOptions+" in
+			*-hb[-+]*) virerPrerequis "harfbuzz+ft" ;;
+			*) argOptions="`options "$argOptions=hb"`" ;;
+		esac
+		;;
+esac
+option hb || true
 
 destiner
 
