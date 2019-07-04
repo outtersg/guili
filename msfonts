@@ -36,8 +36,7 @@ cd ../polices
 find ../paquets \( -name \*.exe -o -name \*.EXE \) -exec cabextract {} \;
 fi
 
-echo "========"
-
+find . \( -name \*.exe -o -name \*.EXE \) -exec cabextract {} \;
 sudoku -f mkdir -p "$destsys"
 find . -name \*.ttf -o -name \*.TTF
 find . -name \*.ttf -o -name \*.TTF -exec sudo cp {} "$destsys/" \;
