@@ -52,6 +52,10 @@ prerequis()
 	do
 		unset IFS
 		case "$prcourant" in
+			\\|\\\\)
+				# Coupure entre prérequis de compilation et prérequis à l'exécution.
+				guili_ppath="<:$guili_ppath"
+				;;
 			*\(*\))
 				local appel="`echo "$prcourant" | sed -e 's/ *( */,/' -e 's/ *)[^)]*$//' -e 's/ *, */,/'`"
 				IFS=,
