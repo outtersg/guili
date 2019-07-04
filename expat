@@ -21,20 +21,15 @@
 
 set -e
 
-if [ "$SCRIPTS" = "" ] ; then SCRIPTS=`which "$0"` ; SCRIPTS=`dirname "$SCRIPTS"` ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS" ; fi
+delieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; delieS ; s="`dirname "$s"`" ; delieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=expat
-
-version=1.95.8
-
-version=2.1.0
+v 1.95.8 || true
+v 2.1.0 || true
 v 2.1.1 || true
 v 2.2.4 || true
 
-dest=$INSTALLS/$logiciel-$version
-
-[ -d "$dest" ] && exit 0
+destiner
 
 archive="http://ovh.dl.sourceforge.net/sourceforge/expat/$logiciel-$version.tar.gz"
 archive="http://freefr.dl.sourceforge.net/project/expat/expat/$version/expat-$version.tar.gz"
@@ -52,6 +47,4 @@ make
 echo Installation… >&2
 sudo make install
 
-sutiliser $logiciel-$version
-
-rm -R "$TMP/$$"
+sutiliser
