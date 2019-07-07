@@ -91,7 +91,9 @@ remplacerPrerequis()
 
 ecosysteme()
 {
-	[ -x "$SCRIPTS/ecosysteme" ] || cc -o "$SCRIPTS/ecosysteme" "$SCRIPTS/util.guili.ecosysteme"/*.c
+	local CC="$CC"
+	[ -n "$CC" ] || CC=cc
+	[ -x "$SCRIPTS/ecosysteme" ] || $CC -o "$SCRIPTS/ecosysteme" "$SCRIPTS/util.guili.ecosysteme"/*.c
 	"$SCRIPTS/ecosysteme" "$@"
 }
 
