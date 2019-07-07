@@ -584,10 +584,12 @@ iperso()
 	
 	perso "$1" # Sans autre paramètre, simple recopie des .original en leur fichier cible: ça aidera leplusdelienscommuns() à trouver des liens (si les liens existent vers la cible mais pas vers le .original).
 	dossier="`leplusdelienscommuns "$1" "$INSTALLS"`"
+	iperso_cible=
 	if [ -z "$dossier" ]
 	then
 		perso "$@" "$INSTALLS"
 	else
+		iperso_cible="$INSTALLS/$dossier"
 		perso "$@" "$INSTALLS" "+$INSTALLS/$dossier"
 	fi
 }
