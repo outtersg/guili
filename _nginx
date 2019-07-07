@@ -66,6 +66,11 @@ analyserParametres()
 	fi
 }
 
+liensConfIperso()
+{
+	( cd "$iperso_cible/$conf" && find . -mindepth 1 -maxdepth 1 -type l | "$@" )
+}
+
 analyserParametres "$@"
 
 prerequis
@@ -105,6 +110,10 @@ touch "$dest0/$conf/nginx.local.conf"
 conf="`echo "$conf" | sed -e 's#\.original$##'`"
 # Personnalisation.
 iperso "$dest0"
+	if [ -n "$iperso_cible" ] && liensConfIperso grep -q .
+	then
+		liensConfIperso tar cf - | ( cd "$dest0/$conf" && tar xf - )
+	fi
 }
 
 _pousserPatronTemp()
