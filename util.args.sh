@@ -205,7 +205,10 @@ END{
 	for(i = 0; i < nPrerequis; ++i)
 	{
 		l = ordre[i];
-		print l""options[l]" "versions[l];
+		v = versions[l];
+		sub(/^  */, "", v);
+		if(v != "") v = " "v;
+		print l""options[l]""v;
 	}
 }
 '
