@@ -869,6 +869,7 @@ sudoer()
 		esac
 		sudoku -u "$1" "$sudo" -n -l $commande > /dev/null 2>&1
 	) && return || true
+	gris "sudoers: $1 ALL=(ALL) NOPASSWD: $2" >&2
 	echo "$1 ALL=(ALL) NOPASSWD: $2" | INSTALLS=/etc sudoku sh -c 'cat >> /etc/sudoers'
 }
 
