@@ -43,12 +43,16 @@ analyserParametres()
 	compteMaitre=root
 	compte=
 	PARAMS_SERVEUR=
+	varrun=
+	varlog=
 	while [ $# -gt 0 ] ; do
 		case "$1" in
 			"") true ;; # Version bidon passée par exemple par varsPrerequis.
 			-r) PARAMS_SERVEUR="$PARAMS_SERVEUR $1 $2" ; shift ;;
 			-U) shift ; compteMaitre="$1" ; [ -z "$compte" -a "c$1" != croot ] && compte="$1" || true ;;
 			-u) shift ; compte="$1" ;;
+			--var-run=*) varrun="`echo "$1" | cut -d = -f 2-`" ;;
+			--var-log=*) varlog="`echo "$1" | cut -d = -f 2-`" ;;
 			*) apAffecter "$1" $vars ;;
 		esac
 		shift
@@ -89,6 +93,18 @@ if ! id "$compte" > /dev/null 2>&1 ; then
 fi
 
 echo "Auto-démarrage…" >&2
+
+_env()
+{
+	[ -n "$varrun" ] || varrun="$dest/logs"
+	if [ -n "$varlog" ]
+	then
+		NGINX_VARLOG_LIEN=1
+	else
+		varlog="$dest/logs"
+	fi
+}
+
 _patronTemp()
 {
 	local dest0="$1"
@@ -100,13 +116,18 @@ cp -R "$destnginx/conf/." "$dest0/$conf/."
 filtrer "$dest0/$conf/nginx.conf" awk '/^[ \t]*server/{entree=1}entree||niveau{sub(/#.*/,"");niveau=niveau+gsub(/{/,"")-gsub(/}/,"");entree="";next}{print}'
 filtrer "$dest0/$conf/nginx.conf" awk '/^http/{dedans=1}/^}/&&dedans{dedans=0;print"    include nginx.local.conf;"}/include nginx.local.conf/{next}{print}'
 filtrer "$dest0/$conf/nginx.conf" sed -e "1i\\
-pid $dest/logs/nginx.pid;
+pid $varrun/nginx.pid;
 "
 filtrer "$dest0/$conf/nginx.conf" sed -e "1i\\
 user $compte;
 "
 touch "$dest0/$conf/nginx.local.conf"
+	if [ -n "$NGINX_VARLOG_LIEN" ]
+	then
+		ln -s "$varlog" "$dest0/logs"
+	else
 	serveur_patronVars "$dest0" logs
+	fi
 conf="`echo "$conf" | sed -e 's#\.original$##'`"
 # Personnalisation.
 iperso "$dest0"
@@ -126,13 +147,14 @@ sudo cp -R "$dest0/." "$dest/."
 	serveur_chownVars
 }
 
+_env
 _patronTemp "$TMP/$$/dest"
 _pousserPatronTemp "$TMP/$$/dest" "$dest"
 
 # Démarreur.
 # N.B.: il est probable que le -u soit root, du fait de la nécessité d'ouvrir les ports privilégiés. Le passage en compte sous-privilégié sera à faire dans le fichier de conf (le processus maître, piloté par ce -u, sera root; les fils, pilotés par la conf, pourront être autre chose).
 serveur \
-	-p "$dest/logs/nginx.pid" \
+	-p "$varrun/nginx.pid" \
 	-u "$compteMaitre" \
 	$PARAMS_SERVEUR \
 	demon nginx \
