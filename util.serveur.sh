@@ -438,8 +438,13 @@ daemon()
 suer()
 {
 	local compte="\$1" ; shift
+	local paramsShell=
+	local gusse="\`grep "^\$compte:" < /etc/passwd\`"
+	case "\$gusse" in
+		*/nologin|*/false) paramsShell="-s /bin/sh" ;;
+	esac
 	export pidfile
-	su \$compte -c "\`sed -e '/^daemon(/,/^}$/!d' < "\$0"\` ; \$*"
+	su \$paramsShell \$compte -c "\`sed -e '/^daemon(/,/^}$/!d' < "\$0"\` ; \$*"
 }
 
 lance()
