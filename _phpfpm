@@ -46,6 +46,8 @@ analyserParametres()
 	port=9000
 	suffixe=
 	PARAMS_SERVEUR=
+	varrun=
+	varlog=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
@@ -54,6 +56,8 @@ analyserParametres()
 			-u) compte="$2" ; shift ;;
 			-s) suffixe="$2" ; shift ;;
 			-p) port="$2" ; shift ;;
+			--var-run=*) varrun="`echo "$1" | cut -d = -f 2-`" ;;
+			--var-log=*) varlog="`echo "$1" | cut -d = -f 2-`" ;;
 			*) apAffecter "$1" $vars ;;
 		esac
 		shift
@@ -110,7 +114,9 @@ then
 	suffixe="`echo "$version_php" | cut -d . -f "1-$nElementsSuffixe" | tr -d .`"
 fi
 		conf="$dest/etc/php-fpm$suffixe.conf"
-pid="$dest/var/run/php-fpm$suffixe.pid"
+	[ -n "$varrun" ] || varrun="$dest/var/run"
+	[ -n "$varlog" ] || varlog="$dest/var/log"
+	pid="$varrun/php-fpm$suffixe.pid"
 
 _patronTemp()
 {
@@ -118,9 +124,9 @@ _patronTemp()
 rm -Rf "$desttemp"
 		
 mkdir -p "$desttemp/etc/rc.d"
-	serveur_patronVars "$desttemp" var/run var/log
+	[ -d "$varrun" -a -d "$varlog" ] || serveur_patronVars "$desttemp" var/run var/log
 cp "$destphp/etc/php-fpm.conf" "$TMP/$$/dest/etc/php-fpm$suffixe.conf"
-	changerconf -c \; pid="$pid" error_log="$dest/var/log/php-fpm.log" "$desttemp/etc/php-fpm$suffixe.conf"
+	changerconf -c \; pid="$pid" error_log="$varlog/php-fpm$suffixe.log" "$desttemp/etc/php-fpm$suffixe.conf"
 if [ -d "$destphp/etc/php-fpm.d" ]
 then
 	destpointd="$TMP/$$/dest/etc/php-fpm$suffixe.d"
@@ -135,7 +141,7 @@ _pousserPatronTemp()
 	local desttemp="$1" dest="$2"
 sudo mkdir -p "$dest"
 	sudo cp -Rp "$desttemp/." "$dest/."
-	serveur_chownVars
+	[ -d "$varrun" -a -d "$varlog" ] || serveur_chownVars
 }
 
 desttemp="$TMP/$$/dest"
