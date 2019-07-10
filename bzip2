@@ -27,6 +27,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 v 1.0.6 && modifs="fpic meilleurCompilo" || true
 
 archive="https://netix.dl.sourceforge.net/project/bzip2/bzip2-$version.tar.gz"
+archive="https://sourceware.org/pub/bzip2/bzip2-$version.tar.gz"
 
 destiner
 
