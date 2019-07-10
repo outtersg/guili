@@ -48,6 +48,7 @@ vraisudo()
 			*) echo "# sudo introuvable dans le PATH \"$PATH\" (pour \"sudo $@\")" >&2 && return 1 ;;
 		esac
 	fi
+	[ -z "$SUDO_VERBOSE" ] || gris "sudo $*" >&2
 	$sudo "$@"
 }
 
