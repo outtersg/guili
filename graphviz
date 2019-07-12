@@ -55,6 +55,8 @@ gnu89()
 
 archive="http://www.graphviz.org/pub/graphviz/stable/SOURCES/graphviz-$version.tar.gz"
 
+opSiPasPas pdf poppler
+
 prerequis
 
 destiner
