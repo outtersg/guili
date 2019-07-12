@@ -28,7 +28,7 @@ logiciel=graphviz
 
 # Historique des versions gérées
 
-v 2.38.0 && modifs=sfFlags || true
+v 2.38.0 && modifs="sfFlags gnu89" || true
 v 2.40.1 || true
 
 # Modifications
@@ -43,6 +43,14 @@ sfFlags()
 			filtrer "$i" sed -e 's|SF_FLAGS|SFIO_FLAGS|g'
 		done
 	fi
+}
+
+gnu89()
+{
+	# https://gitlab.com/graphviz/graphviz/issues/1365
+	case "$CC" in
+		gcc*) export CFLAGS="$CFLAGS -std=gnu89" ;;
+	esac
 }
 
 # Variables
