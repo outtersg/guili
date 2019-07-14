@@ -96,6 +96,9 @@ servir()
 
 listeServices()
 {
+	local zeron="i=0;++i<=n;"
+	[ "x$1" = x-r ] && zeron="i=n+1;--i>0;" && shift || true
+	
 	# Concoction d'un filtrage via awk.
 	local filtrageEtTriAwk param n=0
 	if [ $# -lt 1 ]
@@ -109,7 +112,7 @@ listeServices()
 			filtrageEtTriAwk="$filtrageEtTriAwk/^`echo "$param" | sed -e 's/\*/.*/g'`\$/{if(!t[\$0])t[\$0]=$n}"
 		done
 	fi
-	filtrageEtTriAwk="${filtrageEtTriAwk}END{for(i=0;++i<=n;)for(s in t)if(t[s]==i)print s}"
+	filtrageEtTriAwk="${filtrageEtTriAwk}END{for($zeron)for(s in t)if(t[s]==i)print s}"
 	# Liste, et filtrage.
 	(
 		# BSD
