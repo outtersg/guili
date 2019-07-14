@@ -73,6 +73,50 @@ servir()
 	esac
 }
 
+listeServices()
+{
+	# Concoction d'un filtrage via awk.
+	local filtrageEtTriAwk param n=0
+	if [ $# -lt 1 ]
+	then
+		filtrageEtTriAwk='BEGIN{n=1}{t[$0]=1}'
+	else
+		filtrageEtTriAwk="BEGIN{n=$#}"
+		for param in "$@"
+		do
+			n=`expr $n + 1`
+			filtrageEtTriAwk="$filtrageEtTriAwk/^`echo "$param" | sed -e 's/\*/.*/g'`\$/{if(!t[\$0])t[\$0]=$n}"
+		done
+	fi
+	filtrageEtTriAwk="${filtrageEtTriAwk}END{for(i=0;++i<=n;)for(s in t)if(t[s]==i)print s}"
+	# Liste, et filtrage.
+	(
+		# BSD
+		if [ -d /etc/rc.d -a -f /etc/rc.conf ]
+		then
+			# Argh, service -e fait un -x sur les fichiers: s'il n'est pas lancé en root, il ne voit pas les services exécutables seulement par root.
+			(
+				. /etc/defaults/rc.conf
+				. /etc/rc.conf
+				find /etc/rc.d `[ -d /usr/local/etc/rc.d ] && echo /usr/local/etc/rc.d || true` -mindepth 1 -maxdepth 1 | sed -e 's#.*/##' | awk "$filtrageEtTriAwk" | while read s # On a intérêt à préfiltrer par awk pour n'effectuer le coûteux test suivant que sur les services réellement demandés.
+				do
+					eval "test \"x\$`echo "$s" | tr -d -`_enable\" = xYES" && echo "$s" || true
+				done
+			)
+		fi
+		# System V
+		if [ -d /etc/rc4.d -a -d /etc/rc5.d ]
+		then
+			find /etc/rc4.d/ /etc/rc5.d/ -mindepth 1 -maxdepth 1 -name 'S[0-9]*' | sed -e 's#.*/S[0-9]*##'
+		fi
+		# systemd
+		if command -v systemctl 2> /dev/null >&2
+		then
+			systemctl -l | awk '{s=$1;sub(/\.service/,"",s);print s}'
+		fi
+	) | awk "$filtrageEtTriAwk"
+}
+
 serveur()
 {
 	local nom commande fpid avant compte groupe remplacer dest desttemp
