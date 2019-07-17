@@ -581,17 +581,25 @@ TERMINE
 #     Dossier de travail où constituer l'arborescence destinée à $dest.
 #   <sous-dossier var>
 #     Sous-dossier à créer. S'il existe déjà un $dest/<sous-dossier var>, il *ne sera pas créé* (on considère qu'une précédente version du serveur installée à cet endroit a déjà commencé à le remplir, et que le précréer dans le patron ne servirait à rien, voire nous causerait des soucis si le patron essaie de remplacer celui "de production" par le sien).
+#     N.B.: nominalement, <sous-dossier var> est relatif à <dossier patron>. Cependant, si un chemin absolu est précisé, et commence par $dest, il sera pris sous notre giron comme s'il avait été mentionné relatif.
 serveur_patronVars()
 {
 	local desttemp="$1" ; shift
 	serveur_patronVars="$*"
+	local aCreer=
 	
 	local var
 	for var in $serveur_patronVars
 	do
+		# Si nous est passé un chemin absolu, il doit être par rapport à $dest. Sinon c'est que c'est hors de notre arborescence de destination, donc hors de notre responsabilité.
+		case "$var" in
+			"$dest"/*) var="`echo "$var" | sed -e "s#^$dest/##"`" ;;
+			/*) aCreer="$aCreer $var" ; continue ;;
+		esac
 		# S'il existe déjà (précédente install) à la cible, inutile de le recréer dans notre patron, surtout qu'à la cible il appartiendra à $compte et nous ne pourrons sans doute pas installer le nôtre.
 		[ -d "$dest/$var" ] || mkdir -p "$desttemp/$var"
 	done
+	[ -z "$aCreer" ] || sudoku -f mkdir -p $aCreer
 }
 
 # chown des dossiers /var/ (tels que passés initialement à serveur_patronVars).
