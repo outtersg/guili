@@ -113,14 +113,14 @@ _patronTemp()
 conf="etc/nginx.original" # Doit être différent de conf (standard nginx), sans quoi nginx et _nginx se disputeront le lien symbolique $INSTALLS/conf. De plus, suffixe .original pour permettre les personnalisations.
 mkdir -p "$dest0/$conf"
 cp -R "$destnginx/conf/." "$dest0/$conf/."
+	mv "$dest0/$conf/nginx.conf" "$dest0/$conf/nginx.conf.1"
+	cat > "$dest0/$conf/nginx.conf" <<TERMINE
+pid $varrun/nginx.pid;
+user $compte;
+TERMINE
+	cat "$dest0/$conf/nginx.conf.1" >> "$dest0/$conf/nginx.conf" && rm "$dest0/$conf/nginx.conf.1"
 filtrer "$dest0/$conf/nginx.conf" awk '/^[ \t]*server/{entree=1}entree||niveau{sub(/#.*/,"");niveau=niveau+gsub(/{/,"")-gsub(/}/,"");entree="";next}{print}'
 filtrer "$dest0/$conf/nginx.conf" awk '/^http/{dedans=1}/^}/&&dedans{dedans=0;print"    include nginx.local.conf;"}/include nginx.local.conf/{next}{print}'
-filtrer "$dest0/$conf/nginx.conf" sed -e "1i\\
-pid $varrun/nginx.pid;
-"
-filtrer "$dest0/$conf/nginx.conf" sed -e "1i\\
-user $compte;
-"
 touch "$dest0/$conf/nginx.local.conf"
 	if [ -n "$NGINX_VARLOG_LIEN" ]
 	then
