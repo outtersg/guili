@@ -119,7 +119,7 @@ cp -R "$destnginx/conf/." "$dest0/$conf/."
 	mv "$dest0/$conf/nginx.conf" "$dest0/$conf/nginx.conf.1"
 	cat > "$dest0/$conf/nginx.conf" <<TERMINE
 pid $varrun/nginx.pid;
-user $compte;
+`[ "$compteMaitre" != root ] || echo "user $compte;"`
 TERMINE
 	cat > "$dest0/$conf/nginx.http.conf" <<TERMINE
 	client_body_temp_path $vartmp/client_body_temp;
