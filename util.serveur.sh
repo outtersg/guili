@@ -321,6 +321,7 @@ TERMINE
 serveurFreebsd()
 {
 	local usrLocal=/usr/local
+	local machin_user=
 	
 	[ ! -z "$dest" ] || dest="$usrLocal"
 	
@@ -341,6 +342,7 @@ serveurFreebsd()
 			;;
 		demon) 
 			lanceur="`echo "$commande" | awk '{print $1}'`"
+			[ -z "$compte" ] || machin_user="${nomPropre}_user=$compte"
 			parametres="`echo "$commande" | sed -e 's/^[^ 	]*[ 	]*//'`"
 			;;
 	esac
@@ -356,6 +358,7 @@ rcvar=\`set_rcvar\`
 command=$lanceur
 pidfile=$fpid
 command_args="$parametres"
+$machin_user
 load_rc_config "\$name"
 : \${${nomPropre}_enable="NO"}
 
