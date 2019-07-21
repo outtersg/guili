@@ -1,5 +1,7 @@
 /* Super Opérateur Universel, Daignez Ouvrir Immédiatement pour Exécution. */
 /* Super Opérateur Universel, Daignez Ouvrir Ultérieurement pour Exécution. */
+/* Super Utilisateur Respectable, Daignez Opérer Une Escalade. */
+/* Super Utilisateur Ronchon, J'Ordonne Une Escalade. */
 /* À FAIRE: changer aussi les groupes secondaires (comment ce fait-ce?); sudo id donne bien les groupes secondaires de root, soudoie id garde ceux de l'appelant */
 /* À FAIRE: syslog systématique */
 /* À FAIRE: validation via PCRE. Oui, ça ouvre une faille par rapport à du tout compilé statiquement, mais ça ferme celle due à ce que, fatigués de taper l'ensemble des combinaisons possibles, les sudoers finissent bourrés d'étoiles (ex.: systemctl * nginx). */
