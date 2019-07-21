@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <stdarg.h>
 #include <errno.h>
-#include "pwd.h"
+#include <pwd.h>
 
 extern char ** environ;
 
