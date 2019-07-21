@@ -2,7 +2,6 @@
 /* Super Opérateur Universel, Daignez Ouvrir Ultérieurement pour Exécution. */
 /* Super Utilisateur Respectable, Daignez Opérer Une Escalade. */
 /* Super Utilisateur Ronchon, J'Ordonne Une Escalade. */
-/* À FAIRE: changer aussi les groupes secondaires (comment ce fait-ce?); sudo id donne bien les groupes secondaires de root, soudoie id garde ceux de l'appelant */
 /* À FAIRE: syslog systématique */
 /* À FAIRE: validation via PCRE. Oui, ça ouvre une faille par rapport à du tout compilé statiquement, mais ça ferme celle due à ce que, fatigués de taper l'ensemble des combinaisons possibles, les sudoers finissent bourrés d'étoiles (ex.: systemctl * nginx). */
 
@@ -15,6 +14,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <pwd.h>
+#include <grp.h>
 
 extern char ** environ;
 
@@ -57,7 +57,34 @@ const char * cheminComplet(const char * truc)
 
 void basculerCompte()
 {
+	gid_t groupes[NGROUPS_MAX + 1];
+	int nGroupes = -1;
+	struct group * pGroupe;
+	char ** pMembre;
+	
+	groupes[++nGroupes] = g_infosCompte.pw_gid;
+	while((pGroupe = getgrent()))
+	{
+		if(pGroupe->gr_gid == g_infosCompte.pw_gid) continue; /* Celui-là a déjà été fait. */
+		
+		for(pMembre = pGroupe->gr_mem; *pMembre; ++pMembre)
+			if(0 == strcmp(*pMembre, g_infosCompte.pw_name))
+			{
+				if(++nGroupes >= NGROUPS_MAX)
+				{
+					fprintf(stderr, "# getgrent(%d): trop de groupes; %s ignoré\n", g_infosCompte.pw_uid, pGroupe->gr_name);
+					--nGroupes;
+					break;
+				}
+				groupes[nGroupes] = pGroupe->gr_gid;
+				break;
+			}
+	}
+	endgrent();
+	++nGroupes;
+	
 	if(setgid(g_infosCompte.pw_gid)) { fprintf(stderr, "# setgid(%d): %s\n", g_infosCompte.pw_gid, strerror(errno)); exit(1); }
+	if(setgroups(nGroupes, groupes)) { fprintf(stderr, "# setgroups(%d): %s\n", nGroupes, strerror(errno)); exit(1); }
 	if(setuid(g_infosCompte.pw_uid)) { fprintf(stderr, "# setuid(%d): %s\n", g_infosCompte.pw_uid, strerror(errno)); exit(1); }
 }
 
