@@ -284,6 +284,10 @@ void analyserParametres(char *** pargv)
 	*pargv = argv;
 }
 
+/*- Ordonnancement -----------------------------------------------------------*/
+
+#ifndef TEST
+
 int main(int argc, char * argv[])
 {
 	++argv;
@@ -303,11 +307,82 @@ int main(int argc, char * argv[])
 	return -1;
 }
 
+#else
+
+char g_aff[0x4000];
+char * affSpeciaux(const char * source, char ifs)
+{
+	char * ptr;
+	for(--source, ptr = g_aff; *++source;)
+		if(*source >= ' ')
+			*ptr++ = *source;
+		else
+		{
+			strcpy(ptr, "[33m");
+			while(*++ptr) {}
+			if(*source == ifs)
+			{
+				strcpy(ptr, " | ");
+				while(*++ptr) {}
+			}
+			else
+			{
+				*ptr++ = '\\';
+				int i;
+				char c;
+				for(i = 3, c = *source; --i >= 0; c /= 8)
+					ptr[i] = '0' + c % 8;
+				*(ptr += 3) = 0;
+			}
+			strcpy(ptr, "[0m");
+			while(*++ptr) {}
+		}
+	*ptr = 0;
+	return g_aff;
+}
+
+int testerPreparer(const char * source, const char * attendu)
+{
+	char preparation[0x4000];
+	char ifs;
+	strcpy(preparation, source);
+	if((ifs = preparer(preparation)) == -1)
+	{
+		fprintf(stderr, "# Impossible de préparer \"%s\".", source);
+		return -1;
+	}
+	if(strcmp(preparation, attendu) != 0)
+	{
+		fprintf(stderr, "# Résultat inattendu pour la préparation de \"%s\":\n", source);
+		fprintf(stderr, "\t%s\t(attendu)\n", affSpeciaux(attendu, ifs));
+		fprintf(stderr, "\t%s\t(obtenu)\n", affSpeciaux(preparation, ifs));
+		return -1;
+	}
+	return 0;
+}
+
+int main(int argc, char * argv[])
+{
+	initialiserUtilises(argv);
+	
+	int r = 0;
+	if(testerPreparer("/bin/truc premier coucou\\ ah  b  c  d\\ \\ e", "/bin/truc\003premier\003coucou ah\003b\003c\003d  e") < 0) r = -1;
+	if(testerPreparer("/bin/truc pre\004ier coucou\\ ah  \003  c  d\\ \\ e", "/bin/truc\005pre\004ier\005coucou ah\005\003\005c\005d  e") < 0) r = -1;
+	return r;
+}
+
+#endif
+
 /*
 	eval "`sed < soudoie.c -e '1,/^\/\* BUILD/d' -e '/^\*\//,$d'`"
 */
 /* BUILD
 
 cc -o soudoie soudoie.c && ( [ `id -u` -eq 0 ] && chmod 4755 soudoie || sudo sh -c 'chown 0:0 soudoie && chmod 4755 soudoie' )
+
+*/
+/* TEST
+
+cc -g -DTEST -o soudoie soudoie.c && ./soudoie
 
 */
