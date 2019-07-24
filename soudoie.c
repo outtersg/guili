@@ -20,6 +20,11 @@ extern char ** environ;
 
 char g_chemin[PATH_MAX + 1];
 struct passwd g_infosCompte;
+#define UTILISE_ARGV 1
+#define UTILISE_SPECIAL 2
+char g_utilises[' ']; /* Caractères spéciaux utilisés par notre argv, que nous ne pourrons donc pas utiliser comme séparateurs. */
+
+/*- Utilitaires --------------------------------------------------------------*/
 
 int lancer(const char * chemin, char * const argv[], char * const envp[])
 {
@@ -88,6 +93,122 @@ void basculerCompte()
 	if(setuid(g_infosCompte.pw_uid)) { fprintf(stderr, "# setuid(%d): %s\n", g_infosCompte.pw_uid, strerror(errno)); exit(1); }
 }
 
+/*- Vérification -------------------------------------------------------------*/
+
+/*--- Définitions ---*/
+
+typedef int (*FonctionVerif)(void * crible, char ** commande);
+
+typedef struct
+{
+	char ifs;
+	char * crible;
+}
+Glob;
+
+typedef struct
+{
+	FonctionVerif verif;
+	union
+	{
+		Glob glob;
+	} d;
+}
+Crible;
+
+int glob_verifier(Glob * g, char ** commande);
+
+/*--- Lecture des cribles ---*/
+
+#define TAILLE_TAMPON 0x10000
+
+char g_tampon[TAILLE_TAMPON + 1];
+
+#define DECALER if(debutProchainMemMove && l > debutProchainMemMove) { memmove(debutProchainMemMove - l + e, debutProchainMemMove, l - debutProchainMemMove); debutProchainMemMove = l; }
+
+/* Découpe une ligne de source.
+ * Renvoie le caractère utilisé pour IFS, ou -1 en cas d'erreur.
+ */
+char preparer(char * source)
+{
+	char * l; /* Pointeur en lecture. */
+	char * e; /* Pointeur d'écriture. */
+	char * p;
+	char * debutProchainMemMove = NULL;
+	char * pPrecedentIfs = source - 1;
+	char ifs = '\003';
+	char nouvelIfs;
+	int i;
+	
+	for(l = e = source; *l; ++l, ++e)
+		switch(*l)
+		{
+			case '\\':
+				if(l[1])
+				{
+					/* Puisqu'on s'apprête à décaler, on traite l'éventuel précédent décalage en attente. */
+					DECALER;
+					++l;
+					debutProchainMemMove = l;
+				}
+				break;
+			case ' ':
+			case '\t':
+				*l = ifs;
+				if(l == pPrecedentIfs + 1) /* Si l'on suit le précédent espace… */
+				{
+					DECALER;
+					--e; /* … on en est la prolongation, et notre curseur en écriture n'avance pas. */
+				}
+				pPrecedentIfs = l;
+				break;
+			/* À FAIRE: traiter les guillemets. Attention: comment traiter un <espace>""<espace>? Il ne faut pas que les guillemets aient déjà simplifié, sans quoi l'<espace><espace> restant deviendra un seul <espace>. */
+			/* À FAIRE: traiter les $, pour effectuer des remplacements. */
+			/* Ouille, notre séparateur actuel est un caractère de la chaîne; changement de caractère en vue. */
+			default:
+				if(*l == ifs)
+				{
+					for(nouvelIfs = ifs, p = source; p < l && ++nouvelIfs;)
+					{
+						if(nouvelIfs == ' ')
+						{
+							/* Ne débordons pas sur les caractères imprimables. */
+							fprintf(stderr, "# Trop de caractères spéciaux dans %s.\n", source); /* À FAIRE: aïe, on a modifié la chaîne; il faudrait en avoir une copie propre pour diagnostic. */
+							return -1;
+						}
+						if(g_utilises[nouvelIfs])
+							continue;
+						for(p = source - 1; ++p < l;)
+							if(*p == nouvelIfs) /* Zut, celui-ci aussi est pris. */
+								break;
+					}
+					
+					/* Ouf, un nouveau séparateur non utilisé. */
+					
+					for(p = source - 1; ++p < l;)
+						if(*p == ifs)
+							*p = nouvelIfs;
+					ifs = nouvelIfs;
+				}
+				break;
+		}
+	DECALER;
+	*e = 0;
+	
+	return ifs;
+}
+
+Crible * glob_init(Crible * c, char * source)
+{
+	char ifs;
+	if((ifs = preparer(source)) == -1)
+		return NULL;
+	c->d.glob.ifs = ifs;
+	c->d.glob.crible = (char *)malloc(strlen(source) + 1);
+	strcpy(c->d.glob.crible, source);
+	return c;
+}
+
 const char * verifier(char * argv[])
 {
 	/* À FAIRE: vérifier qu'il a vraiment le droit: /etc/soudeurs, par exemple. */
@@ -101,6 +222,29 @@ const char * verifier(char * argv[])
 		return NULL;
 	
 	return chemin;
+}
+
+/*--- Vérification des cribles ---*/
+
+int glob_verifier(Glob * g, char ** commande)
+{
+	return -1;
+}
+
+/*- Initialisation -----------------------------------------------------------*/
+
+void initialiserUtilises(char * argv[])
+{
+	char * p;
+	bzero(g_utilises, ' ');
+	while(*++argv)
+		for(p = *argv; *p; ++p)
+			if(*p > 0 && *p < ' ')
+				g_utilises[(int)p] = UTILISE_ARGV;
+	/* Certains caractères sont de toute façon proscrits comme séparateurs: ils pourraient prêter à confusion. */
+	g_utilises['\n'] = UTILISE_SPECIAL;
+	g_utilises['\r'] = UTILISE_SPECIAL;
+	g_utilises['\t'] = UTILISE_SPECIAL;
 }
 
 void analyserParametres(char *** pargv)
@@ -145,6 +289,7 @@ int main(int argc, char * argv[])
 	++argv;
 	const char * chemin;
 	
+	initialiserUtilises(argv);
 	analyserParametres(&argv);
 	
 	if(!argv[0])
