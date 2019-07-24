@@ -60,6 +60,8 @@ const char * cheminComplet(const char * truc)
 	return NULL;
 }
 
+/*- Exécution ----------------------------------------------------------------*/
+
 void basculerCompte()
 {
 	gid_t groupes[NGROUPS_MAX + 1];
