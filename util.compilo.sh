@@ -257,7 +257,10 @@ meilleurCompilo()
 			do
 				if [ -e "$f" ]
 				then
-					export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$f" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
+					cp "$f" "$TMP/$$/1.plist"
+					plutil -convert xml1 "$TMP/$$/1.plist"
+					plutil -convert xml1 "$TMP/$$/1.plist"
+					export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$TMP/$$/1.plist" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
 					break
 				fi
 			done
