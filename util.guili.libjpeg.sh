@@ -21,11 +21,16 @@
 # Les programmes qui veulent se lier à libjpeg, libjpeg < 9, ou libjpegturbo, peuvent utiliser cette variable, toujours définie, et surchargeable par l'appelant "du dessus".
 _initPrerequisLibJpeg()
 {
-	case "`argOptions`+" in
-		*+jpeg9[-+]*) prerequis_libjpeg="libjpeg >= 9" ;;
-		*+jpeg8[-+]*) prerequis_libjpeg="libjpeg < 9" ;;
-		*+jpegturbo[-+]*) prerequis_libjpeg="libjpegturbo" ;;
-	esac
+	if option jpeg9
+	then
+		prerequis_libjpeg="libjpeg >= 9"
+	elif option jpeg8
+	then
+		prerequis_libjpeg="libjpeg < 9"
+	elif option jpegturbo
+	then
+		prerequis_libjpeg="libjpegturbo"
+	fi
 	[ ! -z "$prerequis_libjpeg" ] || prerequis_libjpeg="libjpeg"
 	export prerequis_libjpeg
 }
