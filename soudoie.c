@@ -304,6 +304,15 @@ Glob * glob_init(Glob * c, char * source)
 	return c;
 }
 
+/*--- Vérification des cribles ---*/
+
+int glob_verifier(Glob * g, char ** commande)
+{
+	return -1;
+}
+
+/*--- Ordonnancement de la validation ---*/
+
 const char * verifier(char * argv[])
 {
 	/* À FAIRE: vérifier qu'il a vraiment le droit: /etc/soudeurs, par exemple. */
@@ -317,13 +326,6 @@ const char * verifier(char * argv[])
 		return NULL;
 	
 	return chemin;
-}
-
-/*--- Vérification des cribles ---*/
-
-int glob_verifier(Glob * g, char ** commande)
-{
-	return -1;
 }
 
 /*- Initialisation -----------------------------------------------------------*/
