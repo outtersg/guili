@@ -327,7 +327,7 @@ void initialiserUtilises(char * argv[])
 	while(*++argv)
 		for(p = *argv; *p; ++p)
 			if(*p > 0 && *p < ' ')
-				g_utilises[(int)p] = UTILISE_ARGV;
+				g_utilises[*p] = UTILISE_ARGV;
 	/* Certains caractères sont de toute façon proscrits comme séparateurs: ils pourraient prêter à confusion. */
 	g_utilises['\n'] = UTILISE_SPECIAL;
 	g_utilises['\r'] = UTILISE_SPECIAL;
