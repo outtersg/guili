@@ -22,6 +22,7 @@ char g_chemin[PATH_MAX + 1];
 struct passwd g_infosCompte;
 #define UTILISE_ARGV 1
 #define UTILISE_SPECIAL 2
+#define UTILISE_DEF 3
 char g_utilises[' ']; /* Caractères spéciaux utilisés par notre argv, que nous ne pourrons donc pas utiliser comme séparateurs. */
 
 /*- Utilitaires --------------------------------------------------------------*/
@@ -99,24 +100,45 @@ void basculerCompte()
 
 /*--- Définitions ---*/
 
-typedef int (*FonctionVerif)(void * crible, char ** commande);
+typedef struct Crible Crible;
+
+typedef int (*FonctionVerif)(struct Crible * this, char ** commande);
 
 typedef struct
 {
-	char ifs;
+	FonctionVerif fVerif;
+	int nSpeciaux; /* Nombre d'octets spéciaux à mettre de côté (ex.: IFS, etc.). */
+	int offsetSpeciaux; /* Où dans notre objet se trouve le tableau speciaux? */
+	/* char[256] indiquant pour chaque caractère s'il est spécial:
+	 *   0: non spécial
+	 *   > 0: spécial, combinable (plusieurs occurrences successives sont concaténées); sera remplacé par speciaux[n - 1] dans le source prémâché résultant.
+	 *   < 0: spécial, non combinable (plusieurs occurrences seront conservées); sera remplacé par speciaux[1 - n].
+	 */
+	char carSpeciaux[256];
+}
+CribleClasse;
+
+typedef struct Crible
+{
+	CribleClasse * c;
+}
+Crible;
+
+char * CribleSpeciaux(Crible * c)
+{
+	return ((char *)c) + c->c->offsetSpeciaux;
+}
+
+#define IFS 0
+#define GLOB_ETOILE 1
+
+typedef struct
+{
+	CribleClasse * c;
+	char speciaux[2];
 	char * crible;
 }
 Glob;
-
-typedef struct
-{
-	FonctionVerif verif;
-	union
-	{
-		Glob glob;
-	} d;
-}
-Crible;
 
 int glob_verifier(Glob * g, char ** commande);
 
@@ -130,22 +152,50 @@ char g_tampon[TAILLE_TAMPON + 1];
 
 /* Découpe une ligne de source.
  * Renvoie le caractère utilisé pour IFS, ou -1 en cas d'erreur.
+ * Paramètres:
+ *   crible
+ *     Crible à préparer. Sa classe doit être renseignée (porte les métacaractères, etc.).
+ *   source
+ *     Chaîne à lire.
  */
-char preparer(char * source)
+char * preparer(Crible * crible, char * source)
 {
 	char * l; /* Pointeur en lecture. */
 	char * e; /* Pointeur d'écriture. */
 	char * p;
 	char * debutProchainMemMove = NULL;
-	char * pPrecedentIfs = source - 1;
-	char ifs = '\003';
-	char nouvelIfs;
-	int i;
+	char * pPrecedentSpe = source - 1;
+	char nouveauSpe;
+	char precedentSpe;
+	int numSpe, special;
+	char * speciaux = CribleSpeciaux(crible);
+	
+	/* Préparation des caractères spéciaux */
+	/* On ne peut les choisir définitivement, car certains sont peut-être déjà pris, et on ne saura lesquels qu'en parcourant (remplacement de variables, etc.). */
+	
+	for(special = -1; ++special < ' ';)
+		if(g_utilises[special] == UTILISE_DEF)
+			g_utilises[special] = 0;
+	if(crible->c->nSpeciaux)
+	{
+		for(numSpe = -1, special = '\003'; ++numSpe < crible->c->nSpeciaux;)
+		{
+			while(g_utilises[special])
+				if(++special == ' ')
+				{
+					/* Ne débordons pas sur les caractères imprimables. */
+					fprintf(stderr, "# Trop de caractères spéciaux dans %s.\n", source);
+					return NULL;
+				}
+			speciaux[numSpe] = special;
+		}
+	}
+	
+	/* Parcours */
 	
 	for(l = e = source; *l; ++l, ++e)
-		switch(*l)
+		if(*l == '\\')
 		{
-			case '\\':
 				if(l[1])
 				{
 					/* Puisqu'on s'apprête à décaler, on traite l'éventuel précédent décalage en attente. */
@@ -153,61 +203,96 @@ char preparer(char * source)
 					++l;
 					debutProchainMemMove = l;
 				}
-				break;
-			case ' ':
-			case '\t':
-				*l = ifs;
-				if(l == pPrecedentIfs + 1) /* Si l'on suit le précédent espace… */
+		}
+		else if(crible->c->carSpeciaux[*l])
+		{
+			special = crible->c->carSpeciaux[*l];
+			special = special > 0 ? special - 1 : -1 - special;
+			if(crible->c->carSpeciaux[*l] > 0)
+			{
+				if(precedentSpe == *l && l == pPrecedentSpe + 1) /* Si l'on suit le précédent du même type. */
 				{
 					DECALER;
 					--e; /* … on en est la prolongation, et notre curseur en écriture n'avance pas. */
 				}
-				pPrecedentIfs = l;
-				break;
-			/* À FAIRE: traiter les guillemets. Attention: comment traiter un <espace>""<espace>? Il ne faut pas que les guillemets aient déjà simplifié, sans quoi l'<espace><espace> restant deviendra un seul <espace>. */
-			/* À FAIRE: traiter les $, pour effectuer des remplacements. */
-			/* Ouille, notre séparateur actuel est un caractère de la chaîne; changement de caractère en vue. */
-			default:
-				if(*l == ifs)
+				pPrecedentSpe = l;
+				precedentSpe = *l;
+			}
+			*l = speciaux[special];
+		}
+		else if(*l > 0 && *l < ' ' && !g_utilises[*l])
+		{
+			/* Ouille, un des octets que nous avions choisis pour représenter nos caractères spéciaux est un caractère de la chaîne; changement d'octet à effectuer pour ne pas avoir de conflit sur cet octet. */
+			
+			/* Lequel est-ce? */
+			
+			for(numSpe = -1; speciaux[++numSpe] != *l;) {}
+			
+			/* Celui-ci est grillé. */
+			
+			g_utilises[*l] = UTILISE_DEF;
+			
+			/* Recherchons un remplaçant qui ne soit pas déjà utilisé. */
+			
+			for(nouveauSpe = *l, p = source; p < l && ++nouveauSpe;)
+			{
+				if(nouveauSpe == ' ')
 				{
-					for(nouvelIfs = ifs, p = source; p < l && ++nouvelIfs;)
-					{
-						if(nouvelIfs == ' ')
-						{
-							/* Ne débordons pas sur les caractères imprimables. */
-							fprintf(stderr, "# Trop de caractères spéciaux dans %s.\n", source); /* À FAIRE: aïe, on a modifié la chaîne; il faudrait en avoir une copie propre pour diagnostic. */
-							return -1;
-						}
-						if(g_utilises[nouvelIfs])
-							continue;
-						for(p = source - 1; ++p < l;)
-							if(*p == nouvelIfs) /* Zut, celui-ci aussi est pris. */
-								break;
-					}
-					
-					/* Ouf, un nouveau séparateur non utilisé. */
-					
-					for(p = source - 1; ++p < l;)
-						if(*p == ifs)
-							*p = nouvelIfs;
-					ifs = nouvelIfs;
+					/* Ne débordons pas sur les caractères imprimables. */
+					fprintf(stderr, "# Trop de caractères spéciaux dans %s.\n", source); /* À FAIRE: aïe, on a travaillé directement sur source; il faudrait en avoir une copie propre pour afficher ce diagnostic. */
+					return NULL;
 				}
-				break;
+				if(g_utilises[nouveauSpe])
+					continue;
+				for(p = source - 1; ++p < l;)
+					if(*p == nouveauSpe) /* Zut, celui-ci aussi est pris. */
+						break;
+			}
+			
+			/* Ouf, un nouveau séparateur non utilisé. */
+			
+			for(p = source - 1; ++p < l;)
+				if(*p == *l)
+					*p = nouveauSpe;
+			speciaux[numSpe] = nouveauSpe;
 		}
 	DECALER;
 	*e = 0;
 	
-	return ifs;
+	return source;
 }
 
-Crible * glob_init(Crible * c, char * source)
+CribleClasse ClasseGlob;
+
+void GlobClasseInitialiser()
 {
+	ClasseGlob.fVerif = (FonctionVerif)glob_verifier;
+	ClasseGlob.nSpeciaux = 2;
+	ClasseGlob.offsetSpeciaux = (int)&((Glob *)NULL)->speciaux;
+	bzero(ClasseGlob.carSpeciaux, 256);
+	ClasseGlob.carSpeciaux[' '] = 1 + IFS;
+	ClasseGlob.carSpeciaux['\t'] = 1 + IFS;
+	ClasseGlob.carSpeciaux['*'] = -1 - GLOB_ETOILE;
+}
+
+Glob * glob_init(Glob * c, char * source)
+{
+	char cree = 0;
+	
+	if(!c)
+	{
+		c = (Glob *)malloc(sizeof(Glob));
+		cree = 1;
+	}
+	c->c = &ClasseGlob;
 	char ifs;
-	if((ifs = preparer(source)) == -1)
+	if(!preparer((Crible *)c, source))
+	{
+		if(cree) free(c);
 		return NULL;
-	c->d.glob.ifs = ifs;
-	c->d.glob.crible = (char *)malloc(strlen(source) + 1);
-	strcpy(c->d.glob.crible, source);
+	}
+	c->crible = (char *)malloc(strlen(source) + 1);
+	strcpy(c->crible, source);
 	return c;
 }
 
@@ -296,6 +381,8 @@ int main(int argc, char * argv[])
 	const char * chemin;
 	
 	initialiserUtilises(argv);
+	GlobClasseInitialiser();
+	
 	analyserParametres(&argv);
 	
 	if(!argv[0])
@@ -312,7 +399,7 @@ int main(int argc, char * argv[])
 #else
 
 char g_aff[0x4000];
-char * affSpeciaux(const char * source, char ifs)
+char * affSpeciaux(Crible * crible, const char * source)
 {
 	char * ptr;
 	for(--source, ptr = g_aff; *++source;)
@@ -322,7 +409,7 @@ char * affSpeciaux(const char * source, char ifs)
 		{
 			strcpy(ptr, "[33m");
 			while(*++ptr) {}
-			if(*source == ifs)
+			if(*source == CribleSpeciaux(crible)[0])
 			{
 				strcpy(ptr, " | ");
 				while(*++ptr) {}
@@ -345,19 +432,20 @@ char * affSpeciaux(const char * source, char ifs)
 
 int testerPreparer(const char * source, const char * attendu)
 {
+	Glob g;
 	char preparation[0x4000];
-	char ifs;
+	char spe[2];
 	strcpy(preparation, source);
-	if((ifs = preparer(preparation)) == -1)
+	if(!glob_init(&g, preparation))
 	{
 		fprintf(stderr, "# Impossible de préparer \"%s\".", source);
 		return -1;
 	}
-	if(strcmp(preparation, attendu) != 0)
+	if(strcmp(g.crible, attendu) != 0)
 	{
 		fprintf(stderr, "# Résultat inattendu pour la préparation de \"%s\":\n", source);
-		fprintf(stderr, "\t%s\t(attendu)\n", affSpeciaux(attendu, ifs));
-		fprintf(stderr, "\t%s\t(obtenu)\n", affSpeciaux(preparation, ifs));
+		fprintf(stderr, "\t%s\t(attendu)\n", affSpeciaux((Crible *)&g, attendu));
+		fprintf(stderr, "\t%s\t(obtenu)\n", affSpeciaux((Crible *)&g, g.crible));
 		return -1;
 	}
 	return 0;
@@ -366,6 +454,7 @@ int testerPreparer(const char * source, const char * attendu)
 int main(int argc, char * argv[])
 {
 	initialiserUtilises(argv);
+	GlobClasseInitialiser();
 	
 	int r = 0;
 	if(testerPreparer("/bin/truc premier coucou\\ ah  b  c  d\\ \\ e", "/bin/truc\003premier\003coucou ah\003b\003c\003d  e") < 0) r = -1;
