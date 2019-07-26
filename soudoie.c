@@ -4,6 +4,12 @@
 /* Super Utilisateur Ronchon, J'Ordonne Une Escalade. */
 /* À FAIRE: syslog systématique */
 /* À FAIRE: validation via PCRE. Oui, ça ouvre une faille par rapport à du tout compilé statiquement, mais ça ferme celle due à ce que, fatigués de taper l'ensemble des combinaisons possibles, les sudoers finissent bourrés d'étoiles (ex.: systemctl * nginx). */
+/* À FAIRE: vérif simple: à la lecture de /etc/soudure, les ' ' deviennent \003 (sauf si ligne contient un \003) sauf si dans []. * font un seul argument (donnent [^\003]), ** en fin correspondent à tout. Un chemin contenant des .. et . est compacté avant comparaison. */
+/* À FAIRE: env (HOME, etc.) */
+/* À FAIRE: limitation au compte: gui as www: /bin/vi /etc/nginx.conf */
+/* À FAIRE: multi-ligne: www: /sbin/service restart nginx\n\t/sbin/service restart php-fpm */
+/* À FAIRE: affectations: OPS_SERVICE = (start|restart|stop) */
+/* À FAIRE: include */
 
 #include <string.h>
 #include <stdio.h>
@@ -256,6 +262,8 @@ char * preparer(Crible * crible, char * source)
 					*p = nouveauSpe;
 			speciaux[numSpe] = nouveauSpe;
 		}
+		/* À FAIRE: traiter les guillemets. Attention: comment traiter un <espace>""<espace>? Il ne faut pas que les guillemets aient déjà simplifié, sans quoi l'<espace><espace> restant deviendra un seul <espace>. */
+		/* À FAIRE: traiter les $, pour effectuer des remplacements. */
 	DECALER;
 	*e = 0;
 	
