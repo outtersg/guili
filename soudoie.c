@@ -313,19 +313,43 @@ int glob_verifier(Glob * g, char ** commande)
 
 /*--- Ordonnancement de la validation ---*/
 
+char ** autorise(char ** argv)
+{
+	return argv;
+}
+
 const char * verifier(char * argv[])
 {
-	/* À FAIRE: vérifier qu'il a vraiment le droit: /etc/soudeurs, par exemple. */
+	/* Idéalement la résolution de binaire (recherche dans le $PATH) se fait en tant que l'utilisateur cible (1), cependant nous avons besoin par la suite d'être root pour pouvoir lire les fichiers de config (2). Donc idéalement, on ferait un setuid(compte); résolution(); setuid(0); vérif(); setuid(compte);, cependant on optera pour la solution plus simple setuid(0); résolution(); vérif(); setuid(compte);.
+	 * 1. pour ne pas trouver en root un binaire auquel le compte n'aura pas accès.
+	 * 2. la résolution précède nécessairement la lecture de la config: cette dernière contient des références au chemin absolu résolu, donc si on veut pouvoir faire dans la même passe lecture de config et son application (pour pouvoir s'arrêter à la première correspondance trouvée), la résolution doit avoir été faite au moment où on rentre dans la lecture de config.
+	 *    Notons qu'on ne peut "simplement" ouvrir le descripteur de fichier en root préalablement, car on sera amenés à ouvrir dynamiquement (directives include) d'autres fichiers durant la lecture du fichier principal.
+	 */
 	
-	/* Changement d'utilisateur. La vérification aura peut-être à accéder à des fichiers que seul le compte cible peut voir. */
+	/* Changement d'utilisateur. Nous avons besoin d'être root pour lire le fichier de conf. */
 	
-	basculerCompte();
+	if(setuid(0)) { fprintf(stderr, "# setuid(%d): %s\n", 0, strerror(errno)); exit(1); }
+	
+	/* L'exécutable doit être référencé par chemin absolu. Résolvons-le ici. */
 	
 	const char * chemin = cheminComplet(argv[0]);
 	if(!chemin)
 		return NULL;
 	
+	/* Vérification. */
+	
+	char * argv0Original = argv[0];
+	argv[0] = (char *)chemin;
+	if(!autorise(argv)) goto eAuto;
+	argv[0] = argv0Original;
+	
+	/* Retour! */
+	
 	return chemin;
+	
+	argv[0] = argv0Original;
+	eAuto:
+	return NULL;
 }
 
 /*- Initialisation -----------------------------------------------------------*/
@@ -401,7 +425,10 @@ int main(int argc, char * argv[])
 		return -1;
 	}
 	if((chemin = verifier(argv)))
+	{
+		basculerCompte();
 		return lancer(chemin, argv, environ);
+	}
 	fprintf(stderr, "# On ne vous trouve pas les droits pour %s.\n", argv[0]);
 	return -1;
 }
