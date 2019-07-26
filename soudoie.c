@@ -100,7 +100,7 @@ void basculerCompte()
 
 /*--- Définitions ---*/
 
-typedef struct Crible Crible;
+struct Crible;
 
 typedef int (*FonctionVerif)(struct Crible * this, char ** commande);
 
