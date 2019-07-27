@@ -47,9 +47,17 @@ install()
 	( [ `id -u` -eq 0 ] && chmod 4755 soudoie || sudo sh -c 'chown 0:0 soudoie && chmod 4755 soudoie' )
 }
 
+_listeTests()
+{
+	local tests="`grep TEST_ < soudoie.c | sed -e 's#TEST_[_A-Z0-9=]*#@&@#g' | tr @ '\012' | grep '^TEST_.' | sort -u`"
+	# Pour les tests figurant sous deux forme (une prenant une valeur, une sans) on ne garde que celui avec valeur.
+	local filtre="`echo "$tests" | tr ' ' '\012' | grep = | sed -e 's/=.*//' | tr '\012' '|'`"
+	echo "$tests" | tr ' ' '\012' | egrep -v "^($filtre)$"
+}
+
 _test()
 {
-	grep TEST_ < soudoie.c | sed -e 's#TEST_[_A-Z0-9]*#@&@#g' | tr @ '\012' | grep '^TEST_.' | sort -u | while read test
+	_listeTests | while read test egal
 	do
 		echo "[90m=== $test ===[0m" >&2
 		export CFLAGS="-DTEST -D$test"
