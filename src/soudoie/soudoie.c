@@ -502,22 +502,3 @@ int main(int argc, char * argv[])
 }
 
 #endif
-
-/*
-	eval "`sed < soudoie.c -e '1,/^\/\* BUILD/d' -e '/^\*\//,$d'`"
-	eval "`sed < soudoie.c -e '1,/^\/\* TEST/d' -e '/^\*\//,$d'`"
-*/
-/* BUILD
-
-cc -o soudoie soudoie.c && ( [ `id -u` -eq 0 ] && chmod 4755 soudoie || sudo sh -c 'chown 0:0 soudoie && chmod 4755 soudoie' )
-
-*/
-/* TEST
-
-grep TEST_ < soudoie.c | sed -e 's#TEST_[_A-Z0-9]*#@&@#g' | tr @ '\012' | grep '^TEST_.' | sort -u | while read test
-do
-	echo "[90m=== $test ===[0m" >&2
-	cc -g -DTEST -D$test -o soudoie soudoie.c && ./soudoie
-done
-
-*/

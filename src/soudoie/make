@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+all()
+{
+	cc $CFLAGS -o soudoie soudoie.c
+}
+
+install()
+{
+	./make
+	( [ `id -u` -eq 0 ] && chmod 4755 soudoie || sudo sh -c 'chown 0:0 soudoie && chmod 4755 soudoie' )
+}
+
+_test()
+{
+	grep TEST_ < soudoie.c | sed -e 's#TEST_[_A-Z0-9]*#@&@#g' | tr @ '\012' | grep '^TEST_.' | sort -u | while read test
+	do
+		echo "[90m=== $test ===[0m" >&2
+		export CFLAGS="-DTEST -D$test"
+		./make && ./soudoie || echo "[31m# Sorti en erreur $?[0m" >&2
+	done
+}
+
+quoi="$1"
+case "$quoi" in
+	"") quoi=all ;;
+	test) quoi=_test ;;
+esac
+$quoi
