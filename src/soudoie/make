@@ -28,7 +28,17 @@ diago()
 
 all()
 {
-	cc $CFLAGS -o soudoie soudoie.c
+	soudoie
+}
+
+soudoie()
+{
+	local f
+	for f in *.c
+	do
+		diago cc $CFLAGS -c -o "$f.o" "$f"
+	done
+	diago cc -o soudoie *.c.o
 }
 
 install()
