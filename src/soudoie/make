@@ -2,6 +2,30 @@
 
 set -e
 
+#- Utilitaires -----------------------------------------------------------------
+
+diag()
+{
+	echo "[90m+ $*[0m" >&2
+	"$@"
+	status=$?
+	return $status
+}
+
+diago()
+{
+	local output="`while [ $# -gt 0 ] ; do [ "x$1" = x-o ] && echo "$2" && exit 0 || shift ; done`"
+	[ "x$1" = x-o ] && shift && shift || true
+	if ! diag "$@"
+	then
+		[ -n "$output" ] && rm -f "$output" || true
+		return $status
+	fi
+	return 0
+}
+
+#- Construction ----------------------------------------------------------------
+
 all()
 {
 	cc $CFLAGS -o soudoie soudoie.c
