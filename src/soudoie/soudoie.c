@@ -33,6 +33,17 @@
 /* À FAIRE: affectations: OPS_SERVICE = (start|restart|stop) */
 /* À FAIRE: include */
 
+#ifndef CONFIG
+#ifdef TEST
+#define CONFIG surdoues.test.conf
+#else
+#define CONFIG /etc/surdoues
+#endif
+#endif
+#define CHAINE(x) #x
+#define DECHAINE(x) CHAINE(x)
+#define CHEMIN_CONFIG DECHAINE(CONFIG)
+
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
