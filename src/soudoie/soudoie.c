@@ -31,18 +31,7 @@
 /* À FAIRE: limitation au compte: gui as www: /bin/vi /etc/nginx.conf */
 /* À FAIRE: multi-ligne: www: /sbin/service restart nginx\n\t/sbin/service restart php-fpm */
 /* À FAIRE: affectations: OPS_SERVICE = (start|restart|stop) */
-/* À FAIRE: include */
-
-#ifndef CONFIG
-#ifdef TEST
-#define CONFIG surdoues.test.conf
-#else
-#define CONFIG /etc/surdoues
-#endif
-#endif
-#define CHAINE(x) #x
-#define DECHAINE(x) CHAINE(x)
-#define CHEMIN_CONFIG DECHAINE(CONFIG)
+/* À FAIRE: include. ATTENTION: il faut faire un fseek sur le fichier pour ne pas perdre ce que g_tampon possède de la suite. */
 
 #include <string.h>
 #include <stdio.h>
@@ -59,6 +48,7 @@
 #include "crible.h"
 #include "glob.h"
 #include "lecture.h"
+#include "auto.h"
 
 extern char ** environ;
 
@@ -263,15 +253,10 @@ char * preparer(Crible * crible, char * source)
 
 /*--- Vérification des cribles ---*/
 
-/*--- Ordonnancement de la validation ---*/
-
-char ** autorise(char ** argv)
-{
-	return argv;
-}
-
 const char * verifier(char * argv[])
 {
+	AutoContexte contexte;
+	
 	/* Idéalement la résolution de binaire (recherche dans le $PATH) se fait en tant que l'utilisateur cible (1), cependant nous avons besoin par la suite d'être root pour pouvoir lire les fichiers de config (2). Donc idéalement, on ferait un setuid(compte); résolution(); setuid(0); vérif(); setuid(compte);, cependant on optera pour la solution plus simple setuid(0); résolution(); vérif(); setuid(compte);.
 	 * 1. pour ne pas trouver en root un binaire auquel le compte n'aura pas accès.
 	 * 2. la résolution précède nécessairement la lecture de la config: cette dernière contient des références au chemin absolu résolu, donc si on veut pouvoir faire dans la même passe lecture de config et son application (pour pouvoir s'arrêter à la première correspondance trouvée), la résolution doit avoir été faite au moment où on rentre dans la lecture de config.
@@ -292,7 +277,8 @@ const char * verifier(char * argv[])
 	
 	char * argv0Original = argv[0];
 	argv[0] = (char *)chemin;
-	if(!autorise(argv)) goto eAuto;
+	contexte.argv = argv;
+	if(autorise(&contexte) != AUTO_OUI) goto eAuto;
 	argv[0] = argv0Original;
 	
 	/* Retour! */
