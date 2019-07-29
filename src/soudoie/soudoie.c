@@ -56,6 +56,8 @@
 #include <pwd.h>
 #include <grp.h>
 
+#include "crible.h"
+#include "glob.h"
 #include "lecture.h"
 
 extern char ** environ;
@@ -142,45 +144,10 @@ void basculerCompte()
 
 /*--- Définitions ---*/
 
-struct Crible;
-
-typedef int (*FonctionVerif)(struct Crible * this, char ** commande);
-
-typedef struct
-{
-	FonctionVerif fVerif;
-	int nSpeciaux; /* Nombre d'octets spéciaux à mettre de côté (ex.: IFS, etc.). */
-	int offsetSpeciaux; /* Où dans notre objet se trouve le tableau speciaux? */
-	/* char[256] indiquant pour chaque caractère s'il est spécial:
-	 *   0: non spécial
-	 *   > 0: spécial, combinable (plusieurs occurrences successives sont concaténées); sera remplacé par speciaux[n - 1] dans le source prémâché résultant.
-	 *   < 0: spécial, non combinable (plusieurs occurrences seront conservées); sera remplacé par speciaux[1 - n].
-	 */
-	char carSpeciaux[256];
-}
-CribleClasse;
-
-typedef struct Crible
-{
-	CribleClasse * c;
-}
-Crible;
-
 char * CribleSpeciaux(Crible * c)
 {
 	return ((char *)c) + c->c->offsetSpeciaux;
 }
-
-#define IFS 0
-#define GLOB_ETOILE 1
-
-typedef struct
-{
-	CribleClasse * c;
-	char speciaux[2];
-	char * crible;
-}
-Glob;
 
 int glob_verifier(Glob * g, char ** commande);
 
@@ -188,14 +155,6 @@ int glob_verifier(Glob * g, char ** commande);
 
 #define DECALER if(debutProchainMemMove && l > debutProchainMemMove) { memmove(debutProchainMemMove - l + e, debutProchainMemMove, l - debutProchainMemMove); debutProchainMemMove = l; }
 
-/* Découpe une ligne de source.
- * Renvoie le caractère utilisé pour IFS, ou -1 en cas d'erreur.
- * Paramètres:
- *   crible
- *     Crible à préparer. Sa classe doit être renseignée (porte les métacaractères, etc.).
- *   source
- *     Chaîne à lire.
- */
 char * preparer(Crible * crible, char * source)
 {
 	char * l; /* Pointeur en lecture. */
@@ -302,46 +261,7 @@ char * preparer(Crible * crible, char * source)
 	return source;
 }
 
-CribleClasse ClasseGlob;
-
-void GlobClasseInitialiser()
-{
-	ClasseGlob.fVerif = (FonctionVerif)glob_verifier;
-	ClasseGlob.nSpeciaux = 2;
-	ClasseGlob.offsetSpeciaux = (int)&((Glob *)NULL)->speciaux;
-	bzero(ClasseGlob.carSpeciaux, 256);
-	ClasseGlob.carSpeciaux[' '] = 1 + IFS;
-	ClasseGlob.carSpeciaux['\t'] = 1 + IFS;
-	ClasseGlob.carSpeciaux['*'] = -1 - GLOB_ETOILE;
-}
-
-Glob * glob_init(Glob * c, char * source)
-{
-	char cree = 0;
-	
-	if(!c)
-	{
-		c = (Glob *)malloc(sizeof(Glob));
-		cree = 1;
-	}
-	c->c = &ClasseGlob;
-	char ifs;
-	if(!preparer((Crible *)c, source))
-	{
-		if(cree) free(c);
-		return NULL;
-	}
-	c->crible = (char *)malloc(strlen(source) + 1);
-	strcpy(c->crible, source);
-	return c;
-}
-
 /*--- Vérification des cribles ---*/
-
-int glob_verifier(Glob * g, char ** commande)
-{
-	return -1;
-}
 
 /*--- Ordonnancement de la validation ---*/
 
