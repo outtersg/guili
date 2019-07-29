@@ -44,6 +44,8 @@
 #include <pwd.h>
 #include <grp.h>
 
+#include "lecture.h"
+
 extern char ** environ;
 
 char g_chemin[PATH_MAX + 1];
@@ -433,6 +435,7 @@ int main(int argc, char * argv[])
 	const char * chemin;
 	
 	initialiserUtilises(argv);
+	initialiserLire();
 	GlobClasseInitialiser();
 	
 	analyserParametres(&argv);
@@ -509,6 +512,7 @@ int testerPreparer(const char * source, const char * attendu)
 int main(int argc, char * argv[])
 {
 	initialiserUtilises(argv);
+	initialiserLire();
 	GlobClasseInitialiser();
 	
 	#ifdef TEST_PREPARER_0
