@@ -150,10 +150,6 @@ int glob_verifier(Glob * g, char ** commande);
 
 /*--- Lecture des cribles ---*/
 
-#define TAILLE_TAMPON 0x10000
-
-char g_tampon[TAILLE_TAMPON + 1];
-
 #define DECALER if(debutProchainMemMove && l > debutProchainMemMove) { memmove(debutProchainMemMove - l + e, debutProchainMemMove, l - debutProchainMemMove); debutProchainMemMove = l; }
 
 /* Découpe une ligne de source.
