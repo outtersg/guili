@@ -57,11 +57,11 @@ _listeTests()
 
 _test()
 {
-	local cflags="-DTEST $CFLAGS"
+	local cflags="-DTEST -g -O0 $CFLAGS"
 	_listeTests | while read test egal
 	do
 		echo "[90m=== $test ===[0m" >&2
-		CFLAGS="$cflags -D$test" ./make && ./soudoie || echo "[31m# Sorti en erreur $?[0m" >&2
+		CFLAGS="$cflags -D$test" LDFLAGS="-g -O0 $LDFLAGS" ./make && ./soudoie || echo "[31m# Sorti en erreur $?[0m" >&2
 	done
 }
 
