@@ -515,12 +515,14 @@ int main(int argc, char * argv[])
 	initialiserLire();
 	GlobClasseInitialiser();
 	
-	#ifdef TEST_PREPARER_0
 	int r = 0;
+	
+	#ifdef TEST_PREPARER_0
 	if(testerPreparer("/bin/truc premier coucou\\ ah  b  c  d\\ \\ e", "/bin/truc\003premier\003coucou ah\003b\003c\003d  e") < 0) r = -1;
 	if(testerPreparer("/bin/truc pre\004ier coucou\\ ah  \003  c  d\\ \\ e", "/bin/truc\005pre\004ier\005coucou ah\005\003\005c\005d  e") < 0) r = -1;
-	return r;
 	#endif
+	
+	return r;
 }
 
 #endif
