@@ -57,7 +57,7 @@ _listeTests()
 
 _test()
 {
-	local cflags="-DTEST"
+	local cflags="-DTEST $CFLAGS"
 	_listeTests | while read test egal
 	do
 		echo "[90m=== $test ===[0m" >&2
