@@ -43,6 +43,7 @@
 typedef struct
 {
 	char ** argv;
+	struct passwd executant;
 	struct passwd execute;
 }
 AutoContexte;
