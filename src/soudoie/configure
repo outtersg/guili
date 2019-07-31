@@ -1,0 +1,54 @@
+#!/bin/sh
+
+set -e
+
+apAffecter()
+{
+	local val="$1" ; shift
+	local var="$1" ; shift
+	if [ -z "$var" ]
+	then
+		echo "# Paramètre \"$val\" non reconnu." >&2
+		return 1
+	fi
+	eval "$var=\"\$val\""
+	vars="$*"
+}
+
+filtrer()
+{
+	local f="$1" ; shift
+	"$@" < "$f" > "$f.filtre" && cat "$f.filtre" > "$f" && rm "$f.filtre"
+}
+
+analyserParametres()
+{
+	local vars=
+	
+	prefix=
+	sysconfdir=
+	
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--sysconfdir=*) sysconfdir="`echo "$1" | cut -d = -f 2-`" ;;
+			--prefix=*) prefix="`echo "$1" | cut -d = -f 2-`" ;;
+			*) apAffecter "$1" $vars ;;
+		esac
+		shift
+	done
+}
+
+faire()
+{
+	analyserParametres "$@"
+	
+	[ -z "$sysconfdir" ] || filtrer make sed -e "/^SYSCONFDIR=/a\\
+SYSCONFDIR=$sysconfdir
+"
+	[ -z "$prefix" ] || filtrer make sed -e "/^PREFIX=/a\\
+PREFIX=$prefix
+"
+}
+
+faire "$@"
