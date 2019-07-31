@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <pwd.h>
 #include <grp.h>
 
 #include "crible.h"
@@ -52,7 +51,6 @@ extern char ** environ;
 
 AutoContexte g_contexte;
 char g_chemin[PATH_MAX + 1];
-struct passwd g_infosCompte;
 #define UTILISE_ARGV 1
 #define UTILISE_SPECIAL 2
 #define UTILISE_DEF 3
@@ -96,24 +94,24 @@ const char * cheminComplet(const char * truc)
 
 /*- Exécution ----------------------------------------------------------------*/
 
-void basculerCompte()
+void basculerCompte(AutoContexte * contexte)
 {
 	gid_t groupes[NGROUPS_MAX + 1];
 	int nGroupes = -1;
 	struct group * pGroupe;
 	char ** pMembre;
 	
-	groupes[++nGroupes] = g_infosCompte.pw_gid;
+	groupes[++nGroupes] = contexte->execute.pw_gid;
 	while((pGroupe = getgrent()))
 	{
-		if(pGroupe->gr_gid == g_infosCompte.pw_gid) continue; /* Celui-là a déjà été fait. */
+		if(pGroupe->gr_gid == contexte->execute.pw_gid) continue; /* Celui-là a déjà été fait. */
 		
 		for(pMembre = pGroupe->gr_mem; *pMembre; ++pMembre)
-			if(0 == strcmp(*pMembre, g_infosCompte.pw_name))
+			if(0 == strcmp(*pMembre, contexte->execute.pw_name))
 			{
 				if(++nGroupes >= NGROUPS_MAX)
 				{
-					fprintf(stderr, "# getgrent(%d): trop de groupes; %s ignoré\n", g_infosCompte.pw_uid, pGroupe->gr_name);
+					fprintf(stderr, "# getgrent(%d): trop de groupes; %s ignoré\n", contexte->execute.pw_uid, pGroupe->gr_name);
 					--nGroupes;
 					break;
 				}
@@ -124,9 +122,9 @@ void basculerCompte()
 	endgrent();
 	++nGroupes;
 	
-	if(setgid(g_infosCompte.pw_gid)) { fprintf(stderr, "# setgid(%d): %s\n", g_infosCompte.pw_gid, strerror(errno)); exit(1); }
+	if(setgid(contexte->execute.pw_gid)) { fprintf(stderr, "# setgid(%d): %s\n", contexte->execute.pw_gid, strerror(errno)); exit(1); }
 	if(setgroups(nGroupes, groupes)) { fprintf(stderr, "# setgroups(%d): %s\n", nGroupes, strerror(errno)); exit(1); }
-	if(setuid(g_infosCompte.pw_uid)) { fprintf(stderr, "# setuid(%d): %s\n", g_infosCompte.pw_uid, strerror(errno)); exit(1); }
+	if(setuid(contexte->execute.pw_uid)) { fprintf(stderr, "# setuid(%d): %s\n", contexte->execute.pw_uid, strerror(errno)); exit(1); }
 }
 
 /*- Vérification -------------------------------------------------------------*/
@@ -316,7 +314,7 @@ void analyserParametres(char *** pargv)
 			else
 				pInfosCompte = getpwuid(atoi(argv[1]));
 			if(!pInfosCompte) { fprintf(stderr, "# -u %s: compte inexistant.\n", argv[1]); exit(1); }
-			memcpy(&g_infosCompte, pInfosCompte, sizeof(struct passwd));
+			memcpy(&g_contexte.execute, pInfosCompte, sizeof(struct passwd));
 			aChoisiSonCompte = 1;
 			++argv;
 		}
@@ -329,7 +327,7 @@ void analyserParametres(char *** pargv)
 	{
 		struct passwd * pInfosCompte = getpwuid(0);
 		if(!pInfosCompte) { fprintf(stderr, "# uid %d: compte inexistant.\n", 0); exit(1); }
-		memcpy(&g_infosCompte, pInfosCompte, sizeof(struct passwd));
+		memcpy(&g_contexte.execute, pInfosCompte, sizeof(struct passwd));
 	}
 	
 	*pargv = argv;
@@ -358,7 +356,7 @@ int main(int argc, char * argv[])
 	g_contexte.argv = argv;
 	if((chemin = verifier(&g_contexte)))
 	{
-		basculerCompte();
+		basculerCompte(&g_contexte);
 		return lancer(chemin, argv, environ);
 	}
 	fprintf(stderr, "# On ne vous trouve pas les droits pour %s.\n", argv[0]);

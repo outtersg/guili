@@ -23,6 +23,8 @@
 #ifndef _SOUDOIE_AUTO_H
 #define _SOUDOIE_AUTO_H
 
+#include <pwd.h>
+
 #ifndef CONFIG
 #ifdef TEST
 #define CONFIG surdoues.test.conf
@@ -41,6 +43,7 @@
 typedef struct
 {
 	char ** argv;
+	struct passwd execute;
 }
 AutoContexte;
 
