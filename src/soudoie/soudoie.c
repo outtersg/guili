@@ -312,7 +312,7 @@ void analyserParametres(char *** pargv)
 	char * ptr;
 	struct passwd * pInfosCompte;
 	
-	if(!(pInfosCompte = getpwuid(geteuid()))) { fprintf(stderr, "# getpwuid(%d): mon propre compte n'est pas référencé dans le système. Bien dommage!\n", getuid()); exit(1); }
+	if(!(pInfosCompte = getpwuid(getuid()))) { fprintf(stderr, "# getpwuid(%d): mon propre compte n'est pas référencé dans le système. Bien dommage!\n", getuid()); exit(1); }
 	memcpy(&g_contexte.executant, pInfosCompte, sizeof(struct passwd));
 	/* Les chaînes de caractères doivent être sécurisées, car elles seront écrasées par le getpwuid suivant. */
 	securiser(&g_contexte.executant.pw_name);
