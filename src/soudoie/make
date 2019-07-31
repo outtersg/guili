@@ -2,6 +2,8 @@
 
 set -e
 
+PREFIX=/usr/local
+
 #- Utilitaires -----------------------------------------------------------------
 
 diag()
@@ -44,7 +46,11 @@ soudoie()
 install()
 {
 	./make
-	( [ `id -u` -eq 0 ] && chmod 4755 soudoie || sudo sh -c 'chown 0:0 soudoie && chmod 4755 soudoie' )
+	#( [ `id -u` -eq 0 ] && chmod 4755 soudoie || sudo sh -c 'chown 0:0 soudoie && chmod 4755 soudoie' )
+	diago -o '' mkdir -p "$PREFIX/bin"
+	diago -o '' cp soudoie "$PREFIX/bin/"
+	diago -o '' chown 0:0 "$PREFIX/bin/soudoie"
+	diago -o '' chmod 4755 "$PREFIX/bin/soudoie"
 }
 
 _listeTests()
