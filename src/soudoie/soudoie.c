@@ -46,6 +46,7 @@
 #include "glob.h"
 #include "lecture.h"
 #include "auto.h"
+#include "env.h"
 
 extern char ** environ;
 
@@ -343,6 +344,7 @@ int main(int argc, char * argv[])
 	const char * chemin;
 	
 	initialiserUtilises(argv);
+	initialiserEnv();
 	initialiserLire();
 	GlobClasseInitialiser();
 	
@@ -357,7 +359,8 @@ int main(int argc, char * argv[])
 	if((chemin = verifier(&g_contexte)))
 	{
 		basculerCompte(&g_contexte);
-		return lancer(chemin, argv, environ);
+		char ** env = environner(chemin, argv, &g_contexte);
+		return lancer(chemin, argv, env);
 	}
 	fprintf(stderr, "# On ne vous trouve pas les droits pour %s.\n", argv[0]);
 	return -1;
