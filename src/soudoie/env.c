@@ -162,6 +162,7 @@ char ** environner(const char * chemin, char ** argv, AutoContexte * appel)
 	
 	/* On écrase le tout par les variables "sensibles". */
 	
+	char tampon[0x10];
 	/*ajouter(e, "MAIL=/var/mail/root");*/
 	ajouter(e, "LOGNAME", appel->execute.pw_name);
 	ajouter(e, "USER", appel->execute.pw_name);
@@ -169,11 +170,11 @@ char ** environner(const char * chemin, char ** argv, AutoContexte * appel)
 	ajouter(e, "HOME", appel->execute.pw_dir);
 	ajouter(e, "SHELL", appel->execute.pw_shell);
 	ajouter(e, "SUDO_COMMAND", chemin);
-	/*
-	ajouter(e, "SUDO_USER=toto", NULL);
-	ajouter(e, "SUDO_UID=999999999", NULL);
-	ajouter(e, "SUDO_GID=999999999", NULL);
-	 */
+	ajouter(e, "SUDO_USER", appel->executant.pw_name);
+	snprintf(tampon, 15, "%d", appel->executant.pw_uid);
+	ajouter(e, "SUDO_UID", tampon);
+	snprintf(tampon, 15, "%d", appel->executant.pw_gid);
+	ajouter(e, "SUDO_GID", tampon);
 	
 	/* À FAIRE: pouvoir préciser dans la conf quelles variables sont imposées ou doivent respecter un schéma. */
 	
