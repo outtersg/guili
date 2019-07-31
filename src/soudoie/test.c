@@ -31,6 +31,7 @@
 #include "glob.h"
 #include "lecture.h"
 #include "auto.h"
+#include "env.h"
 
 char g_aff[0x4000];
 char * affSpeciaux(Crible * crible, const char * source)
@@ -166,6 +167,7 @@ void initialiserUtilises(char * argv[]);
 int main(int argc, char * argv[])
 {
 	initialiserUtilises(argv);
+	initialiserEnv();
 	initialiserLire();
 	GlobClasseInitialiser();
 	
