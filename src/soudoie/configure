@@ -5,12 +5,12 @@ set -e
 apAffecter()
 {
 	local val="$1" ; shift
-	local var="$1" ; shift
-	if [ -z "$var" ]
+	if [ -z "$1" ] # Plus de variable à affecter.
 	then
 		echo "# Paramètre \"$val\" non reconnu." >&2
 		return 1
 	fi
+	local var="$1" ; shift
 	eval "$var=\"\$val\""
 	vars="$*"
 }
