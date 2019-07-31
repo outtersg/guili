@@ -168,7 +168,7 @@ guili_deps_pondre()
 	for destbis in $dests
 	do
 		case "$destbis" in
-			"$dest") cat "$fprt" > "$fpr" ;;
+			"$dest") sudoku sh -c "cat > $fpr" < "$fprt" ;;
 			*)
 				if [ "`grep -v "^$destbis$" < "$fprt" | wc -l`" -ge 1 ]
 				then
