@@ -297,6 +297,14 @@ void initialiserUtilises(char * argv[])
 	g_utilises['\t'] = UTILISE_SPECIAL;
 }
 
+static void securiser(char ** pChaine)
+{
+	char * bis;
+	if(!(bis = (char *)malloc(strlen(*pChaine) + 1))) { fprintf(stderr, "# Impossible d'allouer pour sécuriser une chaîne de caractères."); exit(-1); }
+	strcpy(bis, *pChaine);
+	*pChaine = bis;
+}
+
 void analyserParametres(char *** pargv)
 {
 	char ** argv = *pargv;
