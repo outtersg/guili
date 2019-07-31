@@ -3,6 +3,7 @@
 set -e
 
 PREFIX=/usr/local
+SYSCONFDIR=/etc
 
 #- Utilitaires -----------------------------------------------------------------
 
@@ -36,6 +37,8 @@ all()
 soudoie()
 {
 	local f
+	local CFLAGS="$CFLAGS"
+	[ -z "$SYSCONFDIR" ] || CFLAGS="-DCONFIG=$SYSCONFDIR/surdoues"
 	for f in *.c
 	do
 		diago cc $CFLAGS -c -o "$f.o" "$f"
