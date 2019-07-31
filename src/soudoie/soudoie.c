@@ -310,20 +310,19 @@ void analyserParametres(char *** pargv)
 	char ** argv = *pargv;
 	char aChoisiSonCompte = 0;
 	char * ptr;
+	struct passwd * pInfosCompte;
 	
 	while(*argv)
 	{
 		if(0 == strcmp(*argv, "-u"))
 		{
 			if(!argv[1]) { fprintf(stderr, "# -u <compte>: <compte> non renseigné.\n"); exit(1); }
-			struct passwd * pInfosCompte;
 			for(ptr = argv[1]; *ptr && *ptr >= '0' && *ptr <= '9'; ++ptr) {}
 			if(*ptr)
 				pInfosCompte = getpwnam(argv[1]);
 			else
 				pInfosCompte = getpwuid(atoi(argv[1]));
 			if(!pInfosCompte) { fprintf(stderr, "# -u %s: compte inexistant.\n", argv[1]); exit(1); }
-			memcpy(&g_contexte.execute, pInfosCompte, sizeof(struct passwd));
 			aChoisiSonCompte = 1;
 			++argv;
 		}
@@ -334,10 +333,10 @@ void analyserParametres(char *** pargv)
 	
 	if(!aChoisiSonCompte)
 	{
-		struct passwd * pInfosCompte = getpwuid(0);
+		pInfosCompte = getpwuid(0);
 		if(!pInfosCompte) { fprintf(stderr, "# uid %d: compte inexistant.\n", 0); exit(1); }
-		memcpy(&g_contexte.execute, pInfosCompte, sizeof(struct passwd));
 	}
+	memcpy(&g_contexte.execute, pInfosCompte, sizeof(struct passwd));
 	
 	*pargv = argv;
 }
