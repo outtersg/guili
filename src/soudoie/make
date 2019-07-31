@@ -36,6 +36,8 @@ all()
 
 soudoie()
 {
+	[ ! -f soudoie ] || find . -type f \( -name "*.c" -o -name "*.h" \) -newer soudoie | grep -q . || return 0
+	
 	local f
 	local CFLAGS="$CFLAGS"
 	[ -z "$SYSCONFDIR" ] || CFLAGS="-DCONFIG=$SYSCONFDIR/surdoues"
