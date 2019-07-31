@@ -50,6 +50,7 @@
 
 extern char ** environ;
 
+AutoContexte g_contexte;
 char g_chemin[PATH_MAX + 1];
 struct passwd g_infosCompte;
 #define UTILISE_ARGV 1
@@ -247,10 +248,8 @@ char * preparer(Crible * crible, char * source)
 
 /*--- Vérification des cribles ---*/
 
-const char * verifier(char * argv[])
+const char * verifier(AutoContexte * contexte)
 {
-	AutoContexte contexte;
-	
 	/* Idéalement la résolution de binaire (recherche dans le $PATH) se fait en tant que l'utilisateur cible (1), cependant nous avons besoin par la suite d'être root pour pouvoir lire les fichiers de config (2). Donc idéalement, on ferait un setuid(compte); résolution(); setuid(0); vérif(); setuid(compte);, cependant on optera pour la solution plus simple setuid(0); résolution(); vérif(); setuid(compte);.
 	 * 1. pour ne pas trouver en root un binaire auquel le compte n'aura pas accès.
 	 * 2. la résolution précède nécessairement la lecture de la config: cette dernière contient des références au chemin absolu résolu, donc si on veut pouvoir faire dans la même passe lecture de config et son application (pour pouvoir s'arrêter à la première correspondance trouvée), la résolution doit avoir été faite au moment où on rentre dans la lecture de config.
@@ -263,23 +262,22 @@ const char * verifier(char * argv[])
 	
 	/* L'exécutable doit être référencé par chemin absolu. Résolvons-le ici. */
 	
-	const char * chemin = cheminComplet(argv[0]);
+	const char * chemin = cheminComplet(contexte->argv[0]);
 	if(!chemin)
 		return NULL;
 	
 	/* Vérification. */
 	
-	char * argv0Original = argv[0];
-	argv[0] = (char *)chemin;
-	contexte.argv = argv;
-	if(autorise(&contexte) != AUTO_OUI) goto eAuto;
-	argv[0] = argv0Original;
+	char * argv0Original = contexte->argv[0];
+	contexte->argv[0] = (char *)chemin;
+	if(autorise(contexte) != AUTO_OUI) goto eAuto;
+	contexte->argv[0] = argv0Original;
 	
 	/* Retour! */
 	
 	return chemin;
 	
-	argv[0] = argv0Original;
+	contexte->argv[0] = argv0Original;
 	eAuto:
 	return NULL;
 }
@@ -357,7 +355,8 @@ int main(int argc, char * argv[])
 		fprintf(stderr, "# Mais je lance quoi, moi?\n");
 		return -1;
 	}
-	if((chemin = verifier(argv)))
+	g_contexte.argv = argv;
+	if((chemin = verifier(&g_contexte)))
 	{
 		basculerCompte();
 		return lancer(chemin, argv, environ);
