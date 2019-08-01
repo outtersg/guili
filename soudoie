@@ -35,6 +35,29 @@ guili_localiser="$guili_localiser guili_localiser_soudoie"
 
 archive=soudoie-$version.tar.gz
 
+analyserParametres()
+{
+	vars=""
+	config=
+	while [ $# -gt 0 ] ; do
+		case "$1" in
+			--conf=*) config="`echo "$1" | cut -d = -f 2-`" ;;
+			*) apAffecter "$1" $vars ;;
+		esac
+		shift
+	done
+	
+	OPTIONS_CONF=
+	if [ -n "$config" ]
+	then
+		local optconf="`echo "_$config" | sed -e 's/[^a-z0-9]/_/g' -e 's/___*/_/g' -e 's/_$//'`"
+		argOptions="`options "$argOptions+conf$optconf"`"
+		OPTIONS_CONF="$OPTIONS_CONF --conf=$config"
+	fi
+}
+
+analyserParametres "$@"
+
 prerequis
 
 destiner
@@ -44,7 +67,7 @@ obtenirEtAllerDansVersion || true # Récupère la version binaire si besoin.
 cd $TMP/$$
 cp -Rp "$SCRIPTS/src/soudoie/." ./
 
-./configure --prefix="$dest" --sysconfdir="/etc"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 ./make
 
