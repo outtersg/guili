@@ -151,6 +151,10 @@ apAffecter()
 		case "`argVersion "$1"`" in
 			"$1"*) return 0 ;; # Avec un * car argVersion a tendance à rajouter des espaces.
 		esac
+		# Idem pour les options.
+		case "$1" in
+			+*|--sans-*) return 0 ;;
+		esac
 	fi
 	# Si l'on n'a plus de variable à laquelle affecter, on pète.
 	if [ $# -lt 2 ]
