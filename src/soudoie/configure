@@ -27,10 +27,12 @@ analyserParametres()
 	
 	prefix=
 	sysconfdir=
+	conf=
 	
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
+			--conf=*) conf="`echo "$1" | cut -d = -f 2-`" ;;
 			--sysconfdir=*) sysconfdir="`echo "$1" | cut -d = -f 2-`" ;;
 			--prefix=*) prefix="`echo "$1" | cut -d = -f 2-`" ;;
 			*) apAffecter "$1" $vars ;;
@@ -45,6 +47,9 @@ faire()
 	
 	[ -z "$sysconfdir" ] || filtrer make sed -e "/^SYSCONFDIR=/a\\
 SYSCONFDIR=$sysconfdir
+"
+	[ -z "$conf" ] || filtrer make sed -e "/^CONFIG=/a\\
+CONFIG=$conf
 "
 	[ -z "$prefix" ] || filtrer make sed -e "/^PREFIX=/a\\
 PREFIX=$prefix
