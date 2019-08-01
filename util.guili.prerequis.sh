@@ -28,6 +28,7 @@ prerequis()
 		exit 0
 	fi
 	# exclusivementPrerequis devrait systématiquement être appelé, pour s'assurer que l'environnement ne pointe que vers les prérequis explicites, et n'embarque pas des dépendances implicites. Cependant, le rattrapage pour migrer tout le monde est monumental, donc nous nous contentons d'une alerte.
+	commande DelieS && modifs="exclusivementPrerequis $modifs" || true # On considère que les fichiers modernes, utilisant la dernière mouture de SCRIPTS (avec DelieS), sont prêts à faire de l'exclusivementPrerequis, autrement dit savent déclarer tous leurs prérequis plutôt que de reposer sur une détection.
 	case "$modifs" in
 		*exclusivementPrerequis*) true ;;
 		*)
