@@ -58,6 +58,7 @@ analyserParametres()
 
 analyserParametres "$@"
 
+option pcre || true # À FAIRE: gérer.
 prerequis
 
 destiner
