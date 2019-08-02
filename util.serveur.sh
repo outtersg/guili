@@ -553,7 +553,6 @@ TERMINE
 	chmod u+x "$desttemp/etc/init.d/$nom"
 	if [ ! -z "$remplacer" ]
 	then
-		serveur_lner "$desttemp" "$destsys" "etc/init.d/$nom"
 		for i in 0 1 6
 		do
 			mkdir -p "$desttemp/etc/rc$i.d"
@@ -564,7 +563,7 @@ TERMINE
 			mkdir -p "$desttemp/etc/rc$i.d"
 			ln -s "../init.d/$nom" "$desttemp/etc/rc$i.d/S95$nom"
 		done
-		sudoku -d "$destsys/etc" sh -c "( cd $desttemp && tar cf - etc/rc?.d/?[09]5$nom ) | ( cd "$destsys" && tar xf - --no-same-owner )"
+		sudoku -d "$destsys/etc" sh -c "( cd $desttemp && tar cf - etc/init.d/$nom etc/rc?.d/?[09]5$nom ) | ( cd "$destsys" && tar xf - --no-same-owner )"
 	fi
 	if [ ! -z "$compte" ]
 	then
