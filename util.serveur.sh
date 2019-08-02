@@ -413,6 +413,7 @@ TERMINE
 		
 		for d in $ds
 		do
+			case "$d" in */) d="`echo "$d" | sed -e 's#//*$##'`" ;; esac
 			sudoer "$compte" "$d/etc/rc.d/$nom *"
 		done
 	fi
@@ -567,7 +568,9 @@ TERMINE
 	fi
 	if [ ! -z "$compte" ]
 	then
-		sudoer "$compte" "$dest/etc/init.d/$nom *"
+		local d="$dest"
+		case "$d" in */) d="`echo "$d" | sed -e 's#//*$##'`" ;; esac
+		sudoer "$compte" "$d/etc/init.d/$nom *"
 	fi
 	
 	servir "$nom" start
