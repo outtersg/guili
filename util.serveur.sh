@@ -613,5 +613,5 @@ serveur_patronVars()
 # Utilisation: serveur_chownVars
 serveur_chownVars()
 {
-	[ "$compte" = "`id -un`" ] || ( cd "$dest" && sudoku -f chown -R "$compte:" $serveur_patronVars )
+	[ "$compte" = "`id -un`" -o -z "$serveur_patronVars" ] || ( cd "$dest" && sudoku -f chown -R "$compte:" $serveur_patronVars )
 }
