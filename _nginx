@@ -100,12 +100,7 @@ _env()
 {
 	[ -n "$varrun" ] || varrun="$dest/logs"
 	[ -n "$vartmp" ] || vartmp="$dest/var/tmp/nginx"
-	if [ -n "$varlog" ]
-	then
-		NGINX_VARLOG_LIEN=1
-	else
-		varlog="$dest/logs"
-	fi
+	[ -n "$varlog" ] || varlog="$dest/logs"
 }
 
 _patronTemp()
@@ -132,12 +127,11 @@ TERMINE
 filtrer "$dest0/$conf/nginx.conf" awk '/^[ \t]*server/{entree=1}entree||niveau{sub(/#.*/,"");niveau=niveau+gsub(/{/,"")-gsub(/}/,"");entree="";next}{print}'
 	filtrer "$dest0/$conf/nginx.conf" awk '/^http/{dedans=1}/^}/&&dedans{dedans=0;print"	include nginx.local.conf;"}/include nginx.local.conf/{next}{print}dedans==1&&/{/{dedans=2;print"	include nginx.http.conf;"}'
 touch "$dest0/$conf/nginx.local.conf"
-	if [ -n "$NGINX_VARLOG_LIEN" ]
-	then
-		ln -s "$varlog" "$dest0/logs"
-	else
+	case "$varlog" in
+		$dest/*) true ;;
+		/*) ln -s "$varlog" "$dest0/logs" ;; # Si les logs sont désirés ailleurs que chez nous, on crée tout de même le dossier de logs local (comme lien symbolique vers celui demandé) car nombre de fichiers de conf par défaut d'nginx codent en dur ce logs/.
+	esac
 	serveur_patronVars "$dest0" "$varlog" "$varrun" "$vartmp"
-	fi
 conf="`echo "$conf" | sed -e 's#\.original$##'`"
 # Personnalisation.
 iperso "$dest0"
