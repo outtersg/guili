@@ -24,6 +24,7 @@ guiliHomologuerSed()
 {
 	case "$1" in
 		sed|*/sed) return 0 ;;
+		soudoie|*/soudoie) return 0 ;; # Tout ce qui sert pour l'amorçage et est connu pour n'avoir pas de sed -E peut se passer d'un sed récent.
 	esac
 	
 	guili_sed="`unalias sed 2> /dev/null || true ; unset -f sed 2> /dev/null || true ; command -v sed`"
