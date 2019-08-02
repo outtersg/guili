@@ -599,7 +599,7 @@ serveur_patronVars()
 		# Si nous est passé un chemin absolu, il doit être par rapport à $dest. Sinon c'est que c'est hors de notre arborescence de destination, donc hors de notre responsabilité.
 		case "$var" in
 			"$dest"/*) var="`echo "$var" | sed -e "s#^$dest/##"`" ;;
-			/*) aCreer="$aCreer $var" ; continue ;;
+			/*) [ -f "$aCree" ] || aCreer="$aCreer $var" ; continue ;;
 		esac
 		# S'il existe déjà (précédente install) à la cible, inutile de le recréer dans notre patron, surtout qu'à la cible il appartiendra à $compte et nous ne pourrons sans doute pas installer le nôtre.
 		[ -d "$dest/$var" ] || mkdir -p "$desttemp/$var"
