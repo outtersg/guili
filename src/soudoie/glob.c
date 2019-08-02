@@ -43,7 +43,7 @@ void GlobClasseInitialiser()
 {
 	ClasseGlob.fVerif = (FonctionVerif)glob_verifier;
 	ClasseGlob.nSpeciaux = 2;
-	ClasseGlob.offsetSpeciaux = (int)&((Glob *)NULL)->speciaux;
+	ClasseGlob.offsetSpeciaux = ((char *)&((Glob *)NULL)->speciaux) - (char *)NULL;
 	bzero(ClasseGlob.carSpeciaux, 256);
 	ClasseGlob.carSpeciaux[' '] = 1 + IFS;
 	ClasseGlob.carSpeciaux['\t'] = 1 + IFS;
