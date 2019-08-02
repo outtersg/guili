@@ -570,7 +570,7 @@ leplusdelienscommuns()
 			then
 				readlink "$f"
 			fi
-		done | awk '{sub(/^(\.\.\/)*/,"");sub(/\/.*/,"");if(!n[$0])n[$0]=0;++n[$0]}END{nmax=0;for(i in n)if(n[i]>nmax){nmax=n[i];cmax=i}if(nmax)print cmax}'
+		done | egrep "^(\\.\\./)*$logiciel[-+]" | awk '{sub(/^(\.\.\/)*/,"");sub(/\/.*/,"");if(!n[$0])n[$0]=0;++n[$0]}END{nmax=0;for(i in n)if(n[i]>nmax){nmax=n[i];cmax=i}if(nmax)print cmax}'
 	)
 }
 
