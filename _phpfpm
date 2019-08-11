@@ -142,7 +142,7 @@ _pousserPatronTemp()
 	local desttemp="$1" dest="$2"
 sudo mkdir -p "$dest"
 	sudo cp -Rp "$desttemp/." "$dest/."
-	[ -d "$varrun" -a -d "$varlog" ] || serveur_chownVars
+	serveur_chownVars
 }
 
 desttemp="$TMP/$$/dest"
