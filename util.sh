@@ -288,6 +288,10 @@ obtenirEtAllerDansVersion()
 
 cheminsGuili()
 {
+	# Mémorisation, avant de tout casser.
+	
+	[ -n "$GUILI_PATHEXT" ] || export GUILI_PATHEXT="$PATH"
+	
 	local GUILI_PATH="$GUILI_PATH"
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	IFS=:
