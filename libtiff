@@ -21,16 +21,14 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=libtiff
 
 # Historique des versions gérées
 
 v 3.7.2
 version=2005-05-05 && modifs=detectionGLMac
-v 3.9.4 && modifs="compil3264 dyld105 jpeg9" && prerequis="$prerequis_libjpeg" || true
+v 3.9.4 && modifs="compil3264 dyld105 jpeg9" && prerequis="zlib $prerequis_libjpeg" || true
 v 3.9.7 || true
 v 4.0.3 || true
 v 4.0.6 || true
@@ -278,11 +276,8 @@ archive_cvs=cvs://cvsanon:@cvs.maptools.org:/cvs/maptools/cvsroot:libtiff
 
 destiner
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
+
 OPTIONS_CONF=
 for modif in true $modifs ; do $modif "$@" ; done
 
@@ -296,6 +291,5 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
