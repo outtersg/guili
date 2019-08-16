@@ -562,7 +562,7 @@ pidfile=$fpid
 
 `echo "$avant" | tr "$serveur_sep" '\012'`
 case "\$1" in
-	start) lance ;;
+	start) etat > /dev/null || lance ;;
 	stop) tue ;;
 	restart) tue ; lance ;;
 	status) etat ;;
