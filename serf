@@ -26,9 +26,9 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 1.2.1 && prerequis="python < 3 scons \\ zlib openssl" || true
+v 1.2.1 && prerequis="python < 3 scons \\ zlib openssl < 1.1" || true
 v 1.3.8 || true
-v 1.3.9 || true
+v 1.3.9 && remplacerPrerequis openssl "openssl >= 1.1 < 1.2" || true
 
 prerequis
 
