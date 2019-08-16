@@ -542,6 +542,17 @@ etat()
 	echo "$nom tourne avec pour PID \$pid"
 }
 
+recharge()
+{
+	pid="\`cat "\$pidfile"\`"
+	if [ -z "\$pid" ]
+	then
+		echo "# Impossible de recharger le serveur. PID introuvable à \$pidfile." >&2
+	else
+		kill -HUP "\$pid"
+	fi
+}
+
 tue()
 {
 	pid="\`cat "\$pidfile"\`"
@@ -566,6 +577,7 @@ case "\$1" in
 	stop) tue ;;
 	restart) tue ; lance ;;
 	status) etat ;;
+	reload) recharge ;;
 	*) echo "# Commande \\"\$1\\" inconnue." >&2 ; exit 1 ;;
 esac
 TERMINE
