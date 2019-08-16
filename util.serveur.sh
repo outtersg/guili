@@ -524,6 +524,24 @@ lance()
 	$commande
 }
 
+etat()
+{
+	pid="\`cat "\$pidfile"\`"
+	if [ -z "\$pid" ]
+	then
+		echo "$nom éteint (aucun PID dans \$pidfile)"
+		return 1
+	fi
+	
+	if ! ps -p "\$pid" > /dev/null 2>&1
+	then
+		echo "$nom éteint (dernier PID renseigné, \$pid, introuvable)" >&2
+		return 1
+	fi
+	
+	echo "$nom tourne avec pour PID \$pid"
+}
+
 tue()
 {
 	pid="\`cat "\$pidfile"\`"
@@ -547,6 +565,7 @@ case "\$1" in
 	start) lance ;;
 	stop) tue ;;
 	restart) tue ; lance ;;
+	status) etat ;;
 	*) echo "# Commande \\"\$1\\" inconnue." >&2 ; exit 1 ;;
 esac
 TERMINE
