@@ -82,13 +82,17 @@ filtrerConfs()
 {
 	local bdestphp="`basename "$destphp"`"
 	local bdest="`basename "$dest"`"
+	local commentaireSiDejaCompteLocal=
+	[ "$compteMaitre" = root ] || commentaireSiDejaCompteLocal=";"
 	
 	groupe="`id -g -n $compte`"
 	for i in "$@"
 	do
 		filtrer "$i" sed \
 			-e "/^user *=/s#=.*#= $compte#" \
+			-e "/^user *=/s/^/$commentaireSiDejaCompteLocal/" \
 			-e "/^group *=/s#=.*#= $groupe#" \
+			-e "/^group *=/s/^/$commentaireSiDejaCompteLocal/" \
 			-e "/^listen *=/s#=.*#= 127.0.0.1:$port#" \
 			-e "s#/$bdestphp/etc/php-fpm.d#/$bdest/etc/php-fpm$suffixe.d#g"
 	done
