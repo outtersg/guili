@@ -140,7 +140,7 @@ conf="`echo "$conf" | sed -e 's#\.original$##'`"
 iperso "$dest0"
 	if [ -n "$iperso_cible" ] && liensConfIperso grep -q .
 	then
-		liensConfIperso tar cf - | ( cd "$dest0/$conf" && tar xf - )
+		liensConfIperso -0 xargs -0 tar cf - | ( cd "$dest0/$conf" && tar xf - )
 	fi
 }
 
