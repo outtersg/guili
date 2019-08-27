@@ -1,0 +1,53 @@
+--- src/core/ngx_conf_file.c	2019-08-27 23:10:35.814441000 +0200
++++ src/core/ngx_conf_file.c	2019-08-28 00:06:14.177978000 +0200
+@@ -15,6 +15,7 @@
+ static ngx_int_t ngx_conf_read_token(ngx_conf_t *cf);
+ static void ngx_conf_flush_files(ngx_cycle_t *cycle);
+ 
++ngx_int_t ngx_conf_full_name_rel(ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix, ngx_str_t *current);
+ 
+ static ngx_command_t  ngx_conf_commands[] = {
+ 
+@@ -830,7 +831,7 @@
+ 
+     ngx_log_debug1(NGX_LOG_DEBUG_CORE, cf->log, 0, "include %s", file.data);
+ 
+-    if (ngx_conf_full_name(cf->cycle, &file, 1) != NGX_OK) {
++    if (ngx_conf_full_name_rel(cf->cycle, &file, 1, &cf->conf_file->file.name) != NGX_OK) {
+         return NGX_CONF_ERROR;
+     }
+ 
+@@ -884,15 +884,32 @@
+ 
+ 
+ ngx_int_t
+-ngx_conf_full_name(ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix)
++ngx_conf_full_name_rel(ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix, ngx_str_t *current)
+ {
+     ngx_str_t  *prefix;
++    ngx_str_t  local_prefix;
+ 
+     prefix = conf_prefix ? &cycle->conf_prefix : &cycle->prefix;
++    if (name->len >= 2 && name->data[0] == '.' && name->data[1] == '/' && current && current->len && current->data[0] == '/') {
++        name->len -= 2;
++        name->data += 2;
++
++        local_prefix.data = current->data;
++        for (local_prefix.len = current->len; local_prefix.data[--local_prefix.len] != '/'; /* void */) /* void */;
++        ++local_prefix.len;
++        prefix = &local_prefix;
++    }
+ 
+     return ngx_get_full_name(cycle->pool, prefix, name);
+ }
+ 
++ngx_int_t
++ngx_conf_full_name(ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix)
++{
++    return ngx_conf_full_name_rel(cycle, name, conf_prefix, NULL);
++}
++
++
+ 
+ ngx_open_file_t *
+ ngx_conf_open_file(ngx_cycle_t *cycle, ngx_str_t *name)

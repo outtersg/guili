@@ -33,6 +33,11 @@ v 1.15.12 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
+relinc()
+{
+	patch -p0 < "$SCRIPTS/nginx.relinc.patch"
+}
+
 # Variables
 
 moduleNginxSiOption()
@@ -65,6 +70,7 @@ OPTIONS_CONF=
 moduleNginxSiOption realip http_realip_module
 moduleNginxSiOption upstreamcheck https://github.com/yaoweibin/nginx_upstream_check_module/archive/master.zip
 moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-module/archive/master.zip
+if option relinc ; then modifs="$modifs relinc" ; fi
 
 # Boulot
 
