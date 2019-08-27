@@ -75,7 +75,9 @@ analyserParametres()
 
 liensConfIperso()
 {
-	( cd "$iperso_cible/$conf" && find . -mindepth 1 -maxdepth 1 -type l | "$@" )
+	local opts=
+	[ "x$1" = x-0 ] && opts="-print0" && shift || true
+	( cd "$iperso_cible/$conf" && find . -mindepth 1 -maxdepth 1 -type l $opts | "$@" )
 }
 
 analyserParametres "$@"
