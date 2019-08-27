@@ -55,6 +55,7 @@ analyserParametres()
 			--var-run=*) varrun="`echo "$1" | cut -d = -f 2-`" ;;
 			--var-log=*) varlog="`echo "$1" | cut -d = -f 2-`" ;;
 			--var-tmp=*) vartmp="`echo "$1" | cut -d = -f 2-`" ;;
+			+?*) remplacerPrerequis nginx "nginx$1" ; option "`echo "$1" | cut -c 2-`" ;;
 			*) apAffecter "$1" $vars ;;
 		esac
 		shift
