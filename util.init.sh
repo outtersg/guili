@@ -45,16 +45,23 @@ util_menage()
 {
 	if [ $? -eq 0 ] # En cas de meurtre, on ne fait pas disparaître les preuves.
 	then
+		local dossierCourant="`pwd`"
+		cd /tmp/ # On se place dans un dossier neutre, pas un de ceux que l'on va supprimer juste en-dessous.
+		
+		# Suppression du dossier temporaire.
+		
 		# Un minimum de blindage pour éviter de supprimer / en cas de gros, gros problème (genre le shell ne saurait même plus fournir $$).
 		case "$TMP/$$" in
+			[^/]*) true ;; # Un chemin relatif, ça pue.
 			*/[0-9]*)
 				rm -Rf "$TMP/$$"
 				;;
 		esac
+		
 		# De même pour le dossier courant s'il contient un bout de /tmp/ dans son nom (ex.: dossier de compilation).
-		local dossierCourant="`pwd`"
+		
 		case "$dossierCourant" in
-			*/tmp/[_A-Za-z0-9]*) cd /tmp/ && rm -Rf "$dossierCourant" ;;
+			*/tmp/[_A-Za-z0-9]*) rm -Rf "$dossierCourant" ;;
 		esac
 	fi
 }
