@@ -85,11 +85,13 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
+for p in "$@" ; do case "$p" in --with-debug) OPTIONS_CONF="$OPTIONS_CONF $p" ;; esac ; done
 ./configure --prefix="$dest" --with-http_ssl_module --with-cc-opt="$CPPFLAGS $CFLAGS" --with-ld-opt="$LDFLAGS" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
-for modif in true $modifspostcompil ; do $modif "$@" ; done
+moire "$@" --with-debug
+[ $MOIRE_STATUT = fils ] || sudoku mv "$dest/sbin/nginx" "$dest/sbin/nginx-debug"
 
 echo Installation… >&2
 sudo make install
