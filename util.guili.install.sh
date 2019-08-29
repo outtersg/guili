@@ -141,7 +141,7 @@ guili_deps_pondre()
 			for destbis in $dests
 			do
 				[ -e "$pdeps" ] && grep -q "^$destbis$" < "$pdeps" || echo "$destbis" | grep -v "^$cPrerequi$" # Si notre cible est notre prérequis, elle ne s'inscrit pas comme dépendance d'elle-même (ex.: apc s'installe dans php tout en le prérequérant).
-			done | sudoku -d "$cPrerequi" sh -c "cat >> $pdeps" || true
+			done | ( unset IFS ; sudoku -d "$cPrerequi" sh -c "cat >> $pdeps" ) || true
 			if [ -s "$preqs" ]
 			then
 				echo "@ $preqs"
