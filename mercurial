@@ -28,6 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 prerequis="make \\ python < 3"
 v 2.7.1 || true
+v 5.1 || true
 
 prerequis
 
