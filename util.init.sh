@@ -1,0 +1,38 @@
+#!/bin/sh
+# Copyright (c) 2010i-2011,2016,2018-2019 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Utilitaires de constitution d'un environnement de travail.
+
+# S'assure de la présence de, et va dans le $TMP/$$ qui nous servira de bac à sable.
+util_tmp()
+{
+	[ -n "$TMP" ] || TMP="$HOME/tmp"
+	
+	# Si notre environnement a été pourri par un appelant qui ne tourne pas sous notre compte, il se peut qu'il ait défini un TMP dans lequel nous ne savons pas écrire. En ce cas nous redéfinissons à une valeur "neutre".
+	if ! mkdir -p "$TMP/$$" 2> /dev/null
+	then
+		TMP=/tmp
+		mkdir -p "$TMP/$$"
+	fi
+	
+	trap util_menage EXIT
+	trap util_mechantmenage INT TERM
+}

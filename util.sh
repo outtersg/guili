@@ -31,7 +31,6 @@ fi
 
 [ -n "$INSTALL_MEM" ] || INSTALL_MEM="$HOME/tmp/paquets"
 [ -n "$INSTALLS" ] || INSTALLS="$HOME/local" || true
-[ -n "$TMP" ] || TMP="$HOME/tmp" || true
 [ -n "$SANSSU" ] || SANSSU=1 || true
 
 INSTALL_SCRIPTS="$SCRIPTS" # Des fois que d'autres récupèrent ensuite la variable $SCRIPTS.
@@ -58,15 +57,11 @@ util_mechantmenage()
 	util_menage
 	exit 1
 }
-trap util_menage EXIT
-trap util_mechantmenage INT TERM
 
-# Si notre environnement a été pourri par un appelant qui ne tourne pas sous notre compte, il se peut qu'il ait défini un TMP dans lequel nous ne savons pas écrire. En ce cas nous redéfinissons à une valeur "neutre".
-if ! mkdir -p "$TMP/$$" 2> /dev/null
-then
-	TMP=/tmp
-	mkdir -p "$TMP/$$"
-fi
+. "$SCRIPTS/util.init.sh"
+
+util_tmp
+
 mkdir -p "$INSTALL_MEM"
 
 ajouterModif()
