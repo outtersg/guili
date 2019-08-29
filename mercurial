@@ -50,6 +50,7 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 
 echo Compilation… >&2
+make PREFIX=$dest build
 
 echo Installation… >&2
 sudoku make PREFIX=$dest install-bin # L'install de la doc plante.
