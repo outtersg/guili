@@ -21,13 +21,12 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=mercurial
 
 # Historique des versions gérées
 
+prerequis="make \\ python < 3"
 v 2.7.1 || true
 
 prerequis
@@ -36,10 +35,12 @@ prerequis
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://mercurial.selenic.com/release/mercurial-$version.tar.gz"
+archive="https://www.mercurial-scm.org/release/mercurial-$version.tar.gz"
 
-[ -d "$dest" ] && exit 0
+prerequis
+
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -51,9 +52,7 @@ echo Configuration… >&2
 echo Compilation… >&2
 
 echo Installation… >&2
-sudo make PREFIX=$dest install || true # L'install de la doc plante.
-sutiliser "$logiciel-$version"
+sudoku make PREFIX=$dest install-bin # L'install de la doc plante.
+sutiliser
 
-rm -Rf "$TMP/$$"
-
-hg debuginstall
+#"$dest/bin/hg" debuginstall
