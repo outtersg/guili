@@ -526,7 +526,7 @@ lance()
 
 etat()
 {
-	pid="\`cat "\$pidfile"\`"
+	pid="\`cat "\$pidfile" 2> /dev/null\`"
 	if [ -z "\$pid" ]
 	then
 		echo "$nom éteint (aucun PID dans \$pidfile)"
@@ -544,7 +544,7 @@ etat()
 
 recharge()
 {
-	pid="\`cat "\$pidfile"\`"
+	pid="\`cat "\$pidfile" 2> /dev/null\`"
 	if [ -z "\$pid" ]
 	then
 		echo "# Impossible de recharger le serveur. PID introuvable à \$pidfile." >&2
@@ -555,7 +555,7 @@ recharge()
 
 tue()
 {
-	pid="\`cat "\$pidfile"\`"
+	pid="\`cat "\$pidfile" 2> /dev/null\`"
 	if [ -z "\$pid" ]
 	then
 		echo "# Impossible d'arrêter le serveur. PID introuvable à \$pidfile." >&2
