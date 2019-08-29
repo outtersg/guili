@@ -33,6 +33,10 @@ util_tmp()
 		mkdir -p "$TMP/$$"
 	fi
 	
+	# Le ménage va être mis en place; il essaiera de supprimer les artéfacts de compilation, supposés dans `pwd` (s'il est sous /tmp/). Aussi nous nous plaçons dans notre répertoire dédié temporaire, afin qu'en cas de sortie nous effacions notre dossier temporaire plutôt que le source d'un de nos appelants duquel nous n'aurions pas eu le temps de "sortir" par cd.
+	cd "$TMP/$$"
+	
+	# Mise en place du ménage des dossiers temporaires et de travail.
 	trap util_menage EXIT
 	trap util_mechantmenage INT TERM
 }
