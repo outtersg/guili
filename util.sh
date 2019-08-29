@@ -1124,6 +1124,7 @@ compil3264()
 
 compil3264bis()
 {
+	# À FAIRE: utiliser moire().
 	mac || return 0
 	icirel="`pwd | sed -e "s#$TMP/*##"`"
 	tmp2="$TMP/$$/compil32bits"
