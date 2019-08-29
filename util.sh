@@ -35,29 +35,6 @@ fi
 
 INSTALL_SCRIPTS="$SCRIPTS" # Des fois que d'autres récupèrent ensuite la variable $SCRIPTS.
 
-util_menage()
-{
-	if [ $? -eq 0 ] # En cas de meurtre, on ne fait pas disparaître les preuves.
-	then
-	# Un minimum de blindage pour éviter de supprimer / en cas de gros, gros problème (genre le shell ne saurait même plus fournir $$).
-	case "$TMP/$$" in
-		*/[0-9]*)
-			rm -Rf "$TMP/$$"
-			;;
-	esac
-		# De même pour le dossier courant s'il contient un bout de /tmp/ dans son nom (ex.: dossier de compilation).
-		local dossierCourant="`pwd`"
-		case "$dossierCourant" in
-			*/tmp/[_A-Za-z0-9]*) cd /tmp/ && rm -Rf "$dossierCourant" ;;
-		esac
-	fi
-}
-util_mechantmenage()
-{
-	util_menage
-	exit 1
-}
-
 . "$SCRIPTS/util.init.sh"
 
 util_tmp
