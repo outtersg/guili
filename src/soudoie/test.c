@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "crible.h"
@@ -124,6 +125,42 @@ int testerLire(char * source, char * attendu)
 	return 0;
 }
 
+int glob_verifier(Glob * g, char ** commande);
+
+int testerGlob(char * glob, char * commande, int attendu)
+{
+	char * glob2 = alloca(strlen(glob) + 1);
+	strcpy(glob2, glob);
+	Glob g;
+	if(!glob_init(&g, glob2, 0))
+	{
+		fprintf(stderr, "# Impossible de préparer \"%s\".", glob);
+		return -1;
+	}
+	
+	char * p;
+	char * c2 = alloca(strlen(commande) + 1);
+	char * argv[0x10];
+	char ** parg;
+	strcpy(c2, commande);
+	for(parg = argv, *parg = c2, p = c2 - 1; *++p;)
+		if(*p == ' ')
+		{
+			*p = 0;
+			*++parg = p + 1;
+		}
+	*++p = 0;
+	*++parg = NULL;
+	
+	if((glob_verifier(&g, argv) == 0) != attendu)
+	{
+		fprintf(stderr, "[31m# Résultat inattendu[0m pour %s ~ %s: %d [0: oui; 1: non; -1: err]\n", commande, glob, glob_verifier(&g, argv));
+		return -1;
+	}
+	
+	return 0;
+}
+
 void initialiserUtilises(char * argv[]);
 
 int main(int argc, char * argv[])
@@ -142,6 +179,20 @@ int main(int argc, char * argv[])
 	#ifdef TEST_LIRE_0
 	/* TEST_LIRE_0=1, TEST_LIRE_0=2, TEST_LIRE_0=64 */
 	if(testerLire("  ligne:\n  suite\n suite\n   fin\nautre: ligne\nnouvelle:\n ligne bloc", "ligne:\nsuite\nsuite\nfin\001autre: ligne\001nouvelle:\nligne bloc\001") < 0) r = -1;
+	#endif
+	
+	#ifdef TEST_GLOB_0
+	if(testerGlob("/bin/ls /tmp/*", "/bin/ls", 0) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/*", "/bin/ls /tmp", 0) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/*", "/bin/ls /tmp/", 1) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/*", "/bin/ls /tmp/truc", 1) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/* coucou", "/bin/ls /tmp/ coucou", 1) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/* coucou", "/bin/ls /tmp/ coucoue", 0) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/* coucou", "/bin/ls /tmp/ couco", 0) < 0) r = -1;
+	if(testerGlob("/bin/ls /tmp/* coucou", "/bin/ls /tmp/truc coucou", 1) < 0) r = -1;
+	if(testerGlob("/bin/ls **", "/bin/ls", 1) < 0) r = -1;
+	if(testerGlob("/bin/ls **", "/bin/l", 0) < 0) r = -1;
+	if(testerGlob("/bin/ls **", "/bin/ls glop blurg plof", 1) < 0) r = -1;
 	#endif
 	
 	return r;
