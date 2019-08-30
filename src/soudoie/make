@@ -49,7 +49,7 @@ install()
 
 _listeTests()
 {
-	local tests="`grep TEST_ < soudoie.c | sed -e 's#TEST_[_A-Z0-9=]*#@&@#g' | tr @ '\012' | grep '^TEST_.' | sort -u`"
+	local tests="`grep TEST_ < test.c | sed -e 's#TEST_[_A-Z0-9=]*#@&@#g' | tr @ '\012' | grep '^TEST_.' | sort -u`"
 	# Pour les tests figurant sous deux forme (une prenant une valeur, une sans) on ne garde que celui avec valeur.
 	local filtre="`echo "$tests" | tr ' ' '\012' | grep = | sed -e 's/=.*//' | tr '\012' '|'`"
 	echo "$tests" | tr ' ' '\012' | egrep -v "^($filtre)$"

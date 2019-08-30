@@ -47,6 +47,9 @@ typedef struct Crible
 }
 Crible;
 
+/* Renvoie la liste des caractères spéciaux aux yeux de la classe d'un Crible. */
+char * CribleSpeciaux(Crible * c);
+
 /* Découpe une ligne de source.
  * Renvoie le caractère utilisé pour IFS, ou -1 en cas d'erreur.
  * Paramètres:
