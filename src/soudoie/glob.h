@@ -31,4 +31,4 @@ typedef struct
 Glob;
 
 void GlobClasseInitialiser();
-Glob * glob_init(Glob * c, char * source);
+Glob * glob_init(Glob * c, char * source, char allouer);

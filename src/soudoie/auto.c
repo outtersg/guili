@@ -41,7 +41,7 @@ int autoValiderLigne(char * ligne, AutoContexte * contexte)
 	if(1)
 	{
 		Glob g;
-		glob_init(&g, ligne);
+		glob_init(&g, ligne, 0);
 		c = (Crible *)&g;
 	}
 	

@@ -412,7 +412,7 @@ int testerPreparer(const char * source, const char * attendu)
 	char preparation[0x4000];
 	char spe[2];
 	strcpy(preparation, source);
-	if(!glob_init(&g, preparation))
+	if(!glob_init(&g, preparation, 0))
 	{
 		fprintf(stderr, "# Impossible de préparer \"%s\".", source);
 		return -1;
@@ -431,7 +431,7 @@ int testerLire(char * source, char * attendu)
 {
 	Glob g;
 	char rien[] = "";
-	if(!glob_init(&g, rien))
+	if(!glob_init(&g, rien, 0))
 	{
 		fprintf(stderr, "# Impossible de préparer \"%s\".", source);
 		return -1;

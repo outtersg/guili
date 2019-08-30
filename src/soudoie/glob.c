@@ -44,7 +44,7 @@ void GlobClasseInitialiser()
 	ClasseGlob.carSpeciaux['*'] = -1 - GLOB_ETOILE;
 }
 
-Glob * glob_init(Glob * c, char * source)
+Glob * glob_init(Glob * c, char * source, char allouer)
 {
 	char cree = 0;
 	
@@ -60,8 +60,13 @@ Glob * glob_init(Glob * c, char * source)
 		if(cree) free(c);
 		return NULL;
 	}
+	if(allouer)
+	{
 	c->crible = (char *)malloc(strlen(source) + 1);
 	strcpy(c->crible, source);
+	}
+	else
+		c->crible = source;
 	return c;
 }
 
