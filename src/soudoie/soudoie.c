@@ -168,6 +168,7 @@ char * preparer(Crible * crible, char * source)
 					return NULL;
 				}
 			speciaux[numSpe] = special;
+			++special;
 		}
 	}
 	
