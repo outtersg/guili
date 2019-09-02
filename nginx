@@ -35,7 +35,7 @@ archive="http://nginx.org/download/nginx-$version.tar.gz"
 
 relinc()
 {
-	patch -p0 < "$SCRIPTS/nginx.relinc.patch"
+	patch -p1 < "$SCRIPTS/nginx.relinc.patch"
 }
 
 # Variables
