@@ -21,8 +21,12 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+# Mode inclusion ou mode appel explicite?
+if [ "`basename "$0"`" = curlcabundle ]
+then
+	DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+fi
 
 # Si la cible ressemble à des "installs de Guillaume", le chemin commence par $INSTALLS/curl-n.mm.l, où se trouve une arbo complète de cURL.
 # Pour augmenter les chances d'iperso() (cf. la suite) de trouver une version personnalisée de la liste d'AC, on calque notre arborescence sur celle de cURL. Il nous fait alors savoir où dans l'arborescence placer notre certificat.
