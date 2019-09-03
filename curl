@@ -21,7 +21,7 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
@@ -29,14 +29,14 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 vossl=
 if option ossl10 ; then vossl=" < 1.1" ; fi
 
-v 7.16.0 && prerequis="gettext zlib" && modifs="exclusivementPrerequis multiarch sslcertfile" || true
+v 7.16.0 && prerequis="gettext zlib" && modifs="multiarch sslcertfile" || true
 version=7.16.1
 version=7.16.2
 version=7.17.0
 version=7.18.0
 version=7.19.5
 version=7.20.1
-v 7.21.0 && modifs="exclusivementPrerequis multiarch dyld105 sslcertfile" || true
+v 7.21.0 && modifs="multiarch dyld105 sslcertfile" || true
 version=7.23.0
 
 version=7.26.0
