@@ -759,30 +759,6 @@ testerVersion()
 
 pge() { pg -e "$1" "$2" ; }
 
-# Renvoie 0 si le premier paramètre (num de version) est plus grand que le second. Avec l'option -e, on fait du plus grand ou égal.
-pg()
-{
-	egal=
-	[ "x$1" = x-e ] && egal="-e" && shift
-	b="`echo "$2" | tr . ' '`"
-	pgInterne $egal "$1" $b
-}
-
-pgInterne()
-{
-	ouEgal=false
-	[ "x$1" = x-e ] && ouEgal=true && shift
-	a="`echo "$1" | tr . ' '`"
-	shift
-	for i in $a
-	do
-		[ -z "$1" -o "0$i" -gt "0$1" ] && return 0
-		[ "0$i" -lt "0$1" ] && return 1
-		shift
-	done
-	$ouEgal && [ -z "$1" ]
-}
-
 triversions()
 {
 	# De deux logiciels en même version, on prend le chemin le plus long: c'est celui qui embarque le plus de modules optionnels.
