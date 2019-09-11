@@ -30,7 +30,7 @@ pg()
 {
 	local r=0
 	egal=
-	[ "x$1" = x-e ] && egal="-e" && shift
+	if [ "x$1" = x-e ] ; then egal="-e" ; shift ; fi
 	# On pourrait simplifier toute la fin en IFS=. pgInterne $egal "$1" $2, si seulement les vieux sh ne faisaient pas baver la déclaration d'IFS hors de l'appel à pgInterne.
 	IFS=.
 	pgInterne $egal "$1" $2 || r=1
