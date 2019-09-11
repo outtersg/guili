@@ -27,6 +27,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 analyserParametresPour --pour php "$@"
 
+v_zoc=
 case `php-config --version | cut -d . -f 1-2` in
 	[1-9][0-9].*) argVersion="$argVersion >= 5" ;;
 	5.[56]) argVersion="$argVersion >= 4 < 5" ;;
@@ -44,6 +45,11 @@ v 5.1.17 || true
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
 pge 4 $version || archive="https://pecl.php.net/get/apcu-$version.tgz"
+# Subtile modification si nous sommes appelés pour la sous-partie Zend OpCache.
+case "$GUILI_MOIRE:" in *:zoc:*)
+	archive="https://pecl.php.net/get/zendopcache-$v_zoc.tgz"
+	modifs="$modifs_zoc"
+;; esac
 
 lock()
 {
@@ -58,7 +64,7 @@ prerequis
 
 obtenirEtAllerDansVersion
 
-cd `find . -name APC\*-$version -o -name apc\*-$version`
+cd `find . -maxdepth 1 -name APC\*-$version -o -name apc\*-$version -o -name zendopcache-$v_zoc`
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
@@ -69,10 +75,14 @@ phpize
 
 echo Compilation… >&2
 make
+[ -z "$v_zoc" ] || moire -i zoc "$@"
 
 echo Installation… >&2
 sudo make install
 
-php_iext apc apc.enabled
+case "$GUILI_MOIRE:" in
+	:) php_iext apc apc.enabled ;;
+	*:zoc:*) php_iext -z opcache opcache.enable ;;
+esac
 
 sutiliser -
