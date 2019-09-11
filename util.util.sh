@@ -184,7 +184,7 @@ chemins()
 	# Une petite gymnastique est donc requise pour les introduire dans le bon ordre.
 	while [ $i -gt 0 ]
 	do
-		eval racine=\$$i
+		eval "racine=\${$i}"
 		
 		guili_ppath="$racine:$guili_ppath" # p comme prérequis, ou préfixes.
 		guili_xpath="$racine/bin:$guili_xpath"
