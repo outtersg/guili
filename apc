@@ -23,6 +23,7 @@ set -e
 
 SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.php.sh"
 
 analyserParametresPour --pour php "$@"
 
@@ -71,14 +72,7 @@ make
 
 echo Installation… >&2
 sudo make install
-apcso="`cd modules && find . -name \*apc\*.so\* | tail -1`" # Entre les apc.so et les libapc.so.0.0, youpi.
-apcso="`basename "$apcso"`"
-ini="`php -i | sed -e '/^Loaded Configura/!d' -e 's/.* => //'`"
-sufiltrer "$ini" sed -e '${
-a\
-extension = '"$apcso"'
-a\
-apc.enabled = 1
-}' -e '/extension = .*apc.*\.so/d' -e '/apc.enabled/d'
+
+php_iext apc apc.enabled
 
 sutiliser -
