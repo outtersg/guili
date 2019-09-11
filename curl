@@ -29,7 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 vossl=
 if option ossl10 ; then vossl=" < 1.1" ; fi
 
-v 7.16.0 && prerequis="gettext zlib" && modifs="multiarch sslcertfile" || true
+v 7.16.0 && prerequis="gettext zlib libidn < 2" && modifs="multiarch sslcertfile" || true
 version=7.16.1
 version=7.16.2
 version=7.17.0
@@ -45,6 +45,7 @@ v 7.38.0 || true
 v 7.39.0 || true
 v 7.43.0 || true
 v 7.49.0 || true
+v 7.51.0 && remplacerPrerequis "libidn >= 2" || true
 v 7.53.1 || true
 v 7.55.1 || true
 v 7.58.0 || true
@@ -66,6 +67,8 @@ if command -v pkg-config 2> /dev/null >&2 && pkg-config libssh2
 then
 	prerequis="$prerequis libssh"
 fi
+
+opSiPasPas idn libidn # libidn par défaut (sauf si explicitement exclue).
 
 # Modifications
 
