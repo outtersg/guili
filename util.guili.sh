@@ -178,7 +178,11 @@ exclusivementPrerequis()
 #!/bin/sh
 SCRIPTS="$SCRIPTS"
 . "\$SCRIPTS/util.args.sh"
-$exp_pkgconfig "\$@" | stdin_suppr "-L$INSTALLS/lib" "-L$INSTALLS/lib64"
+r="$TMP/temp.\$\$.pkgconffiltre"
+> "\$r"
+( $exp_pkgconfig "\$@" || echo \$? > "\$r" ) | stdin_suppr "-L$INSTALLS/lib" "-L$INSTALLS/lib64"
+r="\`cat "\$r" ; rm "\$r"\`"
+[ -z "\$r" ] || return "\$r"
 TERMINE
 		chmod a+x "$TMP/$$/pkg-config"
 	fi
