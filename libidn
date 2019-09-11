@@ -28,6 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 v 1.26 || true
 v 1.29 || true
+v 2.2.0 || true
 
 # Modifications
 
