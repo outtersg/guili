@@ -48,6 +48,24 @@ pgInterne()
 	$ouEgal && [ -z "$1" ]
 }
 
+# Comparaison de version, version awk.
+# Là pour le plaisir de l'exercice: permettait un gain à l'époque où pg() instanciait deux sous-processus (avec un seul awk, on divisait donc par deux le temps d'exécution, essentiellement passé à forker). Maintenant que pg() est optimisé, c'est nous qui sommes battus (1,5 s pour 1000 appels sur mon FreeBSD), mais cette implémentation pourra servir si on a un grand nombre d'entrées à traiter quelque part, ou bien de la comparaison à faire dans le cadre d'un awk plus complexe.
+pgawk()
+{
+	local compn=">"
+	[ "x$1" = x-e ] && compn=">=" && shift || true
+	
+	awk -F . "BEGIN{
+		ng = split(\"$1\", g);
+		nd = split(\"$2\", d);
+		nmin = ng > nd ? nd : ng;
+		for(pos = 0; ++pos <= nmin;)
+			if((diff = g[pos] - d[pos]))
+				exit diff < 0 ? 1 : 0;
+		exit ng $compn nd ? 0 : 1;
+	}"
+}
+
 #- Affichage -------------------------------------------------------------------
 
 couleur()
