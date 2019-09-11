@@ -28,7 +28,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus || true
+v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -76,6 +76,7 @@ v 5.5.14 || true
 v 5.6.3 && ajouterModif haveLibReadline || true
 v 5.6.4 || true
 v 5.6.10 || true
+v 5.6.20 && retirerModif pginfossl || true
 v 5.6.25 || true
 v 5.6.39 || true
 v 5.6.40 || true
@@ -126,6 +127,12 @@ esac
 prerequis
 
 # Modifs
+
+pginfossl()
+{
+	# https://github.com/php/php-src/commit/2399c64eaffba559332b54b664b670c46ac471c2
+	filtrer ext/pgsql/pgsql.c sed -e 's/#ifdef *USE_SSL/#if defined(USE_SSL) || defined(USE_OPENSSL)/g'
+}
 
 isfinite()
 {
