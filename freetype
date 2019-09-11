@@ -59,7 +59,7 @@ echo Correction… >&2
 for modif in compil3264 $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
