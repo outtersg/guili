@@ -185,29 +185,36 @@ guili_deps_pondre()
 
 # Trouve un logiciel, renvoie le dossier trouvé et le contenu de son .guili.prerequis séparé par des :
 # Un test d'existence est fait pour chaque élément avant de le renvoyer (donc les lignes du .guili.prerequis référençant des dossiers inexistants ne seront pas renvoyées).
-# Utilisation: prereqs [-u] (-s <suffixe>)* <logiciel> [<version>]
+# Utilisation: prereqs [-u] (-s <suffixe>)* [-d] <logiciel> [<version>]
 #   -u
 #     Unique. Si une dépendance est listée deux fois, elle n'apparaîtra que sur sa première occurrence.
 #     Attention, ceci peut donner lieu à des comportements non maîtrisés, par exemple si un logiciel prérequérait openssl 1.1 puis le 1.0 puis re le 1.1, sans le -u on obtiendra ossl-1.1:ossl-1.0:ossl-1.1, et on est sûrs que la libssl.so trouvée sera la 1.1 (sur les OS qui donnent la priorité à la première mention aussi bien que sur ceux qui privilégient la dernière). En -u, on aura ossl-1.1:ossl-1.0, et libssl.so sera alors peut-être celle d'OpenSSL 1.0.
 #   -s 
 #     Si précisé, tous les chemins seront suffixés de /<suffixe>. Appeler par exemple -s bin pour générer un $PATH, -s lib64 -s lib pour un LD_LIBRARY_PATH.
+#   -d
+#     Les <logiciel>s ne sont pas des logiciels dont retrouver le chemin, mais directement les chemins.
 #   <logiciel> [<version>]
 #     Logiciel (avec options si besoin) et contraintes de version au sens GuiLI.
 prereqs()
 {
-	local testDeja=
-	local suffixes=
+	local dossiers= testDeja= suffixes= d
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-u) testDeja='if(deja[$0])next;deja[$0]=1;' ;;
 			-s) suffixes="$suffixes$2:" ; shift ;;
+			-d) dossiers=deja ;;
 			*) break ;;
 		esac
 		shift
 	done
 	[ -n "$suffixes" ] || suffixes=:
-	local dossiers="`versions -1 "$@"`" d
+	if [ -z "$dossiers" ]
+	then
+		dossiers="`versions -1 "$@"`"
+	else
+		dossiers="$*"
+	fi
 	[ -n "$dossiers" -o $# -eq 0 ] || err "# Je n'ai pas trouvé $*"
 	local initAwk="nSuffixes = 0; `IFS=: ; for s in $suffixes ; do echo 'c = "'"$s"'"; suffixes[++nSuffixes] = c ? "/"c : "";' ; done`"
 	
