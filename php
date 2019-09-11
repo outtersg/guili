@@ -28,7 +28,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-v 4.4.7 && prerequis="libjpeg libpng gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
+v 4.4.7 && prerequis="libjpeg libpng freetype gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -105,6 +105,8 @@ if ! optionSi mysql commande mysql
 then
 	OPTIONS_CONF="$OPTIONS_CONF --without-mysql --without-pdo-mysql"
 fi
+
+opSiPasPas ft freetype
 
 # Sur de très vieilles machines, PHP 7, qui utilise du sed -E, va se vautrer. Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
 PATH_EP="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`" # Le PATH sous lequel tournera le configure sera celui d'exclusivementPrerequis.
