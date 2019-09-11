@@ -345,8 +345,15 @@ session.gc_maxlifetime = 259200
 upload_max_filesize = 256M;
 post_max_size = 256M
 mbstring.internal_encoding = UTF-8;
-always_populate_raw_post_data = -1;
-
+TERMINE
+	if pge $version 7 ; then true
+	elif pge $version 5.6 ; then echo "always_populate_raw_post_data = -1"
+	else echo "always_populate_raw_post_data = 0"
+	fi
+	
+	echo
+	
+	cat <<TERMINE
 error_reporting = -1
 log_errors = On
 display_errors = Off
