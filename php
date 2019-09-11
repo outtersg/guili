@@ -323,6 +323,7 @@ OPTIONS_CONF="$OPTIONS_CONF --enable-fpm"
 [ -z "$version_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
 pge $version 5.6 && OPTIONS_CONF="$OPTIONS_CONF --enable-phpdbg" || true
 commande mysql && OPTIONS_CONF="$OPTIONS_CONF --with-mysql --with-pdo-mysql" || true
+! option ft || plus OPTIONS_CONF `if pge $version 7.4.0 ; then printf "%s" --with-freetype ; else printf "%s" --with-freetype-dir="$destfreetype" ; fi`
 plus OPTIONS_CONF --enable-calendar
 # gettext: pour Horde
 # ssl: pour Horde IMP
