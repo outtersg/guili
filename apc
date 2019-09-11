@@ -31,6 +31,7 @@ v_zoc=
 case `php-config --version | cut -d . -f 1-2` in
 	[1-9][0-9].*) argVersion="$argVersion >= 5" ;;
 	5.[56]) argVersion="$argVersion >= 4 < 5" ;;
+	5.4) argVersion="$argVersion >= 4 < 5" ; v_zoc=7.0.5 ;; # APC avec la 5.4 pose pas mal de prob; on bascule vers APCu + Zend OpCache (premières versions, alors non intégrées au cœur de PHP).
 	[45]*) argVersion="$argVersion < 4" ;;
 esac
 
