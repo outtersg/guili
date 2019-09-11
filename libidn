@@ -33,7 +33,9 @@ v 1.29 || true
 
 # Variables
 
-archive="http://mirror.ibcp.fr/pub/gnu/libidn/$logiciel-$version.tar.gz"
+lv="$logiciel"
+pge $version 2 && lv="${lv}2" || true
+archive="http://mirror.ibcp.fr/pub/gnu/libidn/$lv-$version.tar.gz"
 
 prerequis
 
