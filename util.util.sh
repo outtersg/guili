@@ -24,20 +24,25 @@
 
 #- Calcul ----------------------------------------------------------------------
 
+# Comparaison de version.
 # Renvoie 0 si le premier paramètre (num de version) est plus grand que le second. Avec l'option -e, on fait du plus grand ou égal.
 pg()
 {
+	local r=0
 	egal=
 	[ "x$1" = x-e ] && egal="-e" && shift
-	b="`echo "$2" | tr . ' '`"
-	pgInterne $egal "$1" $b
+	# On pourrait simplifier toute la fin en IFS=. pgInterne $egal "$1" $2, si seulement les vieux sh ne faisaient pas baver la déclaration d'IFS hors de l'appel à pgInterne.
+	IFS=.
+	pgInterne $egal "$1" $2 || r=1
+	unset IFS
+	return $r
 }
 
 pgInterne()
 {
 	ouEgal=false
 	[ "x$1" = x-e ] && ouEgal=true && shift
-	a="`echo "$1" | tr . ' '`"
+	a="$1"
 	shift
 	for i in $a
 	do
