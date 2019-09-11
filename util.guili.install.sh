@@ -214,7 +214,7 @@ prereqs()
 	for d in $dossiers
 	do
 		echo "$d"
-		[ -f "$d/.guili.prerequis" ] && cat "$d/.guili.prerequis" || rouge "# Je n'ai pas trouvé $d/.guili.prerequis" >&2
+		[ -f "$d/.guili.prerequis" ] && cat "$d/.guili.prerequis" || [ "$d" = "$INSTALLS" ] || rouge "# Je n'ai pas trouvé $d/.guili.prerequis" >&2
 	done | awk "BEGIN{$initAwk}/^#/{next}{ $testDeja for(n = 0; ++n <= nSuffixes;) print \$0\"\"suffixes[n]; }" | while read d
 	do
 		[ ! -d "$d" ] || echo "$d"
