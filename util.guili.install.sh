@@ -208,7 +208,7 @@ prereqs()
 	done
 	[ -n "$suffixes" ] || suffixes=:
 	local dossiers="`versions -1 "$@"`" d
-	[ -n "$dossiers" ] || err "# Je n'ai pas trouvé $*"
+	[ -n "$dossiers" -o $# -eq 0 ] || err "# Je n'ai pas trouvé $*"
 	local initAwk="nSuffixes = 0; `IFS=: ; for s in $suffixes ; do echo 'c = "'"$s"'"; suffixes[++nSuffixes] = c ? "/"c : "";' ; done`"
 	
 	for d in $dossiers
