@@ -33,10 +33,16 @@ v 2.4.12
 v 2.5.5
 v 2.6.5
 v 2.7.1 || true
-v 2.9.1 && prerequis="$prerequis harfbuzz+ft >= 2" || true
+v 2.9.1 && ajouterModif ftconfig && prerequis="$prerequis harfbuzz+ft >= 2" || true
 
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
 archive=http://download.savannah.gnu.org/releases/freetype/$logiciel-$version.tar.bz2
+
+ftconfig()
+{
+	# À partir de la 2.9, freetype fait du pkg-config; on demande cependant freetype-config pour compatibilité (ex.: PHP le requiert encore jusq'aux versions 7.3.x).
+	OPTIONS_CONF="$OPTIONS_CONF --enable-freetype-config"
+}
 
 # À moins qu'on ne nous désactive explicitement harfbuzz, on l'embarque.
 case "$prerequis" in
