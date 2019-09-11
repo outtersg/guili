@@ -69,7 +69,29 @@ prerequis()
 		esac
 	done
 	unset IFS
+	# On modifie l'environnement pour lui ajouter tout ce qu'il faut pour la compilation (-L, -I, etc.), en allant chercher récursivement dans les prérequis de nos prérequis.
+	if commande DelieS # … Uniquement sur les GuiLI modernes. À terme on forcera tout le monde à passer par là.
+	then
+	# À FAIRE: l'ordre n'est sans doute pas bon (<prérequis 1>:<pr 1 du pr 1>:<pr 2>); il vaudrait mieux sans doute d'abord lister tous les prérequis directs, puis tous ceux de niveau 1, etc. (<pr 1>:<pr 2>:<pr 1 du pr 1>).
+	# Afin de ne pas polluer les guili_*path (devant contenir uniquement les prérequis directs), on les déclare locales pour contenir les prérequis des prérequis.
+	local \
+		guili_ppath="$guili_ppath" \
+		guili_xpath="$guili_xpath" \
+		guili_lpath="$guili_lpath" \
+		guili_ipath="$guili_ipath" \
+		guili_cppflags="$guili_cppflags" \
+		guili_lflags="$guili_lflags" \
+		guili_cxxflags="$guili_cxxflags" \
+		guili_cxxflags="$guili_cxxflags" \
+		guili_pcpath="$guili_pcpath" \
+		guili_acpath="$guili_acpath" \
+		chemins cheminsRecursifs
+	chemins="`guili_prerequis_path`" # Où sont nos prérequis?
+	cheminsRecursifs="`IFS=: ; tifs prereqs -u -d $chemins`" # Où sont les prérequis de nos prérequis?
+	IFS=: ; tifs chemins $cheminsRecursifs # Eh bien on les prend et on les ajoute tous à l'environnement (-L, -I, etc.), histoire que la compile se passe bien.
+	else
 	_cheminsExportes
+	fi
 }
 
 presentOuPrerequis()
