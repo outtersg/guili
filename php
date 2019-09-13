@@ -383,6 +383,8 @@ a\
 	sudo cp php-fpm.conf sapi/fpm/init.d.php-fpm "$dest/etc/"
 fi
 
+# Xdebug doit être chargé *après* OPCache, or dans certaines configurations (PHP 5.4) notre APC est en fait un OPCache + APCu. 
+# cf. https://xdebug.org/docs/install
 greffon apc
 greffon xdebug
 
