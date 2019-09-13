@@ -106,8 +106,6 @@ then
 	OPTIONS_CONF="$OPTIONS_CONF --without-mysql --without-pdo-mysql"
 fi
 
-opSiPasPas ft freetype
-
 # Sur de très vieilles machines, PHP 7, qui utilise du sed -E, va se vautrer. Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
 PATH_EP="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`" # Le PATH sous lequel tournera le configure sera celui d'exclusivementPrerequis.
 case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
@@ -323,7 +321,7 @@ OPTIONS_CONF="$OPTIONS_CONF --enable-fpm"
 [ -z "$version_icu" ] || OPTIONS_CONF="$OPTIONS_CONF --enable-intl" || true
 pge $version 5.6 && OPTIONS_CONF="$OPTIONS_CONF --enable-phpdbg" || true
 commande mysql && OPTIONS_CONF="$OPTIONS_CONF --with-mysql --with-pdo-mysql" || true
-! option ft || plus OPTIONS_CONF `if pge $version 7.4.0 ; then printf "%s" --with-freetype ; else printf "%s" --with-freetype-dir="$destfreetype" ; fi`
+plus OPTIONS_CONF `if pge $version 7.4.0 ; then printf "%s" --with-freetype ; else printf "%s" --with-freetype-dir="$destfreetype" ; fi`
 plus OPTIONS_CONF --enable-calendar
 # gettext: pour Horde
 # ssl: pour Horde IMP
