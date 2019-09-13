@@ -19,6 +19,35 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# NOTE: DPOM
+# Destiner, Prérequis, Obtenir, Modifs
+# - Destiner: calcule le chemin du dossier d'install: <logiciel><+options>*-<version>
+# - Prérequis: s'assure que tous les prérequis sont là, et en profite pour modifier l'environnement en vue de compiler (ajout des prérequis en -I et -L aux CFLAGS et LDFLAGS, etc.).
+# - Obtenir(EtAllerDansVersion): va chercher les sources, les décompresse, et fait un cd dedans
+# - Modifs: modifie le source avant configuration et compilation
+# À cela s'ajoutent quelques subtilités:
+# 1. Lorsque D voit que le logiciel est déjà installé, hop, il sort.
+# 2. Lorsqu'O trouve une version déjà compilée, il la décompresse, et hop il sort.
+# 3. D (ainsi que la sortie de toute fin en cas de compilation complète), si $INSTALL_AVEC_INFOS est définie, sort un certain nombre d'infos sur le logiciel installé.
+# L'ordre est parfois malmené, et le parcours suboptimal:
+# a. Souvent P précède D, afin que D (avec $INSTALL_AVEC_INFOS) tienne compte dans son affichage de tout ce qui aura été modifié par les prérequis dans l'environnement.
+# b. Du fait de a., quand un logiciel est déjà installé, on reparcourt tous ses prérequis, ce qui un peu dommage (coûteux, quoi).
+# c. P va chercher tous les prérequis: aussi bien ceux nécessaires à la construction que ceux qui serviront à l'exécution. C'est bête, car si on a récupéré une version compilée on n'a pas besoin des premiers.
+# À FAIRE: réorganiser le processus pour répondre aux points ci-dessus.
+# - placer dans un .guili.env(.cache pour dire qu'on peut le supprimer sans risque?) les variables affichées habituellement avec $INSTALL_AVEC_INFOS permettrait de ne pas avoir à nous relancer pour les récupérer (coûteux), mais juste lire ce fichier. De plus ça permettrait la reproductibilité (les paramètres seraient vraiment ceux calculés le jour où le paquet a été compilé, figés dans le temps).
+#   Bien entendu si le fichier manque, on se rabat sur le circuit long et on invoque le GuiLI 'il en profitera pour générer le .env, tiens).
+# - scinder prérequis de compilation et prérequis à l'exécution. On aurait alors trois chemins (sous réserve que le point précédent soit corrigé pour obtenir l'ordre D - P):
+#   - si le logiciel est déjà installé:      D [sortie]
+#   - si une version binaire est disponible: D Pexéc O [sortie]
+#   - sinon, si la compil est nécessaire:    D Pcomp Pexéc O M [etc.]
+# - attention cependant aux options implicites, que seul l'appel du logiciel permet de retrouver; ainsi ./curl par défaut va compiler un ./curl +idn, donc si un logiciel a pour prérequis curl il ne faudra pas chercher simplement les curl-* mais les curl*+idn*-*.
+#   Pour cela, un mécanisme de liens symboliques (calculés la première fois) permettrait de faire pointer sur le bon logiciel; ainsi .guili/curl<params d'invocation>-<version> pointerait sur ../curl<params calculés>-<version>
+DPOM()
+{
+	echo "# DOP pas implémenté." >&2
+	return 1
+}
+
 destiner()
 {
 	verifierConsommationOptions
