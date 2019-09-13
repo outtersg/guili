@@ -37,7 +37,7 @@ v 2.3.1 && ft_v=">= 2.8" prerequis="icu graphite >= 1.2 freetype+-hb $ft_v freet
 
 optionSi icu || true
 optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || true
-if versions freetype "$ft_v" | grep -q . # Si un freetype est déjà présent.
+if versions freetype+hb "$ft_v" | grep -q . # Si un freetype est déjà présent.
 then
 	virerPrerequis freetype+-hb # Alors pas besoin de celui de compil.
 	option ft || true # On "consomme" l'option ft (puisqu'on ne fera pas le test du elif ci-dessous) pour éviter une alerte plus tard.
