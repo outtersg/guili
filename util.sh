@@ -222,7 +222,7 @@ obtenirEtAllerDansDarcs()
 # Utilise les variables globales version, archive, archive_darcs, archive_svn, archive_cvs.
 obtenirEtAllerDansVersion()
 {
-	echo "=== $logiciel`argOptions` $version ===" >&2
+	echo "=== $logiciel`argOptions`$GUILI_MOIRE $version ===" >&2
 	
 	# A-t-on un binaire déjà compilé?
 	installerBinaireSilo
