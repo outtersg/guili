@@ -43,7 +43,7 @@ v 5.0.9.3.2005-08-29
 v 5.0.9.4.2005-09-20
 v 5.0.9.5.2005-09-23 && ajouterModif php34617
 # icu < 56: https://bugs.archlinux.org/task/58061, http://source.icu-project.org/repos/icu/trunk/icu4c/readme.html#RecBuild par rapport aux namespaces de la 61 (et la 55.1 marche bien, donc < 56 est une valeur sûre)
-v 5.1.4 && retirerModif php34617 && prerequis="$prerequis icu < 56" || true
+v 5.1.4 && retirerModif php34617 && prerequis="icu < 56 $prerequis" || true # Avant les prérequis, pour que harfbuzz (requis par les versions récentes de freetype) le détecte et tant qu'à faire l'exploite (comme dit dans le configure d'Harfbuzz: the more the merrier). Ce serait le genre de tâche à dévoluer à ecosysteme (signalement à certaines de nos dépendances de la présence d'autres de nos dépendances pour qu'elles s'y lient, avec réordonnement), en attendant c'est à nous de le faire manuellement.
 # Apache 2.2.3
 v 5.2.0 && ajouterModif pasDUsrLocalEnDur || true
 v 5.2.1 || true #&& ajouterModif pourTrouverApache
