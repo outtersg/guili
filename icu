@@ -61,8 +61,8 @@ types16()
 			do
 				echo "# $TMP/1.c:" >> $t
 				( echo '#include <uchar.h>' ; echo "$char16 c;" ) | tee $TMP/1.c | sed -e 's/^/	/' >> $t
-				echo "# CFLAGS=\"$CFLAGS $cflags\" c++ -c -o $TMP/1.o $TMP/1.c" >> $t
-				CFLAGS="$CFLAGS $cflags" c++ -c -o $TMP/1.o $TMP/1.c 2>> $t && return || continue
+				echo "# CFLAGS=\"$CFLAGS $cflags\" $CXX -c -o $TMP/1.o $TMP/1.c" >> $t
+				CFLAGS="$CFLAGS $cflags" $CXX -c -o $TMP/1.o $TMP/1.c 2>> $t && return || continue
 			done
 		done
 	}
