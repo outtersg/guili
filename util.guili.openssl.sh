@@ -20,12 +20,15 @@
 
 prerequisOpenssl()
 {
+	local osslxx=ossl11
 	
 	if option ossl10
 	then
+		osslxx=ossl10
 		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl >= 1.0 < 1.1 #'`"
 	elif option ossl11
 	then
+		osslxx=ossl11
 		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl >= 1.1 < 1.2 #'`"
 	else
 		local vlocal="`versions openssl | tail -1 | sed -e 's/.*-//'`"
@@ -33,7 +36,9 @@ prerequisOpenssl()
 		if [ ! -z "$vmajlocal" ]
 		then
 			argOptions="`options "$argOptions+ossl$vmajlocal" | tr -d ' '`"
+			osslxx=ossl$vmajlocal
 			prerequis="`echo " $prerequis " | sed -e "s# openssl # openssl $vlocal #"`"
 		fi
 	fi
+	prerequis="`echo " $prerequis " | sed -e "s#+osslxx#+$osslxx#"`"
 }
