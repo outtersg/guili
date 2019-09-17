@@ -67,7 +67,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --enable-perl=no --enable-python=no
+./configure --prefix="$dest" --enable-perl=no --enable-python=no --without-x
 
 echo Compilation… >&2
 make
