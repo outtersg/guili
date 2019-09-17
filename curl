@@ -26,9 +26,6 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-vossl=
-if option ossl10 ; then vossl=" < 1.1" ; fi
-
 v 7.16.0 && prerequis="gettext zlib libidn < 2" && modifs="multiarch sslcertfile" || true
 version=7.16.1
 version=7.16.2
@@ -60,7 +57,7 @@ v 7.65.3 || true
 # - s'il existe (dans un chemin système par exemple), on le prérequiert, afin de s'assurer d'utiliser une version contrôlée par nous.
 if command -v openssl 2>&1 > /dev/null
 then
-	prerequis="$prerequis openssl$vossl"
+	prerequis="$prerequis openssl"
 fi
 
 # LibSSH: si on la trouve dans notre $INSTALLS, alors on l'utilise. On ne se lie pas à une libssh système.
@@ -71,6 +68,8 @@ then
 fi
 
 opSiPasPas idn libidn # libidn par défaut (sauf si explicitement exclue).
+
+prerequisOpenssl
 
 # Modifications
 
