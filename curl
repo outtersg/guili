@@ -67,6 +67,7 @@ fi
 if command -v pkg-config 2> /dev/null >&2 && pkg-config libssh2
 then
 	prerequis="$prerequis libssh"
+	OPTIONS_CONF="$OPTIONS_CONF --with-libssh2"
 fi
 
 opSiPasPas idn libidn # libidn par défaut (sauf si explicitement exclue).
@@ -133,7 +134,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 	echo Configuration… >&2
-	./configure --prefix="$dest"
+	./configure --prefix="$dest" $OPTIONS_CONF
 	
 	echo Compilation… >&2
 	make
