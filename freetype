@@ -75,3 +75,5 @@ echo Installation… >&2
 sudo make install
 
 sutiliser
+
+cd "$TMP/$$" # Pour éviter que menage() n'efface le dossier de travail si on est en fin de compil 32bits alors que la compile 32+64 attend notre résultat pour continuer sur le même dossier.
