@@ -21,19 +21,16 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=rspamd
 
 # Historique des versions gérées
 
-#v 1.0.4 && prerequis="cmake libevent glib gmime luajit sqlite" || true
-v 1.0.4 && prerequis="cmake libevent glib gmime lua sqlite" && modifs="sansLuaJit sansRedis" || true
-v 1.3.5 && prerequis="cmake libevent glib gmime lua sqlite ragel" || true
-v 1.5.3 && prerequis="cmake libevent glib gmime lua sqlite ragel fann gd" || true
-v 1.5.6 && prerequis="cmake libevent glib gmime lua sqlite ragel fann gd" || true
-v 1.6.2 && prerequis="cmake libevent glib gmime lua sqlite ragel fann gd" && modifs="lpeginternevisible" || true # À partir de la 1.6, il devient trop complexe de compiler sans Redis.
+v 1.0.4 && prerequis="cmake \\ libevent glib gmime lua sqlite" && modifs="sansLuaJit sansRedis" || true # luajit trop instable.
+v 1.3.5 && prerequis="$prerequis ragel" || true
+v 1.5.3 && prerequis="$prerequis fann gd" || true
+v 1.5.6 || true
+v 1.6.2 && modifs="lpeginternevisible" || true
 
 # Modifications
 
@@ -61,11 +58,10 @@ sansLuaJit()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 #archive="https://github.com/vstakhov/rspamd/archive/$version.tar.gz" # https://github.com/vstakhov/rspamd/issues/335
 archive="https://rspamd.com/downloads/rspamd-$version.tar.xz"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -85,6 +81,4 @@ make
 echo Installation… >&2
 sudo make install
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
