@@ -235,6 +235,14 @@ serveurEnvPourExport()
 	echo "$serveur_env" | sed -e 's/"/\\"/g' -e "s/^/$serveur_sep/" -e "s/$/$serveur_sep/" -e "s#$serveur_sep\([^=]*=\)#\" \\1\"#g" -e "s/$serveur_sep/\"/g" | sed -e 's/^ *" *//' -e '/^"$/d' -e '/=/s/^/export /'
 }
 
+premierParamAffectation()
+{
+	case "$1" in
+		*=*) true ;;
+		*) false ;;
+	esac
+}
+
 analyserParametresServeur()
 {
 	vars="type nom commande rien"
@@ -261,10 +269,16 @@ analyserParametresServeur()
 			-r) shift ; remplacer="$remplacer $1" ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; fpid="$1" ;;
-			*=*) serveurParamEnv "$1" ;;
 			-e) shift ; serveurParamEnv "$1" ;;
 			-pre) shift ; avant="$avant$serveur_sep$1" ;;
-			*) apAffecter "$1" $vars ;;
+			*)
+				if premierParamAffectation $1 # $1 sans guillemets, pour que si "$1" vaut "truc --param=A", on ne voie pas ça comme l'affectation de la valeur "A" à la variable "truc --param".
+				then
+					serveurParamEnv "$1"
+				else
+					apAffecter "$1" $vars
+				fi
+				;;
 		esac
 		shift
 	done
