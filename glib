@@ -21,10 +21,8 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=glib
 
 v 2.2.3 && prerequis="gettext" || true
 v 2.6.5 || true
@@ -51,10 +49,6 @@ archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.34.3 && archive="http://ftp.acc.umu.se/pub/GNOME/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
 
-dest=$INSTALLS/$logiciel-$version
-
-[ -d "$dest" ] && exit 0
-
 # Le machin vérifie que biblio et iconv.h sont bien d'accord, soit tout GNU iconv, soit tout système. Problème: sur Darwin, on a un hybride. Et sur mon BSD, il s'emmêle les pédales. En plus on s'en fout, parce que l'ifdef n'est utilisé nulle part ailleurs.
 micMacGnuIconv()
 {
@@ -76,6 +70,10 @@ sansDtrace()
 	optionsConfigure="$optionsConfigure --disable-dtrace"
 }
 
+destiner
+
+prerequis
+
 obtenirEtAllerDansVersion
 
 [ -f configure ] || ./autogen.sh
@@ -91,6 +89,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
