@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 prerequis="make gcc \\ "
 modifs="fpic"
 v 2.0.4 || true
+v 2.0.5 || true
 
 # Modifications
 
