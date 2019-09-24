@@ -437,7 +437,7 @@ TERMINE
 		done
 	fi
 	
-	servir "$nom" start
+	[ "$serveur_puisCopier" = non ] || servir "$nom" start
 }
 
 serveurSystemd()
