@@ -299,10 +299,13 @@ analyserParametresServeur()
 
 serveur_lner()
 {
+	local options=
+	[ "x$1" = x-a ] && options="$1" && shift || true
 	local ds="$1" ; shift
 	local dd="$1" ; shift
 	sudoku -d "$dd" sh <<TERMINE
 set -e
+. "$SCRIPTS/util.util.chemins.sh"
 ds="$ds"
 dd="$dd"
 IFS=@
@@ -313,7 +316,7 @@ do
 	s="\$ds/\$f"
 	mkdir -p "\`dirname "\$d"\`"
 	[ -L "\$d" ] && rm "\$d" || true
-	ln -s "\$s" "\$d"
+	ln_sr $options "\$s" "\$d"
 done
 TERMINE
 }
@@ -395,12 +398,14 @@ TERMINE
 	fi
 	
 	# On l'installe dans le système, si possible de façon compatible avec sutiliser (liens relatifs).
-	local relatif="$dest"
-	case "$relatif" in
-		"$usrLocal") relatif= ;; # On installe directement dans /usr/local, donc inutile de faire un lien vers lui-même.
-		"$usrLocal/`basename "$dest"`") relatif="../.." ;; # Vers un dossier au standard sutiliser.
+	local bdest="`basename "$dest"`"
+	local lieur
+	case "$dest" in
+		"$usrLocal") true ;; # On installe directement dans /usr/local, donc inutile de faire un lien vers lui-même.
+		"$usrLocal/$bdest") lieur="serveur_lner" ;; # Vers un dossier au standard sutiliser.
+		*) lieur="serveur_lner -a" ;; # Vers un dossier au standard sutiliser.
 	esac
-	[ -z "$relatif" ] || serveur_lner "$relatif" "$usrLocal" "etc/rc.d/$nom"
+	[ -z "$lieur" ] || $lieur "$dest" "$usrLocal" "etc/rc.d/$nom"
 	
 	# Ajout au sudoers.
 	if [ ! -z "$compte" ]
