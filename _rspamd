@@ -114,5 +114,6 @@ sudoku sh -c \
 	mkdir -p \"$bdd\"
 	chown -R $compte: \"$dest/var/run\" \"$dest/var/log\" \"$bdd\"
 "
+servir rspamd restart
 
 sutiliser -
