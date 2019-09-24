@@ -27,9 +27,17 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 prerequis="make gcc \\ "
+modifs="fpic"
 v 2.0.4 || true
 
 # Modifications
+
+fpic()
+{
+	filtrer src/Makefile sed -e '/^XCFLAGS *=/a\
+XCFLAGS += -fPIC
+'
+}
 
 # Variables
 
