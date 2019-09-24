@@ -104,8 +104,12 @@ then
 fi
 # Il faut lui préciser un SSL_CERT_FILE pour qu'il puisse télécharger ses listes régulièrement sur https://rspamd.com/.
 serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" -pre "export SSL_CERT_FILE=$INSTALLS/share/curl-ca-bundle.crt" demon rspamd "$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 DBDIR=$bdd -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
-sudo cp -R "$t" "$dest"
-sudo mkdir -p "$bdd"
-sudo chown -R $compte: "$dest/var/run" "$dest/var/log" "$bdd"
+sudoku sh -c \
+"
+	mkdir -p \"$dest\"
+	cp -R \"$t/.\" \"$dest/.\"
+	mkdir -p \"$bdd\"
+	chown -R $compte: \"$dest/var/run\" \"$dest/var/log\" \"$bdd\"
+"
 
 sutiliser -
