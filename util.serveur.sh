@@ -440,6 +440,29 @@ TERMINE
 	[ "$serveur_puisCopier" = non ] || servir "$nom" start
 }
 
+_lignesEnvSystemd()
+{
+	# Le crétin qui a conçu les fichiers de conf systemd, trouvant trop difficile de traiter des lignes de plus de 2048 caractères, y insère des LF fictifs, faisant passer la fin à la ligne (fictive, donc), et donnant lieu à un "Missing =" sur icelle. Cf. https://github.com/coreos/fleet/issues/992, https://bugs.freedesktop.org/show_bug.cgi?id=85308, https://github.com/systemd/systemd/issues/3302
+	# Pour ce qui est de l'Environment, il les passe ensuite à un truc qui gère à merveille les paquets de plus de 2048 caractères, donc un palliatif consiste en scinder les variables, ex.:
+	# Environment=PATH=<le début>
+	# Environment=PATH=$PATH<la suite>
+	# Bon en fait ça ne marche pas, seule la dernière ligne est prise en compte (avec un "$" littéral). Il faudra reposer sur un script encapsulant environnement et lancement. Mais on garde ce code pour la beauté de l'exercice.
+	awk -F = '
+BEGIN{ M = 1024; }
+{
+	c = $0;
+	t = length(c);
+	while(t > M)
+	{
+		match(substr(c, 1, 1024), /[^_A-Za-z0-9][_A-Za-z0-9]*$/);
+		print(substr(c, 1, RSTART));
+		t -= RSTART - 1;
+		c = $1"=$"$1""substr(c, RSTART, t);
+	}
+	print c
+}'
+}
+
 serveurSystemd()
 {
     ajoutService=
@@ -468,7 +491,7 @@ Group=$groupe
 `IFS="$serveur_sep" ; for ligne in $avant ; do [ -z "$ligne" ] || echo "ExecStartPre=$ligne" ; done | sed -e 's/ExecStartPre=umask  */UMask=0/'`
 ExecStart=$commande
 `echo "$ajoutService" | tr \| '\012'`
-`echo "$serveur_env" | tr "$serveur_sep" '\012' | sed -e 's/^/Environment=/'`
+`echo "$serveur_env" | tr "$serveur_sep" '\012' | _lignesEnvSystemd | sed -e 's/^/Environment=/'`
 Restart=on-failure
 
 [Install]
