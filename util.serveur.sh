@@ -491,7 +491,7 @@ Group=$groupe
 `IFS="$serveur_sep" ; for ligne in $avant ; do [ -z "$ligne" ] || echo "ExecStartPre=$ligne" ; done | sed -e 's/ExecStartPre=umask  */UMask=0/'`
 ExecStart=$commande
 `echo "$ajoutService" | tr \| '\012'`
-`echo "$serveur_env" | tr "$serveur_sep" '\012' | _lignesEnvSystemd | sed -e 's/^/Environment=/'`
+`echo "$serveur_env" | tr "$serveur_sep" '\012' | sed -e 's/^/Environment=/'`
 Restart=on-failure
 
 [Install]
