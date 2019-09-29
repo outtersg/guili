@@ -89,6 +89,8 @@ analyserParametres()
 	[ ! -z "$compte" ] || auSecours
 	
 	[ -n "$port" ] || auSecours
+	
+	remplacerPrerequis "tinyproxy $argVersion"
 }
 
 analyserParametres "$@"
