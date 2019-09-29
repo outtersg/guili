@@ -78,6 +78,12 @@ _test()
 	done
 }
 
+clean()
+{
+	find . \( -name "*.o" -o -name "*.core" \) -exec rm -f {} \;
+	rm -f soudoie soudoie.test
+}
+
 quoi="$1"
 case "$quoi" in
 	"") quoi=all ;;
