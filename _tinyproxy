@@ -87,6 +87,8 @@ analyserParametres()
 	fi
 	
 	[ ! -z "$compte" ] || auSecours
+	
+	[ -n "$port" ] || auSecours
 }
 
 analyserParametres "$@"
