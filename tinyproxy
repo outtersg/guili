@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 1.8.4 && prerequis="asciidoc" && modifs="sansdoc" || true
+v 1.8.4 && modifs="sansdoc" || true
 
 # Modifications
 
