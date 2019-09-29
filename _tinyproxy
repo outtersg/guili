@@ -108,6 +108,8 @@ destiner
 
 creerAmorceur()
 {
+	local desttemp="$TMP/$$/init"
+	
 			mkdir -p "$TMP/$$/init/etc/rc.d" "$TMP/$$/init/var/run" "$TMP/$$/init/var/log"
 			fpid="var/run/tinyproxy.pid"
 			ftrace="var/log/tinyproxy.log"
@@ -115,7 +117,6 @@ creerAmorceur()
 			foui="etc/tproxy.oui"
 			groupe="`id -g -n "$compte"`"
 			
-			serveur -d0 "$TMP/$$/init" -d "$dest" -p "$dest/$fpid" demon tinyproxy "$desttinyproxy/sbin/tinyproxy -c $dest/$fconfig"
 			cat > "$TMP/$$/init/$fconfig" <<TERMINE
 User $compte
 Group $groupe
@@ -143,8 +144,16 @@ TERMINE
 				grep -q "^$param[ 	]" < "$TMP/$$/init/$fconfig" || echo "$param $contenu"
 			done >> "$TMP/$$/init/$fconfig"
 			
+	serveur_patronVars "$desttemp" var/run var/log
+	mv "$desttemp/$fconfig" "$desttemp/$fconfig$PERSO_ORIGINAL"
+	iperso "$desttemp"
+	
 			sudo cp -R "$TMP/$$/init/." "$dest"
-			sudo chown "$compte:" "$dest/var/run" "$dest/var/log"
+	serveur_chownVars
+	
+	local bin=bin
+	pge $version 1.10 || bin=sbin
+	serveur -p "$dest/$fpid" $optionsServeur demon tinyproxy "$desttinyproxy/$bin/tinyproxy -c $dest/$fconfig"
 }
 
 echo "Auto-démarrage…" >&2
