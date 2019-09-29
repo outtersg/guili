@@ -52,6 +52,7 @@ analyserParametres()
 	compte=
 	port=
 	seulement=
+	optionsServeur=
 	> $TMP/$$/regles
 	while [ $# -gt 0 ]
 	do
