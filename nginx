@@ -93,7 +93,7 @@ for p in "$@" ; do case "$p" in --with-debug) OPTIONS_CONF="$OPTIONS_CONF $p" ;;
 echo Compilation… >&2
 make
 moire "$@" --with-debug
-[ $MOIRE_STATUT = fils ] || sudoku mv "$dest/sbin/nginx" "$dest/sbin/nginx-debug"
+[ $MOIRE_STATUT = fils ] || sudoku mv -f "$dest/sbin/nginx" "$dest/sbin/nginx-debug"
 
 echo Installation… >&2
 sudo make install
