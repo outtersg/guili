@@ -42,6 +42,7 @@ v 2.52.1 || true
 v 2.52.2 || true
 v 2.58.2 || true
 v 2.58.3 || true
+v 2.60.5 && prerequis="meson \\ $prerequis" && retirerModif pasBesoinDeCarbon || true
 v 2.60.6 || true
 
 prerequis
@@ -77,13 +78,18 @@ prerequis
 
 obtenirEtAllerDansVersion
 
-[ -f configure ] || ./autogen.sh
+pge "$version" 2.60 || [ -f configure ] || ./autogen.sh
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if pge "$version" 2.60
+then
+	meson build
+else
 ./configure --prefix="$dest" $optionsConfigure
+fi
 
 echo Compilation… >&2
 make
