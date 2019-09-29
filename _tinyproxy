@@ -103,11 +103,6 @@ destiner
 
 creerAmorceur()
 {
-	case `uname` in
-		Darwin)
-			# Rien. On démarrera à la main.
-			;;
-		FreeBSD)
 			mkdir -p "$TMP/$$/init/etc/rc.d" "$TMP/$$/init/var/run" "$TMP/$$/init/var/log"
 			fpid="var/run/tinyproxy.pid"
 			ftrace="var/log/tinyproxy.log"
@@ -145,8 +140,6 @@ TERMINE
 			
 			sudo cp -R "$TMP/$$/init/." "$dest"
 			sudo chown "$compte:" "$dest/var/run" "$dest/var/log"
-			;;
-	esac
 }
 
 echo "Auto-démarrage…" >&2
