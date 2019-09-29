@@ -32,11 +32,13 @@ auSecours()
 {
 	moi="`basename "$0"`"
 	cat >&2 <<TERMINE
-# Utilisation: $moi [-u <utilisateur>] -p <port> <règle>*
+# Utilisation: $moi [-u <utilisateur>] -p <port> [-r <remplace>] <règle>*
   -u <utilisateur>
     Compte sous lequel tourner.
   -p <port>
     Numéro de port d'écoute.
+  -r <remplace>
+    Remplace un autre serveur (en plus de lui-même s'il se trouve)
   <règle>
     Si -, l'entrée standard est récupérée.
     Les règles sont celles de tinyproxy: upstream, no upstream, Allow, Filter,
@@ -60,6 +62,7 @@ analyserParametres()
 			--seulement) shift ; seulement="$1" ;;
 			-u) shift ; compte="$1" ;;
 			-p) shift ; port="$1" ;;
+			-r) optionsServeur="$optionsServeur $1 $2" ; shift ;;
 			-) cat >> $TMP/$$/regles ;;
 			*)
 				if [ "$vars" = rien ]
