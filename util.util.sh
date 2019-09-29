@@ -510,7 +510,7 @@ _analyserParametresSusermod()
 #   perso /tmp/logiciel-2.0 /usr/local
 perso()
 {
-	local suffixe=".original"
+	local suffixe="$PERSO_ORIGINAL"
 	
 	local cible="$1" ; shift
 	local source
