@@ -21,12 +21,10 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=fontconfig
-
-v 2.3.2 && prerequis="zlib freetype expat gperf" || true
+v 2.3.2 && prerequis="make pkgconfig \\ zlib freetype expat gperf" || true
 # La 2.3.2 est boguée, leur FcObjectStaticName n'est pas généralisé et du coup
 # les comparaisons de chaînes par pointeur ne marchent pas partout.
 version=2005-06-28
@@ -73,7 +71,7 @@ constantes()
 
 # Boulot
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -90,6 +88,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
