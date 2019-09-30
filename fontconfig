@@ -38,8 +38,7 @@ v 2.12.2 && modifs="" || true
 v 2.12.6 && modifs="" || true
 #v 2.13.1 || true # La 2.12.91 et suivantes utilisent uuid_generate, spécifique Linux (il faudrait une version qui sache faire du uuid_create sous BSD).
 
-dest=$INSTALLS/$logiciel-$version
-archive=http://www.fontconfig.org/release/$logiciel-$version.tar.gz
+archive=https://www.freedesktop.org/software/fontconfig/release/$logiciel-$version.tar.gz
 archive_cvs=cvs://anonymous@cvs.freedesktop.org:/cvs/fontconfig:fontconfig
 
 # Modifications
