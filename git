@@ -21,11 +21,11 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 . "$SCRIPTS/garg.sh"
 
-v 1.7.0.6 && prerequis="perl gettext expat iconv curl" || true
+v 1.7.0.6 && prerequis="make \\ perl gettext expat iconv curl zlib" || true
 v 1.7.5.4
 v 1.7.10.4 && modifs=autoconfer || true
 v 1.8.3.2 && modifs=sansConfigurer || true
@@ -107,5 +107,3 @@ echo Installation… >&2
 garg -a paramsMake install
 garg paramsMake sudo NO_R_TO_GCC_LINKER=$NO_R_TO_GCC_LINKER make
 sutiliser
-
-rm -Rf "$TMP/$$"
