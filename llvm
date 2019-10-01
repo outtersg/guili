@@ -47,6 +47,8 @@ v 5.0.2 || true
 v 6.0.0 || true
 v 6.0.1 && prerequis="cmake \\" || true
 v 7.0.1 || true
+v 7.1.0 || true
+v 8.0.1 || true
 
 archive()
 {
