@@ -48,9 +48,25 @@ v 6.0.0 || true
 v 6.0.1 && prerequis="cmake \\" || true
 v 7.0.1 || true
 
+archive()
+{
+	local l="$1" v="$version"
+	case "$l" in
+		compiler-rt|lldb)
+			case "$version" in
+				3.4.*) v="`deux() { echo "$1.$2" ; } ; IFS=. ; deux $version`" ;;
+			esac
+			;;
+	esac
 suffixe=xz
 pge $version 3.5 || suffixe=gz
-archive=http://llvm.org/releases/$version/llvm-$version.src.tar.$suffixe
+	case "$version" in
+		[0-7].*) echo http://llvm.org/releases/$v/$l-$v.src.tar.$suffixe ;;
+		*) echo https://github.com/llvm/llvm-project/releases/download/llvmorg-$v/$l-$v.src.tar.$suffixe ;;
+	esac
+}
+
+archive="`archive llvm`"
 
 # Modifs.
 
@@ -210,20 +226,16 @@ obtenirEtAllerDansVersion
 integrer()
 {
 	ici="`pwd`"
-	( obtenirEtAllerDans "$2" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
+	( obtenirEtAllerDans "`archive "$2"`" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
 }
-vmaj="`echo "$version" | sed -e 's/\([^.]*\.[^.]*\).*/\1/'`"
-vrt="$version"
-pge $version 3.4 && pge 3.5 $version && vrt=$vmaj || true
-vdb=$vrt # Suit le même numérotage: unifié en 3.4 pour les 3.4.x, sinon avec le numéro de révision.
 if [ "`basename "$0"`" = clang ] ; then
-integrer tools/clang          http://llvm.org/releases/$version/cfe-$version.src.tar.$suffixe
-integrer projects/compiler-rt http://llvm.org/releases/$vrt/compiler-rt-$vrt.src.tar.$suffixe
-integrer projects/libcxx      http://llvm.org/releases/$version/libcxx-$version.src.tar.$suffixe
-! pge $version 3.5 || integrer projects/libcxxabi http://llvm.org/releases/$version/libcxxabi-$version.src.tar.$suffixe
+integrer tools/clang          cfe
+integrer projects/compiler-rt compiler-rt
+integrer projects/libcxx      libcxx
+! pge $version 3.5 || integrer projects/libcxxabi libcxxabi
 # lldb doit être compilé à part, car il requiert libc++ qui elle-même ne peut être compilé qu'après le compilo.
 # Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
-#! pge $version 3.9 || integrer tools/lldb           http://llvm.org/releases/$vdb/lldb-$vdb.src.tar.$suffixe
+#! pge $version 3.9 || integrer tools/lldb           lldb
 fi
 
 echo Correction… >&2
