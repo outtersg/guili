@@ -58,7 +58,7 @@ v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
 v 5.2.17 && remplacerPrerequis "mysql < 5.5.20" "libxml < 2.8" || true
-v 5.3.13 && retirerModif libpng14 && remplacerPrerequis mysql libxml || true
+v 5.3.13 && retirerModif libpng14 && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql libxml || true
 v 5.3.19 || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
@@ -128,6 +128,16 @@ esac
 prerequis
 
 # Modifs
+
+pgsqlSetNoticeCallback()
+{
+	local suffixe=
+	case $version in
+		[789].*|[1-9][0-9].*) suffixe=7 ;;
+		5.*) suffixe=5 ;;
+	esac
+	[ -z "$suffixe" ] || patch -p0 -l < "$SCRIPTS/php.pgsqlSetNoticeCallback.$suffixe.patch"
+}
 
 pginfossl()
 {
