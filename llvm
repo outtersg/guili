@@ -34,18 +34,18 @@ v 3.3 || true
 v 3.4.2 && modifs="macMath stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
 v 3.5.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml" || true # A un petit problème avec strtoll.
 v 3.5.2 || true
-v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig" || true
+v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig \\ " || true
 v 3.6.2 || true
-v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7" || true
+v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7 \\" || true
 # cmake: pour un clang 5.0.2, cmake 3.13.1 nous pète en "do not use OLD behavior, puis core dumped". Le 3.5 passe.
-v 3.9.1 && modifsDyn="macMath macLibtool unwind laisserCxxISystem" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
+v 3.9.1 && modifsDyn="macMath macLibtool unwind laisserCxxISystem" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10 \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
 v 5.0.1 && modifs="$modifs emmintrim" || true # Tout à la fin, que l'on compile avec un 3.9.1 ou un 4.0.1: make[2]: *** [tools/clang/runtime/CMakeFiles/compiler-rt.dir/build.make:107: tools/clang/runtime/compiler-rt-stamps/compiler-rt-configure] Segmentation fault (core dumped); si on relance, il finit sa compil + install.
 v 5.0.2 || true
 v 6.0.0 || true
-v 6.0.1 && prerequis="cmake" || true
+v 6.0.1 && prerequis="cmake \\" || true
 v 7.0.1 || true
 
 suffixe=xz
