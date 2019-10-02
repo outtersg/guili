@@ -21,7 +21,7 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
@@ -128,6 +128,9 @@ destiner
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
+# Petite entourloupe: finalement on ne veut pas qu'exclusivementPrerequis limite $PATH et compagnie aux seuls prérequis déclarés.
+# Le configure de cmake va tester plein de logiciels pour savoir quels modules précompiler, aussi on lui laisse accès au plus grand nombre de paquets; on compte sur sa maturité pour ne pas s'y lier.
+exclusivementPrerequis() { true ; }
 for modif in true $modifs ; do $modif ; done
 
 echo Compilation… >&2
