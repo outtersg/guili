@@ -115,6 +115,14 @@ case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
 	*) prerequis="sed < 4.3 $prerequis" ;;
 esac
 
+prr()
+{
+	local prcc="`prereqs --ou-theo "$@"`"
+	IFS=:
+	love $prcc
+	unset IFS
+}
+
 # Si on a un compilo dans $INSTALLS/bin, on le prérequiert: les biblios qui n'utilisent pas exclusivementPrerequis ont sans doute été compilées avec, il nous faut le même pour ne pas péter sur du "symbole de lib[std]c++ non défini" ou autre au moment où on se liera à elles.
 # On présuppose CC défini (par meilleurCompilo invoqué dans util.sh, par exemple).
 
@@ -122,7 +130,8 @@ case "`command -v "$CC"`" in
 	"$INSTALLS"/*)
 		petit_cc="`basename "$CC"`" # En principe le nom de paquet GuiLI du compilo est le nom du compilo C (paquet clang pour compilo C clang, paquet gcc pour compilo gcc).
 		prerequis_cc="$petit_cc `versionCompiloChemin "$petit_cc"`"
-		prerequis="`varsPrerequis prerequis-r "$prerequis_cc"` $prerequis_cc $prerequis"
+		
+		prerequis="`prr "$prerequis_cc"` \\ $prerequis"
 		;;
 esac
 
