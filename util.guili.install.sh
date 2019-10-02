@@ -121,6 +121,29 @@ utiliserSiDerniere()
 	[ ! -d "$dest" ] || sudoku "$SCRIPTS/utiliser" "$dest"
 }
 
+# Utilise (place ses pions dans $INSTALLS/bin, etc.) le logiciel en cours d'installation s'il s'agit de la version la plus récente sur cette machine et:
+# - il est invoqué en direct
+# - ou c'est la première fois qu'on l'utilise
+# En effet, il serait malencontreux qu'un logiciel réinstallé comme dépendance d'un autre, se réutilise alors que manuellement l'utilisateur a préférer utiliser une version plus ancienne.
+# En outre sur les gros logiciels (genre le compilo, testé à chaque fois), utiliser est coûteux.
+utiliserSiNouvelle()
+{
+	local utilises="$INSTALLS/.guili/utilises"
+	if [ ! -f "$utilises" ]
+	then
+		[ -d "$INSTALLS/.guili" ] || sudoku mkdir -p "$INSTALLS/.guili"
+		sudoku touch "$utilises"
+	fi
+	
+	local deja=oui
+	grep -q -F "$dest" < "$utilises" || deja=non
+	
+	[ -n "$INSTALLS_AVEC_INFOS" -a $deja = oui ] && return 0 || true
+	
+	utiliserSiDerniere
+	[ $deja = oui ] || echo "$dest" | sudoku sh -c "cat >> $utilises"
+}
+
 guili_deps_crc()
 {
 	if commande sha1
