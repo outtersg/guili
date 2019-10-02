@@ -126,6 +126,21 @@ args_suppr()
 	[ -z "$e" ] || export $vars
 }
 
+#- Chemins ---------------------------------------------------------------------
+
+# basename en pur shell: sur mon FreeBSD, roule 30 fois plus vite que basename (car pas de fork+exec)
+bn()
+{
+	IFS=/
+	_bn $1
+	unset IFS
+}
+
+_bn()
+{
+	eval "echo \"\$$#\""
+}
+
 #- Options ---------------------------------------------------------------------
 
 # Affecte une valeur à la prochaine variable d'une liste $vars de noms de variable; fait à peu près le même boulot que getopt.
