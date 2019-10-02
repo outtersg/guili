@@ -184,6 +184,35 @@ apAffecter()
 	vars="$*"
 }
 
+#- Versions --------------------------------------------------------------------
+
+# Coupe un <logiciel>(+<option>)*-<version> en <logiciel>(+<option>)* <version>
+love()
+{
+	# On fait le maximum d'opérations dans le shell: un fork+exec, ça coûte cher.
+	
+	local d lo ve
+	
+	for d in "$@"
+	do
+		IFS=-
+		_love `bn "$d"`
+		echo "$lo $ve"
+	done
+	unset IFS
+}
+
+_love()
+{
+	lo="$1" ; shift
+	while [ $# -gt 1 ]
+	do
+		lo="$lo$IFS$1"
+		shift
+	done
+	ve="$1"
+}
+
 #- Listes de prérequis ---------------------------------------------------------
 # <prérequis> = <logiciel> (+<option>)* (<contrainte version>)*
 
