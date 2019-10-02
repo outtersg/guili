@@ -685,7 +685,7 @@ infosInstall()
 		then
 			sortie=oui # Déjà installé dans la version voulue, donc on va pouvoir poursuivre.
 			feu=vert
-			utiliserSiDerniere "$dest" || true
+			utiliserSiNouvelle "$dest" || true
 		fi
 	else
 		feu=vert
