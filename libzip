@@ -26,7 +26,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 # Historique des versions gérées
 
-prerequis="cmake zlib bzip2 openssl"
+prerequis="cmake \\ zlib bzip2 openssl"
 
 v 1.5.1 || true
 
