@@ -141,4 +141,8 @@ make -j 4
 
 echo Installation… >&2
 sudo make install
+# Nos dépendances d'exécutable ne doivent pas forcer nos appelants à charger nos biblios partagées. Les avoir passées en dépendances de compilation évite de telles bavures, par contre il faut quand même que nous les ayons à portée de main quand nous sommes lancés.
+# N.B.: on débine par suffixe et non par placement dans libexec, car je ne sais comment les binaires pètent s'ils ne se trouvent pas à l'endroit où ils ont été installés.
+debiner -s .bin "$dest/bin"/*
+
 sutiliser
