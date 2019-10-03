@@ -305,3 +305,49 @@ prereqs()
 		[ ! -d "$d" ] || echo "$d"
 	done | tr '\012' : | sed -e 's/:$//'
 }
+
+debiner()
+{
+	local d= s=
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-s) shift ; s="$1" ;;
+			-d) shift ; d="$1" ;;
+			*) break ;;
+		esac
+		shift
+	done
+	sudoku sh <<TERMINE
+		set -e
+		d="$d"
+		s="$s"
+		if [ ! -z "\$d" ]
+		then
+			d="\$d/"
+			mkdir -p "\$d"
+		fi
+		[ -n "\$d" -o -n "\$s" ] || s=.bin
+		for b in $*
+		do
+			d2="\$d"
+			s2="\$s"
+			if [ -L "\$b" ]
+			then
+				case "\`readlink "\$b"\`" in
+					/*) true ;;
+					*) d2= ; [ -n "\$s2" ] || s2=.orig ;; # Un lien relatif ne doit pas être bougé.
+				esac
+			fi
+			b2="\$b\$s2"
+			[ -z "\$d2" ] || b2="\$d2\`basename "\$b2"\`"
+			mv "\$b" "\$b2"
+			cat > "\$b" <<FINI
+#!/bin/sh
+LD_LIBRARY_PATH="\\\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+"\$b2" "\\\$@"
+FINI
+			chmod a+x "\$b"
+		done
+TERMINE
+}
