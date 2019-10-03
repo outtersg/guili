@@ -51,9 +51,9 @@ perler()
 {
 	# Perl codé en dur.
 	perler_perl="$INSTALLS/bin/perl"
-	grep -rl /usr/bin/perl . | while read f
+	egrep -rl /usr/bin/perl\|/usr/local/bin/perl . | while read f
 	do
-		filtrer "$f" sed -e "s#/usr/bin/perl#$perler_perl#"
+		filtrer "$f" sed -e "s#/usr/bin/perl#$perler_perl#g" -e "s#/usr/local/bin/perl#$perler_perl#g"
 	done
 }
 
