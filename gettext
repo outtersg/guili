@@ -29,6 +29,7 @@ v 0.17 # Dépendant d'un libiconv GNU trop récent pour Mac OS X 10.4. Il faudra
 v 0.18.1.1
 v 0.19.8 || true
 v 0.19.8.1 || true
+v 0.20.1 || true
 
 archive="http://mirror.ibcp.fr/pub/gnu/gettext/$logiciel-$version.tar.gz"
 
