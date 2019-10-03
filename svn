@@ -24,12 +24,13 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 1.2.3 && prerequis="apr apr-util gettext neon db" || true
+# apr < 1.7: https://issues.apache.org/jira/browse/SVN-4813
+v 1.2.3 && prerequis="apr < 1.7 apr-util gettext neon db" || true
 v 1.4.6 && modifs="lssl" || true
 v 1.7.2 && modifs= || true
 v 1.7.6 && modifs=destdir || true
 v 1.7.10 && modifs=destdir || true
-v 1.8.0 && modifs="exclusivementPrerequis" && prerequis="pkgconfig \\ apr apr-util gettext expat zlib serf >= 1.2.1 sqlite" || true # La détection de serf est faite via pkgconfig.
+v 1.8.0 && modifs="exclusivementPrerequis" && prerequis="pkgconfig \\ apr < 1.7 apr-util gettext expat zlib serf >= 1.2.1 sqlite" || true # La détection de serf est faite via pkgconfig.
 v 1.8.3 || true # La détection de serf est faite via pkgconfig.
 v 1.8.11 || true
 v 1.8.15 || true
