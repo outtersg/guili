@@ -31,6 +31,7 @@ v 5.18.0 || true # Attention, ne permet pas à OpenSSL 1.0.1e de finir son insta
 v 5.24.0 && prerequis="db" || true
 v 5.26.1 || true
 v 5.28.1 || true
+v 5.30.0 || true
 
 # Modifications
 
