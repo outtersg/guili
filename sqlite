@@ -22,11 +22,10 @@
 set -e
 
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=sqlite
-
+prerequis="zlib ncurses readline"
 v 3.0.7 || true
 v 3.6.4 || true
 v 3.6.23.1 && modifs=foutuTclPourLePointH || true
@@ -46,14 +45,15 @@ foutuTclPourLePointH()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://www.sqlite.org/$logiciel-$version.tar.gz"
 version_="`echo "$version" | tr . _`"
 pge "$version" 3.6.24 && archive="http://www.sqlite.org/sqlite-amalgamation-$version_.zip"
 version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
 pge $version 3.7 && archive="http://www.sqlite.org/$v_annee/sqlite-autoconf-$version0.tar.gz"
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
@@ -91,6 +91,5 @@ then
 else
 	sudo make install
 fi
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
