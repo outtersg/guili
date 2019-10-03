@@ -37,7 +37,7 @@ prerequis()
 					rouge "# Vous êtes joueur"\!" En prérequérant OpenSSL sans appeler exclusivementPrerequis, vous vous exposez à ce que $logiciel soit lié à la mauvaise version d'OpenSSL."
 					;;
 				*)
-					jaune "# Attention, en n'appelant pas exclusivementPrerequis vous vous exposez à ce que le logiciel compilé se lie à des dépendances non désirées."
+					jaune "# Attention, en n'appelant pas exclusivementPrerequis vous vous exposez à ce que $logiciel se lie à des dépendances non désirées."
 					;;
 			esac
 			;;
