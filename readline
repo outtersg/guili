@@ -29,6 +29,7 @@ v 5.2.14 && modifs=darwin89aussi || true
 v 6.1.2 && modifs= || true
 v 6.2.1 || true
 v 6.3.8 || true
+v 7.0.5 || true
 
 darwin8aussi()
 {
