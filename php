@@ -64,7 +64,7 @@ v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
 v 5.4.5 && retirerModif libpng14 || true
 v 5.4.10 || true
-v 5.4.11 && remplacerPrerequis "icu >= 50 < 56" libjpegturbo || true
+v 5.4.11 && remplacerPrerequis "icu >= 50 < 56" "libjpegturbo < 2" || true
 v 5.4.33 || true
 v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfault.
 v 5.4.39 || true
