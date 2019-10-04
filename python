@@ -45,6 +45,7 @@ v 2.7.14 || true
 v 2.7.15 || true
 v 3.4.3 && modifs="incdirbourrin" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
+v 3.7.4 || true
 
 # Modifications
 
