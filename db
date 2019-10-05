@@ -33,7 +33,7 @@ v 5.3.15 || true
 v 5.3.21 || true
 v 5.3.28 || true
 v 6.0.35 || true
-v 6.2.38 || true
+v 6.2.38 && retirerModif atomicce || true
 v 18.1.32 || true
 
 archive="ftp://sleepycat1.inetu.net/releases/$logiciel-$version.tar.gz"
@@ -44,7 +44,8 @@ archive="http://download.oracle.com/otn/berkeley-db/db-$version.tar.gz"
 
 atomicce()
 {
-	# Les versions modernes des compilos embarquent une fonction qui a le même nom qu'une interne des vieux DB.
+	# Les versions modernes des compilos embarquent une fonction qui a le même nom qu'une interne des vieux DB. On surcharge donc la définition et son utilisation.
+	# À partir de quelque part entre la 6.0.35 et la 6.2.38, changement de fusil d'épaule: DB ne surcharge pas, au contraire il exploite la fonctionnalité; à ce moment il ne faut surtout plus surcharger (la seule utilisation), sans quoi undefined symbol.
 	filtrer src/dbinc/atomic.h sed -e 's/__atomic_compare_exchange/__atomic_compare_exchange_db/g'
 }
 
