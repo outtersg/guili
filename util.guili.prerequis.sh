@@ -107,6 +107,44 @@ presentOuPrerequis()
 	fi
 }
 
+# S'assure des prérequis en la version précise codée dans le .guili.prerequis.
+# L'intérêt est, pour un paquet binaire, de garantir à l'environnement d'exécution d'avoir a minima l'environnement de compil.
+# Ex.:
+# Notre php s'installe depuis les sources sur une machine vierge; mentionnant dans ses prérequis un simple "icu", il va installer la dernière version d'ICU listée dans les GuiLI, soit une ICU 6x (et se lier à libicu.so-6x).
+# On l'installe ensuite sur une vieille machine qui avait déjà une icu-5y en place. Après avoir vérifié ses prérequis (l'icu installé suffit à répondre à la contrainte simple "icu"), l'installeur se rend compte qu'une version binaire existe (celle précédemment compilée) et l'installe. Mais là, sans postprerequis, pétage: libicu.so-6x introuvable.
+# postprerequis va donc ajouter pour contraintes aux prérequis l'exacte version avec laquelle on a été compilés.
+# Notons que si un prérequis du binaire est déjà présente en une version plus récente qu'indiqué dans le binaire, l'ancienne version sera installée, sans surcharger la nouvelle en tant que "par défaut". On aura donc au final côte à côte une libprerequis.so.1.0, une libprerequis.so.1.1, et une libprerequis.so.1 pointant vers la libprerequis.so.1.1: si le logiciel est lié en dur à libprerequis.so.1.0 il la trouvera, s'il utilise libprerequis.so.1 il bénéficiera de la version du prérequis qui a été compilée après lui (mais s'il s'y lie sans regarder la version mineure c'est sans doute qu'elle est compatible).
+postprerequis()
+{
+	local dest="$dest"
+	[ -z "$1" ] || dest="$1"
+	local prerequis="$prerequis"
+	
+	# On n'est capables de travailler que sur arbo précisant les prérequis avec lesquels elle a été installée.
+	
+	if [ ! -f "$dest/.guili.prerequis" ]
+	then
+		jaune "# Aucun .guili.prerequis dans $dest; il sera impossible de reconstituer à l'identique ses dépendances d'origine. " >&2
+		return 0
+	fi
+	
+	# Seuls les prérequis d'exécution nous intéressent. On retire donc ceux de compil.
+	
+	prerequis="`IFS='\' ; f() { while [ $# -gt 1 ] ; do shift ; done ; echo "$1" ; } ; f $prerequis`"
+	
+	# On combine les prérequis du scripts d'install avec ceux précisés dans le paquet binaire, avec pour règles:
+	# - si on a une version précise d'installée, on fait sauter les autres contraintes sur la version (pour éviter les cas du genre après une génération de binaire avec une dépendance 1.0.3 du temps où la contrainte était >= 1.0, on s'est rendu compte qu'une >= 1.1 serait mieux, et on l'a inscrite dans l'installeur; la combinaison des deux nous donnerait un dépendance 1.0.3 >= 1.1, impossible à résoudre et donnant donc un échec. On privilégie donc la version binaire (après tout si ç'a été poussé ça doit sans doute quand même marcher).
+	# - on combine les options
+	#   Ainsi si le binaire précise +ossl10 et le prérequis déclaratif +postgresql, on aura du +postgresql+ossl10.
+	#   Plus important, si le déclaratif demande du +ossl+-mysql (forcément avec ossl, et forcément sans mysql), les - n'étant pas reflétés dans le chemin, le binaire ne précise que le +ossl: aussi si on se contentait des options du binaire (+ossl), on risquerait de se lier au +mysql+ossl (considéré comme surensemble du +ossl). Il est donc important d'inclure les règles d'exclusion (qui ne figurent donc que dans les prérequis déclarés dans l'installeur, pas dans le binaire).
+	
+	prerequis="$prerequis `sed < "$dest/.guili.prerequis" -e '/^#/,$d' -e 's#^.*/##' -e 's/-\([^-]*\)/ \1/' | tr '\012' ' '`" # Dans le .guili.prerequis on s'arrête au premier commentaire (prérequis des prérequis).
+	prerequis="`decoupePrerequis "$prerequis" | sed -e 's#\([!<>=]\)  *#\1#g' -e 's# .* \([0-9][.0-9]*\)$# \1#'`" # La version du binaire est forcément en fin de ligne, et si elle y est elle ne comporte pas d'espace.
+	
+	gris "postprerequis: `echo "$prerequis" | tr '\012' ' '`"
+	prerequis
+}
+
 # Plusieurs modes de fonctionnement:
 # - par défaut: cherche une version parmi celles installées; si trouvée, elle fait foi; sinon installe.
 # - -i: installe la dernière version si pas déjà en place.
