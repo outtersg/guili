@@ -288,6 +288,8 @@ detectionIconvOuLibiconv()
 #define iconv '"$i"'
 ' && break || continue
 	done
+	# Et on dézingue le test foireux qui se contente de voir si on a une glibc pour en conclure rapidement qu'on utilise celui d'icelle.
+	filtrer configure sed -e 's/iconv_impl_name="glibc"/true/g'
 }
 
 # apxs d'Apache 2.2.3 tel qu'installé sur une de mes bécanes me fournit un
