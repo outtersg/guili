@@ -73,7 +73,7 @@ TERMINE
 [ -d "$dest" ] && exit 0
 
 # Si python est installé, le configure va chercher à créer la biblio pour. Soit on ajoute un --without-python, soit on s'assure qu'il soit complet (avec ses en-têtes), donc le plus simple pour ça c'est d'inclure python.
-command -v python > /dev/null 2>&1 && prerequis="$prerequis python" && modifs="$modifs forcagePython" || true
+command -v python > /dev/null 2>&1 && prerequis="python \\ $prerequis" && modifs="$modifs forcagePython" || true
 
 destiner
 
