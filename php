@@ -80,7 +80,7 @@ v 5.6.20 && retirerModif pginfossl || true
 v 5.6.25 || true
 v 5.6.39 || true
 v 5.6.40 || true
-v 7.0.2 && remplacerPrerequis "icu >= 60" && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite || true
+v 7.0.2 && prerequis="cpp11() \\ $prerequis" && remplacerPrerequis "icu >= 60" && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite && ajouterModif icucxx11 || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 || true
@@ -138,6 +138,12 @@ esac
 prerequis
 
 # Modifs
+
+icucxx11()
+{
+	# ICU à partir de la 58 utilise du char16_t, qui n'existe qu'en C++11, pas implicite.
+	export CXXFLAGS="$CXXFLAGS -std=c++11"
+}
 
 pgsqlSetNoticeCallback()
 {
