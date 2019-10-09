@@ -116,9 +116,15 @@ presentOuPrerequis()
 # Notons que si un prérequis du binaire est déjà présente en une version plus récente qu'indiqué dans le binaire, l'ancienne version sera installée, sans surcharger la nouvelle en tant que "par défaut". On aura donc au final côte à côte une libprerequis.so.1.0, une libprerequis.so.1.1, et une libprerequis.so.1 pointant vers la libprerequis.so.1.1: si le logiciel est lié en dur à libprerequis.so.1.0 il la trouvera, s'il utilise libprerequis.so.1 il bénéficiera de la version du prérequis qui a été compilée après lui (mais s'il s'y lie sans regarder la version mineure c'est sans doute qu'elle est compatible).
 postprerequis()
 {
+	if [ "x$1" = x-e ]
+	then
+		shift
+		guili_ppath=
+	else
+		local prerequis="$prerequis"
+	fi
 	local dest="$dest"
 	[ -z "$1" ] || dest="$1"
-	local prerequis="$prerequis"
 	
 	# On n'est capables de travailler que sur arbo précisant les prérequis avec lesquels elle a été installée.
 	
