@@ -75,7 +75,7 @@ installerBinaireSilo()
 			&& if [ -e \"$bdest\" ] ; then rm -Rf \"$bdest.vieux\" && mv \"$bdest\" \"$bdest.vieux\" ; fi \\
 			&& mv \"$bdest.temp\" \"$bdest\" \\
 			|| ( rm -Rf \"$dest.temp\" && false )
-		" && postprerequis && sutiliser - && exit 0 || true
+		" && postprerequis -e && sutiliser - && exit 0 || true
 	fi
 }
 
