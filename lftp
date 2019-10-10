@@ -33,8 +33,22 @@ v 3.3.0 || true
 v 3.5.4 || true
 v 3.7.3 || true
 v 3.7.15 || true
+v 4.8.4 && prerequis="pkgconfig \\ $prerequis" && modifs="lbiblios" || true
 
 # Modifications
+
+lbiblios()
+{
+	# Le pkg-config se vautre, en tout cas chez moi, et code en dur du -L/usr/local/lib qui ne sert à rien.
+	case `uname` in
+		FreeBSD)
+			export LDFLAGS="$LD_FLAGS -lthr"
+			case "$argOptions+" in
+				*+ossl*) export LDFLAGS="$LDFLAGS -L$destopenssl/lib -lssl"
+			esac
+			;;
+	esac
+}
 
 cmdUnsigned()
 {
