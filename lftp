@@ -28,6 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 prerequis="readline expat gettext openssl"
 modifs="concatCpp cmdUnsigned"
+v 3.0.6 || true
 v 3.3.0 || true
 v 3.5.4 || true
 v 3.7.3 || true
