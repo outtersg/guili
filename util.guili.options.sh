@@ -96,7 +96,7 @@ optionSi()
 	local l="$1"
 	local app="$l"
 	case "$l" in
-		*/*) l="`echo "$l" | cut -d / -f 1`" ; app="`echo "$app" | cut -d / -f 2`" ;;
+		*/*) IFS=/ ; _optionSiDecouper $1 ; unset IFS ;;
 	esac
 	shift
 	if ! option "$l" && ( versions "$app" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
@@ -108,6 +108,13 @@ optionSi()
 	# - si l'option est refusée, on s'assure que les prérequis ne comportent plus le prérequis.
 	option "$l" && prerequis="$prerequis $app" && return 0 || virerPrerequis "$app"
 	return 1
+}
+
+_optionSiDecouper()
+{
+	l="$1"
+	shift
+	app="$*"
 }
 
 # Définit une option, et le prérequis correspondant, du moment qu'on n'a pas explicitement demandé à l'éliminer.
