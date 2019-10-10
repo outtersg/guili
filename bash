@@ -21,39 +21,24 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-#inclure readline
-
-logiciel=bash
-version=3.2.9
-modifs=completionUTF8MAC
-
-version=3.2.49
-modifs=completionUTF8MAC
-
-version=4.0.24
-modifs=completionUTF8MAC
-
-version=4.1.0
-modifs=completionUTF8MACreadline60
-
+v 3.2.9 && modifs=completionUTF8MAC || true
+v 3.2.49 || true
+v 4.0.24 || true
+v 4.1.0 && modifs=completionUTF8MACreadline60 || true
 v 4.1.2 && modifs=
-v 4.1.7
-v 4.2.45
+v 4.1.7 || true
+v 4.2.45 || true
 v 4.3.25 || true
 v 4.3.42 || true
 v 4.4.23 || true
 
-dest=$INSTALLS/$logiciel-$version
-
-[ -d "$dest" ] && exit 0
-
 rustine="`echo "$version" | sed -e 's/^.*\.//'`"
-version="`echo "$version" | sed -e 's/\.[^.]*$//'`"
+v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 
-archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
+archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$v_maj.tar.gz"
 
 completionUTF8MAC()
 {
@@ -187,13 +172,17 @@ completionUTF8MACreadline60()
 TERMINE
 }
 
+destiner
+
+prerequis
+
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 n=1
 while [ $n -le $rustine ]
 do
-	v2="`echo $version | tr -d .`"
-	arf="`dirname "$archive"`/$logiciel-$version-patches/$logiciel$v2-`printf "%03.3d" $n`"
+	v2="`echo $v_maj | tr -d .`"
+	arf="`dirname "$archive"`/$logiciel-$v_maj-patches/$logiciel$v2-`printf "%03.3d" $n`"
 	patch -p0 < "`obtenir "$arf"`"
 	n=`expr $n + 1`
 done
@@ -213,6 +202,4 @@ make
 echo Installation… >&2
 sudo make install
 
-sutiliser $logiciel-$version.$rustine
-
-rm -Rf "$TMP/$$"
+sutiliser
