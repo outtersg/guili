@@ -97,6 +97,7 @@ optionSi()
 	local app="$l"
 	case "$l" in
 		*/*) IFS=/ ; _optionSiDecouper $1 ; unset IFS ;;
+		*:*) IFS=: ; _optionSiDecouper $1 ; unset IFS ;;
 	esac
 	shift
 	if ! option "$l" && ( versions "$app" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
