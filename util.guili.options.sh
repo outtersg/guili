@@ -103,7 +103,10 @@ optionSi()
 	then
 		argOptions="`options "$argOptions=$l"`"
 	fi
-	option "$l" && return 0 || virerPrerequis "$app"
+	# On joue sur les prérequis, soit en ajout soit en suppression:
+	# - si l'option est validée, on ajoute au prérequis le logiciel; s'il y était déjà (par exemple, avec une contrainte de version), pas grave, les deux mentions seront fusionnées.
+	# - si l'option est refusée, on s'assure que les prérequis ne comportent plus le prérequis.
+	option "$l" && prerequis="$prerequis $app" && return 0 || virerPrerequis "$app"
 	return 1
 }
 
