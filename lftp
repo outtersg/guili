@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,26 +21,44 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
-
-logiciel=lftp
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-version=3.3.0
-version=3.5.4
-
-version=3.7.3
+prerequis="readline expat gettext openssl"
+modifs="concatCpp cmdUnsigned"
+v 3.3.0 || true
+v 3.5.4 || true
+v 3.7.3 || true
 
 # Modifications
 
+cmdUnsigned()
+{
+	filtrer src/ftpclass.cc sed -e 's#static const char pre_cmd#static const unsigned char pre_cmd#'
+}
+
+concatCpp()
+{
+	# clang++ nous fait remarquer qu'en C++11 on aère un peu les concaténations préprocesseur.
+	filtrer src/module.cc sed -e 's#PKGLIBDIR"/"VERSION":"PKGLIBDIR#PKGLIBDIR "/" VERSION ":" PKGLIBDIR#g'
+	filtrer src/resource.cc sed -e 's#PACKAGE"/"VERSION#PACKAGE "/" VERSION#g'
+}
+
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
-archive=ftp://ftp.cs.tu-berlin.de/pub/net/ftp/$logiciel/$logiciel-$version.tar.bz2
+archive="http://lftp.yar.ru/ftp/lftp-$version.tar.bz2"
+pge $version 4.6.0 || archive="http://lftp.yar.ru/ftp/old/lftp-$version.tar.bz2"
 
-[ -d "$dest" ] && exit 0
+case "$argOptions+" in
+	*-ossl[-+]*) virerPrerequis openssl ;;
+	*) prerequisOpenssl ; OPTIONS_CONF="--without-gnutls --with-openssl" ;;
+esac
+
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -48,13 +66,11 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
-
-rm -Rf /tmp/$$
+sutiliser
