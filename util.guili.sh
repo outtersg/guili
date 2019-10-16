@@ -182,7 +182,7 @@ r="$TMP/temp.\$\$.pkgconffiltre"
 > "\$r"
 ( $exp_pkgconfig "\$@" || echo \$? > "\$r" ) | stdin_suppr "-L$INSTALLS/lib" "-L$INSTALLS/lib64"
 r="\`cat "\$r" ; rm "\$r"\`"
-[ -z "\$r" ] || return "\$r"
+[ -z "\$r" ] || exit "\$r"
 TERMINE
 		chmod a+x "$TMP/$$/pkg-config"
 	fi
