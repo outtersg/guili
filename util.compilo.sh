@@ -101,7 +101,9 @@ compiloSysVersion()
 		esac
 		
 		# Ce binaire a-t-il été installé par GuiLI? En ce cas il n'est certainement pas dans un dossier système, donc il faudra aussi aller chercher tout son environnement (lib, include, etc.).
+		local gpp="$guili_ppath" ; guili_ppath= # Préparatifs à s'inscrire en queue plutôt qu'en tête.
 		reglagesCompilSiGuili "$binaire"
+		guili_ppath="$gpp<:$guili_ppath"
 	fi
 	
 	varsCc "$bienVoulu"
