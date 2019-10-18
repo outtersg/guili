@@ -63,7 +63,7 @@ confBsdAvecSrcATrous()
 
 # Variables
 
-archive="ftp://lsof.itap.purdue.edu/pub/tools/unix/lsof/${logiciel}_$version.tar.bz2"
+archive="https://www.mirrorservice.org/sites/lsof.itap.purdue.edu/pub/tools/unix/lsof/lsof_$version.tar.bz2"
 
 destiner
 
