@@ -31,8 +31,10 @@ prerequisOpenssl()
 		osslxx=ossl11
 		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl >= 1.1 < 1.2 #'`"
 	else
-		local vlocal="`versions openssl | tail -1 | sed -e 's/.*-//'`"
-		local vmajlocal="`versions openssl | tail -1 | sed -e 's/.*-//' -e 's/\.//' -e 's/\..*//'`"
+		local filtre="`decoupePrerequis "$prerequis" | grep '^openssl[+ ]'`"
+		[ -n "$filtre" ] || filtre="openssl"
+		local vlocal="`versions "$filtre" | tail -1 | sed -e 's/.*-//'`"
+		local vmajlocal="`echo "$vlocal" | sed -e 's/\.//' -e 's/\..*//'`"
 		if [ ! -z "$vmajlocal" ]
 		then
 			argOptions="`options "$argOptions+ossl$vmajlocal" | tr -d ' '`"
