@@ -63,6 +63,7 @@ then
 	#autoconf
 	#automake -a
 fi
+chmod a+x configure
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
