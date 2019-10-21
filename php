@@ -150,6 +150,7 @@ pgsqlSetNoticeCallback()
 	local suffixe=
 	case $version in
 		[789].*|[1-9][0-9].*) suffixe=7 ;;
+		5.6.*) suffixe=56 ;;
 		5.*) suffixe=5 ;;
 	esac
 	[ -z "$suffixe" ] || patch -p0 -l < "$SCRIPTS/php.pgsqlSetNoticeCallback.$suffixe.patch"

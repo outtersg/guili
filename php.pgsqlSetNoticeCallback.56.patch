@@ -1,0 +1,123 @@
+diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
+--- ext/pdo_pgsql/pgsql_driver.c	2015-09-01 22:09:37.000000000 +0200
++++ ext/pdo_pgsql/pgsql_driver.c	2019-10-01 05:18:31.085807000 +0200
+@@ -98,7 +98,22 @@
+ 
+ static void _pdo_pgsql_notice(pdo_dbh_t *dbh, const char *message) /* {{{ */
+ {
+-/*	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data; */
++	int ret;
++	zval *zstring1;
++	zval **zarg;
++	zval *retval_ptr = NULL;
++	pdo_pgsql_fci * fc;
++	if ((fc = ((pdo_pgsql_db_handle *)dbh->driver_data)->notice_callback)) {
++		MAKE_STD_ZVAL(zstring1);
++		ZVAL_STRINGL(zstring1, (char *) message, strlen(message), 1);
++		zarg = &zstring1;
++		fc->fci.param_count = 1;
++		fc->fci.params = &zarg;
++		fc->fci.retval_ptr_ptr = &retval_ptr;
++		if ((ret = zend_call_function(&fc->fci, &fc->fcc TSRMLS_CC)) == FAILURE) {
++			pdo_raise_impl_error(dbh, NULL, "HY000", "could not call user-supplied function" TSRMLS_CC);
++		}
++	}
+ }
+ /* }}} */
+ 
+@@ -975,6 +990,55 @@
+ }
+ /* }}} */
+ 
++/* {{{ proto bool PDO::pgsqlSetNoticeCallback(mixed callback)
++   Sets a callback to receive DB notices (after client_min_messages has been set) */
++static PHP_METHOD(PDO, pgsqlSetNoticeCallback)
++{
++	zval *callback;
++	char *cbname = NULL;
++	pdo_dbh_t *dbh;
++	pdo_pgsql_db_handle *H;
++	int ret;
++	pdo_pgsql_fci *fc;
++
++	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &callback)) {
++		RETURN_FALSE;
++	}
++	
++	dbh = zend_object_store_get_object(getThis() TSRMLS_CC);
++	PDO_CONSTRUCT_CHECK;
++	
++	H = (pdo_pgsql_db_handle *)dbh->driver_data;
++
++	if (callback->type == IS_NULL) {
++		if (H->notice_callback) {
++			efree(H->notice_callback);
++			H->notice_callback = NULL;
++		}
++		RETURN_TRUE;
++	} else {
++		if (!(fc = H->notice_callback)) {
++			fc = (pdo_pgsql_fci*)ecalloc(1, sizeof(pdo_pgsql_fci));
++		} else {
++			fc->fcc.initialized = 0;
++		}
++
++		if (FAILURE == zend_fcall_info_init(callback, 0, &fc->fci, &fc->fcc, &cbname, NULL TSRMLS_CC)) {
++			php_error_docref(NULL TSRMLS_CC, E_WARNING, "function '%s' is not callable", cbname);
++			efree(cbname);
++			efree(fc);
++			H->notice_callback = NULL;
++			RETURN_FALSE;
++		}
++		efree(cbname);
++
++		H->notice_callback = fc;
++
++		RETURN_TRUE;
++	}
++}
++/* }}} */
++
+ 
+ static const zend_function_entry dbh_methods[] = {
+ 	PHP_ME(PDO, pgsqlLOBCreate, NULL, ZEND_ACC_PUBLIC)
+@@ -984,6 +1048,7 @@
+ 	PHP_ME(PDO, pgsqlCopyToFile, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(PDO, pgsqlGetNotify, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(PDO, pgsqlGetPid, NULL, ZEND_ACC_PUBLIC)
++	PHP_ME(PDO, pgsqlSetNoticeCallback, NULL, ZEND_ACC_PUBLIC)
+ 	PHP_FE_END
+ };
+ 
+@@ -1107,7 +1172,7 @@
+ 		goto cleanup;
+ 	}
+ 
+-	PQsetNoticeProcessor(H->server, (void(*)(void*,const char*))_pdo_pgsql_notice, (void *)&dbh);
++	PQsetNoticeProcessor(H->server, (void(*)(void*,const char*))_pdo_pgsql_notice, (void *)dbh);
+ 
+ 	H->attached = 1;
+ 	H->pgoid = -1;
+diff -ruw ext/pdo_pgsql/php_pdo_pgsql_int.h ext/pdo_pgsql/php_pdo_pgsql_int.h
+--- ext/pdo_pgsql/php_pdo_pgsql_int.h	2015-09-01 22:09:37.000000000 +0200
++++ ext/pdo_pgsql/php_pdo_pgsql_int.h	2019-10-01 05:18:31.085743000 +0200
+@@ -36,6 +36,11 @@
+ 	char *errmsg;
+ } pdo_pgsql_error_info;
+ 
++typedef struct {
++	zend_fcall_info fci;
++	zend_fcall_info_cache fcc;
++} pdo_pgsql_fci;
++
+ /* stuff we use in a pgsql database handle */
+ typedef struct {
+ 	PGconn		*server;
+@@ -51,6 +56,7 @@
+ 	int		disable_native_prepares;
+ #endif
+ 	unsigned int stmt_counter;
++	pdo_pgsql_fci * notice_callback;
+ } pdo_pgsql_db_handle;
+ 
+ typedef struct {
