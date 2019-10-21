@@ -33,7 +33,7 @@ optionsModules="selinux"
 
 # Il nous faudra un cURL pour accéder à pypa.io.
 # zlib pour pip.
-v 2.6 && modifs= && prerequis="sqlite curl zlib" || true
+v 2.6 && modifs= && prerequis="sqlite openssl < 1.1 curl zlib" || true
 v 2.6.5 && modifs="incdir" || true
 v 2.6.6 && modifs="incdir fbsdopenssl" || true
 v 2.7 || true
@@ -44,7 +44,7 @@ v 2.7.13 || true
 v 2.7.14 || true
 v 2.7.15 || true
 v 2.7.16 || true
-v 3.4.3 && modifs="incdirbourrin" && prerequis="$prerequis gettext libffi" || true
+v 3.4.3 && modifs="incdirbourrin" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
 v 3.7.4 || true
 
@@ -321,6 +321,10 @@ then
 else
 
 optionSi sqlite || true
+if optionSi openssl # Quand même assez nécessaire pour aller chercher des trucs ez_setup.py etc. sur du https:// en 2019. Mais bon faisons comme si c'était optionnel.
+then
+	prerequisOpenssl
+fi
 optionSi curl || true
 pge $version 3 && OPTIONS_CONF="$OPTIONS_CONF --with-system-ffi" || true
 
