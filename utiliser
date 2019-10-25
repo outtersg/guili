@@ -129,11 +129,18 @@ utiliser()
 	done
 }
 
-for lv in "$@"
+analyserParametresEtTourner()
+{
+	local lv
+	while [ $# -gt 0 ]
 do
-	case "$lv" in
-		*/*) prefixeIci="`dirname "$lv"`" ; lv="`basename "$lv"`" ;;
-		*) prefixeIci="$prefixe" ;;
+		case "$1" in
+			*/*) prefixeIci="`dirname "$1"`" ; lv="`basename "$1"`" ;;
+			*) prefixeIci="$prefixe" ; lv="$1" ;;
 	esac
 	prefixe=$prefixeIci allerUtiliser "$lv"
+		shift
 done
+}
+
+analyserParametresEtTourner "$@"
