@@ -191,13 +191,24 @@ love()
 {
 	# On fait le maximum d'opérations dans le shell: un fork+exec, ça coûte cher.
 	
-	local d lo ve
+	local d lo ve velo= l o
 	
 	for d in "$@"
 	do
+		case "$d" in
+			--velo) velo=1 ; continue ;;
+		esac
 		IFS=-
 		_love `bn "$d"`
+		if [ -z "$velo" ]
+		then
 		echo "$lo $ve"
+		else
+			[ -n "$ve" ] || ve=0
+			IFS=+
+			_velo $lo
+			echo "$ve $l$o"
+		fi
 	done
 	unset IFS
 }
@@ -215,6 +226,19 @@ _love()
 		"") true ;;
 		*) ve= ; lo="$lo$IFS$1" ;;
 	esac
+}
+
+# Découpe un "logiciel(+option)*-version" en "version logiciel (+option)*"
+velo()
+{
+	love --velo "$@"
+}
+
+_velo()
+{
+	l="$1" ; shift
+	o=
+	[ $# -le 0 ] || o=" +$*"
 }
 
 #- Listes de prérequis ---------------------------------------------------------
