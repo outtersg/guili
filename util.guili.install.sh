@@ -104,21 +104,30 @@ sutiliser()
 
 utiliserSiDerniere()
 {
+	_affecterVeLo()
+	{
+		version="$1"
+		logiciel="$2"
+	}
+	
 	local dest="$dest"
 	[ -n "$1" ] || dest="$1"
-	local lv="`basename "$dest"`"
 	
-	local logicielParam="`echo "$lv" | sed -e 's/-[0-9].*//' -e 's/+[^-]*$//'`"
-	local derniere="`versions "$logicielParam" | tail -1 | sed -e 's#.*/##' -e "s/^$lv-.*/$lv/"`" # Les déclinaisons de nous-mêmes sont assimilées à notre version (ex.: logiciel-x.y.z-misedecôtécarpourrie).
-	if [ ! -z "$derniere" ]
+	local lv="`basename "$dest"`"
+	local logiciel version
+	_affecterVeLo `velo "$lv"`
+	
+	local cadets="`versions "$logiciel > $version"`"
+	if [ -n "$cadets" ]
 	then
+		local derniere="`echo "$cadets" | tail -1`"
+		derniere="`basename "$derniere"`"
 		if [ "$lv" != "$derniere" -a -z "$GUILI_INSTALLER_VIEILLE" ]
 		then
 			echo "# Attention, $lv ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $lv" >&2
-			return 0
 		fi
 	fi
-	[ ! -d "$dest" ] || sudoku "$SCRIPTS/utiliser" "$dest"
+	[ ! -d "$dest" ] || sudoku "$SCRIPTS/utiliser" -p "$cadets" "$dest"
 }
 
 # Utilise (place ses pions dans $INSTALLS/bin, etc.) le logiciel en cours d'installation s'il s'agit de la version la plus récente sur cette machine et:
