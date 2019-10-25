@@ -94,6 +94,7 @@ utiliser()
 	
 	until [ $# = 0 ]
 	do
+		gentillesse=1
 		# On commence par virer les liens qu'une de nos précédentes versions
 		# auraient placés, et pour les liens déjà utilisés par un autre
 		# logiciel, on les remplace si possible par un dossier qu'on va se
@@ -101,10 +102,13 @@ utiliser()
 		if [ -L "$prefixe/$1" ]
 		then
 			a="`readlink "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
+			eval \
+			'
 			case "$a" in
+				'"$EXPR_PRESERVES"'"") gentillesse=2 ;;
 				$radical[-][0-9].[0-9]*|$radical+*) gentillesse= ;; # Même radical, version sans doute plus ancienne à ne pas préserver, on écrase.
-				*) gentillesse=1 ;;
 			esac
+			'
 			if [ -z "$gentillesse" ]
 			then
 				rm "$prefixe/$1"
@@ -116,7 +120,7 @@ utiliser()
 				echo "On ménage $a…" >&2
 				( allerUtiliser "$a" )
 			else
-				echo "$1 déjà occupé par $a" >&2
+				[ $gentillesse -gt 1 ] || echo "$1 déjà occupé par $a" >&2
 			fi
 		fi
 		if [ -d "$1" -a -d "$prefixe/$1" -a ! -L "$prefixe/$1" ]
@@ -126,22 +130,34 @@ utiliser()
 		then
 			ln -s "$ou/$1" "$prefixe/$1"
 		else
-			echo Impossible d\'écraser $1
+			[ $gentillesse -gt 1 ] || echo Impossible d\'écraser $1
 		fi
 		shift
 	done
 }
 
+exprPreserves()
+{
+	echo "$*" | tr ' ' '\012' | grep -v ^$ | while read d ; do basename "$d" ; done | sed -e '{
+s#$#/*#
+p
+s#^#*/#
+}' | tr '\012' '|'
+}
+
 analyserParametresEtTourner()
 {
 	local lv
+	local preserves=
 	local une=
 	while [ $# -gt 0 ]
 do
 		case "$1" in
+			-p) preserves="$preserves $2" ; shift ; shift ; continue ;;
 			*/*) prefixeIci="`dirname "$1"`" ; lv="`basename "$1"`" ;;
 			*) prefixeIci="$prefixe" ; lv="$1" ;;
 	esac
+		EXPR_PRESERVES="`exprPreserves "$preserves"`"
 		[ -d "$prefixeIci/$lv" ] || auSecours "$prefixeIci/$lv"
 	prefixe=$prefixeIci allerUtiliser "$lv"
 		shift
