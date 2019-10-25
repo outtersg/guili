@@ -5,18 +5,21 @@ prefixe=/usr/local
 [ -z "$PREFIXE_UTILISER" ] || prefixe="$PREFIXE_UTILISER"
 [ "x$1" = "x-r" ] && shift && prefixe="$1" && shift
 
-if [ \( "x$1" = x \) -o ! \( -d "$prefixe/$1" -o -d "$1" \) ]
-then
+auSecours()
+{
+	if [ -n "$1" ]
+	then
 	cat >&2 <<TERMINE
-# Utiliser $*: "$*" introuvable (en absolu ou dans $prefixe).
+# "$1" introuvable.
 TERMINE
+	fi
 	echo '# Utiliser'
 	echo '# Crée des liens de /usr/local/<x> vers /usr/local/<biblio>/<x>'
 	echo '# © Guillaume Outters 2003-2004,2007,2019'
 	echo
 	echo 'Utilisation: '"$0"' <biblio>'
 	exit 1
-fi
+}
 
 allerUtiliser()
 {
@@ -132,15 +135,19 @@ utiliser()
 analyserParametresEtTourner()
 {
 	local lv
+	local une=
 	while [ $# -gt 0 ]
 do
 		case "$1" in
 			*/*) prefixeIci="`dirname "$1"`" ; lv="`basename "$1"`" ;;
 			*) prefixeIci="$prefixe" ; lv="$1" ;;
 	esac
+		[ -d "$prefixeIci/$lv" ] || auSecours "$prefixeIci/$lv"
 	prefixe=$prefixeIci allerUtiliser "$lv"
 		shift
-done
+		une=1
+	done
+	[ -n "$une" ] || auSecours
 }
 
 analyserParametresEtTourner "$@"
