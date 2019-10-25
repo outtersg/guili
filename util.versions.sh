@@ -33,6 +33,10 @@ testerVersion()
 				$plusPetitOuEgal || pge "$versionTestee" "$2" || return 1 # Si on teste un PPE, le >= n'est pas filtrant (la clause PPE est prioritaire).
 				shift
 				;;
+			">")
+				$plusPetitOuEgal || pg "$versionTestee" "$2" || return 1
+				shift
+				;;
 			"<")
 				pg "$2" "$versionTestee" || return 1
 				shift
