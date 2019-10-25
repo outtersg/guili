@@ -210,7 +210,11 @@ _love()
 		lo="$lo$IFS$1"
 		shift
 	done
-	ve="$1"
+	case "$1" in
+		[0-9]*.[0-9]*) ve="$1" ;;
+		"") true ;;
+		*) ve= ; lo="$lo$IFS$1" ;;
+	esac
 }
 
 #- Listes de prérequis ---------------------------------------------------------
