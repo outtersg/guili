@@ -33,9 +33,32 @@ allerUtiliser()
 	utiliserEtoile "$j$i" "$k"
 }
 
-racine()
+# Chope le radical d'installation d'un chemin (sans ses options ni version).
+# Le résultat se trouvera dans $radical.
+# Ex.: ../../../apr-util-1.6.1 -> ../../../apr-util
+radicaliser()
 {
-	echo "$1" | sed -e 's#\(+[^-+]*\)*-[^-]*[0-9.][0-9.]*.*$##'
+	IFS="-"
+	_radicaliser $1
+	IFS="+"
+	_radicalPremier $radical
+	unset IFS
+}
+_radicaliser()
+{
+	local bout
+	radical="$1" ; shift
+	for bout in "$@"
+	do
+		case "$bout" in
+			[0-9].[0-9]*) return 0 ;;
+		esac
+		radical="$radical-$bout" # Ex.: apr-util, l'util n'est pas un numéro de version comme dans apr-1.6.5.
+	done
+}
+_radicalPremier()
+{
+	radical="$1"
 }
 
 statn()
@@ -61,6 +84,11 @@ utiliser()
 	local ou="$1"
 	local a
 	shift
+	local gentillesse
+	
+	local radical
+	radicaliser "$ou"
+	
 	until [ $# = 0 ]
 	do
 		# On commence par virer les liens qu'une de nos précédentes versions
@@ -70,7 +98,11 @@ utiliser()
 		if [ -L "$prefixe/$1" ]
 		then
 			a="`readlink "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
-			if [ "`racine "$a"`" = "`racine "$ou"`" ] # Même racine, mettons version plus ancienne, on écrase.
+			case "$a" in
+				$radical[-][0-9].[0-9]*|$radical+*) gentillesse= ;; # Même radical, version sans doute plus ancienne à ne pas préserver, on écrase.
+				*) gentillesse=1 ;;
+			esac
+			if [ -z "$gentillesse" ]
 			then
 				rm "$prefixe/$1"
 			elif [ -d "$prefixe/`dirname "$1"`/$a" ] # La destination est un répertoire, on peut l'utiliser.
