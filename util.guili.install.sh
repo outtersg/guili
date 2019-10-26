@@ -111,7 +111,7 @@ utiliserSiDerniere()
 	}
 	
 	local dest="$dest"
-	[ -n "$1" ] || dest="$1"
+	[ -z "$1" ] || dest="$1"
 	
 	local lv="`basename "$dest"`"
 	local logiciel version
