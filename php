@@ -28,6 +28,7 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
+ajouterModif cve201911043
 v 4.4.7 && prerequis="libjpeg libpng freetype gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
 v 5.0.3
 v 5.0.4
@@ -70,6 +71,7 @@ v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfaul
 v 5.4.39 || true
 v 5.4.41 || true
 v 5.4.45 || true
+v 5.4.45.1 || true
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
@@ -80,6 +82,7 @@ v 5.6.20 && retirerModif pginfossl || true
 v 5.6.25 || true
 v 5.6.39 || true
 v 5.6.40 || true
+v 5.6.40.1 || true
 v 7.0.2 && prerequis="cpp11() \\ $prerequis" && remplacerPrerequis "icu >= 60" && ajouterModif doubleEgalEnShDansLeConfigure && ajouterModif isfinite && ajouterModif icucxx11 || true
 v 7.0.8 || true
 v 7.0.15 || true
@@ -96,6 +99,7 @@ v 7.3.1 && prerequis="$prerequis libzip+ossl10" || true # "Notre" libzip requise
 v 7.3.4 || true
 v 7.3.9 || true
 v 7.3.10 || true
+v 7.3.11 && retirerModif cve201911043 || true # Tout ce qui est >= 7.3.11 (7.3.11, 7.3.12, etc., 7.4.0, 7.4.1, etc.) embarque le correctif à CVE-2019-11043.
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
 if optionSi postgresql sh -c 'psql --version 2> /dev/null | grep -q PostgreSQL'
@@ -138,6 +142,20 @@ esac
 prerequis
 
 # Modifs
+
+cve201911043()
+{
+	case "$version" in
+		# Les versions 7.4 et suivantes étant sorties après la CVE, n'appellent pas la présente modif.s
+		# On gère donc ici uniquement les mineures à cheval entre version pourrie et version corrigée.
+		7.3.*) ! pge $version 7.3.11 || return 0 ;;
+		7.2.*) ! pge $version 7.2.24 || return 0 ;;
+		7.1.*) ! pge $version 7.1.33 || return 0 ;;
+		5.6.40.1) version="5.6.40" ;;
+		5.4.45.1) version="5.4.45" ;;
+	esac
+	patch -p0 < "$SCRIPTS/php.cve-2019-11043.patch"
+}
 
 icucxx11()
 {
