@@ -28,8 +28,6 @@ argVersion="`argVersionSauf "-p -s" "$@"`" # Un suffixe indiqué en "-s 7.2" ne 
 
 # Historique des versions gérées
 
-presentOuPrerequis "php+$argOptions" "$argVersion"
-
 auSecours()
 {
 	moi="`basename "$0"`"
@@ -76,6 +74,17 @@ analyserParametres()
 			exit 1
 		fi
 	fi
+	
+	# Consommons les options passées à notre logiciel "statique" sous-jacent.
+	local o
+	IFS=+
+	for o in $argOptions
+	do
+		[ -n "$o" ] || continue
+		option $o
+	done
+	unset IFS
+	presentOuPrerequis "php $argOptions" "$argVersion"
 }
 
 filtrerConfs()
