@@ -67,7 +67,7 @@ servir()
 				[ -f "$racine/$initds/$serveur" -o -L "$racine/$initds/$serveur" ] || continue # On ne teste pas en -x, car on n'est pas forcément root, donc s'il est exécutable simplement par root le -x renverra faux.
 				case "$action" in
 					remove)
-						sudoku -f rm -f "$dest/$initds/$serveur" `find "$racine"/etc/rc[0-9].d/ -type f 2> /dev/null | grep "/[SK][0-9]*$serveur$"`
+						sudoku -f rm -f "$racine/$initds/$serveur" `find "$racine"/etc/rc[0-9].d/ -type f 2> /dev/null | grep "/[SK][0-9]*$serveur$"`
 						;;
 					*)
 						sudoku -f "$racine/$initds/$serveur" "$action"
