@@ -254,6 +254,7 @@ analyserParametresServeur()
 	groupe=
 	remplacer=
 	desttemp= # Destination temporaire.
+	sigre=HUP
 	# Si on est appelés par un installeur qui utilise du destiner(), dest est définie au dossier (potentiellement utilisateur) dans lequel se trouve tout le bazar
 	case "$dest" in
 		$INSTALLS/$logiciel*) true ;;
@@ -271,6 +272,7 @@ analyserParametresServeur()
 			-p) shift ; fpid="$1" ;;
 			-e) shift ; serveurParamEnv "$1" ;;
 			-pre) shift ; avant="$avant$serveur_sep$1" ;;
+			--sigre) shift ; sigre="$1" ;;
 			*)
 				if premierParamAffectation $1 # $1 sans guillemets, pour que si "$1" vaut "truc --param=A", on ne voie pas ça comme l'affectation de la valeur "A" à la variable "truc --param".
 				then
@@ -472,7 +474,7 @@ serveurSystemd()
             ajoutType=
 			;;
 		demon) 
-            ajoutService="$ajoutService|Type=forking|ExecReload=/bin/kill -s HUP \$MAINPID|ExecStop=/bin/kill -s QUIT \$MAINPID"
+			ajoutService="$ajoutService|Type=forking|ExecReload=/bin/kill -s $sigre \$MAINPID|ExecStop=/bin/kill -s QUIT \$MAINPID"
 			;;
         *)
             echo "# Je ne sais pas gérer le type '$type'." >&2
@@ -590,7 +592,7 @@ recharge()
 	then
 		echo "# Impossible de recharger le serveur. PID introuvable à \$pidfile." >&2
 	else
-		kill -HUP "\$pid"
+		kill -$sigre "\$pid"
 	fi
 }
 
