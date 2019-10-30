@@ -375,6 +375,8 @@ serveurFreebsd()
 name=$nomPropre
 rcvar=\`set_rcvar\`
 command=$lanceur
+extra_commands=reload
+sig_reload=SIG$sigre
 pidfile=$fpid
 command_args="$parametres"
 $machin_user
