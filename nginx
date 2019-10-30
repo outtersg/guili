@@ -35,9 +35,23 @@ v 1.17.4 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
+# https://forum.nginx.org/read.php?29,286027,286027
+v_defs=0
+defs()
+{
+	# Le patch de FreeBSD, en création de fichier, s'en tire bien la première fois (il crée), mais la seconde fois il ajoute le contenu plutôt que de remplacer.
+	rm -f src/core/ngx_conf_def.[ch]
+	patch -p1 < "$SCRIPTS/nginx.defs.patch"
+}
+
+# N.B.: relinc pourra sauter, defs ayant vocation à prendre sa place. Cependant on le garde tant que tournent des nginx reposant sur relinc.
 relinc()
 {
-	patch -p1 < "$SCRIPTS/nginx.relinc.patch"
+	local suff=
+	case " $modifs " in
+		*" defs "*) suff="-defs"
+	esac
+	patch -p1 < "$SCRIPTS/nginx.relinc$suff.patch"
 }
 
 # Variables
@@ -73,6 +87,7 @@ moduleNginxSiOption realip http_realip_module
 moduleNginxSiOption geoip http_geoip_module
 moduleNginxSiOption upstreamcheck https://github.com/yaoweibin/nginx_upstream_check_module/archive/master.zip
 moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-module/archive/master.zip
+option defs && modifs="$modifs defs" && argOptions="`options "$argOptions+defs$v_defs"`" || true # On versionne nos defs tant qu'elles ne sont pas stables, de manière à ce qu'un changement force l'install d'un nouvel nginx.
 if option relinc ; then modifs="$modifs relinc" ; fi
 
 # Boulot

@@ -1,0 +1,110 @@
+diff -r 9f1f9d6e056a -r 3165025ac6d6 src/core/ngx_conf_file.c
+--- a/src/core/ngx_conf_file.c	Mon Aug 19 15:16:06 2019 +0300
++++ b/src/core/ngx_conf_file.c	Mon Sep 02 05:07:58 2019 +0200
+@@ -10,16 +10,19 @@
+ 
+ #define NGX_CONF_BUFFER  4096
+ 
++#define NGX_CONF_FLAG_RELATIVE "nearby"
++
+ static ngx_int_t ngx_conf_add_dump(ngx_conf_t *cf, ngx_str_t *filename);
+ static ngx_int_t ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last);
+ static ngx_int_t ngx_conf_read_token(ngx_conf_t *cf);
+ static void ngx_conf_flush_files(ngx_cycle_t *cycle);
+ 
++ngx_int_t ngx_conf_full_name_rel(ngx_conf_t *cf, ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix, ngx_uint_t relative);
+ 
+ static ngx_command_t  ngx_conf_commands[] = {
+ 
+     { ngx_string("include"),
+-      NGX_ANY_CONF|NGX_CONF_TAKE1,
++      NGX_ANY_CONF|NGX_CONF_TAKE12,
+       ngx_conf_include,
+       0,
+       0,
+@@ -824,16 +827,35 @@
+     ngx_int_t    n;
+     ngx_str_t   *value, file, name;
+     ngx_glob_t   gl;
++    ngx_uint_t   relative;
+ 
+     value = cf->args->elts;
+     file = value[1];
+ 
++    relative = 0;
++    if (cf->args->nelts == 3) {
++        if (ngx_strcmp(value[2].data, NGX_CONF_FLAG_RELATIVE) == 0) {
++            relative = 1;
++
++        } else if (ngx_strcmp(value[1].data, NGX_CONF_FLAG_RELATIVE) == 0) {
++            relative = 1;
++            file = value[2];
++
++        } else {
++            ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
++                               "invalid value \"%s\" in \"%s\" directive, "
++                               "expected \"%s\"", value[2].data,
++                               cmd->name.data, NGX_CONF_FLAG_RELATIVE);
++            return NGX_CONF_ERROR;
++        }
++    }
++
+     ngx_log_debug1(NGX_LOG_DEBUG_CORE, cf->log, 0, "include %s", file.data);
+ 
+     if (ngx_conf_complex_value(cf, &file) != NGX_OK) {
+         return NGX_CONF_ERROR;
+     }
+-    if (ngx_conf_full_name(cf->cycle, &file, 1) != NGX_OK) {
++    if (ngx_conf_full_name_rel(cf, cf->cycle, &file, 1, relative) != NGX_OK) {
+         return NGX_CONF_ERROR;
+     }
+ 
+@@ -884,16 +906,44 @@
+ 
+ 
+ ngx_int_t
+-ngx_conf_full_name(ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix)
++ngx_conf_full_name_rel(ngx_conf_t *cf, ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix, ngx_uint_t relative)
+ {
+     ngx_str_t  *prefix;
++    ngx_str_t  local_prefix;
+ 
+-    prefix = conf_prefix ? &cycle->conf_prefix : &cycle->prefix;
++    if (relative) {
++        if (name->len >= 1 && name->data[0] == '/') {
++            ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
++                               "relative path \"%s\" "
++                               "should not start with \"/\"",
++                               name);
++            return NGX_ERROR;
++        }
++
++        local_prefix.data = cf->conf_file->file.name.data;
++        for (local_prefix.len = cf->conf_file->file.name.len;
++             --local_prefix.len >= 0
++             && local_prefix.data[local_prefix.len] != '/';
++             /* void */ )
++        { /* void */ }
++        ++local_prefix.len;
++        prefix = &local_prefix;
++
++    } else {
++        prefix = conf_prefix ? &cycle->conf_prefix : &cycle->prefix;
++    }
+ 
+     return ngx_get_full_name(cycle->pool, prefix, name);
+ }
+ 
+ 
++ngx_int_t
++ngx_conf_full_name(ngx_cycle_t *cycle, ngx_str_t *name, ngx_uint_t conf_prefix)
++{
++    return ngx_conf_full_name_rel(NULL, cycle, name, conf_prefix, 0);
++}
++
++
+ ngx_open_file_t *
+ ngx_conf_open_file(ngx_cycle_t *cycle, ngx_str_t *name)
+ {
+
+
