@@ -413,21 +413,48 @@ else
 	echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
 fi
 }
-phpini > monphp.ini
-sudo cp monphp.ini "$dest/lib/php.ini"
+
+_patronTemp()
+{
+	dest0="$1"
+	mkdir -p "$dest0/lib" "$dest0/etc"
+	
+	phpini > "$dest0/lib/php.ini"
 
 if [ -e "sapi/fpm/init.d.php-fpm.in" ] # Toutes les versions n'ont pas un fpm intégré.
 	then
-		sed < "sapi/fpm/init.d.php-fpm.in" > "sapi/fpm/init.d.php-fpm" -e "s#@sbindir@#$dest/sbin#g" -e "s#@sysconfdir@#$dest/etc#g" -e "s#@localstatedir@#$dest/var#g" -e '1{
+		sed \
+			-e "s#@sbindir@#$dest/sbin#g" \
+			-e "s#@sysconfdir@#$dest/etc#g" \
+			-e "s#@localstatedir@#$dest/var#g" \
+			-e '1{
 a\
 # PROVIDE: phpfpm
 a\
 # REQUIRE: NETWORKING
-}' -e '/[^e]start)/s/)/|quietstart)/'
-		chmod u+x "sapi/fpm/init.d.php-fpm"
-			sed < "$dest/etc/php-fpm.conf.default" > php-fpm.conf -e 's/^;pid =/pid =/' -e 's/^user = .*/user = www/' -e 's/^group = .*/group = www/' -e 's/^pm.max_children = .*/pm.max_children = 20/'
-	sudo cp php-fpm.conf sapi/fpm/init.d.php-fpm "$dest/etc/"
+}' \
+			-e '/[^e]start)/s/)/|quietstart)/' \
+			< "sapi/fpm/init.d.php-fpm.in" > "$dest0/etc/init.d.php-fpm" 
+		chmod u+x "$dest0/etc/init.d.php-fpm"
+		sed \
+			-e 's/^;pid =/pid =/' \
+			-e 's/^user = .*/user = www/' \
+			-e 's/^group = .*/group = www/' \
+			-e 's/^pm.max_children = .*/pm.max_children = 20/' \
+			< "$dest/etc/php-fpm.conf.default" > "$dest0/etc/php-fpm.conf"
 fi
+}
+
+_pousserPatronTemp()
+{
+	local dest0="$1" dest="$2"
+	
+	# Copie.
+	sudoku -d "`dirname "$dest"`" sh -c "mkdir -p \"$dest\" && cp -R \"$dest0/.\" \"$dest/.\""
+}
+
+_patronTemp "$TMP/$$/dest"
+_pousserPatronTemp "$TMP/$$/dest" "$dest"
 
 # Xdebug doit être chargé *après* OPCache, or dans certaines configurations (PHP 5.4) notre APC est en fait un OPCache + APCu. 
 # cf. https://xdebug.org/docs/install
