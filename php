@@ -419,7 +419,7 @@ _patronTemp()
 	dest0="$1"
 	mkdir -p "$dest0/lib" "$dest0/etc"
 	
-	phpini > "$dest0/lib/php.ini"
+	phpini > "$dest0/lib/php.ini.original"
 
 if [ -e "sapi/fpm/init.d.php-fpm.in" ] # Toutes les versions n'ont pas un fpm intégré.
 	then
@@ -443,6 +443,8 @@ a\
 			-e 's/^pm.max_children = .*/pm.max_children = 20/' \
 			< "$dest/etc/php-fpm.conf.default" > "$dest0/etc/php-fpm.conf"
 fi
+	
+	iperso "$dest0"
 }
 
 _pousserPatronTemp()
