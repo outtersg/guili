@@ -559,6 +559,7 @@ perso()
 			( xargs -r -0 ls -d 2> /dev/null || true ) | grep -v -f /tmp/temp.perso.$$ | sed -e "s/$suffixe$//" | while read f
 			do
 				echo "$f" >> /tmp/temp.perso.$$
+				[ -e "$f$suffixe" ] || continue
 				diff -rq "$f$suffixe" "$f" | grep -F "Only in $f: " | sed -e 's/^Only in //' -e 's#: #/#' || true
 				diff -ruw "$f$suffixe" "$f" >&7 || true
 			done | tr '\012' '\000' > /tmp/temp.perso.$$.only
