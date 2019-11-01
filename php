@@ -141,6 +141,25 @@ esac
 
 prerequis
 
+# Fin octobre 2019, prerequis() accumule les variables $*FLAGS de tous nos prérequis, sans dédoublonnage (de peur que l'ordre joue).
+# Cela pose problème au configure de PHP qui fait un sed -e "s#$*FLAGS#…#", ce qui explose certaines implémentations de sed (limités à 2048 octets pour leur expression à remplacer).
+# De toute manière les lignes à rallonge ne sont pas les bienvenues.
+# On réduit donc tout ce petit monde.
+flagsUniques()
+{
+	local c v
+	for c in CFLAGS CXXFLAGS CPPFLAGS LDFLAGS
+	do
+		eval v="\"\$$c\""
+		export "$c=`args_reduc_u $v`"
+	done
+}
+args_reduc_u()
+{
+	for p in "$@" ; do echo "$p" ; done | awk '{if(!t[$0]){t[$0]=1;print}}' | tr '\012' ' ' | sed -e 's/ $//'
+}
+flagsUniques
+
 # Modifs
 
 cve201911043()
@@ -345,7 +364,30 @@ else
 # Les options qui ne sont exploitées que plus tard doivent être au moins consommées, pour les marquer comme vraiment exploitées. Car destiner() va les inclure dans le chemin final: il refusera de mettre des options qui ne servent à rien.
 option apc || true
 option xdebug || true
-destiner # Après prerequis, afin de pouvoir interroger le résultat de reglagesCompilPrerequis (LD_LIBRARY_PATH, etc.).
+
+pousserPersonnalisations()
+{
+	local dest0="$1" dest="$2"
+	
+	# Copie.
+	sudoku -d "`dirname "$dest"`" sh -c "mkdir -p \"$dest\" && cp -R \"$dest0/.\" \"$dest/.\""
+}
+
+personnaliserInstallPhp()
+{
+	local dest0=$TMP/$$/dest
+	rm -Rf "$dest0" && mkdir -p "$dest0/lib"
+	
+	# Le fichier modifié par les greffons devient notre nouvelle référence, écrasant l'ancienne.
+	cp "$dest/lib/php.ini" "$dest0/lib/php.ini.original"
+	iperso "$dest0"
+	
+	pousserPersonnalisations "$dest0" "$dest"
+}
+
+guili_localiser="$guili_localiser personnaliserInstallPhp"
+
+destiner # Après prerequis, afin qu'en cas d'INSTALLS_AVEC_INFOS le résultat de reglagesCompilPrerequis (LD_LIBRARY_PATH, etc.) contienne tout ce qui a été calculé par prerequis(). À FAIRE: les ceusses qui reposent là-dessus ne pourraient-ils pas plutôt lire .guili.prerequis? Ça permettrait de passer prerequis après destiner, et donc de ne pas recalculer les prérequis si le truc est déjà installé. Au pire pondre le résultat du reglagesCompilPrerequis dans un .guili.env, cache pour les prochains appelants?
 
 case "$version" in
 	*-*)
@@ -419,7 +461,7 @@ _patronTemp()
 	dest0="$1"
 	mkdir -p "$dest0/lib" "$dest0/etc"
 	
-	phpini > "$dest0/lib/php.ini.original"
+	phpini > "$dest0/lib/php.ini"
 
 if [ -e "sapi/fpm/init.d.php-fpm.in" ] # Toutes les versions n'ont pas un fpm intégré.
 	then
@@ -444,23 +486,34 @@ a\
 			< "$dest/etc/php-fpm.conf.default" > "$dest0/etc/php-fpm.conf"
 fi
 	
-	iperso "$dest0"
+	# php.ini sera constitué ainsi:
+	# 0. ponte ci-dessus
+	# 1. les ajouts d'extensions faits par greffons() plus tard.
+	# 2. personnalisations manuelles effectuées sur le php.ini d'une précédente version, reportées par iperso
+	# On installe le résultat du 0 pour retravail par 1.
+	
+	pousserPersonnalisations "$dest0" "$dest"
 }
 
-_pousserPatronTemp()
+_patronTempPostGreffons()
 {
-	local dest0="$1" dest="$2"
+	local dest0="$1"
 	
-	# Copie.
-	sudoku -d "`dirname "$dest"`" sh -c "mkdir -p \"$dest\" && cp -R \"$dest0/.\" \"$dest/.\""
+	# Le fichier modifié par les greffons devient notre nouvelle référence, écrasant l'ancienne.
+	cp "$dest/lib/php.ini" "$dest0/lib/php.ini"
+	# On le renomme en .original pour permettre à iperso d'intégrer les modifications locales.
+	cp "$dest0/lib/php.ini" "$dest0/lib/php.ini.original"
+	
+	pousserPersonnalisations "$dest0" "$dest"
 }
 
 _patronTemp "$TMP/$$/dest"
-_pousserPatronTemp "$TMP/$$/dest" "$dest"
 
 # Xdebug doit être chargé *après* OPCache, or dans certaines configurations (PHP 5.4) notre APC est en fait un OPCache + APCu. 
 # cf. https://xdebug.org/docs/install
 greffon apc
 greffon xdebug
+
+_patronTempPostGreffons "$TMP/$$/dest"
 
 sutiliser
