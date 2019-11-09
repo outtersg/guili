@@ -299,7 +299,11 @@ greffon()
 # Utilisation: reglagesCompilSiGuili <binaire>|<chemin>
 reglagesCompilSiGuili()
 {
-	local binaire="`command -v $1 2> /dev/null || echo "$1"`"
+	local binaire="$1"
+	case "$binaire" in
+		/*) true ;;
+		*) binaire="`command -v $1 2> /dev/null || echo "$1"`" ;;
+	esac
 	local rlvo="`rlvo "$binaire"`"
 	if [ ! -z "$rlvo" ]
 	then
