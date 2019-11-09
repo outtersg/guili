@@ -64,7 +64,7 @@ argVersionSauf()
 			i2="`printf '\004'`"
 			deseder="`echo "$saufApres" | tr ' ' '\012' | sed -e "s#^#-e${i2}s/$IFS#" -e '2,$s/^/'$i2'/' -e 's#$#'"$IFS[^$IFS]*/$IFS/g#" | tr -d '\012'`"
 			echo "$IFS$*" | ( IFS="$i2" ; sed $deseder )
-		fi | tr "$IFS" '\012' | sed -e 's/$/ /' | egrep '^(([>=<]+ *|[0-9]+\.)[0-9]+(\.[0-9]+)* )+$' | tr '\012' ' '
+		fi | tr "$IFS" '\012' | sed -e 's/$/ /' -e 's/\([<=>]\)\([0-9]\)/\1 \2/g' | egrep '^(([>=<]+ *|[0-9]+\.)[0-9]+(\.[0-9]+)* )+$' | tr '\012' ' '
 	)
 }
 
