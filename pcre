@@ -36,6 +36,11 @@ v 8.41 || true
 v 8.42 || true
 v 8.43 || true
 
+if option cxx
+then
+	prerequis="$prerequis libcxx()"
+fi
+
 # Modifications
 
 # Variables
