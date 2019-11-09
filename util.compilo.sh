@@ -282,3 +282,60 @@ cpp11()
 {
 	compiloSysVersion -i "clang >= 3.3" "gcc >= 4.8.1"
 }
+
+libcxx()
+{
+	# Si le compilo choisi est un compilo non système, en matière de biblios lib(std)c++ il se liera à celles livrées avec le compilo en question.
+	# Il nous faut donc ajouter comme prérequis d'exécution, peut-être pas tout le compilo, mais au moins la biblio correspondante.
+	case "$CXX" in
+		g++|*/g++) libcxxgcc ;;
+	esac
+}
+
+libcxxgcc()
+{
+	local libcxx d v
+	
+	# Recherche de la libstdc++ qui va être utilisée.
+	# À FAIRE: chercher en sollicitant peut-être plus g++. Là on est sur de la recherche statique, pas forcément fiable (on repose sur le fait que le $LD_LIBRARY_PATH actuellement défini sera celui utilisé en -L lors de la compilation). Par contre on a l'avantage de fonctionner même si g++ n'est pas installé.
+	
+	IFS=:
+	for d in $LD_LIBRARY_PATH /dev/null
+	do
+		libcxx="$d/libstdc++.so"
+		if [ -e "$libcxx" ]
+		then
+			libcxx="`readlinky "$libcxx"`"
+			[ -f "$libcxx" ] && break || true
+		fi
+	done
+	unset IFS
+	
+	# La bibliothèque vient-elle bien d'une install GuiLI?
+	
+	rlvo "$libcxx" || return 0
+	
+	# Recherche de la version GuiLI de libcxx correspondante.
+	# Pour libstdcxx, c'est le suffixe.
+	
+	v="`bn "$libcxx"`"
+	_point123()
+	{
+		unset IFS
+		local param
+		[ "$1.$2.$6" = "libstdc++.so." ] || return 1
+		for param in "$3" "$4" "$5"
+		do
+			case "$param" in
+				*[^0-9]*|"") return 1 ;;
+			esac
+		done
+		echo "$3.$4.$5"
+	}
+	IFS=.
+	v="`IFS=. ; _point123 $v || true`"
+	[ -n "$v" ] || return 0
+	unset IFS
+	
+	prerequerir libstdcxx $v # Va installer libstdcxx, et modifier l'environnement ($guili_ppath): ainsi lorsque le logiciel sera installé, il aura pour dépendance libstdcxx.
+}
