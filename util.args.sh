@@ -199,7 +199,7 @@ love()
 			--velo) velo=1 ; continue ;;
 		esac
 		IFS=-
-		_love `bn "$d"`
+		tifs _love `bn "$d"`
 		if [ -z "$velo" ]
 		then
 		echo "$lo $ve"
