@@ -312,7 +312,7 @@ reglagesCompilSiGuili()
 	local rlvo="`rlvo "$binaire"`"
 	if [ ! -z "$rlvo" ]
 	then
-		_reglagesCompil() { reglagesCompil "$2" "$3" "$1" ; }
+		_reglagesCompil() { reglagesCheminsGuiliChemin "$1" ; }
 		_reglagesCompil $rlvo
 	fi
 }
