@@ -153,7 +153,6 @@ readlinky()
 
 #- Système: environnement chemins ----------------------------------------------
 
-reglagesCompil() { reglagesCheminsPrerequis "$@" ; }
 reglagesCheminsPrerequis()
 {
 	# L'option -l permet de travailler avec des variables locales, afin d'accumuler sans incidence sur l'environnement (on exportera en une fois, à la fin).
