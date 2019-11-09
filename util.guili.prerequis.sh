@@ -94,6 +94,7 @@ prerequis()
 	fi
 }
 
+# S'assure de la présence d'un prérequis, en mode rapide (si quelque chose existe qui réponde aux critères, on ne s'embête pas à lui demander de vérifier ses propres prérequis récursivement, on le prend illico).
 presentOuPrerequis()
 {
 	local present="`versions "$1" "$2" | tail -1`"

@@ -103,18 +103,24 @@ prerequerir()
 	[ "x$1" = x-l ] && paramLocal="$1" && shift || true
 	local paraml="$1" ; shift
 	local paramv="$*"
+	local pr_dest=
 	
+	[ -n "$INSTALLS_MAX" ] || pr_dest="`versions "$paraml $paramv" | tail -1`"
+	
+	if [ -z "$pr_dest" ]
+	then
 	( INSTALLS_AVEC_INFOS=1 inclure "$paraml" "$paramv" ) 6> "$TMP/$$/temp.inclureAvecInfos" || return $?
 	
 	# L'idéal est que l'inclusion ait reconnu INSTALLS_AVEC_INFOS et nous ait sorti ses propres variables, à la pkg-config, en appelant infosInstall() en fin (réussie) d'installation.
 	# Dans le cas contraire (inclusion ancienne mode peu diserte), on recherche parmi les paquets installés celui qui répond le plus probablement à notre demande, via reglagesCompilPrerequis.
 	
-	local pr_logiciel= pr_version= pr_dest=
+	local pr_logiciel= pr_version=
 	IFS=: read pr_logiciel pr_logicielEtOptions pr_version pr_dest < "$TMP/$$/temp.inclureAvecInfos" || true
 	unset IFS # Le sh sur certains Linux ne sait pas cantonner le changement de variable à l'appel de la fonction.
-	[ ! -z "$pr_logiciel" ] || pr_logiciel="$paraml" # Pour les logiciels qui ne savent pas être inclusAvecInfos (qui ne renseignent pas les variables).
+		[ -n "$pr_dest" ] || pr_dest="$paraml $paramv" # Pour les logiciels qui ne savent pas être inclusAvecInfos (qui ne renseignent pas les variables), on se rabat sur une description de contraintes.
+	fi
 	
-	retrouverPrerequisEtReglerChemins $paramLocal "$pr_logiciel" "$pr_version" "$pr_dest"
+	retrouverPrerequisEtReglerChemins $paramLocal "$pr_dest"
 	
 	# Pour répondre à ma question "Comment faire pour avoir en plus de stdout et stderr une stdversunsousshellderetraitement" (question qui s'est posée un moment dans l'élaboration d'inclureAvecInfos):
 	# ( ( echo Un ; sleep 2 ; echo Trois >&3 ; sleep 2 ; echo Deux >&2 ; sleep 2 ; echo Trois >&3 ) 3>&1 >&4 | sed -e 's/^/== /' ) 4>&1
@@ -130,25 +136,19 @@ retrouverPrerequisEtReglerChemins()
 	local paramLocal=
 	[ "x$1" = x-l ] && paramLocal="$1" && shift || true
 	
-	local pr_logiciel="$1" pr_version="$2" pr_dest="$3"
+	local pr_dest="$1"
 	
-	# Si l'un des éléments n'est pas fourni, on recherche.
-	case "|$pr_logiciel|$pr_version|$pr_dest|" in
-		*"||"*) _prerequerirRetrouver "$pr_logiciel" "$pr_version" ;;
+	# Si le chemin complet n'est pas fourni, on recherche.
+	case "$pr_dest" in
+		/*) true ;;
+		*)
+			pr_dest="`versions "$pr_dest" | tail -1`"
+			[ -n "$pr_dest" ] || err "# Impossible de trouver ni installer $1"
+			;;
 	esac
 	> "$TMP/$$/temp.inclureAvecInfos"
 	
-	reglagesCheminsPrerequis $paramLocal "$pr_logiciel" "$pr_version" "$pr_dest"
-}
-
-_prerequerirRetrouver()
-{
-	dossierRequis=
-	for peutEtreDossierRequis in `versions "$1"`
-	do
-		versionRequis="`echo "$peutEtreDossierRequis" | sed -e "s#.*-##"`"
-		testerVersion "$versionRequis" $2 && pr_dest="$peutEtreDossierRequis" && pr_version="$versionRequis" || true
-	done
+	reglagesCheminsGuiliChemin $paramLocal "$pr_dest"
 }
 
 exclusivementPrerequis()
@@ -403,4 +403,14 @@ guili_temoinsPresents()
 	do
 		[ -e "$temoin" ] || return 1
 	done
+}
+
+guili_sortirAvecInfosSiDejaInstalle()
+{
+	versionExistante="`versions "$logiciel+$argOptions" "$argVersion" | tail -1`"
+	if [ -n "$versionExistante" ]
+	then
+		love -e "_poubelle argOptions argVersion" "$versionExistante"
+		"$logiciel:$logiciel`argOptions`:$version:$dest"
+	fi
 }
