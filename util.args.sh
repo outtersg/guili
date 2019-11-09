@@ -191,7 +191,7 @@ love()
 {
 	# On fait le maximum d'opérations dans le shell: un fork+exec, ça coûte cher.
 	
-	local d lo ve velo= l o
+	local d _lo _ve velo= _l _o
 	
 	while [ $# -gt 0 ]
 	do
@@ -202,12 +202,11 @@ love()
 		tifs _love `bn "$1"`
 		if [ -z "$velo" ]
 		then
-		echo "$lo $ve"
+		echo "$_lo $_ve"
 		else
-			[ -n "$ve" ] || ve=0
+			[ -n "$_ve" ] || ve=0
 			IFS=+
-			_velo $lo
-			echo "$ve $l$o"
+			_velo $_lo
 		fi
 		shift
 	done
@@ -216,16 +215,16 @@ love()
 
 _love()
 {
-	lo="$1" ; shift
+	_lo="$1" ; shift
 	while [ $# -gt 1 ]
 	do
-		lo="$lo$IFS$1"
+		_lo="$_lo$IFS$1"
 		shift
 	done
 	case "$1" in
-		[0-9]*.[0-9]*) ve="$1" ;;
+		[0-9]*.[0-9]*) _ve="$1" ;;
 		"") true ;;
-		*) ve= ; lo="$lo$IFS$1" ;;
+		*) _ve= ; _lo="$_lo$IFS$1" ;;
 	esac
 }
 
@@ -237,9 +236,9 @@ velo()
 
 _velo()
 {
-	l="$1" ; shift
-	o=
-	[ $# -le 0 ] || o=" +$*"
+	_l="$1" ; shift
+	_o=
+	[ $# -le 0 ] || _o=" +$*"
 }
 
 #- Listes de prérequis ---------------------------------------------------------
