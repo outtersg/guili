@@ -187,30 +187,48 @@ apAffecter()
 #- Versions --------------------------------------------------------------------
 
 # Coupe un <logiciel>(+<option>)*-<version> en <logiciel>(+<option>)* <version>
+# Utilisation: love [-e "varL varO varV"] <chemin>
+#   -e "varL varO varV"
+#     Plutôt que de sortir <logiciel>, <options> et <version>, les mettra à disposition respectivement en tant que $varL, $varO, $varV.
+#   <chemin>
+#     Chemin absolu d'install GuiLI, sous la forme /<racine>/<logiciel>(+<option>)*-<version>
 love()
 {
 	# On fait le maximum d'opérations dans le shell: un fork+exec, ça coûte cher.
 	
-	local d _lo _ve velo= _l _o
+	local d _lo _ve velo= _l _o exports=
 	
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			--velo) velo=1 ; shift ; continue ;;
+			-e) exports="$2" ; shift ; shift ; continue ;;
 		esac
 		IFS=-
 		tifs _love `bn "$1"`
-		if [ -z "$velo" ]
+		if [ -z "$velo$exports" ]
 		then
 		echo "$_lo $_ve"
 		else
 			[ -n "$_ve" ] || ve=0
 			IFS=+
 			_velo $_lo
+			[ -n "$exports" ] || echo "$_ve $_l$_o"
 		fi
 		shift
 	done
 	unset IFS
+	[ -z "$exports" ] || _love_affection "$exports" "$_l" "$_o" "$_ve"
+}
+
+_love_affection()
+{
+	local vars="$1" var ; shift
+	for var in $vars
+	do
+		eval $var='"$1"'
+		shift
+	done
 }
 
 _love()
