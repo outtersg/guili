@@ -193,13 +193,13 @@ love()
 	
 	local d lo ve velo= l o
 	
-	for d in "$@"
+	while [ $# -gt 0 ]
 	do
-		case "$d" in
-			--velo) velo=1 ; continue ;;
+		case "$1" in
+			--velo) velo=1 ; shift ; continue ;;
 		esac
 		IFS=-
-		tifs _love `bn "$d"`
+		tifs _love `bn "$1"`
 		if [ -z "$velo" ]
 		then
 		echo "$lo $ve"
@@ -209,6 +209,7 @@ love()
 			_velo $lo
 			echo "$ve $l$o"
 		fi
+		shift
 	done
 	unset IFS
 }
