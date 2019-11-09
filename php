@@ -119,28 +119,6 @@ case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
 	*) prerequis="sed < 4.3 $prerequis" ;;
 esac
 
-prr()
-{
-	local prcc="`prereqs --ou-theo "$@"`"
-	IFS=:
-	love $prcc
-	unset IFS
-}
-
-# Si on a un compilo dans $INSTALLS/bin, on le prérequiert: les biblios qui n'utilisent pas exclusivementPrerequis ont sans doute été compilées avec, il nous faut le même pour ne pas péter sur du "symbole de lib[std]c++ non défini" ou autre au moment où on se liera à elles.
-# On présuppose CC défini (par meilleurCompilo invoqué dans util.sh, par exemple).
-
-case "`command -v "$CC"`" in
-	"$INSTALLS"/*)
-		petit_cc="`basename "$CC"`" # En principe le nom de paquet GuiLI du compilo est le nom du compilo C (paquet clang pour compilo C clang, paquet gcc pour compilo gcc).
-		prerequis_cc="$petit_cc `versionCompiloChemin "$petit_cc"`"
-		
-		prerequis="`prr "$prerequis_cc"` \\ $prerequis"
-		;;
-esac
-
-prerequis
-
 # Fin octobre 2019, prerequis() accumule les variables $*FLAGS de tous nos prérequis, sans dédoublonnage (de peur que l'ordre joue).
 # Cela pose problème au configure de PHP qui fait un sed -e "s#$*FLAGS#…#", ce qui explose certaines implémentations de sed (limités à 2048 octets pour leur expression à remplacer).
 # De toute manière les lignes à rallonge ne sont pas les bienvenues.
@@ -387,7 +365,9 @@ personnaliserInstallPhp()
 
 guili_localiser="$guili_localiser personnaliserInstallPhp"
 
-destiner # Après prerequis, afin qu'en cas d'INSTALLS_AVEC_INFOS le résultat de reglagesCompilPrerequis (LD_LIBRARY_PATH, etc.) contienne tout ce qui a été calculé par prerequis(). À FAIRE: les ceusses qui reposent là-dessus ne pourraient-ils pas plutôt lire .guili.prerequis? Ça permettrait de passer prerequis après destiner, et donc de ne pas recalculer les prérequis si le truc est déjà installé. Au pire pondre le résultat du reglagesCompilPrerequis dans un .guili.env, cache pour les prochains appelants?
+destiner
+
+prerequis
 
 case "$version" in
 	*-*)
