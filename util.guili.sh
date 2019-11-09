@@ -317,6 +317,16 @@ reglagesCompilSiGuili()
 	fi
 }
 
+reglagesCheminsGuiliChemin()
+{
+	local paramLocal=
+	[ "x$1" = x-l ] && paramLocal="$1" && shift || true
+	local rd="$1" rl ro rv
+	
+	love -e "rl ro rv" "$rd"
+	reglagesCheminsGuili $paramLocal "$rl" "$rv" "$rd"
+}
+
 #- Installation ----------------------------------------------------------------
 
 # Surchargeable par les logiciels pour une petite passe après compil ou installation d'un paquet binaire.
