@@ -294,6 +294,11 @@ greffon()
 
 #- Environnement ---------------------------------------------------------------
 
+reglagesCheminsGuili()
+{
+	reglagesCheminsPrerequis "$@"
+}
+
 # Modifie l'environnement si un truc est dans une arbo GuiLI.
 # Note: ne le fait que s'il se trouve dans un dossier dédié $INSTALLS/logiciel-version/bin/binaire, pas s'il est à la "racine" $INSTALLS/bin/binaire; on considère en effet que l'environnement a déjà été modifié dans ce cas.
 # Utilisation: reglagesCompilSiGuili <binaire>|<chemin>
