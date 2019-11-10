@@ -33,7 +33,7 @@ v 2.4.12
 v 2.5.5
 v 2.6.5
 v 2.7.1 || true
-v 2.9.1 && ajouterModif ftconfig && prerequis="$prerequis harfbuzz+ft >= 2" || true
+v 2.9.1 && ajouterModif ftconfig && prerequis="$prerequis harfbuzz >= 2" || true
 
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
 archive=http://download.savannah.gnu.org/releases/freetype/$logiciel-$version.tar.bz2
@@ -46,16 +46,30 @@ ftconfig()
 
 # À moins qu'on ne nous désactive explicitement harfbuzz, on l'embarque.
 case "$prerequis" in
-	*harfbuzz+ft*)
+	*harfbuzz*)
 		case "$argOptions+" in
-			*-hb[-+]*) virerPrerequis "harfbuzz+ft" ;;
+			*-hb[-+]*) virerPrerequis "harfbuzz" ;;
 			*) argOptions="`options "$argOptions=hb"`" ;;
 		esac
 		;;
 esac
 option hb || true
+opSiPasPas hb harfbuzz
+
+# Si nous sommes l'itération 0 d'une compil Freetype + Harfbuzz (0. freetype --sans-hb ; 1. harfbuzz ; 2. freetype+hb) nous nous compilerons sans Harfbuzz, mais nous nous remettons tout de même l'option, afin que destiner() nous donne la même $dest que l'itération 2.
+case "$GUILI_MOIRE:" in
+	*:hb:*) argOptions="`options "$argOptions+hb"`" ;;
+esac
 
 destiner
+
+# On installe une première version de nous, sans Harfbuzz, entre notre destiner() et notre prerequis():
+# - si on le faisait avant notre destiner(), ce dernier nous estimerait déjà installé et ne poursuivrait pas.
+# - si on le faisait après notre prerequis(), Harfbuzz, qui se trouve dans les prérequis, ne nous détecterait pas (enfin ne détecterait pas le freetype itération 0. "de compil" mais qui s'est installé à notre emplacement, donc aux yeux d'harfbuzz c'est nous).
+if option hb
+then
+	moire -i hb --sans-hb
+fi
 
 prerequis
 
@@ -74,6 +88,9 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 sudo make install
 
+case "$GUILI_MOIRE:" in
+	*:hb:*) guili_deps_pondre ;; # À l'intérieur du moiré (Freetype itération 0), sutiliser() est surchargée pour ne rien faire. Cependant l'Harfbuzz (itération 1) aura besoin de nos dépendances pour les inclure aux siennes. Il nous faut donc au moins le guili_deps_pondre.
+esac
 sutiliser
 
 cd "$TMP/$$" # Pour éviter que menage() n'efface le dossier de travail si on est en fin de compil 32bits alors que la compile 32+64 attend notre résultat pour continuer sur le même dossier.
