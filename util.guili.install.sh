@@ -244,6 +244,41 @@ guili_deps_pondre()
 	done
 }
 
+# Sort d'une liste de prérequis passée en stdin, toute référence à un des paquets mentionnés en paramètres, et à ses propre prérequis.
+# Ex.: si stdin a en entrée:
+#   [ toto, titi, # toto, autre, titi, # titi, tierce ]
+# guili_prerequis_defiltrer toto donnera:
+#   [ titi, # titi, tierce ]
+guili_prerequis_defiltrer()
+{
+	IFS=:
+	tifs _guili_prerequis_defiltrer $1
+}
+
+_guili_prerequis_defiltrer()
+{
+	local d
+	awk "
+function ndieses() { match(\$0, /^##*/); return RLENGTH; }
+function bloquer() { niveauBouffe = ndieses(); }
+/^##* \//{ if(ndieses() <= niveauBouffe) niveauBouffe = 0; }
+niveauBouffe { next; }
+`_guili_prerequis_defiltrer_virages "$@"`
+niveauBouffe { next; }
+{ print; }
+"
+}
+
+_guili_prerequis_defiltrer_virages()
+{
+	q="`printf '\004'`"
+	for d in "$@"
+	do
+		echo "$q^$d\$$q{ next; }" # Référence directe au truc: on supprime.
+		echo "$q^##* $d/\\.guili\\.prerequis\$$q{ bloquer(); }" # Début de bloc référençant le truc: on active le passage sous silence de tout le bloc.
+	done | sed -e 's#/#\\/#g' -e 's/[+]/./g' -e "s#$q#/#g"
+}
+
 # Trouve un logiciel, renvoie le dossier trouvé et le contenu de son .guili.prerequis séparé par des :
 # Un test d'existence est fait pour chaque élément avant de le renvoyer (donc les lignes du .guili.prerequis référençant des dossiers inexistants ne seront pas renvoyées).
 # Utilisation: prereqs [-u] (-s <suffixe>)* [-d] [--ou-theo] <logiciel> [<version>]
