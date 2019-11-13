@@ -70,9 +70,7 @@ moduleNginxSiOption()
 				then
 					nomArchive="nginx_module_$o.`date +%Y%m%d`$suffixe"
 				fi
-				local d="`obtenirEtAllerDans "$s" "$nomArchive" ; pwd`"
-				[ -n "$d" -a -d "$d" ] || return 1
-				OPTIONS_CONF="$OPTIONS_CONF --add-module=$d"
+				MODULES_EXTERNES="$MODULES_EXTERNES$nomArchive|$s|"
 				;;
 			*) # Module interne
 				OPTIONS_CONF="$OPTIONS_CONF --with-$s"
@@ -81,7 +79,27 @@ moduleNginxSiOption()
 	fi
 }
 
+obtenirModulesExternes()
+{
+	IFS='|'
+	tifs _obtenirModulesExternes $MODULES_EXTERNES
+}
+
+_obtenirModulesExternes()
+{
+	local d
+	while [ $# -gt 0 ]
+	do
+		d="`obtenirEtAllerDans "$2" "$1" ; pwd`"
+		[ -n "$d" -a -d "$d" ] || return 1
+		OPTIONS_CONF="$OPTIONS_CONF --add-module=$d"
+		shift
+		shift
+	done
+}
+
 OPTIONS_CONF=
+MODULES_EXTERNES=
 
 moduleNginxSiOption realip http_realip_module
 moduleNginxSiOption geoip http_geoip_module
@@ -98,6 +116,8 @@ prerequis
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
+
+obtenirModulesExternes
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif "$@" ; done
