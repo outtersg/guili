@@ -60,6 +60,7 @@ moduleNginxSiOption()
 {
 	local o="$1"
 	local s="$2"
+	local d spropre
 	if option "$o"
 	then
 		case "$s" in
@@ -71,6 +72,25 @@ moduleNginxSiOption()
 					nomArchive="nginx_module_$o.`date +%Y%m%d`$suffixe"
 				fi
 				MODULES_EXTERNES="$MODULES_EXTERNES$nomArchive|$s|"
+				;;
+			*"()")
+				spropre="`echo "$s" | tr -d ')('`"
+				d="$TMP/$$/$spropre"
+				mkdir "$d"
+				(
+					echo '#!/bin/sh'
+					echo 'set -e'
+					echo 'SCRIPTS="'"$SCRIPTS"'"'
+					echo 'modifs="'"$modifs"'"'
+					echo 'argOptions="'"$argOptions"'"'
+					sed -e '/^[_a-zA-Z0-9]*()$/,/^}/!d' < "$install_moi"
+					echo "$spropre"
+				) > "$d/config"
+				chmod a+x "$d/config"
+				OPTIONS_CONF="$OPTIONS_CONF --add-module=$d"
+				;;
+			*/*) # Module local hors nginx.
+				OPTIONS_CONF="$OPTIONS_CONF --add-module=$s"
 				;;
 			*) # Module interne
 				OPTIONS_CONF="$OPTIONS_CONF --with-$s"
