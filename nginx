@@ -35,12 +35,12 @@ v 1.17.4 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
-# N.B.: relinc pourra sauter, defs ayant vocation à prendre sa place. Cependant on le garde tant que tournent des nginx reposant sur relinc.
+# N.B.: relinc pourra sauter, cscript ayant vocation à prendre sa place. Cependant on le garde tant que tournent des nginx reposant sur relinc.
 relinc()
 {
 	local suff=
 	case "+$argOptions+" in
-		*+defs[-+]*) suff="-defs"
+		*+cscript*) suff="-defs"
 	esac
 	patch -p1 < "$SCRIPTS/nginx.relinc$suff.patch"
 }
@@ -158,9 +158,7 @@ moduleNginxSiOption realip http_realip_module
 moduleNginxSiOption geoip http_geoip_module
 moduleNginxSiOption upstreamcheck https://github.com/yaoweibin/nginx_upstream_check_module/archive/master.zip
 moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-module/archive/master.zip
-ngx_conf_defs_src="$SCRIPTS/../projets/ngx_conf_defs"
-[ -d "$ngx_conf_defs_src" ] || ngx_conf_defs_src=https://github.com/outtersg/ngx_conf_defs/archive/master.zip
-moduleNginxSiOption defs "$ngx_conf_defs_src"
+moduleNginxSiOption cscript https://github.com/outtersg/ngx_conf_defs/archive/master.zip
 moduleNginxSiOption relinc 'relinc()'
 
 # Boulot
