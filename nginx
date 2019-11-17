@@ -50,9 +50,13 @@ relinc()
 moduleNginxSiOption()
 {
 	local o="$1"
+	local ov="$o"
 	local s="$2"
 	local d spropre
-	if option "$o"
+	case "$argOptions" in
+		*+$o[v][0-9]*|*+$o[0-9]*) ov="`echo "$argOptions" | sed -e 's/.*+'"$o"'\(v*[0-9]\)/\1/' -e 's/[-+].*//'`" ;;
+	esac
+	if option "$o" || option "$ov"
 	then
 		case "$s" in
 			http*://*) # Module externe
