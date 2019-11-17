@@ -56,6 +56,7 @@ moduleNginxSiOption()
 	then
 		case "$s" in
 			http*://*) # Module externe
+				_moduleLocalOuVersion # Transforme $s et $o pour aller chercher éventuellement un source local, et la version donnée.
 				local suffixe="`echo "$s" | sed -e 's#.*/[^.]*##' -e 's#.*\.[^.][^.][^.][^.][^.]*##'`"
 				local nomArchive="`basename "$s"`"
 				if echo "$nomArchive" | egrep -vqe '-[0-9]+\.[0-9]+(\.[0-9]+)*(\.[a-z][a-z0-9]*)+$' # Si le nom de l'archive ne porte pas de numéro de version (ex.: git), on lui en donne un daté.
@@ -113,6 +114,37 @@ _obtenirModulesExternes()
 		shift
 		shift
 	done
+}
+
+_moduleLocalOuVersion()
+{
+	case "$s" in
+		http*://*/master.zip) true ;;
+		*) return 0 ;;
+	esac
+	local v_module v_optionModule nom d
+	nom="`dirname "$s"`" ; nom="`basename "$nom"`"
+	# S'il existe une version par défaut pour ce module…
+	eval "v_module=\"\$v_$o\""
+	# … ou, plus important, si nous est demandée explicitement une version, on définit v_module.
+	case "$argOptions" in
+		+${o}_[v0-9]*) v_module="`echo "$argOptions" | sed -e "s/.*[+]${o}_//" -e 's/[-+].*//' -e 's/_/./g'`" ;;
+	esac
+	d="$SCRIPTS/../projets/$nom"
+	# Si on ne demande aucune version en particulier, et qu'il existe une extraction locale du source, on prend.
+	if [ -z "$v_module" -a -d "$d" ]
+	then
+		s="$d"
+		return 0
+	fi
+	# Sinon, on va triturer l'URL de l'archive pour aller chercher la version demandée.
+	if [ -n "$v_module" ]
+	then
+		s="`echo "$s" | sed -e "s#master#$v_module#"`"
+		# Et l'option effective sera suffixée de la version.
+		v_optionModule="`echo "$v_module" | tr . _`"
+		argOptions="`options "$argOptions-$o+${o}_$v_optionModule"`"
+	fi
 }
 
 OPTIONS_CONF=
