@@ -62,7 +62,9 @@ moduleNginxSiOption()
 				then
 					nomArchive="nginx_module_$o.`date +%Y%m%d`$suffixe"
 				fi
-				MODULES_EXTERNES="$MODULES_EXTERNES$nomArchive|$s|"
+				d="$TMP/$$/modules.$o"
+				MODULES_EXTERNES="$MODULES_EXTERNES$nomArchive|$s|$d|"
+				OPTIONS_CONF="$OPTIONS_CONF --add-module=$d"
 				;;
 			*"()")
 				spropre="`echo "$s" | tr -d ')('`"
@@ -103,7 +105,11 @@ _obtenirModulesExternes()
 	do
 		d="`obtenirEtAllerDans "$2" "$1" ; pwd`"
 		[ -n "$d" -a -d "$d" ] || return 1
-		OPTIONS_CONF="$OPTIONS_CONF --add-module=$d"
+		case "$3" in
+			"$TMP/$$"/*) rm -Rf "$3" ;;
+		esac
+		mv "$d" "$3"
+		shift
 		shift
 		shift
 	done
