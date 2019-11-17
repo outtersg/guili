@@ -56,7 +56,7 @@ moduleNginxSiOption()
 	local s="$2"
 	local d spropre
 	case "$argOptions" in
-		*+$o[v][0-9]*|*+$o[0-9]*) ov="`echo "$argOptions" | sed -e 's/.*+'"$o"'\(v*[0-9]\)/\1/' -e 's/[-+].*//'`" ;;
+		*+${o}_[v][0-9]*|*+${o}_[0-9]*) ov="`echo "$argOptions" | sed -e 's/.*+\('"$o"'_v*[0-9]\)/\1/' -e 's/[-+].*//'`" ;;
 	esac
 	if option "$o" || option "$ov"
 	then
