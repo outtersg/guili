@@ -52,4 +52,21 @@ vraisudo()
 	$sudo "$@"
 }
 
+# Ajoute une commande au sudoers.
+sudoer()
+{
+	# A-t-on déjà les droits?
+	(
+		sudo="`IFS=: ; for x in $PATH ; do [ -x "$x/sudo" ] && echo "$x/sudo" && break ; done`"
+		set -f
+		case "$2" in
+			ALL) commande=true ;;
+			*) commande="$2" ;;
+		esac
+		sudoku -u "$1" "$sudo" -n -l $commande > /dev/null 2>&1
+	) && return || true
+	gris "sudoers: $1 ALL=(ALL) NOPASSWD: $2" >&2
+	echo "$1 ALL=(ALL) NOPASSWD: $2" | INSTALLS=/etc sudoku sh -c 'cat >> /etc/sudoers'
+}
+
 detecterSudo
