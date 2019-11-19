@@ -108,7 +108,7 @@ int glob_verifier(Glob * g, char ** commande)
 					fprintf(stderr, "# Les ** doivent constituer un argument à part entière (ici: \"%s\").\n", debut);
 					r = GLOB_ERR;
 				}
-				if(etoile[3])
+				if(sep) /* Quelque chose suit notre double étoile. */
 				{
 					fprintf(stderr, "# Désolé, les ** non finaux ne sont pas encore implémentés.\n");
 					r = GLOB_ERR;
@@ -138,7 +138,7 @@ int glob_verifier(Glob * g, char ** commande)
 		*fin = sep;
 		if(r != GLOB_OUI)
 			return r;
-		debut = fin + 1;
+		debut = sep ? fin + 1 : fin;
 		++commande;
 	}
 	if(!*commande && !*debut) /* Les deux sont terminées en même temps: comparaison réussie! */
