@@ -55,6 +55,7 @@ int autoValiderBloc(char * enTete, char * corps, AutoContexte * contexte)
 {
 	char * ligne;
 	char * ptr;
+	char butee;
 	int r;
 	
 	/*- En-tête -*/
@@ -65,15 +66,20 @@ int autoValiderBloc(char * enTete, char * corps, AutoContexte * contexte)
 	/*- Corps -*/
 	/* Le corps peut être multi-lignes. */
 	
-	for(ligne = corps; *ligne;)
+	for(butee = *(ligne = corps); butee;)
 	{
 		/* À FAIRE: si la ligne contient des $, remplacer par la valeur de la variable (interne).
 		 * Pour ce faire il faudra sans doute changer ligne, pour l'allouer dans un espace "à nous" suffisamment spacieux. */
 	 	
 		for(ptr = ligne - 1; *++ptr && *ptr != '\n';) {}
+		butee = *ptr;
 		*ptr = 0;
 		if((r = autoValiderLigne(ligne, contexte)) != AUTO_NE_SAIS_PAS)
+		{
+			*ptr = butee;
 			return r; /* À FAIRE: un "reject" dans l'en-tête qui transforme les AUTO_OUI en AUTO_NON. */
+		}
+		*ptr = butee;
 		ligne = ++ptr;
 	}
 	
