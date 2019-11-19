@@ -209,7 +209,7 @@ guili_deps_pondre()
 				cat "$preqs"
 			fi
 		done
-	) | sed -e 's/^#/##/' -e 's/^@/#/' | guili_prerequis_defiltrer "$dests" > "$fprt"
+	) | sed -e 's/^#/##/' -e 's/^@/#/' | guili_prerequis_defiltrer $dests > "$fprt"
 	# À FAIRE?: générer un fichier alternatif avec une séparation entre la racine et le logiciel, pour qu'on puisse reconstituer par exemple si le $GUILI_PATH a changé mais possède les mêmes logiciels.
 	# À FAIRE: générer aussi un .pc pour les logiciels qui ne viennent pas avec le leur.
 	
@@ -252,7 +252,7 @@ guili_deps_pondre()
 guili_prerequis_defiltrer()
 {
 	IFS=:
-	tifs _guili_prerequis_defiltrer $1
+	tifs _guili_prerequis_defiltrer $*
 }
 
 _guili_prerequis_defiltrer()
