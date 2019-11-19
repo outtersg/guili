@@ -266,7 +266,10 @@ const char * verifier(AutoContexte * contexte)
 	
 	const char * chemin = cheminComplet(contexte->argv[0]);
 	if(!chemin)
+	{
+		fprintf(stderr, "# %s: %s\n", contexte->argv[0], strerror(errno));
 		return NULL;
+	}
 	
 	/* Vérification. */
 	
