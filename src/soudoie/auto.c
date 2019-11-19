@@ -51,6 +51,62 @@ int autoValiderLigne(char * ligne, AutoContexte * contexte)
 	return AUTO_NE_SAIS_PAS;
 }
 
+int autoValiderEnTete(char * enTete, AutoContexte * contexte)
+{
+	char * debut;
+	char * fin;
+	char c;
+	int vExecutant = 0;
+	int vExecute = 0;
+	int mode = 0; /* 0: exécutant; 1: exécuté */
+	struct passwd * gusse;
+	int * vGusse;
+	
+	for(fin = enTete; *(debut = fin);)
+	{
+		/* Recherche du prochain mot. */
+		
+		for(fin = debut - 1; *++fin && *fin != ' ' && *fin != ',';) {}
+		c = *fin;
+		*fin = 0;
+		
+		/* Prise en compte du mot. */
+		
+		switch(mode)
+		{
+			case 0:
+			case 1:
+				if(mode == 0 && 0 == strcmp(debut, "as"))
+					mode = 1;
+				else
+				{
+					gusse = mode == 1 ? & contexte->execute : & contexte->executant;
+					vGusse = mode == 1 ? & vExecute : & vExecutant;
+					if(*debut == '%')
+					{
+						/* À FAIRE: % pour désigner un groupe autorisé. */
+						fprintf(stderr, "# Je ne gère pas les groupes (%s).\n", debut);
+					}
+					else if(0 == strcmp(debut, "*") || 0 == strcmp(debut, "ALL"))
+						*vGusse = 1;
+					else if(0 == strcmp(debut, gusse->pw_name))
+						*vGusse = 1;
+					else if(!*vGusse)
+						*vGusse = -1;
+				}
+		}
+		
+		/* On restaure et on continue. */
+		
+		*fin = c;
+		while(*fin == ' ') ++fin;
+	}
+	
+	/*- Ménage et retour -*/
+	
+	return vExecutant > 0 && vExecute >= 0 ? AUTO_OUI : AUTO_NE_SAIS_PAS;
+}
+
 int autoValiderBloc(char * enTete, char * corps, AutoContexte * contexte)
 {
 	char * ligne;
@@ -60,8 +116,8 @@ int autoValiderBloc(char * enTete, char * corps, AutoContexte * contexte)
 	
 	/*- En-tête -*/
 	
-	/* À FAIRE: vérifier le compte de l'exécutant. */
-	/* À FAIRE: mot-clé "as", ex.: "me as daemon: commande", et vérifier le compte de l'exécuté. */
+	if((r = autoValiderEnTete(enTete, contexte)) != AUTO_OUI)
+		return r;
 	
 	/*- Corps -*/
 	/* Le corps peut être multi-lignes. */

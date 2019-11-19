@@ -28,10 +28,10 @@
 /* À FAIRE: validation via PCRE. Oui, ça ouvre une faille par rapport à du tout compilé statiquement, mais ça ferme celle due à ce que, fatigués de taper l'ensemble des combinaisons possibles, les sudoers finissent bourrés d'étoiles (ex.: systemctl * nginx). */
 /* À FAIRE: vérif simple: à la lecture de /etc/soudure, les ' ' deviennent \003 (sauf si ligne contient un \003) sauf si dans []. * font un seul argument (donnent [^\003]), ** en fin correspondent à tout. Un chemin contenant des .. et . est compacté avant comparaison. */
 /* À FAIRE: env (HOME, etc.) */
-/* À FAIRE: limitation au compte: gui as www: /bin/vi /etc/nginx.conf */
 /* À FAIRE: multi-ligne: www: /sbin/service restart nginx\n\t/sbin/service restart php-fpm */
 /* À FAIRE: affectations: OPS_SERVICE = (start|restart|stop) */
 /* À FAIRE: include. ATTENTION: il faut faire un fseek sur le fichier pour ne pas perdre ce que g_tampon possède de la suite. */
+/* À FAIRE: gestion des groupes à la sudo (%groupe). Bien utiliser les groupes secondaires (les entreposer quelque part). */
 
 #include <string.h>
 #include <stdio.h>
