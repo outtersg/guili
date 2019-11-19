@@ -148,8 +148,6 @@ cve201911043()
 		7.3.*) ! pge $version 7.3.11 || return 0 ;;
 		7.2.*) ! pge $version 7.2.24 || return 0 ;;
 		7.1.*) ! pge $version 7.1.33 || return 0 ;;
-		5.6.40.1) version="5.6.40" ;;
-		5.4.45.1) version="5.4.45" ;;
 	esac
 	patch -p0 < "$SCRIPTS/php.cve-2019-11043.patch"
 }
@@ -328,9 +326,16 @@ i\
 
 # Variables
 
-archive="http://de.php.net/distributions/$logiciel-$version.tar.bz2"
-archive="http://de2.php.net/distributions/$logiciel-$version.tar.bz2"
-pge $version 5.3.27 || archive="http://museum.php.net/php`echo $version | cut -d -f 1`/php-$version.tar.bz2"
+
+# Version officielle des paquets "virtuels" créés pour donner aux versions + CVE un numéro à part.
+v_archive="$version"
+case "$version" in
+	5.6.40.1) v_archive="5.6.40" ;;
+	5.4.45.1) v_archive="5.4.45" ;;
+esac
+archive="http://de.php.net/distributions/$logiciel-$v_archive.tar.bz2"
+archive="http://de2.php.net/distributions/$logiciel-$v_archive.tar.bz2"
+pge $v_archive 5.3.27 || archive="http://museum.php.net/php`echo $v_archive | cut -d -f 1`/php-$v_archive.tar.bz2"
 
 if false
 then
