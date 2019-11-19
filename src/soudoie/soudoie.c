@@ -56,6 +56,9 @@ char g_chemin[PATH_MAX + 1];
 #define UTILISE_SPECIAL 2
 #define UTILISE_DEF 3
 char g_utilises[' ']; /* Caractères spéciaux utilisés par notre argv, que nous ne pourrons donc pas utiliser comme séparateurs. */
+char g_flemmard = 0; /* Fait-on vraiment, ou se contente-t-on de dire? */
+
+#define E_PASIMPL -2
 
 /*- Utilitaires --------------------------------------------------------------*/
 
@@ -281,6 +284,12 @@ const char * verifier(AutoContexte * contexte)
 	return NULL;
 }
 
+int quePuisJeFaire(AutoContexte * contexte)
+{
+	fprintf(stderr, "# Le listage des opérations autorisées n'est pas implémenté.\n");
+	return E_PASIMPL;
+}
+
 /*- Initialisation -----------------------------------------------------------*/
 
 void initialiserUtilises(char * argv[])
@@ -333,6 +342,12 @@ void analyserParametres(char *** pargv)
 			aChoisiSonCompte = 1;
 			++argv;
 		}
+		else if(0 == strcmp(*argv, "-n"))
+		{
+			/* À FAIRE: gérer, le jour où on gérera la saisie de mot de passe. */
+		}
+		else if(0 == strcmp(*argv, "-l"))
+			g_flemmard = 1;
 		else
 			break;
 		++argv;
@@ -366,16 +381,21 @@ int main(int argc, char * argv[])
 	
 	if(!argv[0])
 	{
+		if(g_flemmard)
+			return quePuisJeFaire(&g_contexte);
 		fprintf(stderr, "# Mais je lance quoi, moi?\n");
 		return -1;
 	}
 	g_contexte.argv = argv;
 	if((chemin = verifier(&g_contexte)))
 	{
+		if(g_flemmard)
+			return 0;
 		basculerCompte(&g_contexte);
 		char ** env = environner(chemin, argv, &g_contexte);
 		return lancer(chemin, argv, env);
 	}
+	if(!g_flemmard)
 	fprintf(stderr, "# On ne vous trouve pas les droits pour %s.\n", argv[0]);
 	return -1;
 }
