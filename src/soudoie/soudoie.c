@@ -258,9 +258,21 @@ const char * verifier(AutoContexte * contexte)
 	 *    Notons qu'on ne peut "simplement" ouvrir le descripteur de fichier en root préalablement, car on sera amenés à ouvrir dynamiquement (directives include) d'autres fichiers durant la lecture du fichier principal.
 	 */
 	
+	char * ptr;
+	
 	/* Changement d'utilisateur. Nous avons besoin d'être root pour lire le fichier de conf. */
 	
 	if(setuid(0)) { fprintf(stderr, "# setuid(%d): %s\n", 0, strerror(errno)); exit(1); }
+	
+	/* On passe tous les arguments d'affectation d'environnement. */
+	
+	while(contexte->argv[0])
+	{
+		for(ptr = contexte->argv[0]; (*ptr >= 'A' && *ptr <= 'Z') || *ptr == '_' || (*ptr >= '0' && *ptr <= '9') || (*ptr >= 'a' && *ptr <= 'z'); ++ptr) {}
+		if(*ptr != '=')
+			break;
+		++contexte->argv;
+	}
 	
 	/* L'exécutable doit être référencé par chemin absolu. Résolvons-le ici. */
 	
