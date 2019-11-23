@@ -396,10 +396,10 @@ int main(int argc, char * argv[])
 			return 0;
 		basculerCompte(&g_contexte);
 		char ** env = environner(chemin, argv, &g_contexte);
-		return lancer(chemin, argv, env);
+		return lancer(chemin, g_contexte.argv, env);
 	}
 	if(!g_flemmard)
-	fprintf(stderr, "# On ne vous trouve pas les droits pour %s.\n", argv[0]);
+	fprintf(stderr, "# On ne vous trouve pas les droits pour %s.\n", g_contexte.argv[0]);
 	return -1;
 }
 
