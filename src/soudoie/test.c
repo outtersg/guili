@@ -32,6 +32,7 @@
 #include "lecture.h"
 #include "auto.h"
 #include "env.h"
+#include "me.h"
 
 char g_aff[0x4000];
 char * affSpeciaux(Crible * crible, const char * source)
@@ -162,6 +163,54 @@ int testerGlob(char * glob, char * commande, int attendu)
 	return 0;
 }
 
+int testerME(const char * fragments[], const char * occurrences, const char * essai, int attendu)
+{
+	ME me;
+	me.masque = occurrences;
+	me.marqueurs = (int *)alloca(strlen(me.masque) + 1);
+	me_commencer(&me);
+	
+	const char * ptr = essai;
+	int pos, t, avancee;
+	while(*ptr && me.nMarqueurs)
+	{
+		avancee = 0;
+		FOR_ME(&me, pos)
+		{
+			/* On teste:
+			 * - qu'on n'est pas à la fin (sinon c'est qu'un nouveau bout arrive alors qu'on croyait avoir fini).
+			 * - et que le fragment correspond.
+			 */
+			if(pos < strlen(me.masque) && strncmp(ptr, fragments[pos], t = strlen(fragments[pos])) == 0)
+			{
+				me_passer(&me, pos);
+				if(avancee < t)
+					avancee = t;
+			}
+			else
+				me_demarquer(&me, pos);
+		}
+		ptr += avancee;
+	}
+	int obtenu = !*ptr && me.marqueurs[strlen(me.masque)];
+	
+	if(obtenu == attendu)
+		return 0;
+	
+	fprintf(stderr, "[31m# Résultat inattendu: %d au lieu de %d[0m dans la comparaison de %s avec [33m^[0m", obtenu, attendu, essai);
+	for(pos = 0; occurrences[pos]; ++pos)
+	{
+		if(strlen(fragments[pos]) != 1)
+			fprintf(stderr, "[33m([0m%s[33m)[0m", fragments[pos]);
+		else
+			fprintf(stderr, "%s", fragments[pos]);
+		if(occurrences[pos] != ME_NORMAL)
+			fprintf(stderr, "[33m%c[0m", occurrences[pos]);
+	}
+	fprintf(stderr, "\n");
+	return -1;
+}
+
 void initialiserUtilises(char * argv[]);
 
 int main(int argc, char * argv[])
@@ -195,6 +244,18 @@ int main(int argc, char * argv[])
 	if(testerGlob("/bin/ls **", "/bin/ls", 1) < 0) r = -1;
 	if(testerGlob("/bin/ls **", "/bin/l", 0) < 0) r = -1;
 	if(testerGlob("/bin/ls **", "/bin/ls glop blurg plof", 1) < 0) r = -1;
+	#endif
+	
+	#ifdef TEST_ME_0
+	/* Équivalent à un /^a(li)+(ba)*$/ */
+	/* /!\ Ne fonctionne que parce que les différents blocs n'empiètent pas les uns sur les autres, cf. la note dans me.c. */
+	const char * me_fragments[] = { "a", "li", "ba" };
+	const char * me_occurrences = ".+*";
+	if(testerME(me_fragments, me_occurrences, "a", 0) < 0) r = -1;
+	if(testerME(me_fragments, me_occurrences, "ali", 1) < 0) r = -1;
+	if(testerME(me_fragments, me_occurrences, "alibaba", 1) < 0) r = -1;
+	if(testerME(me_fragments, me_occurrences, "alilbaba", 0) < 0) r = -1;
+	if(testerME(me_fragments, me_occurrences, "alibabal", 0) < 0) r = -1;
 	#endif
 	
 	return r;
