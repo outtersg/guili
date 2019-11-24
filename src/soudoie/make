@@ -37,17 +37,18 @@ all()
 
 soudoie()
 {
-	[ ! -f soudoie ] || find . -type f \( -name "*.c" -o -name "*.h" \) -newer soudoie | grep -q . || return 0
+	[ ! -f soudoie ] || find . -type f \( -name "*.c" -o -name "*.h" \) -newer soudoie$SUFFIXE | grep -q . || return 0
 	
 	local f
 	local CFLAGS="$CFLAGS"
 	[ -z "$SYSCONFDIR" -o -n "$CONFIG" ] || CONFIG="$SYSCONFDIR/surdoues"
 	[ -z "$CONFIG" ] || CFLAGS="$CFLAGS -DCONFIG=$CONFIG"
+	mkdir -p objs$SUFFIXE
 	for f in *.c
 	do
-		diago cc $CFLAGS -c -o "$f.o" "$f"
+		diago cc $CFLAGS -c -o "objs$SUFFIXE/$f.o" "$f"
 	done
-	diago cc -o soudoie *.c.o
+	diago cc -o soudoie$SUFFIXE objs$SUFFIXE/*.c.o
 }
 
 install()
@@ -74,14 +75,14 @@ _test()
 	_listeTests | while read test egal
 	do
 		echo "[90m=== $test ===[0m" >&2
-		CFLAGS="$cflags -D$test" LDFLAGS="-g -O0 $LDFLAGS" ./make && ./soudoie || echo "[31m# Sorti en erreur $?[0m" >&2
+		CFLAGS="$cflags -D$test" LDFLAGS="-g -O0 $LDFLAGS" SUFFIXE=.test ./make && ./soudoie.test || echo "[31m# Sorti en erreur $?[0m" >&2
 	done
 }
 
 clean()
 {
 	find . \( -name "*.o" -o -name "*.core" \) -exec rm -f {} \;
-	rm -f soudoie soudoie.test
+	rm -Rf soudoie soudoie.test objs*
 }
 
 quoi="$1"
