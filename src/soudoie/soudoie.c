@@ -139,7 +139,7 @@ int glob_verifier(Glob * g, char ** commande);
 
 /*--- Lecture des cribles ---*/
 
-#define DECALER if(debutProchainMemMove && l > debutProchainMemMove) { memmove(debutProchainMemMove - l + e, debutProchainMemMove, l - debutProchainMemMove); debutProchainMemMove = l; }
+#define DECALER { if(!debutProchainMemMove) e = l; else if((t = l - debutProchainMemMove) > 0) { if(e > source) memmove(e, debutProchainMemMove, t); debutProchainMemMove = l; e += t; } }
 
 char * preparer(Crible * crible, char * source)
 {
@@ -151,6 +151,7 @@ char * preparer(Crible * crible, char * source)
 	char nouveauSpe;
 	char precedentSpe;
 	int numSpe, special;
+	int t;
 	char * speciaux = CribleSpeciaux(crible);
 	
 	/* Préparation des caractères spéciaux */
@@ -177,7 +178,7 @@ char * preparer(Crible * crible, char * source)
 	
 	/* Parcours */
 	
-	for(l = e = source; *l; ++l, ++e)
+	for(l = e = source; *l; ++l)
 		if(*l == '\\')
 		{
 				if(l[1])
