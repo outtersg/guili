@@ -141,7 +141,7 @@ int glob_verifier(Glob * g, char ** commande);
 
 #define DECALER { if(!debutProchainMemMove) e = l; else if((t = l - debutProchainMemMove) > 0) { if(e > source) memmove(e, debutProchainMemMove, t); debutProchainMemMove = l; e += t; } }
 
-char * preparer(Crible * crible, char * source)
+char * preparer(Crible * crible, char * source, int honorerGuillemets)
 {
 	char * l; /* Pointeur en lecture. */
 	char * e; /* Pointeur d'écriture. */
@@ -153,6 +153,7 @@ char * preparer(Crible * crible, char * source)
 	int numSpe, special;
 	int t;
 	char * speciaux = CribleSpeciaux(crible);
+	char guillemet = 0;
 	
 	/* Préparation des caractères spéciaux */
 	/* On ne peut les choisir définitivement, car certains sont peut-être déjà pris, et on ne saura lesquels qu'en parcourant (remplacement de variables, etc.). */
@@ -189,7 +190,14 @@ char * preparer(Crible * crible, char * source)
 					debutProchainMemMove = l;
 				}
 		}
-		else if(crible->c->carSpeciaux[*l])
+		else if((*l == '"' || *l == '\'') && honorerGuillemets && (!guillemet || guillemet == *l))
+		{
+			DECALER;
+			debutProchainMemMove = l + 1;
+			
+			guillemet = guillemet ? 0 : *l; /* Indication sur le guillemet fermant. */
+		}
+		else if(crible->c->carSpeciaux[*l] && !guillemet)
 		{
 			special = crible->c->carSpeciaux[*l];
 			special = special > 0 ? special - 1 : -1 - special;
@@ -241,7 +249,6 @@ char * preparer(Crible * crible, char * source)
 					*p = nouveauSpe;
 			speciaux[numSpe] = nouveauSpe;
 		}
-		/* À FAIRE: traiter les guillemets. Attention: comment traiter un <espace>""<espace>? Il ne faut pas que les guillemets aient déjà simplifié, sans quoi l'<espace><espace> restant deviendra un seul <espace>. */
 		/* À FAIRE: traiter les $, pour effectuer des remplacements. */
 	DECALER;
 	*e = 0;

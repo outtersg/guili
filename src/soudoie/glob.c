@@ -61,7 +61,7 @@ Glob * glob_init(Glob * c, char * source, char allouer)
 	}
 	c->c = &ClasseGlob;
 	char ifs;
-	if(!preparer((Crible *)c, source))
+	if(!preparer((Crible *)c, source, 1))
 	{
 		if(cree) free(c);
 		return NULL;

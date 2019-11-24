@@ -57,7 +57,9 @@ char * CribleSpeciaux(Crible * c);
  *     Crible à préparer. Sa classe doit être renseignée (porte les métacaractères, etc.).
  *   source
  *     Chaîne à lire.
+ *   honorerGuillemets
+ *     Si 1, les guillemets " et ' délimitent une chaîne sans interprétation des IFS.
  */
-char * preparer(Crible * crible, char * source);
+char * preparer(Crible * crible, char * source, int honorerGuillemets);
 
 #endif
