@@ -42,7 +42,7 @@ soudoie()
 	local f
 	local CFLAGS="$CFLAGS"
 	[ -z "$SYSCONFDIR" -o -n "$CONFIG" ] || CONFIG="$SYSCONFDIR/surdoues"
-	[ -z "$CONFIG" ] || CFLAGS="-DCONFIG=$CONFIG"
+	[ -z "$CONFIG" ] || CFLAGS="$CFLAGS -DCONFIG=$CONFIG"
 	for f in *.c
 	do
 		diago cc $CFLAGS -c -o "$f.o" "$f"
