@@ -41,6 +41,7 @@ soudoie()
 	
 	local f
 	local CFLAGS="$CFLAGS"
+	[ -n "$CONFIG" -o -z "$_CONFIG" ] || CONFIG="$_CONFIG"
 	[ -z "$SYSCONFDIR" -o -n "$CONFIG" ] || CONFIG="$SYSCONFDIR/surdoues"
 	[ -z "$CONFIG" ] || CFLAGS="$CFLAGS -DCONFIG=$CONFIG"
 	mkdir -p objs$SUFFIXE
@@ -75,7 +76,7 @@ _test()
 	_listeTests | while read test egal
 	do
 		echo "[90m=== $test ===[0m" >&2
-		CFLAGS="$cflags -D$test" LDFLAGS="-g -O0 $LDFLAGS" SUFFIXE=.test ./make && ./soudoie.test || echo "[31m# Sorti en erreur $?[0m" >&2
+		CFLAGS="$cflags -D$test" LDFLAGS="-g -O0 $LDFLAGS" SUFFIXE=.test _CONFIG=objs.test/config ./make && ./soudoie.test || echo "[31m# Sorti en erreur $?[0m" >&2
 	done
 }
 
