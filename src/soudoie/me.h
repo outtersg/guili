@@ -30,6 +30,7 @@
 /* /!\ Cela signifie qu'il est impossible d'avoir des états dont la "barrière" mange plusieurs éléments de l'entrée, ex. des parenthèses groupantes /a(li)+(ba)*$/.
  * Bon, en vrai, cet exemple-ci pourrait marcher, en découpant la chaîne en blocs (a, li, et ba), car il n'y a pas d'empiètement possible entre ces blocs.
  * Mais un /^(ab)*(aba)/, lui, poserait problème, car la lecture d'"aba" pourrait soit donner lieu à des marqueurs après avoir consommé "ab" ou "aba". */
+/* On pourrait donc se renommer Machine à États Stupide Simplifiée à l'Extrême. */
 typedef struct
 {
 	const char * masque;
