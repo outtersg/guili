@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "me.h"
 #include "glob.h"
 
 #define IFS 0
@@ -34,6 +35,20 @@
 #define GLOB_ERR -1
 #define GLOB_OUI 0
 #define GLOB_NON 1
+
+/* Que de l'alphabétique */
+#define CODE_A 1
+/* De l'alphabétique avec du glob (E comme Étoile) au milieu */
+#define CODE_AEA 2
+/* Début alphabétique terminé par une étoile */
+#define CODE_AE 3
+/* Une étoile */
+#define CODE_E 4
+/* Double étoile */
+#define CODE_EE 5
+/* Montage interdit */
+#define CODE_ERR -1
+char code(Glob * g, char * segment, char ** premiereEtoile);
 
 int glob_verifier(Glob * g, char ** commande);
 
@@ -82,6 +97,92 @@ int glob_comparerBout(char * chaine, char * glob)
 	return GLOB_ERR;
 }
 
+int glob_verifierParME(Glob * g, char * crible, char ** commande)
+{
+	int i, numSeg, nEtats;
+	char * ptr;
+	char ** segments;
+	char * codesEtat;
+	char * cardinalitesEtat;
+	int r;
+	
+	/* Conversion en états. */
+	
+	for(nEtats = 1, ptr = crible - 1; *++ptr;)
+		if(*ptr == g->speciaux[IFS])
+			++nEtats;
+	segments = (char **)alloca(nEtats * sizeof(char *));
+	codesEtat = (char *)alloca(nEtats * sizeof(char));
+	cardinalitesEtat = (char *)alloca((nEtats + 1) * sizeof(char));
+	segments[0] = crible;
+	for(i = 0, ptr = crible;; ++ptr)
+		if((r = *ptr) == g->speciaux[IFS] || !r)
+		{
+			if(r)
+				*ptr = 0;
+			switch(codesEtat[i] = code(g, segments[i], NULL))
+			{
+				case CODE_ERR: return GLOB_ERR; break;
+				case CODE_EE: cardinalitesEtat[i] = ME_ETOILE; break;
+				default: cardinalitesEtat[i] = ME_NORMAL; break;
+			}
+			if(!r)
+				break;
+			segments[++i] = ptr + 1;
+		}
+	cardinalitesEtat[++i] = ME_FIN;
+	
+	/* Préparation de la machine à états. */
+	
+	ME me;
+	me.masque = cardinalitesEtat;
+	me.marqueurs = (int *)alloca((strlen(me.masque) + 1) * sizeof(me.marqueurs[0]));
+	me.dames = 0;
+	me_commencer(&me);
+	
+	/* On déroule! */
+	
+	for(--commande; *++commande;)
+	{
+		FOR_ME(&me, numSeg)
+		{
+			if(!(r = numSeg < nEtats && me.marqueurs[numSeg + 1])) /* Si le marqueur vers lequel le présent marqueur serait susceptible de passer est déjà en place, inutile de vérifier. */
+				switch(codesEtat[numSeg])
+				{
+					case CODE_EE:
+					case CODE_E:
+						r = 1;
+						break;
+					case CODE_AE:
+						r = strncmp(*commande, segments[numSeg], strlen(segments[numSeg]) - 1) == 0;
+						break;
+					case CODE_AEA:
+						r = glob_comparerBout(*commande, segments[numSeg]) == GLOB_OUI;
+					case CODE_A:
+						r = strcmp(*commande, segments[numSeg]) == 0;
+						break;
+				}
+			if(r)
+				me_passer(&me, numSeg);
+			else
+				me_demarquer(&me, numSeg);
+		}
+	}
+	
+	/* Restauration */
+	/* A priori le crible est à usage unique, mais bon, sait-on jamais. On remet les fins de segment qu'on avait remplacés par des fins de chaîne. */
+	
+	for(i = 0, ptr = crible - 1; ++i < nEtats;)
+	{
+		while(*++ptr) {}
+		*ptr = g->speciaux[IFS];
+	}
+	
+	/* Retour. */
+	
+	return !*commande && me.marqueurs[nEtats] ? GLOB_OUI : GLOB_NON;
+}
+
 int glob_verifier(Glob * g, char ** commande)
 {
 	char dernier = 0;
@@ -99,26 +200,16 @@ int glob_verifier(Glob * g, char ** commande)
 			fin = &debut[strlen(debut)];
 		}
 		*fin = 0;
-		if((etoile = strchr(debut, g->speciaux[ETOILE])))
+		switch(code(g, debut, &etoile))
 		{
-			if(etoile[1] == g->speciaux[ETOILE]) /* Double étoile. */
-			{
-				if(etoile[2] || etoile > debut)
-				{
-					fprintf(stderr, "# Les ** doivent constituer un argument à part entière (ici: \"%s\").\n", debut);
-					r = GLOB_ERR;
-				}
-				if(sep) /* Quelque chose suit notre double étoile. */
-				{
-					fprintf(stderr, "# Désolé, les ** non finaux ne sont pas encore implémentés.\n");
-					r = GLOB_ERR;
-				}
-				/* Après ces vérifications, nous savons que nous avons un "vrai" **, qui correspond à tout et n'importe quoi. */
+			case CODE_ERR: r = GLOB_ERR; break;
+			case CODE_EE:
 				*fin = sep;
-				return GLOB_OUI;
-			}
-			else /* Étoile simple. */
-			{
+				/* A-t-on quelque chose derrière notre ** (auquel cas il faut vérifier) ou était-ce le dernier membre (qui valide tout ce qui va derrière)? */
+				return sep ? glob_verifierParME(g, debut, commande) : GLOB_OUI;
+			case CODE_E:
+			case CODE_AE:
+			case CODE_AEA:
 				/* À FAIRE: implémenter (et appeler!) une purge des chemins: les . sont supprimés, et les .. s'annulent avec le membre précédent, pour qu'un gusse ayant le droit de faire du "vi /etc/nginx/nginx.conf.*" ne lance pas un "vi /etc/nginx/nginx.conf.d/../../hosts".
 				if(*debut == '/')
 				 */
@@ -129,12 +220,12 @@ int glob_verifier(Glob * g, char ** commande)
 				}
 				else
 					r = glob_comparerBout(*commande, debut);
-			}
-		}
-		else
-			/* Chaîne figée, facile, une simple comparaison. */
+				break;
+			case CODE_A: /* Chaîne figée, facile, une simple comparaison. */
 			if(strcmp(*commande, debut) != 0)
 				r = GLOB_NON;
+				break;
+		}
 		*fin = sep;
 		if(r != GLOB_OUI)
 			return r;
@@ -146,4 +237,30 @@ int glob_verifier(Glob * g, char ** commande)
 	else if(!*commande && debut[0] == g->speciaux[ETOILE] && debut[1] == g->speciaux[ETOILE] && !debut[2]) /* Commande parcourue entièrement, et dans le crible il ne restait plus qu'un ** final, qui peut tout à fait correspondre à rien. Donc c'est bon. */
 		return GLOB_OUI;
 	return GLOB_NON;
+}
+
+char code(Glob * g, char * segment, char ** premiereEtoile)
+{
+	char * etoile;
+	char r;
+	
+	if((etoile = strchr(segment, g->speciaux[ETOILE])))
+	{
+		if(etoile[1] == g->speciaux[ETOILE]) /* Double étoile. */
+		{
+			if(etoile > segment || (etoile[2] && etoile[2] != g->speciaux[IFS]))
+			{
+				fprintf(stderr, "# Les ** doivent constituer un argument à part entière (ici: \"%s\").\n", segment);
+				return CODE_ERR;
+			}
+			r = CODE_EE;
+		}
+		else /* Étoile simple. */
+			r = etoile[1] ? CODE_AEA : (etoile == segment ? CODE_E : CODE_AE);
+	}
+	else
+		r = CODE_A;
+	if(premiereEtoile)
+		*premiereEtoile = etoile;
+	return r;
 }
