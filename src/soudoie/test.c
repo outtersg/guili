@@ -66,6 +66,46 @@ char * affSpeciaux(Crible * crible, const char * source)
 	return g_aff;
 }
 
+char * affMESSE(ME * me, char ** descrEtats)
+{
+	int pos;
+	char * ptr = g_aff;
+	char * p2;
+	
+	for(pos = 0;; ++pos)
+	{
+		if(me->marqueurs[pos])
+			sprintf(ptr, "[33m%d[0m", me->marqueurs[pos]);
+		while(*ptr) ++ptr;
+		if(me->masque[pos] == ME_FIN)
+			break;
+		if(descrEtats && descrEtats[pos])
+		{
+			for(p2 = descrEtats[pos] - 1; *++p2;)
+				if(*p2 > 0 && *p2 < ' ')
+				{
+					sprintf(ptr, "\\%3.3o", *p2);
+					ptr += 4;
+				}
+				else
+				{
+					*ptr = *p2;
+					++ptr;
+				}
+		}
+		else
+			sprintf(ptr, "%d", pos);
+		while(*ptr) ++ptr;
+		if(me->masque[pos] != ME_NORMAL)
+		{
+			sprintf(ptr, "[32m%c[0m", me->masque[pos]);
+			while(*ptr) ++ptr;
+		}
+	}
+	*ptr = 0;
+	return g_aff;
+}
+
 #ifdef TEST
 
 int testerPreparer(const char * source, const char * attendu)
