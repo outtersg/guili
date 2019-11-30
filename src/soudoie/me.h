@@ -36,6 +36,7 @@ typedef struct
 	int * marqueurs;
 	int dernierMarqueur;
 	int nMarqueurs;
+	char dames; /* Si 0, il ne peut y avoir qu'un seul marqueur sur chaque état; si 1, ils sont empilables (comme au jeu de dames). Ceci pourra servir par exemple pour une implémentation consommant des segments de tailles différentes (charge à l'implémentatin de retenir à part les pointeurs de consommation correspondant à chaque marqueur). */
 }
 ME;
 
@@ -46,8 +47,7 @@ ME;
 
 #define FOR_ME(me, pos) \
 	for(int nRestant = (me)->nMarqueurs, pos = (me)->dernierMarqueur; nRestant > 0; --pos) \
-		if((me)->marqueurs[pos]) \
-			if((nRestant -= (me)->marqueurs[pos]) >= 0)
+		for(int nOccurrencesIci = (me)->marqueurs[pos]; --nOccurrencesIci >= 0; --nRestant)
 
 void me_commencer(ME * me);
 void me_passer(ME * me, int pos);

@@ -55,6 +55,8 @@ void me_passer(ME * me, int pos)
 
 void me_marquer(ME * me, int pos)
 {
+	if(!me->dames && me->marqueurs[pos])
+		return;
 	++me->marqueurs[pos];
 	++me->nMarqueurs;
 	if(me->masque[pos] == ME_ETOILE)
