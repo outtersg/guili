@@ -167,7 +167,7 @@ int testerME(const char * fragments[], const char * occurrences, const char * es
 {
 	ME me;
 	me.masque = occurrences;
-	me.marqueurs = (int *)alloca(strlen(me.masque) + 1);
+	me.marqueurs = (int *)alloca((strlen(me.masque) + 1) * sizeof(me.marqueurs[0]));
 	me_commencer(&me);
 	
 	const char * ptr = essai;
