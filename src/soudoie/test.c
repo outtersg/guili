@@ -248,6 +248,18 @@ int main(int argc, char * argv[])
 	if(testerGlob("/bin/ls **", "/bin/ls glop blurg plof", 1) < 0) r = -1;
 	#endif
 	
+	#ifdef TEST_GLOB_1
+	if(testerGlob("/bin/cp ** /tmp/", "/bin/cp /tmp/", 1) < 0) r = -1;
+	if(testerGlob("/bin/cp ** /tmp/", "/bin/cp truc /tmp/", 1) < 0) r = -1;
+	if(testerGlob("/bin/cp ** /tmp/", "/bin/cp truc muche /tmp/", 1) < 0) r = -1;
+	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp titi toto", 1) < 0) r = -1;
+	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp toto titi", 0) < 0) r = -1;
+	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp titi toto titi", 0) < 0) r = -1;
+	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp titi toto titi toto", 1) < 0) r = -1;
+	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp a titi b toto c titi d toto", 1) < 0) r = -1;
+	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp a titi b toto", 1) < 0) r = -1;
+	#endif
+	
 	#ifdef TEST_ME_0
 	/* Équivalent à un /^a(li)+(ba)*$/ */
 	/* /!\ Ne fonctionne que parce que les différents blocs n'empiètent pas les uns sur les autres, cf. la note dans me.c. */
