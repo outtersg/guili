@@ -24,6 +24,8 @@
 /* Super Opérateur Universel, Daignez Ouvrir Ultérieurement pour Exécution. */
 /* Super Utilisateur Respectable, Daignez Opérer Une Escalade. */
 /* Super Utilisateur Ronchon, J'Ordonne Une Escalade. */
+/* Suis Intéressé par le Dézingage des Obstructions, Négatives, Interdictions et Empêchements */
+/* Simple Outil à Détricoter les Obstacles dans ma Marche Inéluctable vers la Suprématie/Supervision/Souveraineté sur les Exécutables */
 /* À FAIRE: syslog systématique */
 /* À FAIRE: validation via PCRE. Oui, ça ouvre une faille par rapport à du tout compilé statiquement, mais ça ferme celle due à ce que, fatigués de taper l'ensemble des combinaisons possibles, les sudoers finissent bourrés d'étoiles (ex.: systemctl * nginx). */
 /* À FAIRE: vérif simple: à la lecture de /etc/soudure, les ' ' deviennent \003 (sauf si ligne contient un \003) sauf si dans []. * font un seul argument (donnent [^\003]), ** en fin correspondent à tout. Un chemin contenant des .. et . est compacté avant comparaison. */
