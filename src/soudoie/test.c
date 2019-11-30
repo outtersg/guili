@@ -131,6 +131,7 @@ int glob_verifier(Glob * g, char ** commande);
 
 int testerGlob(char * glob, char * commande, int attendu)
 {
+	int r;
 	char * glob2 = alloca(strlen(glob) + 1);
 	strcpy(glob2, glob);
 	Glob g;
@@ -154,9 +155,9 @@ int testerGlob(char * glob, char * commande, int attendu)
 	*++p = 0;
 	*++parg = NULL;
 	
-	if((glob_verifier(&g, argv) == 0) != attendu)
+	if(((r = glob_verifier(&g, argv)) == 0) != attendu)
 	{
-		fprintf(stderr, "[31m# Résultat inattendu[0m pour %s ~ %s: %d [0: oui; 1: non; -1: err]\n", commande, glob, glob_verifier(&g, argv));
+		fprintf(stderr, "[31m# Résultat inattendu[0m pour %s ~ %s: %d [0: oui; 1: non; -1: err]\n", commande, glob, r);
 		return -1;
 	}
 	
