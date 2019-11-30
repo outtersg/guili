@@ -83,7 +83,7 @@ _test()
 clean()
 {
 	find . \( -name "*.o" -o -name "*.core" \) -exec rm -f {} \;
-	rm -Rf soudoie soudoie.test objs*
+	rm -Rf soudoie soudoie.test objs* surdoues.test.conf
 }
 
 quoi="$1"
