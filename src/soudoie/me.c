@@ -26,7 +26,7 @@
 
 void me_commencer(ME * me)
 {
-	bzero(me->marqueurs, (strlen(me->masque) + 1) * sizeof(int));
+	bzero(me->marqueurs, (strlen(me->masque) + 1) * sizeof(me->marqueurs[0]));
 	me->dernierMarqueur = -1;
 	me->nMarqueurs = 0;
 	me_marquer(me, 0);
