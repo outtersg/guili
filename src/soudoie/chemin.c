@@ -22,8 +22,13 @@
 
 #include <string.h>
 #include <limits.h>
+#include <errno.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <sys/stat.h>
+
+#include "chemin.h"
 
 char g_chemin[PATH_MAX + 1];
 
@@ -32,8 +37,31 @@ const char * cheminComplet(const char * truc)
 	int t;
 	const char * ptr;
 	
-	if(truc[0] == '/')
-		return truc;
+	if((ptr = strchr(truc, '/')))
+	{
+		if(ptr > truc) /* Chemin relatif, le / n'étant pas au début. */
+		{
+			if(!getwd(g_chemin))
+			{
+				fprintf(stderr, "# getwd(): %s\n", strerror(errno));
+				return NULL;
+			}
+			if((t = strlen(g_chemin)) >= PATH_MAX - 1)
+			{
+				fprintf(stderr, "# cheminComplet: getwd() trop long.\n");
+				return NULL;
+			}
+			g_chemin[t] = '/';
+			++t;
+		}
+		else /* Chemin absolu, avec son / au départ. */
+			t = 0;
+		if(t + strlen(truc) > PATH_MAX)
+			return NULL;
+		strcpy(&g_chemin[t], truc);
+		semirealpath(g_chemin);
+		return g_chemin;
+	}
 	
 	const char * chemins = getenv("PATH");
 	if(!chemins)
