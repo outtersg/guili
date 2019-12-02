@@ -194,7 +194,6 @@ int testerGlob(char * glob, char * commande, int attendu)
 			*p = 0;
 			*++parg = p + 1;
 		}
-	*++p = 0;
 	*++parg = NULL;
 	
 	if(((r = glob_verifier(&g, argv)) == 0) != attendu)
