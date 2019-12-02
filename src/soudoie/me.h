@@ -46,9 +46,17 @@ ME;
 #define ME_PLUS   '+'
 #define ME_ETOILE '*'
 
+#if __STDC_VERSION__ >= 199901L
 #define FOR_ME(me, pos) \
 	for(int nRestant = (me)->nMarqueurs, pos = (me)->dernierMarqueur; nRestant > 0; --pos) \
 		for(int nOccurrencesIci = (me)->marqueurs[pos]; --nOccurrencesIci >= 0; --nRestant)
+#else
+/* La version C90 devra être placée entre accolades après un if ou équivalent, ou en cas d'appels multiples successifs: ses variables locales sont en effet déclarées hors boucle, donc bavent. */
+#define FOR_ME(me, pos) \
+	int nRestant, nOccurrencesIci; \
+	for(nRestant = (me)->nMarqueurs, pos = (me)->dernierMarqueur; nRestant > 0; --pos) \
+		for(nOccurrencesIci = (me)->marqueurs[pos]; --nOccurrencesIci >= 0; --nRestant)
+#endif
 
 void me_commencer(ME * me);
 void me_passer(ME * me, int pos);
