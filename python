@@ -398,11 +398,7 @@ fi
 modules="`for option in $optionsModules ; do option "$option" && echo "$option" || true ; done`"
 if [ -n "$modules" ]
 then
-	sudoku sh -c \
-	"
-		export PATH=$dest/bin:$INSTALLS/bin:\$PATH LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY
-		pip install $modules
-	"
+	sudoku ALL_PROXY="$ALL_PROXY" "$dest/bin/pip" install $modules
 fi
 if option selinux
 then
