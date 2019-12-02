@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -e
+
+faire()
+{
+	local source="$1"
+	local dest="$2"
+	
+	if [ -d "$source" ]
+	then
+		( cd "$source" && tar cf - . )
+	else
+		( cd "`dirname "$source"`" && tar cf - "`basename "$source"`" )
+	fi \
+	| ( mkdir -p "$dest" && cd "$dest" && tar xf - -o )
+}
+
+faire "$@"
