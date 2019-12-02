@@ -163,6 +163,8 @@ moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-
 moduleNginxSiOption cscript https://github.com/outtersg/ngx_conf_defs/archive/master.zip
 moduleNginxSiOption relinc 'relinc()'
 
+if option geoip ; then prerequis="$prerequis geoip" ; fi
+
 # Boulot
 
 destiner
