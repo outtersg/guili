@@ -50,6 +50,34 @@ v 3.7.4 || true
 
 # Modifications
 
+# Enrobe un python binaire de quelque chose qui lui donne l'environnement nécessaires (en particulier le LD_LIBRARY_PATH).
+pythonenboiter()
+{
+	local d="$TMP/$$/dest" f nom binaire
+	mkdir -p "$d/bin"
+	for binaire in python
+	do
+		find "$dest/bin" -maxdepth 1 -type f -name "$binaire*" -perm -a+x -not -name "*.bin" | grep "/$binaire[.0-9]*$" | while read f
+		do
+			head -1 < "$f" | grep -q '^#!' && continue || true # Les scripts ne nous intéressent pas.
+			# Une première approche, par script shell python invoquant le vrai python (renommé python.bin) après avoir défini l'environnement, ne fonctionne pas, car:
+			# - Les scripts python qui utilisent #!/…/bin/python se plantent, puisque l'interpréteur ciblé n'en est plus un mais est un script shell (donc interprété); en conséquence l'OS décide de faire interpréter le script "client" par /bin/sh, ce qui ne marche pas des masses.
+			# - Les scripts installés post-remplacement (ex.: pip, easy_install, etc.) détectent qu'ils ont été lancés en fait par python.bin (leur $0), et donc codent celui-ci comme interpréteur. Sur ce dernier point on est bons, mais le script client ne passe alors plus par la surcharge d'environnement du …/bin/python.
+			# On passe donc par un binaire (qui ne modifie surtout pas l'argv[0] en appelant le .bin, de manière à ce que le binaire réel se croie appelé python).
+			nom="`basename "$f"`"
+			cp "$f" "$d/bin/$nom.bin"
+			sed \
+				-e "s#\$bin#$dest/bin/$nom.bin#g" \
+				-e "s#\$PATH#$dest/bin:$INSTALLS/bin#g" \
+				-e "s#\$LD_LIBRARY_PATH#$dest/lib:$INSTALLS/lib64:$INSTALLS/lib#g" \
+				< "$SCRIPTS/pythonenboite.c" > "$TMP/$$/$nom.c"
+			$CC -o "$d/bin/$nom" "$TMP/$$/$nom.c"
+			chmod a+x "$d/bin/$nom.bin" "$d/bin/$nom"
+		done
+	done
+	sudoku "$SCRIPTS/installer" "$d" "$dest"
+}
+
 refsSansSuffixe()
 {
 	if [ -e "$dest/include/python${vm}m" -a ! -e "$dest/include/python$vm" ] ; then
@@ -349,6 +377,7 @@ fi
 echo Installation… >&2
 sudo make install
 [ -e "$dest/bin/python" ] || sudo ln -s python3 "$dest/bin/python"
+pythonenboiter
 # http://legacy.python.org/dev/peps/pep-3149/
 # Sur certains systèmes, Python suffixe un peu tout (ex.: include/python3.4m, avec un m pour -with-pymalloc; mais l'include/python3.4 n'existe pas). Pour permettre aux autres logiciels de s'y retrouver, on crée à l'emplacement de référence un lien symbolique vers une de ces versions.
 refsSansSuffixe
