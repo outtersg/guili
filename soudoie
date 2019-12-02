@@ -63,10 +63,8 @@ prerequis
 
 destiner
 
+( cd "$SCRIPTS/src/soudoie" && tar cf - . | gzip > "$INSTALL_MEM/$archive" ) # Inutile d'aller chercher l'archive, faisons comme si elle avait déjà été téléchargée.
 obtenirEtAllerDansVersion || true # Récupère la version binaire si besoin.
-
-cd $TMP/$$
-cp -Rp "$SCRIPTS/src/soudoie/." ./
 
 ./configure --prefix="$dest" $OPTIONS_CONF
 
