@@ -385,13 +385,14 @@ refsSansSuffixe
 echo Biblios standard… >&2
 if ! pge $version 3
 then
+	if pge "$version" 2.7.9
+	then
+		sudoku ALL_PROXY="$ALL_PROXY" "$dest/bin/python" -m ensurepip
+		sudoku ALL_PROXY="$ALL_PROXY" "$dest/bin/pip" install setuptools
+	else
 	curl -O 'https://bootstrap.pypa.io/ez_setup.py'
-	sudoku sh -c \
-	"
-		export PATH=$dest/bin:$INSTALLS/bin:\$PATH LD_LIBRARY_PATH=$dest/lib:$INSTALLS/lib ALL_PROXY=$ALL_PROXY
-		python ez_setup.py
-		python -m ensurepip
-	"
+		sudoku ALL_PROXY="$ALL_PROXY" "$dest/bin/python" ez_setup.py # ez_setup installe les setuptools avant qu'ils fussent sous pip.
+	fi
 fi
 
 modules="`for option in $optionsModules ; do option "$option" && echo "$option" || true ; done`"
