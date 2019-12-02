@@ -20,4 +20,7 @@
  * SOFTWARE.
  */
 
+/**
+ * Normalisation d'un chemin par suppression des / et . redondants et remontée des ..
+ */
 void semirealpath(char * chemin);
