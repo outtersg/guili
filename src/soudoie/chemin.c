@@ -21,6 +21,42 @@
  */
 
 #include <string.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+
+char g_chemin[PATH_MAX + 1];
+
+const char * cheminComplet(const char * truc)
+{
+	int t;
+	const char * ptr;
+	
+	if(truc[0] == '/')
+		return truc;
+	
+	const char * chemins = getenv("PATH");
+	if(!chemins)
+		return NULL;
+	int tTruc = strlen(truc);
+	struct stat infos;
+	while(*chemins)
+	{
+		ptr = chemins;
+		while(*ptr && *ptr != ':')
+			++ptr;
+		if((t = ptr - chemins) + 1 + tTruc <= PATH_MAX)
+		{
+			strncpy(g_chemin, chemins, t);
+			g_chemin[t] = '/';
+			strcpy(&g_chemin[t + 1], truc);
+			if(stat(g_chemin, &infos) == 0 && S_ISREG(infos.st_mode) && (infos.st_mode & S_IXUSR))
+				return g_chemin;
+		}
+		chemins = ptr + 1;
+	}
+	return NULL;
+}
 
 #define TASSE \
 	{ \

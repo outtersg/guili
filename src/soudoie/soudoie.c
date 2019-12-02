@@ -40,7 +40,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <grp.h>
 
@@ -49,11 +48,11 @@
 #include "lecture.h"
 #include "auto.h"
 #include "env.h"
+#include "chemin.h"
 
 extern char ** environ;
 
 AutoContexte g_contexte;
-char g_chemin[PATH_MAX + 1];
 #define UTILISE_ARGV 1
 #define UTILISE_SPECIAL 2
 #define UTILISE_DEF 3
@@ -67,35 +66,6 @@ char g_flemmard = 0; /* Fait-on vraiment, ou se contente-t-on de dire? */
 int lancer(const char * chemin, char * const argv[], char * const envp[])
 {
 	return execve(chemin, argv, envp);
-}
-
-const char * cheminComplet(const char * truc)
-{
-	if(truc[0] == '/')
-		return truc;
-	const char * chemins = getenv("PATH");
-	if(!chemins)
-		return NULL;
-	const char * ptr;
-	int t;
-	int tTruc = strlen(truc);
-	struct stat infos;
-	while(*chemins)
-	{
-		ptr = chemins;
-		while(*ptr && *ptr != ':')
-			++ptr;
-		if((t = ptr - chemins) + 1 + tTruc <= PATH_MAX)
-		{
-			strncpy(g_chemin, chemins, t);
-			g_chemin[t] = '/';
-			strcpy(&g_chemin[t + 1], truc);
-			if(stat(g_chemin, &infos) == 0 && S_ISREG(infos.st_mode) && (infos.st_mode & S_IXUSR))
-				return g_chemin;
-		}
-		chemins = ptr + 1;
-	}
-	return NULL;
 }
 
 /*- Exécution ----------------------------------------------------------------*/
