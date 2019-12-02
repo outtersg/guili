@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <limits.h>
 
 #include "crible.h"
 #include "glob.h"
@@ -33,6 +34,7 @@
 #include "auto.h"
 #include "env.h"
 #include "me.h"
+#include "chemin.h"
 
 char g_aff[0x4000];
 char * affSpeciaux(Crible * crible, const char * source)
@@ -253,6 +255,19 @@ int testerME(const char * fragments[], const char * occurrences, const char * es
 	return -1;
 }
 
+char g_chemin[PATH_MAX];
+int testerChemin(const char * chemin, const char * attendu)
+{
+	strcpy(g_chemin, chemin);
+	semirealpath(g_chemin);
+	if(strcmp(g_chemin, attendu) != 0)
+	{
+		fprintf(stderr, "[31m# Résultat inattendu: %s[0m -> %s (au lieu de %s)\n", chemin, g_chemin, attendu);
+		return -1;
+	}
+	return 0;
+}
+
 void initialiserUtilises(char * argv[]);
 
 int main(int argc, char * argv[])
@@ -310,6 +325,11 @@ int main(int argc, char * argv[])
 	if(testerME(me_fragments, me_occurrences, "alibaba", 1) < 0) r = -1;
 	if(testerME(me_fragments, me_occurrences, "alilbaba", 0) < 0) r = -1;
 	if(testerME(me_fragments, me_occurrences, "alibabal", 0) < 0) r = -1;
+	#endif
+	
+	#ifdef TEST_CHEMIN_0
+	if(testerChemin("/tmp/.//../etc/truc/..///surdoues", "/etc/surdoues") < 0) r = -1;
+	if(testerChemin(".//../etc/truc/..///rc.d/", "./../etc/rc.d/") < 0) r = -1;
 	#endif
 	
 	return r;
