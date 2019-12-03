@@ -91,8 +91,23 @@ Glob * glob_init(Glob * c, char * source, char allouer)
 	return c;
 }
 
-int glob_comparerBout(char * chaine, char * glob)
+/**
+ * Compare une chaîne à un masque.
+ * 
+ * @param char * chaine  Chaîne à comparer.
+ * @param char * glob    Masque crible.
+ * @param char code      Indication du type de masque via une des constantes CODE_…. Les cribles CODE_E (*) ou CODE_AE (truc*) bénéficient d'un traitement rapide (strncmp() de tout ce qui se trouve avant l'* finale).
+ * 
+ * @return int           Une des constantes GLOB_….
+ */
+int glob_comparerBout(char * chaine, char * glob, char code)
 {
+	/* À FAIRE: implémenter (et appeler!) une purge des chemins: les . sont supprimés, et les .. s'annulent avec le membre précédent, pour qu'un gusse ayant le droit de faire du "vi /etc/nginx/nginx.conf.*" ne lance pas un "vi /etc/nginx/nginx.conf.d/../../hosts".
+	if(*glob == '/')
+	 */
+	if(code == CODE_E || code == CODE_AE) /* "truc*", il suffit de comparer le début de chaîne. */
+		return strncmp(chaine, glob, strlen(glob) - 1) == 0 ? GLOB_OUI : GLOB_NON;
+	
 	fprintf(stderr, "# Désolé, l'analyse des * en milieu d'expression n'est pas encore gérée (%s).\n", glob);
 	return GLOB_ERR;
 }
@@ -154,10 +169,9 @@ int glob_verifierParME(Glob * g, char * crible, char ** commande)
 						r = 1;
 						break;
 					case CODE_AE:
-						r = strncmp(*commande, segments[numSeg], strlen(segments[numSeg]) - 1) == 0;
-						break;
 					case CODE_AEA:
-						r = glob_comparerBout(*commande, segments[numSeg]) == GLOB_OUI;
+						r = glob_comparerBout(*commande, segments[numSeg], codesEtat[numSeg]) == GLOB_OUI;
+						break;
 					case CODE_A:
 						r = strcmp(*commande, segments[numSeg]) == 0;
 						break;
@@ -190,7 +204,7 @@ int glob_verifier(Glob * g, char ** commande)
 	char * fin;
 	char * etoile;
 	char sep = g->speciaux[IFS];
-	int r = GLOB_OUI;
+	int r = GLOB_OUI, rtemp;
 	while(*commande && *debut)
 	{
 		fin = strchr(debut, sep); /* Nos commandes sont représentées sous la forme: <commande><ifs><argv[1]><ifs><argv[n]><\0> */
@@ -210,16 +224,8 @@ int glob_verifier(Glob * g, char ** commande)
 			case CODE_E:
 			case CODE_AE:
 			case CODE_AEA:
-				/* À FAIRE: implémenter (et appeler!) une purge des chemins: les . sont supprimés, et les .. s'annulent avec le membre précédent, pour qu'un gusse ayant le droit de faire du "vi /etc/nginx/nginx.conf.*" ne lance pas un "vi /etc/nginx/nginx.conf.d/../../hosts".
-				if(*debut == '/')
-				 */
-				if(!etoile[1]) /* "truc*", il suffit de comparer le début de chaîne. */
-				{
-					if(strncmp(*commande, debut, etoile - debut) != 0)
-						r = GLOB_NON;
-				}
-				else
-					r = glob_comparerBout(*commande, debut);
+				if((rtemp = glob_comparerBout(*commande, debut, etoile[1] ? CODE_AEA : CODE_AE)) != GLOB_OUI)
+					r = rtemp;
 				break;
 			case CODE_A: /* Chaîne figée, facile, une simple comparaison. */
 			if(strcmp(*commande, debut) != 0)
