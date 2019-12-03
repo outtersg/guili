@@ -161,7 +161,11 @@ int glob_verifierParME(Glob * g, char * crible, char ** commande)
 	{
 		FOR_ME(&me, numSeg)
 		{
-			if(!(r = numSeg < nEtats && me.marqueurs[numSeg + 1])) /* Si le marqueur vers lequel le présent marqueur serait susceptible de passer est déjà en place, inutile de vérifier. */
+			if
+			(
+				!(r = numSeg >= nEtats) /* Si ce n'est pas un marqueur en position de fin (parce que si ça l'est, poubelle direct, puisqu'il n'était pas censé arriver là avant qu'on ait fini de manger commande). */
+				&& !(r = me.marqueurs[numSeg + 1]) /* Et si on n'a pas déjà un marqueur à la position convoitée. */
+			)
 				switch(codesEtat[numSeg])
 				{
 					case CODE_EE:
