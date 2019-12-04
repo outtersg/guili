@@ -1,0 +1,20 @@
+--- lib/python2.7/site-packages/selinux/__init__.py	2019-12-04 18:37:32.000000000 +0100
++++ lib/python2.7/site-packages/selinux/__init__.py	2019-12-04 18:42:53.000000000 +0100
+@@ -75,14 +75,14 @@
+         # See https://github.com/pycontribs/selinux/issues/17 for details
+         system_python = "python%s" % platform.python_version_tuple()[0]
+ 
+-        system_sitepackages = json.loads(
++        system_sitepackages = (
+             subprocess.check_output(
+                 [
+                     system_python,
+                     "-c",
+-                    "import json, site; print(json.dumps(site.getsitepackages()))",
++                    "import site; print('\\003'.join(site.getsitepackages()))",
+                 ]
+-            ).decode("utf-8")
++            ).decode("utf-8").split('\003')
+         )
+         return system_sitepackages
+ 

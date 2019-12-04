@@ -78,6 +78,23 @@ pythonenboiter()
 	sudoku "$SCRIPTS/installer" "$d" "$dest"
 }
 
+selinuxrobuste()
+{
+	# Le module SELinux "public" est une simple coquille d'amorçage du module SELinux système (qui lui possède entre autre le .so avec les vraies fonctions).
+	# Pour ce faire, il charge le python système (dans la même version majeure que lui), lui fait lister ses modules, et s'il trouve selinux, il (le module coquille vide) se remplace par ce dernier (le vrai module) en demandant à Python de se recharger (le module selinux).
+	
+	# Ces orifices du postérieur codent en dur un chemin vers Python sans même avoir vérifié qu'il existât.
+	# Ce qui empêche par exemple d'installer un Python 3 sur un OS n'ayant qu'un Python 2 dans son /usr/bin: il se vautre en essayant de charger /usr/bin/python3
+	grep -rl /usr/bin/python "$dest"/lib/python*/site-packages/selinux | grep py$ | while read retape
+	do
+		sufiltrer "$retape" sed -e 's#/usr/bin/python#python#g'
+	done
+	
+	# Et le module coquille cherche à utiliser json pour communiquer avec le python système: or sur certaines vieilles bécanes sur lesquelles on veut installer un Python 2.7 par dessus celui système en 2.4, notre 2.7 sait parler json, mais pas le 2.4, ce qui donne lieu à un beau plantage.
+	# On remplace donc par une discussion chaîne de caractères, avec pour ponctuation de caractère ASCII 0x03.
+	( cd "$dest" && sudoku patch -p0 < "$SCRIPTS/python.selinux.vieilos.patch" )
+}
+
 refsSansSuffixe()
 {
 	if [ -e "$dest/include/python${vm}m" -a ! -e "$dest/include/python$vm" ] ; then
@@ -402,11 +419,7 @@ then
 fi
 if option selinux
 then
-	# Ces orifices du postérieur codent en dur un chemin vers Python sans même avoir vérifié qu'il existât.
-	grep -rl /usr/bin/python "$dest"/lib/python*/site-packages/selinux | grep py$ | while read retape
-	do
-		sufiltrer "$retape" sed -e 's#/usr/bin/python#python#g'
-	done
+	selinuxrobuste
 fi
 
 sutiliser
