@@ -30,7 +30,10 @@
 
 #include "chemin.h"
 
-static char g_chemin[PATH_MAX + 1];
+static char * g_chemin = NULL;
+static size_t g_cheminTaille = 0;
+
+char * g_cheminPour(size_t taille);
 
 const char * cheminComplet(const char * truc)
 {
@@ -141,4 +144,22 @@ void semirealpath(char * chemin)
 		TASSE;
 	}
 	*e = 0;
+}
+
+char * g_cheminPour(size_t taille)
+{
+	if(g_cheminTaille >= taille)
+		return g_chemin;
+	
+	char * ptr;
+	
+	if(!(ptr = (char *)(g_chemin ? malloc(taille + 1) : realloc(g_chemin, taille + 1))))
+	{
+		fprintf(stderr, "# g_cheminPour(%ld): malloc(): %s\n", taille, strerror(errno));
+		free(g_chemin);
+		taille = 0;
+	}
+	
+	g_cheminTaille = taille;
+	return (g_chemin = ptr);
 }
