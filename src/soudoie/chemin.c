@@ -30,7 +30,7 @@
 
 #include "chemin.h"
 
-char g_chemin[PATH_MAX + 1];
+static char g_chemin[PATH_MAX + 1];
 
 const char * cheminComplet(const char * truc)
 {

@@ -254,7 +254,7 @@ int testerME(const char * fragments[], const char * occurrences, const char * es
 	return -1;
 }
 
-char g_chemin[PATH_MAX];
+static char g_chemin[PATH_MAX];
 int testerChemin(const char * chemin, const char * attendu)
 {
 	strcpy(g_chemin, chemin);
