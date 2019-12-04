@@ -314,6 +314,11 @@ int main(int argc, char * argv[])
 	if(testerGlob("/bin/cp ** titi ** toto", "/bin/cp a titi b toto", 1) < 0) r = -1;
 	#endif
 	
+	#ifdef TEST_GLOB_2
+	if(testerGlob("/usr/bin/vi /tmp/*", "/usr/bin/vi /tmp/../tmp/sudoers", 1) < 0) r = -1;
+	if(testerGlob("/usr/bin/vi /tmp/*", "/usr/bin/vi /tmp/../etc/sudoers", 0) < 0) r = -1;
+	#endif
+	
 	#ifdef TEST_ME_0
 	/* Équivalent à un /^a(li)+(ba)*$/ */
 	/* /!\ Ne fonctionne que parce que les différents blocs n'empiètent pas les uns sur les autres, cf. la note dans me.c. */
