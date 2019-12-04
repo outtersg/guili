@@ -45,22 +45,16 @@ const char * cheminComplet(const char * truc)
 	{
 		if(ptr > truc) /* Chemin relatif, le / n'étant pas au début. */
 		{
-			if(!getwd(g_chemin))
-			{
-				fprintf(stderr, "# getwd(): %s\n", strerror(errno));
+			if(!g_cheminCourant())
 				return NULL;
-			}
-			if((t = strlen(g_chemin)) >= PATH_MAX - 1)
-			{
-				fprintf(stderr, "# cheminComplet: getwd() trop long.\n");
+			if(!g_cheminPour((t = strlen(g_chemin)) + 1))
 				return NULL;
-			}
 			g_chemin[t] = '/';
 			++t;
 		}
 		else /* Chemin absolu, avec son / au départ. */
 			t = 0;
-		if(t + strlen(truc) > PATH_MAX)
+		if(!g_cheminPour(t + strlen(truc)))
 			return NULL;
 		strcpy(&g_chemin[t], truc);
 		semirealpath(g_chemin);
