@@ -1,1 +1,1 @@
-#define SOUDOIE_VERSION "0.5.0"
+#define SOUDOIE_VERSION "0.6.0"
