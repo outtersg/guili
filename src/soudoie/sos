@@ -45,7 +45,7 @@ vraisudo()
 	local d
 	for d in "$@" ""
 	do
-		[ ! -x "$d/sudo" ] || grep -q soudoie < "$d/sudo" || break
+		[ ! -x "$d/sudo" ] || grep -q soudoie < "$d/sudo" 2> /dev/null || break
 	done
 	case "$d" in
 		""|*/) true ;;
