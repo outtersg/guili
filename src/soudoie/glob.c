@@ -27,6 +27,7 @@
 
 #include "me.h"
 #include "glob.h"
+#include "chemin.h"
 
 #define IFS 0
 #define GLOB_ETOILE 1
@@ -102,9 +103,15 @@ Glob * glob_init(Glob * c, char * source, char allouer)
  */
 int glob_comparerBout(char * chaine, char * glob, char code)
 {
-	/* À FAIRE: implémenter (et appeler!) une purge des chemins: les . sont supprimés, et les .. s'annulent avec le membre précédent, pour qu'un gusse ayant le droit de faire du "vi /etc/nginx/nginx.conf.*" ne lance pas un "vi /etc/nginx/nginx.conf.d/../../hosts".
+	/* On purge les chemins suspects pour éviter que le droit "vi /etc/nginx/nginx.conf.*" ne laisse passer un "vi /etc/nginx/nginx.conf.d/../../hosts". */
 	if(*glob == '/')
-	 */
+	{
+		/* À FAIRE: là c'est un peu dommage: à chaque fois que la chaîne sera comparée à un /blabla*, on la repurgera. Il serait intéressant de l'avoir purgée une seule fois, après quoi chaque crible utilise la version originale ou l'expurgée selon son besoin. Une simple table de correspondance disant "cette chaîne est la version expurgée de celle-ci" fera gagner du temps. */
+		char * chainePurgee = (char *)alloca(strlen(chaine) + 1);
+		strcpy(chainePurgee, chaine);
+		semirealpath(chainePurgee);
+		chaine = chainePurgee;
+	}
 	if(code == CODE_E || code == CODE_AE) /* "truc*", il suffit de comparer le début de chaîne. */
 		return strncmp(chaine, glob, strlen(glob) - 1) == 0 ? GLOB_OUI : GLOB_NON;
 	
