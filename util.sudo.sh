@@ -55,9 +55,32 @@ vraisudo()
 # Ajoute une commande au sudoers.
 sudoer()
 {
+	sudoerSoudoie --sudo "$@" || true
+	sudoerSudo "$@"
+}
+
+# Récupère le chemin d'un vrai de vrai logiciel "stable" sur le système (en s'efforçant de ne pas récupérer les surcharges temporaires, par exemple un soudoie installé salement par root avec tous les droits à tout le monde, juste le temps de l'install de _nginx par toto, histoire que toto ne soit pas embêté pour s'ajouter (pour plus tard une fois que le soudoie crade aura disparu) un nginx restart).
+vraiEnDur()
+{
+	local l="$1"
+	IFS=:
+	for x in $PATH
+	do
+		unset IFS
+		case "$x/" in
+			*/tmp/*) continue ;;
+		esac
+		[ -x "$x/$l" ] && echo "$x/$l" && break
+	done
+	unset IFS
+}
+
+sudoerSudo()
+{
 	# A-t-on déjà les droits?
 	(
-		sudo="`IFS=: ; for x in $PATH ; do [ -x "$x/sudo" ] && echo "$x/sudo" && break ; done`"
+		sudo="`vraiEnDur sudo`"
+		[ -n "$sudo" ] || exit 1
 		set -f
 		case "$2" in
 			ALL) commande=true ;;
@@ -67,6 +90,51 @@ sudoer()
 	) && return || true
 	gris "sudoers: $1 ALL=(ALL) NOPASSWD: $2" >&2
 	echo "$1 ALL=(ALL) NOPASSWD: $2" | INSTALLS=/etc sudoku sh -c 'cat >> /etc/sudoers'
+}
+
+sudoerSoudoie()
+{
+	local qui= mode=soudoie quoi test pifs="`date`" pif="`date +%s`"
+	local soudoie="`vraiEnDur soudoie`"
+	local r=0
+	
+	for quoi in "$@"
+	do
+		# Les paramètres spéciaux.
+		
+		case "$quoi" in
+			--sudo) mode=sudo ; continue ;;
+		esac
+		if [ -z "$qui" ]
+		then
+			qui="$quoi"
+			continue
+		fi
+		
+		# Ah, une commande! Est-elle au format sudo?
+		
+		if [ $mode = sudo ]
+		then
+			quoi="`echo "$quoi" | sed -e 's/ALL/*/g' -e 's/\*/**/g'`"
+		fi
+		
+		# A-t-on déjà les droits?
+		
+		if [ -n "$soudoie" ]
+		then
+			test="`echo "$quoi" | sed -e 's#^\*\*#/bin/false **#' -e "s!\\*\\*!$pifs!g" -e "s!\\*!$pif!g"`"
+			if sudoku -u "$qui" "$soudoie" -n -l $quoi > /dev/null 2>&1
+			then
+				continue
+			fi
+		fi
+		
+		# Bon ben il faut ajouter le droit.
+		
+		echo "$qui: $quoi" | INSTALLS=/etc sudoku sh -c 'cat >> /etc/surdoues' || r=$?
+	done
+	
+	return $r
 }
 
 detecterSudo
