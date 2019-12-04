@@ -34,6 +34,7 @@ static char * g_chemin = NULL;
 static size_t g_cheminTaille = 0;
 
 char * g_cheminPour(size_t taille);
+char * g_cheminCourant();
 
 const char * cheminComplet(const char * truc)
 {
@@ -162,4 +163,22 @@ char * g_cheminPour(size_t taille)
 	
 	g_cheminTaille = taille;
 	return (g_chemin = ptr);
+}
+
+char * g_cheminCourant()
+{
+	char * ptr;
+	
+	while(1)
+	{
+		if(!(ptr = g_cheminPour(g_cheminTaille < PATH_MAX ? PATH_MAX : g_cheminTaille * 3 / 2)))
+			return NULL;
+		if((ptr = getcwd(ptr, g_cheminTaille)))
+			return ptr;
+		else if(errno != ERANGE)
+		{
+			fprintf(stderr, "# getcwd(): %s\n", strerror(errno));
+			return NULL;
+		}
+	}
 }
