@@ -510,6 +510,8 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 TERMINE
+	serveur_porter
+	
 	if [ $serveur_puisCopier = oui ]
 	then
 		sudoku -f cp "$desttemp/etc/systemd/system/${nom}.service" /etc/systemd/system/
