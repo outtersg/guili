@@ -190,7 +190,8 @@ auSecoursServeur()
     Désinstalle <autre> (en plus d'une éventuelle vieille version de <nom>) s'il
     existe en tant que serveur système (principalement en cas de conflit de
     port).
-    Ex.: serveur -r apache -r httpd demon nginx …
+    <autre> peut être un numéro de port TCP, auquel cas on s'inscrira comme service écoutant sur ce port dans $INSTALLS/etc/services.d/<autre> (après avoir désinstallé un l'éventuel serveur qui s'y serait inscrit).
+    Ex.: serveur -r apache -r httpd -r 80 demon nginx …
     Ignoré si -n.
   -d0 <desttemp>
     Placer dans <desttemp>. Si non définie, l'amorceur sera placé directement
