@@ -143,7 +143,7 @@ listeServices()
 
 serveur()
 {
-	local nom commande fpid avant compte compteFils comptesPilotes groupe remplacer dest desttemp
+	local nom commande fpid avant compte compteFils comptesPilotes groupe remplacer dest desttemp ports= dservices="$INSTALLS/etc/services.d"
 	
 	analyserParametresServeur "$@"
 	
@@ -680,6 +680,21 @@ serveur_sudoer()
 		done
 		unset IFS
 	done
+}
+
+# Signale quels ports le serveur compte ouvrir.
+# (renseigne $nom dans un fichier par port de $ports dans $desttemp/etc/services.d, et compte sur l'appelant pour le recopier dans le dossier cible)
+serveur_porter()
+{
+	if [ -n "$ports" ]
+	then
+		mkdir -p "$desttemp/etc/services.d"
+		local port
+		for port in $ports
+		do
+			echo "$nom" > "$desttemp/etc/services.d/$port"
+		done
+	fi
 }
 
 #- Utilitaires publics ---------------------------------------------------------
