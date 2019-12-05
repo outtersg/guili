@@ -635,6 +635,8 @@ case "\$1" in
 esac
 TERMINE
 	chmod u+x "$desttemp/etc/init.d/$nom"
+	serveur_porter
+	
 	if [ ! -z "$remplacer" ]
 	then
 		for i in 0 1 6
