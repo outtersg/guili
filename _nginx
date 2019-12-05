@@ -163,6 +163,7 @@ _pousserPatronTemp "$TMP/$$/dest" "$dest"
 serveur \
 	-p "$varrun/nginx.pid" \
 	-u "$compteMaitre" \
+	-uf "$compte" \
 	$PARAMS_SERVEUR \
 	demon nginx \
 	-pre "umask 007" \
