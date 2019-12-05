@@ -433,7 +433,7 @@ TERMINE
 		local d ds="$dest"
 		case "$dest" in
 			$usrLocal) true ;;
-			*) ds="$ds "$usrLocal"" ;;
+		*) ds="$ds $usrLocal" ;;
 		esac
 		
 		for d in $ds
