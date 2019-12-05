@@ -49,7 +49,7 @@ analyserParametres()
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
-			-r) PARAMS_SERVEUR="$PARAMS_SERVEUR $1 $2" ; shift ;;
+			-r|-up) PARAMS_SERVEUR="$PARAMS_SERVEUR $1 $2" ; shift ;;
 			-U) shift ; compteMaitre="$1" ; [ -z "$compte" -a "c$1" != croot ] && compte="$1" || true ;;
 			-u) compte="$2" ; shift ;;
 			-s) suffixe="$2" ; shift ;;
