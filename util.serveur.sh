@@ -149,6 +149,15 @@ serveur()
 	
 	for remplace in $remplacer
 	do
+		case "$remplace" in
+			*[^0-9]*) true ;;
+			[0-9]*) # Numéro de port.
+				[ -z "$dest" ] || ports="$ports $remplace"
+				[ -L "$dservices/$remplace" ] || continue
+				remplace="`cat "$dservices/$remplace"`"
+				sudoku -d "$dservices" rm "$dservices/$remplace"
+				;;
+		esac
 		servir "$remplace" remove 2> /dev/null || true
 	done
 
