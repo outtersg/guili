@@ -417,6 +417,8 @@ _find_processes()
 run_rc_command "\$1"
 TERMINE
 	chmod u+x "$desttemp/etc/rc.d/$nom"
+	serveur_porter
+	
 	if [ "x$serveur_puisCopier" = xoui ]
 	then
 		sudoku -f sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
