@@ -53,7 +53,7 @@ analyserParametres()
 			-U) shift ; compteMaitre="$1" ; [ -z "$compte" -a "c$1" != croot ] && compte="$1" || true ;;
 			-u) compte="$2" ; shift ;;
 			-s) suffixe="$2" ; shift ;;
-			-p) port="$2" ; shift ;;
+			-p) port="$2" ; PARAMS_SERVEUR="$PARAMS_SERVEUR -r $2" ; shift ;;
 			--var-run=*) varrun="`echo "$1" | cut -d = -f 2-`" ;;
 			--var-log=*) varlog="`echo "$1" | cut -d = -f 2-`" ;;
 			*) apAffecter "$1" $vars ;;
