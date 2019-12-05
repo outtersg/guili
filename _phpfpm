@@ -168,6 +168,7 @@ serveur \
 	-d "$dest" \
 	-p "$pid" \
 	-u "$compteMaitre" \
+	-uf "$compte" \
 	-e PATH="$PATH_ENRICHI" \
 	-e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR \
 	--sigre USR2 \
