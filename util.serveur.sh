@@ -512,10 +512,7 @@ TERMINE
 		servir "$nom" start
 		sudoku -f systemctl enable ${nom}
 	fi
-	if [ ! -z "$compte" ]
-	then
-		sudoer "$compte" "/bin/systemctl * $nom"
-	fi
+	serveur_sudoer "/bin/systemctl * $nom"
 }
 
 serveurLinux()
