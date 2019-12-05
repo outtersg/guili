@@ -1294,4 +1294,6 @@ proxy -
 
 initSilo
 
-! commande pypadest || export PYTHONPATH="`pypadest`"
+# À FAIRE: voir les effets de la mise en commentaire du truc ci-dessous sur les concernés (ex.: yamllint certbot meson)
+# N.B.: de toute manière le code en question était pourri puisque pypadest utilisait $dest et $destpython, non encore définies ici. Autrement dit $dest/lib/python pointait sur le /lib/python système.
+#! commande pypadest || export PYTHONPATH="`pypadest`"
