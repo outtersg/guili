@@ -638,12 +638,8 @@ TERMINE
 		done
 		sudoku -d "$destsys/etc" sh -c "( cd $desttemp && tar cf - etc/init.d/$nom etc/rc?.d/?[09]5$nom ) | ( cd "$destsys" && tar xf - --no-same-owner )"
 	fi
-	if [ ! -z "$compte" ]
-	then
-		local d="$dest"
-		case "$d" in */) d="`echo "$d" | sed -e 's#//*$##'`" ;; esac
-		sudoer "$compte" "$d/etc/init.d/$nom *"
-	fi
+	
+	serveur_sudoer "$dest/etc/init.d/$nom *"
 	
 	servir "$nom" start
 }
