@@ -174,7 +174,7 @@ auSecoursServeur()
 {
 	cat >&2 <<TERMINE
 # serveur: installe un serveur / service / démon
-# Utilisation: serveur [-n] [-r <autre>]* [-d0 <desttemp>] [-d <dest>] [-u <compte>] [-p <fichier pid>] [-e <env>]* [-pre <précommande>] <type> <nom> <commande>
+# Utilisation: serveur [-n] [-r <autre>]* [-d0 <desttemp>] [-d <dest>] [-u <compte>] [-uf <compte fils>] [-uv <compte var>] [-up <compte pilote>] [-p <fichier pid>] [-e <env>]* [-pre <précommande>] <type> <nom> <commande>
   -n
     Ne pas activer au démarrage de la machine.
   -r <autre>
@@ -191,6 +191,11 @@ auSecoursServeur()
     installé (ex.: \$racine/etc/rc.d/\$nom sous FreeBSD).
   -u <compte>
     Compte Unix sous lequel tourner.
+  -uf <compte fils>
+  -uv <compte var>
+    Compte Unix à qui appartiendront les éventuels dossiers var et compagnie (souvent il s'agira du compte sous lequel tourneront les processus fils).
+  -up <compte pilote>
+    Compte Unix à qui donner les droits de relancer le serveur.
   -p <fichier pid>
     À indiquer si le processus inscrit son PID dans un fichier déterminé. Sinon
     serveur() lui en attribuera un.
@@ -271,6 +276,8 @@ analyserParametresServeur()
 			-n) remplacer="$remplacer -" ;;
 			-r) shift ; remplacer="$remplacer $1" ;;
 			-u) shift ; compte="$1" ;;
+			-uf|-uv) shift ; compteFils="$1" ;;
+			-up) shift ; comptesPilotes="$1" ;;
 			-p) shift ; fpid="$1" ;;
 			-e) shift ; serveurParamEnv "$1" ;;
 			-pre) shift ; avant="$avant$serveur_sep$1" ;;
