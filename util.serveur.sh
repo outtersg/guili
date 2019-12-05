@@ -657,6 +657,35 @@ TERMINE
 
 #- Utilitaires internes --------------------------------------------------------
 
+# Affecte les droits sudo de redémarrage à $comptesPilotes.
+serveur_sudoer()
+{
+	local comp comm
+	for comm in "$@"
+	do
+		# Évitons les /etc/rc.d//serveur ou //etc/rc.d/serveur malencontreux (par exemple installé dans $dest/etc/rc.d lorsque dest=/):
+		# sudo sera pointilleux sur la similitude du chemin du binaire, au / près.
+		case "$comm" in
+			*//*) comm="`echo "$comm" | sed -e 's#///*#/#g'`" ;;
+		esac
+		# Consignons pour que l'appelant puisse connaître les droits à donner (à d'autres comptes, par exemple) pour effectuer les opérations de lancement du serveur.
+		case "$dest" in
+			$INSTALLS/$logiciel*) echo "$comm" >> "$dest/.sudo" ;;
+		esac
+		# Sudoons pour ceux déclarés dès à présent.
+		IFS=', '
+		for comp in $comptesPilotes
+		do
+			unset IFS
+			case "$comp" in
+				-|root|0|"") continue ;;
+			esac
+			sudoer "$comp" "$comm"
+		done
+		unset IFS
+	done
+}
+
 #- Utilitaires publics ---------------------------------------------------------
 # À usage de l'appelant.
 
