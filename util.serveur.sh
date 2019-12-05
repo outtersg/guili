@@ -655,7 +655,10 @@ TERMINE
 	servir "$nom" start
 }
 
-#- Utilitaires -----------------------------------------------------------------
+#- Utilitaires internes --------------------------------------------------------
+
+#- Utilitaires publics ---------------------------------------------------------
+# À usage de l'appelant.
 
 # Crée les dossiers /var/ (à usage d'écriture par le serveur) dans le patron (précopie en compte local de ce qui deviendra $dest).
 # Env:
