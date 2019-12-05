@@ -430,8 +430,6 @@ TERMINE
 	[ -z "$lieur" ] || $lieur "$dest" "$usrLocal" "etc/rc.d/$nom"
 	
 	# Ajout au sudoers.
-	if [ ! -z "$compte" ]
-	then
 		local d ds="$dest"
 		case "$dest" in
 			$usrLocal) true ;;
@@ -440,10 +438,8 @@ TERMINE
 		
 		for d in $ds
 		do
-			case "$d" in */) d="`echo "$d" | sed -e 's#//*$##'`" ;; esac
-			sudoer "$compte" "$d/etc/rc.d/$nom *"
+		serveur_sudoer "$d/etc/rc.d/$nom *"
 		done
-	fi
 	
 	[ "$serveur_puisCopier" = non ] || servir "$nom" start
 }
