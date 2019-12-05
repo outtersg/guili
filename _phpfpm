@@ -164,7 +164,14 @@ _pousserPatronTemp "$desttemp" "$dest"
 
 LD_LIBRARY_PATH_PHP_ET_DEPS="`prereqs -u -s lib64 -s lib -d $destphp $INSTALLS`"
 PATH_ENRICHI="`args_reduc -d : "$destphp/bin:$GUILI_PATHEXT"`" # Ne serait-ce que pour que si notre php-fpm fait un system('php --version') il tombe sur la même version que lui. Inconvénient: on embarque dans php-fpm tout notre $PATH utilisateur (alors qu'il est censé partir avec un environnement minimal).
-serveur -d "$dest" -p "$pid" -u "$compteMaitre" -e PATH="$PATH_ENRICHI" -e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR --sigre USR2 demon php-fpm$suffixe \
+serveur \
+	-d "$dest" \
+	-p "$pid" \
+	-u "$compteMaitre" \
+	-e PATH="$PATH_ENRICHI" \
+	-e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR \
+	--sigre USR2 \
+	demon php-fpm$suffixe \
 	"$destphp/sbin/php-fpm --fpm-config $conf"
 
 sutiliser -
