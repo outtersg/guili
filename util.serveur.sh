@@ -143,7 +143,7 @@ listeServices()
 
 serveur()
 {
-	local nom commande fpid avant compte groupe remplacer dest desttemp
+	local nom commande fpid avant compte compteFils comptesPilotes groupe remplacer dest desttemp
 	
 	analyserParametresServeur "$@"
 	
@@ -251,6 +251,8 @@ analyserParametresServeur()
 	fpid=
 	avant=
 	compte=
+	compteFils=
+	comptesPilotes=
 	groupe=
 	remplacer=
 	desttemp= # Destination temporaire.
@@ -296,6 +298,8 @@ analyserParametresServeur()
 	esac
 	
 	[ -z "$compte" ] || groupe="`id -g -n "$compte"`"
+	[ -n "$compteFils" ] || compteFils="$compte"
+	[ -n "$comptesPilotes" ] || comptesPilotes="`id -nu` $compte $compteFils"
 	
 	if [ -z "$desttemp" ]
 	then
