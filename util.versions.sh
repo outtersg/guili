@@ -158,3 +158,98 @@ filtrerVersions()
 		fi
 	done
 }
+
+# Renvoie la version maximale donnée par une plage, si une limite haute est donnée.
+# Ex.:
+#   vmax ">= 5.4" "< 6" "< 5.7" "< 6"
+#     5.6
+# Attention! Ne prend en compte que les <, <=, et les versions exactes.
+# Donc vmax > 5.6 < 5.7 renverra quand même 5.6 (l'option -p 99 renverra 5.6.99)
+# vmax > 5.6 ne renverra rien (infini).
+vmax()
+{
+	local prec= saufPremier=
+	
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-1) saufPremier=oui ;; # L'option -1 permet de virer le premier paramètre, par exemple un nom de logiciel issu de decoupePrerequis.
+			-p) prec=".$2" ; shift ;;
+			*) break ;;
+		esac
+		shift
+	done
+	[ -z "$saufPremier" ] || shift
+	
+	_vmax $*
+}
+
+_vmax()
+{
+	local pv vmax= vessie moinsUn= rvc # "vessie" comme Version de l'ESSai de l'Itération En cours.
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			"<"|"<="|">="|">") pv="$1 $2" ; shift ;;
+			*) pv="$1" ;;
+		esac
+		shift
+		case "$pv" in
+			"<"*|[0-9]*)
+				IFS="<=> "
+				_vmax_vessie $pv
+				[ -n "$vessie" ] || continue # Version vide? Bon, erreur de lecture, en tout cas on n'en tient pas compte.
+				# Si $vmax est déjà définie, elle est peut-être déjà trop bas pour que $vessie puisse espérer apporter quelque chose.
+				if [ -n "$vmax" ]
+				then
+					# Si $vessie > $vmax, pas la peine de poursuivre (donc continue pour passer au tour de boucle suivant).
+					# Et si $vessie == $vmax, le seul cas intéressant sera si moinsUn est vide (ex.: $vmax vaut 64 après un "<= 64", et maintenant nous sommes soumis à un "< 64" qui pourrait faire changer moinsUn).
+					vc --var rvc "$vessie" "$vmax"
+					case "$rvc" in
+						0) [ -z "$moinsUn" ] || continue ;;
+						1) continue ;;
+					esac
+				fi
+				# Allez, on travaille sur ce nouveau maximum.
+				vmax="$vessie"
+				moinsUn=
+				testerVersion "$vessie" $pv || moinsUn=oui # Si le nombre trouvé ne rentre pas dans le filtre qui le contient (ex.: "64" ne rentre pas dans "< 64"), la valeur max sera un epsilon avant.
+				;;
+		esac
+	done
+	
+	if [ -n "$moinsUn" ]
+	then
+		IFS=.
+		_vmax_prec $vmax
+	fi
+	
+	echo "$vmax"
+}
+
+_vmax_vessie()
+{
+	unset IFS
+	for vessie in "$@"
+	do
+		case "$vessie" in
+			[0-9]*) return ;;
+		esac
+	done
+	vessie=
+}
+
+_vmax_prec()
+{
+	unset IFS
+	vmax=
+	while [ $# -gt 1 ]
+	do
+		vmax="$vmax$1."
+		shift
+	done
+	case "$1" in
+		0) IFS=. ; _vmax_prec $vmax ;;
+		*) vmax="$vmax`expr "$1" - 1 || true`$prec" ;;
+	esac
+}
