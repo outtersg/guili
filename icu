@@ -51,7 +51,7 @@ types16()
 {
 	# Sur certains vieux compilos à la limite de gérer le char16_t (du genre: sortis à peu près en même temps que C++11), il y a un peu de fouille à faire pour dénicher les bons paramètres d'appel pour le lui faire trouver. Voire brancher directement le type interne dessus.
 	local char16
-	local cflags
+	local cflags incs inc
 	local t="$TMP/$$/type16.trace"
 	_varsTypes16()
 	{
@@ -60,10 +60,20 @@ types16()
 		do
 			for cflags in "" "-std=c++11"
 			do
+				for incs in "" "uchar.h"
+				do
 				echo "# $TMP/1.c:" >> $t
-				( echo '#include <uchar.h>' ; echo "$char16 c;" ) | tee $TMP/1.c | sed -e 's/^/	/' >> $t
+					(
+						for inc in "" $incs
+						do
+							[ -n "$inc" ] || continue
+							echo "#include <$inc>"
+						done
+						echo "$char16 c;"
+					) | tee $TMP/1.c | sed -e 's/^/	/' >> $t
 				echo "# CFLAGS=\"$CFLAGS $cflags\" $CXX -c -o $TMP/1.o $TMP/1.c" >> $t
 				CFLAGS="$CFLAGS $cflags" $CXX -c -o $TMP/1.o $TMP/1.c 2>> $t && return || continue
+				done
 			done
 		done
 	}
