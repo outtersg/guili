@@ -118,6 +118,7 @@ case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
 	plop) true ;;
 	*) prerequis="sed < 4.3 $prerequis" ;;
 esac
+prerequisIcu # Demandons à nos prérequis leur version qui se lie à l'ICU que l'on impose.
 
 # Fin octobre 2019, prerequis() accumule les variables $*FLAGS de tous nos prérequis, sans dédoublonnage (de peur que l'ordre joue).
 # Cela pose problème au configure de PHP qui fait un sed -e "s#$*FLAGS#…#", ce qui explose certaines implémentations de sed (limités à 2048 octets pour leur expression à remplacer).
