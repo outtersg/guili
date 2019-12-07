@@ -57,6 +57,56 @@ testerVersion()
 
 pge() { pg -e "$1" "$2" ; }
 
+# Compare deux versions.
+# Utilisation: vc [--var <var>|-v <var>|-e] <version0> <version1>
+#   (sans mode)
+#     Renvoie 255, 0, ou 1, selon que <version0> <, =, ou >, à <version1>.
+#   --var|-v
+#     Affecte -1, 0, ou 1, à $var.
+#   -e
+#     Fait un echo de -1, 0, ou 1.
+vc()
+{
+	local _vc_r _vc_re _vc_mode=r _vc_var
+	
+	[ "x$1" = x--var -o "x$1" = x-v ] && _vc_mode=v && _vc_var="$2" && shift && shift || true
+	[ "x$1" = x-e ] && _vc_mode=e && shift || true
+	
+	IFS=.
+	_vc "$1" $2 || _vc_r="$?"
+	unset IFS
+	
+	case $_vc_r in
+		255) _vc_re=-1 ;;
+		*) _vc_re=$_vc_r ;;
+	esac
+	
+	case $_vc_mode in
+		v) eval $_vc_var=$_vc_re ;;
+		e) printf "%d" $_vc_re ;;
+		*) return $_vc_r
+	esac
+}
+
+_vc()
+{
+	local a b as="$1" ; shift
+	for a in $as
+	do
+		b="$1"
+		[ -n "$b" ] || b=0
+		[ "$a" -ge "$b" ] || return 255
+		[ "$a" -eq "$b" ] || return 1
+		[ $# -le 0 ] || shift
+	done
+	while [ $# -gt 0 ]
+	do
+		[ "$1" -le 0 ] || return 255
+		[ "$1" -eq 0 ] || return 1
+		shift
+	done
+}
+
 triversions()
 {
 	# De deux logiciels en même version, on prend le chemin le plus long: c'est celui qui embarque le plus de modules optionnels.
