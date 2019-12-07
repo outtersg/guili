@@ -47,16 +47,16 @@ ftconfig()
 # À moins qu'on ne nous désactive explicitement harfbuzz, on l'embarque.
 case "$prerequis" in
 	*harfbuzz*)
-		case "$argOptions+" in
-			*-hb[-+]*) virerPrerequis "harfbuzz" ;;
-			*) argOptions="`options "$argOptions=hb"`" ;;
-		esac
+opSiPasPas hb harfbuzz
+		optionsEtPrerequisIcu # Nous aurons à transmettre les options ICU à harfbuzz.
+		;;
+	*)
+		# On vire les options hb qui n'ont pas de sens avec cette version.
+		argOptions="`options "$argOptions-hb-icu-icu5-icux"`"
 		;;
 esac
-option hb || true
-opSiPasPas hb harfbuzz
 
-# Si nous sommes l'itération 0 d'une compil Freetype + Harfbuzz (0. freetype --sans-hb ; 1. harfbuzz ; 2. freetype+hb) nous nous compilerons sans Harfbuzz, mais nous nous remettons tout de même l'option, afin que destiner() nous donne la même $dest que l'itération 2.
+# Si nous sommes l'itération 0 d'une compil Freetype + Harfbuzz (0. freetype --sans-hb ; 1. harfbuzz ; 2. freetype+hb) nous nous compilerons sans Harfbuzz, mais nous nous remettons tout de même l'option, afin que destiner() nous donne la même $dest que l'itération 2, et qu'ainsi l'Harfbuzz du 1. ait pour prérequis ce $dest cible.
 case "$GUILI_MOIRE:" in
 	*:hb:*) argOptions="`options "$argOptions+hb"`" ;;
 esac

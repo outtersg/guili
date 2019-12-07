@@ -35,9 +35,12 @@ v 2.3.1 && ft_v=">= 2.8" prerequis="make \\ icu graphite >= 1.2 freetype+hb $ft_
 
 # Modifications
 
-optionSi icu || true
+optionsEtPrerequisIcu
 optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || true
-versions freetype+hb "$ft_v" | grep -q . || virerPrerequis freetype+hb
+# Pour ce qui est du freetype, finalement on ne le prérequiert que s'il est déjà installé dans la version voulue (par exemple itération 0 d'un freetype+hb).
+# Ce après l'optionsEtPrerequisIcu() afin qu'il ait toutes ses options (ICU) d'étiquetées.
+pftv="`decoupePrerequis "$prerequis" | grep ^freetype`"
+[ -z "$pftv" ] || versions "$pftv" | grep -q . || virerPrerequis "`for l in $pftv ; do echo "$l" ; break ; done`"
 
 # Variables
 
