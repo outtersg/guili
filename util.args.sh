@@ -126,6 +126,20 @@ args_suppr()
 	[ -z "$e" ] || export $vars
 }
 
+dernierParam()
+{
+	while [ $# -gt 1 ]
+	do
+		shift
+	done
+	echo "$1"
+	
+	# N.B.: la version:
+	# eval "echo \$$#"
+	# est sensiblement équivalente, entre 9,1 s et 9,4 s pour:
+	# time ./util eval 'f() { n=10000 ; while [ $n -gt 0 ] ; do $1 hui hui hui hui hui huih hu ; n=`expr $n - 1` ; done ; } ; f dernierParam > /dev/null'
+}
+
 #- Chemins ---------------------------------------------------------------------
 
 # basename en pur shell: sur mon FreeBSD, roule 30 fois plus vite que basename (car pas de fork+exec)
