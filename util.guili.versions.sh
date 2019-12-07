@@ -41,7 +41,7 @@ versions()
 	do
 		# Découpage des paramètres: logiciel, options, filtre version.
 		
-		logiciel="`echo "$1" | sed -e 's/[<>]/ &/g'`" ; shift
+		logiciel="`echo "$1" | sed -e 's/[<>]/ &/g' -e 's/  *+/+/g'`" ; shift
 		case "$logiciel" in
 			*" "*)
 				filtreVersion="`echo "$logiciel" | cut -d ' ' -f 2-`"
