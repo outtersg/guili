@@ -46,7 +46,7 @@ testerVersion()
 				then
 					pge "$1" "$versionTestee" || return 1
 				else
-					[ "$versionTestee" = "$1" ] || return 1
+					[ "$versionTestee" = "$1" ] || vc "$1" "$versionTestee" || return 1
 				fi
 				;;
 		esac
