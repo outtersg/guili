@@ -253,3 +253,26 @@ _vmax_prec()
 		*) vmax="$vmax`expr "$1" - 1 || true`$prec" ;;
 	esac
 }
+
+vmax_test()
+{
+	. "$SCRIPTS/util.test.sh"
+	
+	tester _vmax_tester 5.6 ">= 5.4" "< 6" "< 5.7" "< 6"
+	tester _vmax_tester 5.6.99 -p 99 ">= 5.4" "< 6" "< 5.7" "< 6"
+	tester _vmax_tester "" ">= 5.4"
+	tester _vmax_tester 5.6.99 -p 99 ">= 5.4" "< 6" "< 5.7.0.0" "< 6"
+	tester _vmax_tester 5.7.0.99 -p 99 "< 5.7.1" "< 5.7.1.0"
+	# N.B.: si un jour on implémente avec des valeurs négatives (-99 pour la précédente, le -1 étant réservé à la GM, le -2 à la beta et la -3 à l'alpha), < 5.7.0 < 5.7.0.0 devra-t-il donner 5.7.0.-99 ou 5.7.0.0.-99?
+	
+	echo
+}
+
+_vmax_tester()
+{
+	local att="$1" ; shift
+	res="`vmax "$@"`"
+	[ "$res" != "$att" ] || return 0
+	echo "vmax $*: $res au lieu de $att" >&2
+	return 126
+}
