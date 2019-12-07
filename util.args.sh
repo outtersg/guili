@@ -321,3 +321,11 @@ END{
 }
 '
 }
+
+# Des $prerequis, n'affiche que ceux après le \ (qui sépare prérequis de compilation de ceux d'exécution).
+prerequisExecution()
+{
+	IFS='\'
+	dernierParam $prerequis
+	unset IFS
+}
