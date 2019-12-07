@@ -32,6 +32,7 @@ v 5.24.0 && prerequis="db" || true
 v 5.26.1 || true
 v 5.28.1 || true
 v 5.30.0 || true
+v 5.30.1 || true
 
 # Modifications
 
