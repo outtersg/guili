@@ -71,14 +71,13 @@ const char * cheminComplet(const char * truc)
 		ptr = chemins;
 		while(*ptr && *ptr != ':')
 			++ptr;
-		if((t = ptr - chemins) + 1 + tTruc <= PATH_MAX)
-		{
+		if(!g_cheminPour((t = ptr - chemins) + 1 + tTruc))
+			return NULL;
 			strncpy(g_chemin, chemins, t);
 			g_chemin[t] = '/';
 			strcpy(&g_chemin[t + 1], truc);
 			if(stat(g_chemin, &infos) == 0 && S_ISREG(infos.st_mode) && (infos.st_mode & S_IXUSR))
 				return g_chemin;
-		}
 		chemins = ptr + 1;
 	}
 	return NULL;
