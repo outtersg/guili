@@ -35,7 +35,7 @@ case `php-config --version | cut -d . -f 1-2` in
 	[45]*) argVersion="$argVersion < 4" ;;
 esac
 
-v 3.1.9 && modifs="lock" && prerequis="$prerequis autoconf" || true
+v 3.1.9 && modifs="lock" && prerequis="autoconf \\ $prerequis" || true
 v 3.1.13 && modifs= || true
 v 3.1.13 && modifs= || true
 #v 3.1.14 && modifs= || true # Retirée de la "vente" par Rasmus, pour une question de fuite mémoire.
