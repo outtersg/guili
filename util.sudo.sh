@@ -75,6 +75,20 @@ vraiEnDur()
 	unset IFS
 }
 
+# Fait découper au shell son premier paramètre, et colle le résultat du découpage en fin de paramètres.
+# Ex.:
+#   sudoer_arguer "sh -c 'v=toi ; echo coucou \$v'" sudo -n -l
+#   # est l'équivalent de:
+#   sudo -n -l sh -c 'v=toi ; echo coucou $v'
+sudoer_arguer()
+{
+	local trucs="$1" ; shift
+	(
+		set -f 
+		eval '"$@" '"$trucs"
+	)
+}
+
 sudoerSudo()
 {
 	# A-t-on déjà les droits?
@@ -86,7 +100,7 @@ sudoerSudo()
 			ALL) commande=true ;;
 			*) commande="$2" ;;
 		esac
-		sudoku -u "$1" "$sudo" -n -l $commande > /dev/null 2>&1
+		sudoer_arguer "$commande" sudoku -u "$1" "$sudo" -n -l > /dev/null 2>&1
 	) && return || true
 	gris "sudoers: $1 ALL=(ALL) NOPASSWD: $2" >&2
 	echo "$1 ALL=(ALL) NOPASSWD: $2" | INSTALLS=/etc sudoku sh -c 'cat >> /etc/sudoers'
@@ -123,7 +137,7 @@ sudoerSoudoie()
 		if [ -n "$soudoie" ]
 		then
 			test="`echo "$quoi" | sed -e 's#^\*\*#/bin/false **#' -e "s!\\*\\*!$pifs!g" -e "s!\\*!$pif!g"`"
-			if sudoku -u "$qui" "$soudoie" -n -l $quoi > /dev/null 2>&1
+			if sudoer_arguer "$quoi" sudoku -u "$qui" "$soudoie" -n -l > /dev/null 2>&1
 			then
 				continue
 			fi
