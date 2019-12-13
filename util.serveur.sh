@@ -177,6 +177,8 @@ serveur()
 			echo "# Je ne sais pas créer d'amorceur sur `uname`." >&2
 			exit 1
 	esac
+	
+	serveur_compteFils="$compteFils"
 }
 
 auSecoursServeur()
@@ -750,9 +752,11 @@ serveur_patronVars()
 # Env:
 #   $serveur_patronVars Initialisée par un appel préalable à serveur_patronVars()
 #   $dest
-#   $compte
+#   $serveur_compteFils, à défaut $compte
 # Utilisation: serveur_chownVars
 serveur_chownVars()
 {
+	local compteFils="$serveur_compteFils"
+	[ -n "$compteFils" ] || compteFils="$compte"
 	[ "$compteFils" = "`id -un`" -o -z "$serveur_patronVars" ] || ( cd "$dest" && sudoku -f chown -R "$compteFils:" $serveur_patronVars )
 }
