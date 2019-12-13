@@ -146,7 +146,9 @@ postprerequis()
 	#   Plus important, si le déclaratif demande du +ossl+-mysql (forcément avec ossl, et forcément sans mysql), les - n'étant pas reflétés dans le chemin, le binaire ne précise que le +ossl: aussi si on se contentait des options du binaire (+ossl), on risquerait de se lier au +mysql+ossl (considéré comme surensemble du +ossl). Il est donc important d'inclure les règles d'exclusion (qui ne figurent donc que dans les prérequis déclarés dans l'installeur, pas dans le binaire).
 	
 	prerequis="$prerequis `sed < "$dest/.guili.prerequis" -e '/^#/,$d' -e 's#^.*/##' -e 's/-\([^-]*\)/ \1/' | tr '\012' ' '`" # Dans le .guili.prerequis on s'arrête au premier commentaire (prérequis des prérequis).
-	prerequis="`decoupePrerequis "$prerequis" | sed -e 's#\([!<>=]\)  *#\1#g' -e 's# .* \([0-9][.0-9]*\)$# \1#'`" # La version du binaire est forcément en fin de ligne, et si elle y est elle ne comporte pas d'espace.
+	# Dans la recombinaison résultante, on va avoir des "logiciel >= 3 < 4 3.1.4" (où une version figée aura été trouvée, qui supplante toutes les contraintes précédentes), et des "logiciel >= 3 < 4" (où étrangement le paquet compilé ne s'est pas lié à une version, mais bon ça n'est pas notre affaire, simplement prerequis() se tapera d'aller choisir la version exacte dans laquelle installer le prérequis).
+	# On va en garder respectivement "logiciel 3.1.4" et "logiciel >= 3 < 4", supprimant les contraintes uniquement si elles précèdent une version exacte.
+	prerequis="`decoupePrerequis "$prerequis" | sed -e '/ .*[0-9]  *\([0-9][.0-9]*\)$/s## \1#g'`"
 	
 	gris "postprerequis: `echo "$prerequis" | tr '\012' ' '`"
 	prerequis
