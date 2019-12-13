@@ -60,9 +60,14 @@ moduleNginxSiOption()
 	esac
 	if option "$o" || option "$ov"
 	then
+		# Pour les http, existe-t-il une version locale?
 		case "$s" in
 			http*://*) # Module externe
 				_moduleLocalOuVersion # Transforme $s et $o pour aller chercher éventuellement un source local, et la version donnée.
+				;;
+		esac
+		case "$s" in
+			http*://*) # Module externe
 				local suffixe="`echo "$s" | sed -e 's#.*/[^.]*##' -e 's#.*\.[^.][^.][^.][^.][^.]*##'`"
 				local nomArchive="`basename "$s"`"
 				if echo "$nomArchive" | egrep -vqe '-[0-9]+\.[0-9]+(\.[0-9]+)*(\.[a-z][a-z0-9]*)+$' # Si le nom de l'archive ne porte pas de numéro de version (ex.: git), on lui en donne un daté.
