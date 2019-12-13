@@ -92,7 +92,7 @@ selinuxrobuste()
 	
 	# Et le module coquille cherche à utiliser json pour communiquer avec le python système: or sur certaines vieilles bécanes sur lesquelles on veut installer un Python 2.7 par dessus celui système en 2.4, notre 2.7 sait parler json, mais pas le 2.4, ce qui donne lieu à un beau plantage.
 	# On remplace donc par une discussion chaîne de caractères, avec pour ponctuation de caractère ASCII 0x03.
-	( cd "$dest" && sudoku patch -p0 < "$SCRIPTS/python.selinux.vieilos.patch" )
+	( cd "$dest" && sudoku patch -p0 < "$SCRIPTS/python.selinux.vieilos.patch" && sudoku rm -f lib/python*/site-packages/selinux/*.pyc 2> /dev/null )
 }
 
 refsSansSuffixe()
