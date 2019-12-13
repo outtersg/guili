@@ -134,7 +134,16 @@ _moduleLocalOuVersion()
 		*) return 0 ;;
 	esac
 	local v_module v_optionModule nom d
-	nom="`dirname "$s"`" ; nom="`basename "$nom"`"
+	nom="`dirname "$s"`"
+	while true
+	do
+		case "$nom" in
+			*/archive) true ;;
+			*) break ;;
+		esac
+		nom="`dirname "$nom"`"
+	done
+	nom="`basename "$nom"`"
 	# S'il existe une version par défaut pour ce module…
 	eval "v_module=\"\$v_$o\""
 	# … ou, plus important, si nous est demandée explicitement une version, on définit v_module.
