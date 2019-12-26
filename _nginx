@@ -90,7 +90,7 @@ prerequis
 
 # Variables
 
-eval "version=\"\$version_`echo "$logiciel" | cut -c 2-`\"" # On prend pour numéro de version installée celui de notre logiciel sous-jacent.
+volsj # On prend pour version et options celles de notre logiciel sous-jacent.
 
 destiner
 
