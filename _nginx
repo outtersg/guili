@@ -55,11 +55,13 @@ analyserParametres()
 			--var-run=*) varrun="`echo "$1" | cut -d = -f 2-`" ;;
 			--var-log=*) varlog="`echo "$1" | cut -d = -f 2-`" ;;
 			--var-tmp=*) vartmp="`echo "$1" | cut -d = -f 2-`" ;;
-			+?*) remplacerPrerequis nginx "nginx$1" ; option "`echo "$1" | cut -c 2-`" ;;
 			*) apAffecter "$1" $vars ;;
 		esac
 		shift
 	done
+	
+	IFS=+ ; for o in $argOptions ; do [ -n "$o" ] || continue ; option $o ; done ; unset IFS
+	remplacerPrerequis nginx "nginx$argOptions $argVersion"
 
 	if [ -z "$compte" ] ; then
 		comptesEnvisages="nginx web www `id -un`"
