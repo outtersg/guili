@@ -433,7 +433,7 @@ TERMINE
 	
 	if [ "x$serveur_puisCopier" = xoui ]
 	then
-		sudoku -f sh -c "mkdir -p $dest ; cp -R $desttemp/. $dest/."
+		sudoku -f sh -c "mkdir -p $dest ; ( cd $desttemp && tar cf - . ) | ( cd $dest && tar xf - )"
 	fi
 	if [ ! -z "$remplacer" ]
 	then
