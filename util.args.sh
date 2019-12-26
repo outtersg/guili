@@ -210,7 +210,7 @@ love()
 {
 	# On fait le maximum d'opérations dans le shell: un fork+exec, ça coûte cher.
 	
-	local d _lo _ve velo= _l _o exports=
+	local d _lo _ve velo= _l _seplo _o exports=
 	
 	while [ $# -gt 0 ]
 	do
@@ -227,7 +227,7 @@ love()
 			[ -n "$_ve" ] || ve=0
 			IFS=+
 			_velo $_lo
-			[ -n "$exports" ] || echo "$_ve $_l$_o"
+			[ -n "$exports" ] || echo "$_ve $_l$_seplo$_o"
 		fi
 		shift
 	done
@@ -270,7 +270,9 @@ _velo()
 {
 	_l="$1" ; shift
 	_o=
-	[ $# -le 0 ] || _o=" +$*"
+	[ $# -gt 0 ] || return 0
+	_o="+$*"
+	_seplo=" "
 }
 
 #- Listes de prérequis ---------------------------------------------------------
