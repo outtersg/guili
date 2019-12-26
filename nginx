@@ -158,13 +158,39 @@ _moduleLocalOuVersion()
 		return 0
 	fi
 	# Sinon, on va triturer l'URL de l'archive pour aller chercher la version demandée.
-	if [ -n "$v_module" ]
+	if v_module "$s"
 	then
 		s="`echo "$s" | sed -e "s#master#$v_module#"`"
 		# Et l'option effective sera suffixée de la version.
 		v_optionModule="`echo "$v_module" | tr . _`"
 		argOptions="`options "$argOptions-$o+${o}_$v_optionModule"`"
 	fi
+}
+
+v_module()
+{
+	local sources="$1"
+	case "$v_module" in
+		"") return 1 ;;
+		*[\<\>=]*)
+			v_module="`derniereVersionModule "$sources" "$v_module"`"
+			[ -n "$v_module" ] || return 1
+			;;
+	esac
+}
+
+derniereVersionModule()
+{
+	local url="$1" ua
+	shift
+	local v="$*"
+	
+	case "$url" in
+		https://github.com/*/archive/master.zip)
+			ua="`echo "$url" | sed -e 's#://github.com#://api.github.com/repos#' -e 's#/archive/master.zip#/tags#'`"
+			curl -s "$ua" | sed -e  '/"name"/!d' -e 's/.*: *"/v-/' -e 's/".*//' | filtrerVersions "$v" | triversions | cut -c 3- | tail -1 # v- en préfixe, car filtrerVersions a besoin d'un nom de logiciel fictif avant la version.
+			;;
+	esac
 }
 
 OPTIONS_CONF=
