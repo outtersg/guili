@@ -204,6 +204,7 @@ moduleNginxSiOption geoip http_geoip_module
 moduleNginxSiOption upstreamcheck https://github.com/yaoweibin/nginx_upstream_check_module/archive/master.zip
 moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-module/archive/master.zip
 moduleNginxSiOption cscript https://github.com/outtersg/ngx_conf_defs/archive/master.zip
+moduleNginxSiOption twinswelcome https://github.com/outtersg/ngx_twins_welcome/archive/master.zip
 moduleNginxSiOption relinc 'relinc()'
 
 if option geoip ; then prerequis="$prerequis geoip" ; fi
