@@ -115,7 +115,7 @@ _patronTemp()
 # Constitution.
 conf="etc/nginx.original" # Doit être différent de conf (standard nginx), sans quoi nginx et _nginx se disputeront le lien symbolique $INSTALLS/conf. De plus, suffixe .original pour permettre les personnalisations.
 mkdir -p "$dest0/$conf"
-cp -R "$destnginx/conf/." "$dest0/$conf/."
+	( cd "$destnginx/conf" && tar cf - . ) | ( cd "$dest0/$conf" && tar xf - )
 	mv "$dest0/$conf/nginx.conf" "$dest0/$conf/nginx.conf.1"
 	cat > "$dest0/$conf/nginx.conf" <<TERMINE
 pid $varrun/nginx.pid;
@@ -151,8 +151,7 @@ _pousserPatronTemp()
 	local dest0="$1" dest="$2"
 	
 # Copie.
-sudo mkdir -p "$dest"
-sudo cp -R "$dest0/." "$dest/."
+	sudoku sh -c "mkdir -p \"$dest\" && ( cd \"$dest0\" && tar cf - . ) | ( cd \"$dest\" && tar xf - )"
 	serveur_chownVars
 }
 
