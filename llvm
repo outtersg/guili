@@ -102,6 +102,10 @@ unwind()
 	# http://lists.llvm.org/pipermail/llvm-dev/2015-November/092336.html
 	# http://clang-developers.42468.n3.nabble.com/libcxxabi-Which-unwind-h-td3230734.html
 	
+	# Si possible on repose sur l'unwind.h système. Et d'ailleurs s'il existe on ne le surcharge surtout pas, sous peine de finir avec des incompatibilités d'#include_next.
+	echo '#include <unwind.h>' > /tmp/1.c
+	$CC -c -o /tmp/1.o /tmp/1.c && return 0 || echo "unwind.h introuvable, récupération d'un unwind.h générique" >&2
+	
 	cp tools/clang/lib/Headers/unwind.h projects/libcxxabi/src/
 }
 
