@@ -32,7 +32,7 @@ multiarchLancer()
 	multiarch_archs=
 	case "`uname`" in
 		Darwin)
-			multiarch_archs="i386 x86_64"
+			multiarch_archs="x86_64 i386"
 			;;
 	esac
 	
