@@ -132,5 +132,6 @@ multiarchConfigurer()
 		Darwin) attr="-arch" ;;
 	esac
 	export CFLAGS="$attr $multiarch_arch $CFLAGS"
+	export CXXFLAGS="$attr $multiarch_arch $CXXFLAGS"
 	export LDFLAGS="$attr $multiarch_arch $LDFLAGS"
 }
