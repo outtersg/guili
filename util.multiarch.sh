@@ -127,14 +127,10 @@ multiarchPrecombiner()
 # Peut être surchargée par les logiciels à configuration d'archi exotique.
 multiarchConfigurer()
 {
+	local attr="-march"
 	case "`uname`" in
-		Darwin)
-			export CFLAGS="-arch $multiarch_arch $CFLAGS"
-			export LDFLAGS="-arch $multiarch_arch $LDFLAGS"
-			;;
-		*)
-			export CFLAGS="-march $multiarch_arch $CFLAGS"
-			export LDFLAGS="-march $multiarch_arch $LDFLAGS"
-			;;
+		Darwin) attr="-arch" ;;
 	esac
+	export CFLAGS="$attr $multiarch_arch $CFLAGS"
+	export LDFLAGS="$attr $multiarch_arch $LDFLAGS"
 }
