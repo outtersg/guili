@@ -23,7 +23,9 @@ multiarch()
 		multiarchLancer
 		exit 0
 	else
-		multiarchConfigurer "$multiarch_arch"
+		dest="$dest.$multiarch_arch"
+		[ -z "$install_dest" ] || dest="$install_dest"
+		multiarchConfigurer
 	fi
 }
 
@@ -121,11 +123,10 @@ multiarchPrecombiner()
 	true
 }
 
+# multiarchConfigurer par défaut: ajout de -arch ou -march à CFLAGS et compagnie.
+# Peut être surchargée par les logiciels à configuration d'archi exotique.
 multiarchConfigurer()
 {
-	multiarch_arch="$1"
-	dest="$dest.$multiarch_arch"
-	[ -z "$install_dest" ] || dest="$install_dest"
 	case "`uname`" in
 		Darwin)
 			export CFLAGS="-arch $multiarch_arch $CFLAGS"
