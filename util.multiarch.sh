@@ -1,6 +1,8 @@
 multiarchMemoriserInvocation()
 {
-	multiarch_invocation="$install_moi $*"
+	IFS="`printf '\003'`"
+	multiarch_invocation="$install_moi$IFS$*"
+	unset IFS
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
@@ -52,7 +54,9 @@ multiarchLancer()
 		multiarch_dest="$dest"
 		[ "$multiarch_arch" = "$multiarch_premiereArch" ] || multiarch_dest="$INSTALLS/$logiciel-$version-$multiarch_arch" # La première architecture va s'installer à l'endroit officiel.
 		cp -R . "$multiarch_dossierTravail"
+		IFS="`printf '\003'`"
 		$multiarch_invocation --src "$multiarch_dossierTravail" --arch "$multiarch_arch" --dest "$multiarch_dest"
+		unset IFS
 		multiarch_paramsCombiner="$multiarch_paramsCombiner $multiarch_arch $multiarch_dest"
 	done
 	
