@@ -62,13 +62,13 @@ multiarchLancer()
 	
 	# Et on combine.
 	
-	multiarchCombiner $multiarch_paramsCombiner
+	multiarchCombiner
 }
 
 multiarchCombiner()
 {
 	multiarch_combineur="multiarchCombiner`uname`"
-	$multiarch_combineur "$@"
+	$multiarch_combineur $multiarch_paramsCombiner
 }
 
 multiarchCombinerDarwin()
