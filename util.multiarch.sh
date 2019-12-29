@@ -25,7 +25,7 @@ multiarch()
 	fi
 }
 
-multiarchLancer()
+mas()
 {
 	# Pour quelles archis va-t-on travailler?
 	
@@ -35,6 +35,13 @@ multiarchLancer()
 			multiarch_archs="x86_64 i386"
 			;;
 	esac
+}
+
+multiarchLancer()
+{
+	# Pour quelles archis va-t-on travailler?
+	
+	mas
 	
 	# En avant!
 	
