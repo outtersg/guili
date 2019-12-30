@@ -59,8 +59,10 @@ util_menage()
 		esac
 		
 		# De même pour le dossier courant s'il contient un bout de /tmp/ dans son nom (ex.: dossier de compilation).
+		# Et que ce n'est pas un dossier préexistant auquel on s'est explicitement raccrochés via un --src.
 		
 		case "$dossierCourant" in
+			"$install_obtenu") true ;;
 			*/tmp/[_A-Za-z0-9]*) rm -Rf "$dossierCourant" ;;
 		esac
 	fi
