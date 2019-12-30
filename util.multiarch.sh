@@ -44,7 +44,7 @@ marcher()
 	# - sinon, on arrive après la bataille, on se rabat sur une trace mentionnant l'architecture entre parenthèses.
 	# Notre présence dans $modifs indiquera par quel moyen nous sommes lancés.
 	case " $modifs " in
-		*" marcher "*) gris "(multiarch:$multiarch_arch)" ;;
+		*" marcher "*|*" multiarch "*) gris "(multiarch:$multiarch_arch)" ;;
 		*) GUILI_MOIRE="$GUILI_MOIRE:$multiarch_arch" ;;
 	esac
 }
