@@ -226,6 +226,7 @@ analyserParametresInstall()
 		shift
 	done
 	argOptions="`options "$argOptions" | tr -d ' '`"
+	argOptionsOriginal="$argOptions"
 	argOptionsDemandees="$argOptions+"
 }
 

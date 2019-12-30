@@ -50,13 +50,27 @@ DPOM()
 
 destiner()
 {
+	local argOptionsResolu
 	verifierConsommationOptions
 	if [ -z "$install_dest" ]
 	then
+		# Comparaison options demandées / options effectives:
+		# Ex.: le +ossl demandé est devenu +ossl11, ou une option implicite a été ajoutée.
+		# Si différentes, on créera des raccourcis pour que la prochaine demande des "options demandées" tombe sur là où nous nous installons réellement (avec les options effectives).
+		
+		argOptionsResolu="`argOptions`"
+		if [ "x$argOptionsResolu" != "x$argOptionsOriginal" ]
+		then
+			argOptionsOriginal="`argOptions="$argOptionsOriginal" argOptions`"
+			[ "x$argOptionsResolu" = "x$argOptionsOriginal" ] || guili_alias="$guili_alias:$logiciel$argOptionsOriginal-$version"
+		fi
+		
+		# Détermination de la destination.
+		
 		dest="`versions -v "$version" "$logiciel+$argOptions" | tail -1`"
 		if [ -z "$dest" ]
 		then
-			dest="$INSTALLS/$logiciel`argOptions`-$version"
+			dest="$INSTALLS/$logiciel$argOptionsResolu-$version"
 		fi
 	else
 	dest="$install_dest"
@@ -128,7 +142,54 @@ utiliserSiDerniere()
 			echo "# Attention, $lv ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $lv" >&2
 		fi
 	fi
-	[ ! -d "$dest" ] || sudoku "$SCRIPTS/utiliser" -p "$cadets" "$dest"
+	if [ -d "$dest" ]
+	then
+		sudoku "$SCRIPTS/utiliser" -p "$cadets" "$dest"
+		# Si notre logiciel a des alias (ex.: libjpegturbo en tant que libjpeg, ou curl+ossl11 en tant que curl), allons-y.
+		IFS=:
+		tifs guili_tirerAlias -p "`IFS=\| ; echo $cadets`" "$dest" $guili_alias
+	fi
+}
+
+guili_tirerAlias()
+{
+	local preserves= pseudo
+	[ "x$1" = x-p ] && preserves="$2" && shift && shift || true
+	local dest="$1" ; shift
+	local INSTALLS="$INSTALLS"
+	case "$dest" in
+		/*) INSTALLS="`dirname "$dest"`" ;;
+	esac
+	dest="`bn "$dest"`"
+	
+	for pseudo in "$@"
+	do
+		# Veut-on tirer un lien de nous-mêmes ou rien vers nous-mêmes?
+		
+		case "$pseudo" in "$dest"|"") continue ;; esac
+		
+		# Existe-t-il quelque chose auquel nous ne devons pas toucher?
+		
+		if [ -e "$INSTALLS/$pseudo" ]
+		then
+			# Soit un vrai dossier ou fichier.
+			
+			if [ ! -L "$INSTALLS/$pseudo" ]
+			then
+				jaune "Impossible de créer $INSTALLS/$pseudo -> $dest: emplacement occupé." >&2
+				continue
+			fi
+			
+			# Soit un lien que nous ne devons pas écraser.
+			
+			[ -z "$preserves" ] || eval "case \"\$actuel\" in $preserves) continue ;; esac"
+			
+			rm "$INSTALLS/$pseudo"
+		fi
+		
+		gris "Alias $dest <- $pseudo"
+		sudoku ln -s "$dest" "$INSTALLS/$pseudo"
+	done
 }
 
 # Utilise (place ses pions dans $INSTALLS/bin, etc.) le logiciel en cours d'installation s'il s'agit de la version la plus récente sur cette machine et:
