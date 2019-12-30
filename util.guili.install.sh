@@ -118,7 +118,7 @@ utiliserSiDerniere()
 	local logiciel version
 	_affecterVeLo `velo "$lv"`
 	
-	local cadets="`versions "$logiciel > $version"`"
+	local cadets="`cadets "$dest"`"
 	if [ -n "$cadets" ]
 	then
 		local derniere="`echo "$cadets" | tail -1`"
