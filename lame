@@ -29,7 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 3.97 && modifs=fpic || true
 v 3.98.4 || true
 v 3.99.5 || true
-v 3.100 || true
+v 3.100 && modifs="$modifs lame_init_old" || true
 
 v_maj="`echo "$version" | sed -e 's#^\([^.]*\.[^.]*\).*$#\1#'`"
 
@@ -37,6 +37,13 @@ archive="http://mesh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version
 archive="http://freefr.dl.sourceforge.net/project/lame/lame/$v_maj/lame-$version.tar.gz"
 
 # Modifications
+
+lame_init_old()
+{
+	# Ils ont fait une jolie macro cpp pour virer les fonctions obsolètes, mais en listent encore une inconditionnellement.
+	# https://sourceforge.net/p/lame/bugs/487/#0958
+	filtrer include/libmp3lame.sym grep -v lame_init_old
+}
 
 # Variables
 
