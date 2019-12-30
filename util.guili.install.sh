@@ -74,15 +74,8 @@ sutiliser()
 {
 	local biner=
 	[ "x$1" = "x-" -o "x$1" = "x+" ] && biner="$1" && shift || true
-
-	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
-	sudo touch `guili_temoins`
-	guili_deps_pondre
-	
 	sut_lv="$1"
 	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
-	
-	# Si on est censés pousser notre binaire vers un silo central, on le fait.
 	if [ -z "$biner" ]
 	then
 		case "$sut_lv" in
@@ -90,6 +83,14 @@ sutiliser()
 			*) biner=+ ;;
 		esac
 	fi
+	
+	[ "x$biner" = x- ] || guili_postcompil
+	
+	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
+	sudo touch `guili_temoins`
+	guili_deps_pondre
+	
+	# Si on est censés pousser notre binaire vers un silo central, on le fait.
 	if [ "x$biner" = "x+" ]
 	then
 		pousserBinaireVersSilo "$sut_lv"
@@ -394,4 +395,15 @@ FINI
 			chmod a+x "\$b"
 		done
 TERMINE
+}
+
+# Surchargeable par les logiciels pour finaliser l'installation *générique* du logiciel (c'est après cette passe que le logiciel sera poussé vers un éventuel silo à binaires).
+guili_postcompil=
+guili_postcompil()
+{
+	local f
+	for f in $guili_postcompil true
+	do
+		"$f"
+	done
 }
