@@ -27,6 +27,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 3.0.4 && prerequis="m4 >= 1.4.16 perl \\" && modifs="staticNoReturn" || true
+v 3.4.2 && modifs= || true
 
 # Modifications
 
