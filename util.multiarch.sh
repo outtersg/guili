@@ -115,7 +115,7 @@ multiarchCombiner()
 
 multiarchCombinerDarwin()
 {
-	local op f
+	local op f aref ala
 	multiarch_archRef="$1" ; shift
 	multiarch_destRef="$1" ; shift
 	while [ $# -gt 0 ]
@@ -161,6 +161,15 @@ multiarchCombinerDarwin()
 						sudo sh -c "cat $TMP/$$/temp.diffD > $f"
 						;;
 					.so|.dylib|.a|.bin)
+						# Certains logiciels (clang + libc++) sont sélectifs: les binaires et bibliothèques privées sont mono-archi (celle du système), tandis que les bibliothèques publiques sont sur l'archi cible. On se garde d'un pétage lipo en vérifiant ce qu'il en est.
+						aref="`archisBinDarwin "$f"`"
+						ala="`archisBinDarwin "$multiarch_destLa/$f"`"
+						case "$ala" in
+							*" "*) continue ;; # Louche, le truc à rapatrier est déjà multi-archis. Forte probabilité d'explosion, on passe.
+						esac
+						case " $aref " in
+							*" $ala "*) continue ;; # La référence possède déjà l'archi proposée.
+						esac
 						lipo -create "$f" "$multiarch_destLa/$f" -output "$TMP/$$/temp.lipo$suffixe" && sudo sh -c "chmod u+w $f ; cat $TMP/$$/temp.lipo$suffixe > $f" # Certains fichiers étant installés en non inscriptible (openssl), mieux vaut s'assurer les droits avant.
 						;;
 				esac
@@ -175,6 +184,11 @@ multiarchCombinerDarwin()
 		shift
 		shift
 	done
+}
+
+archisBinDarwin()
+{
+	lipo -info "$1" | sed -e '1!d' -e 's/^[^:]*:[^:]*: //' -e 's/ $//' # "Non-fat file: x is architecture: " ou "Architectures in the fat file: x are: "
 }
 
 # Peut être surchargée pour modifier des fichiers avant combinaison.
