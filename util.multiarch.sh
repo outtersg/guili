@@ -14,6 +14,85 @@ multiarchMemoriserInvocation()
 
 multiarchMemoriserInvocation "$@"
 
+# Multi-ARCHitecturER
+# À appeler comme première modif pour installer le logiciel en multi-archi (si supporté par le système).
+marcher()
+{
+	# Version par moire(). Avantages par rapport à la version initiale:
+	# - passe par moire(), donc mutualisation.
+	# - les compil intermédiaires ont pour $dest la vraie destination (plutôt que $dest-$multiarch_arch): s'ils codent en dur leur --prefix dans certains fichiers (ex.: pkgconfig), ce sera le bon préfixe (ne serait-ce qu'en s'installant dans le .guili.dependances d'autres logiciels).
+	# - l'architecture principale est compilée par le process invoqué initialement: il sera plus à même de répondre aux varsPrerequis.
+	
+	mac || return 0 # Pour le moment je ne sais pas faire sur d'autres plates-formes que le Mac.
+	
+	case "$GUILI_MOIRE:" in
+		*:multiarch:*)
+			multiarchConfigurer
+			;;
+		*)
+			if [ $# -eq 0 ]
+			then
+				IFS="`printf '\003'`"
+				tifs maLancer $multiarch_invocation
+			else
+				maLancer "$install_moi" "$@"
+			fi
+			;;
+	esac
+	# On affiche ce que l'on va attaquer:
+	# - si l'on tourne avant obtenirEtAllerDansVersion, on peut modifier le joli en-tête qui va y être affiché, ça fera propre
+	# - sinon, on arrive après la bataille, on se rabat sur une trace mentionnant l'architecture entre parenthèses.
+	# Notre présence dans $modifs indiquera par quel moyen nous sommes lancés.
+	case " $modifs " in
+		*" marcher "*) gris "(multiarch:$multiarch_arch)" ;;
+		*) GUILI_MOIRE="$GUILI_MOIRE:$multiarch_arch" ;;
+	esac
+}
+
+maLancer()
+{
+	shift # Le premier paramètre est $install_moi, pour compatibilité avec l'ancien multiarch.
+	
+	# Pour quelles archis va-t-on travailler?
+	
+	mas
+	
+	# En avant!
+	
+	local a da a0 # a0: archi principale (la première, enfin la zéroïème).
+	
+	for a in $multiarch_archs
+	do
+		# La première archi va s'exécuter dans le processus père (nous).
+		
+		if [ -z "$a0" ]
+		then
+			da="$dest"
+			a0="$a"
+			# Le reste des opérations va se faire dans la suite de ce script.
+		else
+			# Lancement d'un fils pour l'archi.
+			moire -i multiarch "$@" --arch "$a"
+			
+			# Déplacement pour que le suivant trouve la place nette.
+			
+			da="$dest-$a"
+			sudoku mv "$dest" "$da"
+		fi
+		multiarch_paramsCombiner="$multiarch_paramsCombiner $a $da"
+	done
+	
+	# On installe notre combineur pour après la compil.
+	
+	guili_postcompil="$guili_postcompil multiarchCombiner"
+	
+	# Et on prépare notre compil.
+	
+	multiarch_arch="$a0"
+	multiarchConfigurer
+}
+
+# À FAIRE: supprimer cette fonction et multiarchLancer. Simplifier multiarchMemoriserInvocation et maLancer en virant l'$install_moi initial.
 multiarch()
 {
 	mac || return 0 # Pour le moment je ne sais pas faire sur d'autres plates-formes que le Mac.
