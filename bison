@@ -28,7 +28,7 @@ logiciel=bison
 
 # Historique des versions gérées
 
-v 3.0.4 && modifs="staticNoReturn" || true
+v 3.0.4 && prerequis="m4 >= 1.4.16 perl \\" && modifs="staticNoReturn" || true
 
 prerequis
 
