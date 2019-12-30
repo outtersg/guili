@@ -72,6 +72,15 @@ archive="`archive llvm`"
 
 # Modifs.
 
+# (utilisée avec multiarch())
+# Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction des archis supportées par le ld système; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un nouveau llvm + clang.
+multiarchConfigurer()
+{
+	case "$multiarch_arch" in
+		i386) OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_BUILD_32_BITS=ON" ;; # Pas besoin de LLVM_BUILD_32_BITS=ON pour les binaires, seule libc++ nous intéresse.
+	esac
+}
+
 laisserCxxISystem()
 {
 	# clang, dans sa libc++, possède un stddef.h qui fait grosso modo du #ifndef MOI #define MOI #include_next <stddef.h>.
@@ -232,6 +241,9 @@ then
 	[ -d build ] && cd build || true
 	bash
 else
+
+pg 3.9.1 $version || multiarch
+
 obtenirEtAllerDansVersion
 
 integrer()
