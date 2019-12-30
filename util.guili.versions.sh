@@ -86,3 +86,43 @@ versions()
 		) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$filtreVersion" | triversions | $filtreTrouves
 	done
 }
+
+# Liste les versions "supérieures" à une version donnée: soit version ultérieure, soit même version mais plus d'options.
+# Utilisation: cadets <logiciel>+
+#   <logiciel>
+#     Peut être un chemin absolu $INSTALLS/<logiciel>+<option>-<version>, ou un simple <l>+<o>-<v>.
+#     Attention: s'il n'existe pas dans $INSTALLS, tous les résultats trouvés seront considérés comme supérieurs; ainsi un appel à cadets nginx+cscript-1.17.4 alors que le logiciel mentionné n'existe pas, renverra pour cadet un nginx-1.17.4 (sans cscript).
+cadets()
+{
+	local sep= lov l o v
+	[ "x$1" = x-s ] && shift && sep="$1" && shift || true
+	for lov in "$@"
+	do
+		love -e "l o v" "$lov"
+		_cadets "$lov" `versions "$l >= $v" | sed -e 's#^.*/##'`
+	done
+}
+
+_cadets()
+{
+	local truc="`bn "$1"`" ; shift
+	IFS=:
+	if ! tifs _cascadets ":$*:" # Si nous figurons dans la liste de cadets potentiels.
+	then
+		while [ "$1" != "$truc" ] ; do shift ; done
+		shift
+	fi
+	if [ -z "$sep" ]
+	then
+		for l in "$@" ; do echo "$l" ; done
+	else
+		IFS="$sep"
+		echo "$*"
+		unset IFS
+	fi
+}
+
+_cascadets()
+{
+	case "$1" in *:$truc:*) return 1 ;; esac
+}
