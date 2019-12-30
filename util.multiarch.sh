@@ -84,7 +84,8 @@ multiarchCombinerDarwin()
 		multiarch_archLa="$1"
 		multiarch_destLa="$2"
 		multiarchPrecombiner "$multiarch_archLa" "$multiarch_destLa"
-		diff -rq . "$multiarch_destLa" 2> /dev/null | sed -e 's/^Files //' -e 's/ and .*differ//' | while read f
+		# À FAIRE: gérer les Only in $multiarch_destLa
+		diff -rq . "$multiarch_destLa" 2> /dev/null | sed -e '/^Only/d' -e 's/^Files //' -e 's/ and .*differ//' | while read f
 		do
 			if [ ! -L "$f" ]
 			then
