@@ -46,6 +46,7 @@ v 2.5.2 || true
 v 3.2.2 || true
 v 3.3.2 || true
 v 4.0.2 || true
+v 4.2.1 || true
 
 # http://lists.freebsd.org/pipermail/freebsd-questions/2012-February/238956.html
 if [ `uname` = FreeBSD -a `uname -r | sed -e 's/[^0-9].*//'` -lt 10 ] # Le 10 est arbitraire.
