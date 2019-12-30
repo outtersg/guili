@@ -371,6 +371,17 @@ personnaliserInstallPhp()
 
 guili_localiser="$guili_localiser personnaliserInstallPhp"
 
+versionDev=
+case "$versionComplete" in
+	*.git) versionDev=oui ;;
+esac
+if [ -n "$install_obtenu" -a -d "$install_obtenu/.git" ]
+then
+	versionDev=oui
+fi
+
+[ -z "$versionDev" ] || prerequis="bison \\ $prerequis"
+
 destiner
 
 prerequis
@@ -383,6 +394,7 @@ case "$version" in
 		;;
 	*)
 		obtenirEtAllerDansVersion
+[ ! -d .git ] || ./buildconf
 		;;
 esac
 
