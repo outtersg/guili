@@ -75,6 +75,7 @@ multiarchCombiner()
 
 multiarchCombinerDarwin()
 {
+	local op f
 	multiarch_archRef="$1" ; shift
 	multiarch_destRef="$1" ; shift
 	while [ $# -gt 0 ]
@@ -84,9 +85,23 @@ multiarchCombinerDarwin()
 		multiarch_archLa="$1"
 		multiarch_destLa="$2"
 		multiarchPrecombiner "$multiarch_archLa" "$multiarch_destLa"
-		# À FAIRE: gérer les Only in $multiarch_destLa
-		diff -rq . "$multiarch_destLa" 2> /dev/null | sed -e '/^Only/d' -e 's/^Files //' -e 's/ and .*differ//' | while read f
+		diff -rq . "$multiarch_destLa" 2> /dev/null | sed \
+			-e "s#^Only in $multiarch_destLa/#+ #" \
+			-e '/^+ /s#: #/#' \
+			-e "s#^Only in $multiarch_destLa: #+ #" \
+			-e '/^Only/d' \
+			-e 's/^Files /= /' -e 's/ and .*differ//' \
+		| while read op f
 		do
+			# Traitement des "Only in".
+			case "$op" in
+				+)
+					case "$f" in .complet|.guili*) continue ;; esac
+					echo "$f" >&6
+					continue
+					;;
+			esac
+			# Traitement des différences.
 			if [ ! -L "$f" ]
 			then
 				nom="`basename "$f"`"
@@ -110,7 +125,12 @@ multiarchCombinerDarwin()
 						;;
 				esac
 			fi
-		done
+		done 6> "$TMP/$$/atarer"
+		if [ -s "$TMP/$$/atarer" ]
+		then
+			( cd "$multiarch_destLa" && tr '\012' '\000' < "$TMP/$$/atarer" | xargs -0 tar cf - ) | sudoku tar xf -
+		fi
+		rm "$TMP/$$/atarer"
 		sudo rm -Rf "$multiarch_destLa"
 		shift
 		shift
