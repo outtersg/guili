@@ -92,21 +92,8 @@ maLancer()
 	multiarchConfigurer
 }
 
-# À FAIRE: supprimer cette fonction et multiarchLancer. Simplifier multiarchMemoriserInvocation et maLancer en virant l'$install_moi initial.
-multiarch()
-{
-	mac || return 0 # Pour le moment je ne sais pas faire sur d'autres plates-formes que le Mac.
-	
-	if [ -z "$multiarch_arch" ]
-	then
-		multiarchLancer
-		exit 0
-	else
-		dest="$dest.$multiarch_arch"
-		[ -z "$install_dest" ] || dest="$install_dest"
-		multiarchConfigurer
-	fi
-}
+# À FAIRE: simplifier multiarchMemoriserInvocation et maLancer en virant l'$install_moi qui servaient à l'implémentation d'origine.
+multiarch() { marcher "$@" ; }
 
 mas()
 {
@@ -118,32 +105,6 @@ mas()
 			multiarch_archs="x86_64 i386"
 			;;
 	esac
-}
-
-multiarchLancer()
-{
-	# Pour quelles archis va-t-on travailler?
-	
-	mas
-	
-	# En avant!
-	
-	multiarch_premiereArch="`echo "$multiarch_archs" | awk '{print $1}'`"
-	for multiarch_arch in $multiarch_archs
-	do
-		multiarch_dossierTravail="../$logiciel-$version-$multiarch_arch"
-		multiarch_dest="$dest"
-		[ "$multiarch_arch" = "$multiarch_premiereArch" ] || multiarch_dest="$INSTALLS/$logiciel-$version-$multiarch_arch" # La première architecture va s'installer à l'endroit officiel.
-		cp -R . "$multiarch_dossierTravail"
-		IFS="`printf '\003'`"
-		$multiarch_invocation --src "$multiarch_dossierTravail" --arch "$multiarch_arch" --dest "$multiarch_dest"
-		unset IFS
-		multiarch_paramsCombiner="$multiarch_paramsCombiner $multiarch_arch $multiarch_dest"
-	done
-	
-	# Et on combine.
-	
-	multiarchCombiner
 }
 
 multiarchCombiner()
