@@ -28,6 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 v 0.7 && prerequis="opus ogg" && modifs="sansCompat" || true
 v 0.9 || true
+v 0.11 || true
 
 # Modifications
 
