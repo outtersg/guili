@@ -23,12 +23,12 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && prerequis="openssl libssh curl cmake gcc >= 6 binutils >= 2.21 git bash" && modifs="viaGcc libcxxspecifique sousBsd" || true
+v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 binutils >= 2.21 git bash \\ openssl libssh curl" && modifs="viaGcc libcxxspecifique sousBsd" || true
 v 2017.09.25 && versionComplete="$version.9f272dd25bf8ad69a1bd4611f7342e0d22ac6d9b.git" || true
 v 2017.10.01 && versionComplete="$version.5b5deea5fcc3e76690d20d8cba726f4edf462619.git" || true
 v 2017.11.04 && versionComplete="$version.715ab49457f5d797fae8b155f51142674fe0075c.git" || true
