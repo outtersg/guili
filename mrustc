@@ -187,18 +187,24 @@ else
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
+OPTIONS_MAKE=
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 
 echo Compilation… >&2
-make
-make -f minicargo.mk tools/bin/minicargo
+make $OPTIONS_MAKE
+make $OPTIONS_MAKE -f minicargo.mk tools/bin/minicargo
 if option rustc # À ne pas utiliser; mieux vaut compiler mrustc de son côté, puis rust 1.19.0 +viamrustc
 then
-	make RUSTCSRC
-	make -f minicargo.mk
-	make -C run_rustc
+	# https://github.com/thepowersgang/mrustc: sous FreeBSD il est possible qu'il faille remplacer make par:
+	# gmake CC=cc RUSTC_TARGET=x86_64-unknown-freebsd
+	# Ceci permettrait de se passer de target(), et d'utiliser clang plutôt que gcc.
+	# La version de mai 2019 ne le gérerait pas encore, celle de novembre si.
+	# En pratique non, toujours pas (au moins pour la partie clang: erreur dès le début sur un hash_table).
+	make $OPTIONS_MAKE RUSTCSRC
+	make $OPTIONS_MAKE -f minicargo.mk
+	make $OPTIONS_MAKE -C run_rustc
 fi
 fi
 
