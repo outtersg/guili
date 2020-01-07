@@ -152,7 +152,7 @@ a\
 #endif
 x
 }'
-	patch <<TERMINE
+	patch -p0 <<TERMINE
 --- src/main.cpp	2017-10-03 22:07:31.289880000 +0200
 +++ src/main.cpp	2017-10-03 22:07:17.064410000 +0200
 @@ -723,7 +723,7 @@
