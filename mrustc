@@ -41,6 +41,11 @@ v 2018.04.07 && versionComplete="$version.4f98e4322ef7aabd3bbef8cd93c0980cd6eeee
 v 2018.05.28 && versionComplete="$version.5206b786247238f32a2b5ad8ed7f6d378a1d2d12.git" || true
 v 2018.06.04 && versionComplete="$version.42bdc18d4ba8f9fd19109050eb83bb6615539a75.git" || true
 v 2018.08.20 && versionComplete="$version.74c2ec9d3c7eb09540a2a5de3127390fa8252179.git" || true
+v 2018.10.06 && versionComplete="$version.1382500b5fdba00568a86f0122bc2e78584dfb5d.git" || true
+v 2019.05.29 && versionComplete="$version.ebd8edeb4f1861943cc82d310564b1f592e63272.git" || true
+#v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(clang >= 8, gcc >= 6) git bash \\ openssl libssh curl" && modifs="target2 sousBsd pointpointbin patache" || true
+v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 binutils >= 2.21 git bash \\ openssl libssh curl" && modifs="target2 viaGcc libcxxspecifique sousBsd pointpointbin patache" || true
+v 2020.01.05 && versionComplete="$version.aa9d5a9fa0ee79650b15db06e69bbbf591710f68.git" || true
 
 # Modifications
 
@@ -58,6 +63,20 @@ pointpointbin()
 	ici="`pwd`"
 	rm -f ../bin
 	ln -s "`basename "$ici"`/bin" ../bin
+}
+
+target2()
+{
+	systeme=`uname -s | tr A-Z a-z`
+	proc=`uname -m`
+	case "$systeme" in
+		linux) return ;;
+	esac
+	case $proc in
+		amd64) proc=x86_64 ;;
+	esac
+	
+	OPTIONS_MAKE="$OPTIONS_MAKE RUSTC_TARGET=$proc-unknown-$systeme"
 }
 
 target()
