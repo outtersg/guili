@@ -212,7 +212,7 @@ echo Installation… >&2
 mkdir dest dest/bin dest/share dest/share/mrustc
 cp bin/mrustc tools/bin/minicargo dest/bin/
 cp -R lib dest/lib
-tar cf - Makefile minicargo.mk rust-version tools/minicargo tools/common script-overrides rust_src.patch lib | ( cd dest/share/mrustc && tar xf - )
+tar cf - Makefile minicargo.mk rust-version tools/minicargo tools/common script-overrides rust*src.patch lib | ( cd dest/share/mrustc && tar xf - )
 sudo cp -R dest "$dest"
 
 sutiliser
