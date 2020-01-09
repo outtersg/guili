@@ -190,7 +190,8 @@ guili_tirerAlias()
 			
 			# Soit un lien que nous ne devons pas écraser.
 			
-			[ -z "$preserves" ] || eval "case \"\$actuel\" in $preserves) continue ;; esac"
+echo "AVEC $preserves ET $pseudo" >&2
+			[ -z "$preserves" ] || eval "case \"\$pseudo\" in $preserves) continue ;; esac"
 			
 			rm "$INSTALLS/$pseudo"
 		fi
