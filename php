@@ -100,6 +100,7 @@ v 7.3.4 || true
 v 7.3.9 || true
 v 7.3.10 || true
 v 7.3.11 && retirerModif cve201911043 || true # Tout ce qui est >= 7.3.11 (7.3.11, 7.3.12, etc., 7.4.0, 7.4.1, etc.) embarque le correctif à CVE-2019-11043.
+v 7.3.13 || true
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
 if optionSi postgresql sh -c 'psql --version 2> /dev/null | grep -q PostgreSQL'
