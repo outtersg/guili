@@ -155,7 +155,7 @@ utiliserSiDerniere()
 		sudoku "$SCRIPTS/utiliser" -p "$cadets" "$dest"
 		# Si notre logiciel a des alias (ex.: libjpegturbo en tant que libjpeg, ou curl+ossl11 en tant que curl), allons-y.
 		IFS=:
-		tifs guili_tirerAlias -p "`IFS=\| ; echo $cadets`" "$dest" $guili_alias
+		tifs guili_tirerAlias -p "`unset IFS ; f() { IFS=\| ; echo "$*" ; } ; f $cadets`" "$dest" $guili_alias
 	fi
 }
 
