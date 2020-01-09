@@ -22,7 +22,32 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
  }
  /* }}} */
  
-@@ -975,6 +990,55 @@
+@@ -129,6 +141,16 @@
+ }
+ /* }}} */
+ 
++static void pdo_pgsql_cleanup_notice_callback(pdo_pgsql_db_handle *H) /* {{{ */
++{
++	if (H->notice_callback) {
++		zval_ptr_dtor(&H->notice_callback->fci.function_name);
++		efree(H->notice_callback);
++		H->notice_callback = NULL;
++	}
++}
++/* }}} */
++
+ /* {{{ pdo_pgsql_create_lob_stream */
+ static size_t pgsql_lob_write(php_stream *stream, const char *buf, size_t count)
+ {
+@@ -211,6 +233,7 @@
+ {
+ 	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data;
+ 	if (H) {
++		pdo_pgsql_cleanup_notice_callback(H);
+ 		if (H->server) {
+ 			PQfinish(H->server);
+ 			H->server = NULL;
+@@ -1121,6 +1144,54 @@
  }
  /* }}} */
  
@@ -47,15 +72,13 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +	H = (pdo_pgsql_db_handle *)dbh->driver_data;
 +
 +	if (Z_TYPE_P(callback) == IS_NULL) {
-+		if (H->notice_callback) {
-+			efree(H->notice_callback);
-+			H->notice_callback = NULL;
-+		}
++		pdo_pgsql_cleanup_notice_callback(H);
 +		RETURN_TRUE;
 +	} else {
 +		if (!(fc = H->notice_callback)) {
 +			fc = (pdo_pgsql_fci*)ecalloc(1, sizeof(pdo_pgsql_fci));
 +		} else {
++			zval_ptr_dtor(&fc->fci.function_name);
 +			memcpy(&fc->fcc, &empty_fcall_info_cache, sizeof(fc->fcc));
 +		}
 +
@@ -66,6 +89,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +			H->notice_callback = NULL;
 +			RETURN_FALSE;
 +		}
++		Z_ADDREF_P(&fc->fci.function_name);
 +		zend_string_release_ex(cbname, 0);
 +
 +		H->notice_callback = fc;
