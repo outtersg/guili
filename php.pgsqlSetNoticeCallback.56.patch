@@ -1,11 +1,12 @@
 diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 --- ext/pdo_pgsql/pgsql_driver.c	2015-09-01 22:09:37.000000000 +0200
 +++ ext/pdo_pgsql/pgsql_driver.c	2019-10-01 05:18:31.085807000 +0200
-@@ -98,7 +98,22 @@
+@@ -98,7 +98,27 @@
  
  static void _pdo_pgsql_notice(pdo_dbh_t *dbh, const char *message) /* {{{ */
  {
 -/*	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data; */
++	TSRMLS_FETCH();
 +	int ret;
 +	zval *zstring1;
 +	zval **zarg;
@@ -18,7 +19,11 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +		fc->fci.param_count = 1;
 +		fc->fci.params = &zarg;
 +		fc->fci.retval_ptr_ptr = &retval_ptr;
-+		if ((ret = zend_call_function(&fc->fci, &fc->fcc TSRMLS_CC)) == FAILURE) {
++		if ((ret = zend_call_function(&fc->fci, &fc->fcc TSRMLS_CC)) != FAILURE) {
++			zval_ptr_dtor(&retval_ptr);
++		}
++		zval_ptr_dtor(&zstring1);
++		if (ret == FAILURE) {
 +			pdo_raise_impl_error(dbh, NULL, "HY000", "could not call user-supplied function" TSRMLS_CC);
 +		}
 +	}
