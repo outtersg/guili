@@ -1,7 +1,7 @@
 diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 --- ext/pdo_pgsql/pgsql_driver.c	2015-09-01 22:09:37.000000000 +0200
 +++ ext/pdo_pgsql/pgsql_driver.c	2019-10-01 05:18:31.085807000 +0200
-@@ -98,7 +98,21 @@
+@@ -98,7 +98,23 @@
  
  static void _pdo_pgsql_notice(pdo_dbh_t *dbh, const char *message) /* {{{ */
  {
@@ -15,7 +15,9 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +		fc->fci.param_count = 1;
 +		fc->fci.params = &zarg;
 +		fc->fci.retval = &retval;
-+		ret = zend_call_function(&fc->fci, &fc->fcc TSRMLS_CC);
++		if ((ret = zend_call_function(&fc->fci, &fc->fcc TSRMLS_CC)) != FAILURE) {
++			zval_ptr_dtor(&retval);
++		}
 +		zval_ptr_dtor(&zarg);
 +		if (ret == FAILURE) {
 +			pdo_raise_impl_error(dbh, NULL, "HY000", "could not call user-supplied function" TSRMLS_CC);
@@ -91,7 +93,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +			H->notice_callback = NULL;
 +			RETURN_FALSE;
 +		}
-+		Z_ADDREF_P(&fc->fci.function_name);
++		Z_TRY_ADDREF_P(&fc->fci.function_name);
 +		zend_string_release_ex(cbname, 0);
 +
 +		H->notice_callback = fc;
