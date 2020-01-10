@@ -21,6 +21,8 @@
 # Renvoie les versions pour un logiciel donnée, triées par version croissante.
 versions()
 {
+	# À FAIRE: -f (--finalisees, --full, --completes, --fear-the-partial), pour ne récupérer que celles possédant un .complet
+	# À FAIRE: un .encours, qui pourrait être déposé après le sudoku make install mais avant le sutiliser, si par exemple on a entre les deux des choses à faire qui reposent sur notre future présence (ex.: ./php +xdebug fait `sudoku make install ; ./xdebug ; sutiliser`: le xdebug doit pouvoir trouver le php qui l'a appelé). Ce .encours serait supprimé dans menage(); il serait valable aux yeux de version -f.
 	local GUILI_PATH="$GUILI_PATH"
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	
