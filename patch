@@ -33,7 +33,6 @@ v 2.7.6 || true
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.gnu.org/gnu/patch/patch-$version.tar.gz"
 archive="http://ftp.gnu.org/gnu/patch/patch-$version.tar.gz"
 
