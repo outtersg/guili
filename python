@@ -395,12 +395,13 @@ echo Configuration… >&2
 ./configure --prefix="$dest" --enable-shared $OPTIONS_CONF
 
 echo Compilation… >&2
-make
+# Certains tests (robot_parser par exemple) montant un client - serveur, il ne faut surtout pas passer par le proxy pour ce genre de choses.
+( proxy "" && make )
 
 fi
 
 echo Installation… >&2
-sudo make install
+( proxy "" && sudo make install )
 [ -e "$dest/bin/python" ] || sudo ln -s python3 "$dest/bin/python"
 pythonenboiter
 # http://legacy.python.org/dev/peps/pep-3149/
