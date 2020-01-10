@@ -110,6 +110,8 @@ _vc()
 triversions()
 {
 	# De deux logiciels en même version, on prend le chemin le plus long: c'est celui qui embarque le plus de modules optionnels.
+	# À FAIRE: en fait calculer sur le nombre d'options plutôt que sur leur longueur: abc+x+y est plus avancé qu'abc+option_longue.
+	# À FAIRE: permettre à l'appelant de fournir une fonction (awk) qui joue sur l'ordre; par exemple parce qu'avoir telle option est au contraire une pénalité, ou pour privilégier +ossl11 par rapport à +ossl10, ou encore pour que, à nombre d'options égal, le logiciel en cours d'installation soit considéré plus plus avancé que les autres déjà installés.
 	awk '
 		BEGIN {
 			# Certaines versions d awk veulent que ls soit initialisée en array avant de pouvoir être length()ée.
