@@ -58,3 +58,13 @@ moire()
 		:*) sutiliser() { true ; } ;;
 	esac
 }
+
+unexportMoire()
+{
+	[ -n "$GUILI_MOIRE" ] || return 0
+	local m="$GUILI_MOIRE"
+	unset GUILI_MOIRE
+	GUILI_MOIRE="$m"
+}
+
+unexportMoire
