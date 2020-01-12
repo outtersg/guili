@@ -366,10 +366,7 @@ then
 else
 
 optionSi sqlite || true
-if optionSi openssl # Quand même assez nécessaire pour aller chercher des trucs ez_setup.py etc. sur du https:// en 2019. Mais bon faisons comme si c'était optionnel.
-then
-	prerequisOpenssl
-fi
+prerequisOpenssl --si-present # Quand même assez nécessaire pour aller chercher des trucs ez_setup.py etc. sur du https:// en 2019. Mais bon faisons comme si c'était optionnel.
 optionSi curl || true
 pge $version 3 && OPTIONS_CONF="$OPTIONS_CONF --with-system-ffi" || true
 confOptims()
