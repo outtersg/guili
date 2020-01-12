@@ -209,11 +209,40 @@ uniquementPrerequis()
 #- Gestion des paramètres ------------------------------------------------------
 
 # Interprète parmi les paramètres ceux standardisés GuiLI.
+# Note pour les amorceurs (trucs qui lancent un logiciel sous-jacent (LSJ) en tant que service système, ex.: l'amorceur _nginx lance le binaire nginx):
+# Si le LSJ est reconnu dans les paramètres, tout ce qui suit est considéré non comme paramètres de l'amorceur mais agrégé comme paramètres du LSJ. Ainsi, dans ./_phpfpm -u www php +postgresql, le -u www est-il paramètre de _phpfpm et le +postgresql de php.
+# Rien n'empêche ceci dit les amorceurs de transmettre leurs paramètres "manuellement" à leur LSJ (ce qui permet l'écriture simplifiée ./_phpfpm -u www +postgresql; charge alors à l'amorceur de faire le tri entre ses paramètres et de transmettre au LSJ ceux qui lui sont destinées).
+# Dans les deux cas, si l'amorceur souhaite indiquer pour quel LSJ il est configuré (options, version), il ne doit pas reposer sur ses propres options mais refléter celles du LSJ (qui peut avoir été trouvé avec plus d'options, par exemple).
 analyserParametresInstall()
 {
+	guili_sep="`printf '\003'`"
+	
+	case "$logiciel" in
+		_*) [ -n "$lsj" ] || lsj="`echo "$logiciel" | cut -c 2-`" ;; # Par convention, _nginx a pour logiciel sous-jacent nginx.
+	esac
+	
+	local l
+	if [ -n "$lsj" ]
+	then
+		for l in $lsj
+		do
+			eval "lsj_dest_$lsj= ; guili_params_$lsj="
+		done
+	fi
+	
+	guili_params_=
 	argOptions=
 	while [ $# -gt 0 ]
 	do
+		if [ -n "$lsj" ]
+		then
+			case " $lsj " in
+				*" $1 "*)
+					analyserParametresInstallLsj "$@"
+					break
+					;;
+			esac
+		fi
 		case "$1" in
 			--force) GUILI_INSTALLER_VIEILLE=oui ;;
 			--src) shift ; install_obtenu="$1" ;;
@@ -223,12 +252,47 @@ analyserParametresInstall()
 			+-[a-z]*) argOptions="$argOptions`echo "$1" | cut -d + -f 2-`" ;;
 			+[a-z]*) argOptions="$argOptions$1" ;;
 			--sans-*) argOptions="$argOptions-`echo "$1" | cut -d - -f 4-`" ;;
+			# Le reste peut être cumulé dans $guili_params_: par exemple pour vérification ultérieure que n'a pas été mentionné de paramètre non reconnu.
+			*) analyserParametresInstallLsj "" "$1" ;; # À FAIRE: argVersion devrait aussi être expurgé d'ici.
 		esac
 		shift
 	done
 	argOptions="`options "$argOptions" | tr -d ' '`"
 	argOptionsOriginal="$argOptions"
 	argOptionsDemandees="$argOptions+"
+}
+
+analyserParametresInstallLsj()
+{
+	local lsjcourant="$1" ; shift
+	while [ $# -gt 0 ]
+	do
+		# Cas particulier de variable qui bave: le premier alias de notre premier LSJ peut déterminer le suffixe à donner à notre propre alias implicite.
+		# De manière générale (valable pour les autres LSJ aussi), nous lancerons un LSJ depuis son alias générique s'il existe.
+		
+		case "$1" in
+			--alias)
+				# $dest<lsj> que nous devrons utiliser? On ne s'installe pas tout de suite sur cette variable, car elle sera écrasée par prerequis(); on met donc de côté dans lsj_dest_<lsj>.
+				local varDest="lsj_dest_$lsjcourant"
+				eval '[ -n "$'$varDest'" ] || '$varDest'="$INSTALLS/$2"'
+				# Suffixe reportable sur nous-mêmes?
+				if [ -z "$guili_alias" ]
+				then
+					case "$2" in
+						"$lsjcourant"*) guili_alias="$logiciel`echo "$2" | sed -e "s#^$lsjcourant##"`" ;; # On récupère le suffixe de l'alias de notre LSJ, que l'on accole à notre $logiciel pour obtenir l'alias (ex.: `./_nginx nginx --alias nginxSysteme` s'installera sous _nginxSysteme).
+					esac
+				fi
+				;;
+		esac
+		
+		# Cumul des paramètres destiné à notre $lsjcourant.
+		
+		eval guili_params_$lsjcourant='"$guili_params_'$lsjcourant'$guili_sep$1"'
+		
+		# Suivant!
+		
+		shift
+	done
 }
 
 # Recherche les paramètres de type -d <dossier GuiLI> ou --pour "<logiciel GuiLI> <options de version GuiLI>" et:
