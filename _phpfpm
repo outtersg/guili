@@ -21,12 +21,16 @@
 
 set -e
 
+lsj="php" # Logiciel Sous-Jacent (à préciser car nous ne sommes pas _$lsj).
+
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 argVersion="`argVersionSauf "-p -s" "$@"`" # Un suffixe indiqué en "-s 7.2" ne veut pas dire qu'on force à la version 7.2 (qui n'existe pas d'ailleurs).
 
 # Historique des versions gérées
+
+prerequis=php
 
 auSecours()
 {
@@ -52,7 +56,15 @@ analyserParametres()
 			-r|-up) PARAMS_SERVEUR="$PARAMS_SERVEUR $1 $2" ; shift ;;
 			-U) shift ; compteMaitre="$1" ; [ -z "$compte" -a "c$1" != croot ] && compte="$1" || true ;;
 			-u) compte="$2" ; shift ;;
-			-s) suffixe="$2" ; shift ;;
+			-s)
+				suffixe="$2"
+				case "$guili_params_php" in
+					*"$guili_sep--alias${guili_sep}php"*) true ;;
+					*) guili_params_php="$guili_params_php$guili_sep-l${guili_sep}php$suffixe" ;;
+				esac
+				guili_alias="$guili_alias:$logiciel$suffixe"
+				shift
+				;;
 			-p) port="$2" ; PARAMS_SERVEUR="$PARAMS_SERVEUR -r $2" ; shift ;;
 			--var-run=*) varrun="`echo "$1" | cut -d = -f 2-`" ;;
 			--var-log=*) varlog="`echo "$1" | cut -d = -f 2-`" ;;
@@ -60,6 +72,8 @@ analyserParametres()
 		esac
 		shift
 	done
+	
+	apiReporterParamsLsj
 
 	if [ -z "$compte" ]
 	then
@@ -74,17 +88,6 @@ analyserParametres()
 			exit 1
 		fi
 	fi
-	
-	# Consommons les options passées à notre logiciel "statique" sous-jacent.
-	local o
-	IFS=+
-	for o in $argOptions
-	do
-		[ -n "$o" ] || continue
-		option $o
-	done
-	unset IFS
-	presentOuPrerequis "php $argOptions" "$argVersion"
 }
 
 filtrerConfs()
@@ -107,7 +110,8 @@ filtrerConfs()
 	done
 }
 
-analyserParametres "$@"
+IFS="$guili_sep"
+tifs analyserParametres $guili_params_
 
 prerequis
 
@@ -115,17 +119,18 @@ prerequis
 
 # Variables
 
-version="$version_php"
-
-destiner
-
-echo "Auto-démarrage…" >&2
 # Si le suffixe vaut x, xx, xxx, etc., on remplace par les éléments de version correspondants.
 if echo "$suffixe" | grep -q '^xx*$'
 then
 	nElementsSuffixe="`printf "%s" "$suffixe" | wc -c | tr -d ' '`"
 	suffixe="`echo "$version_php" | cut -d . -f "1-$nElementsSuffixe" | tr -d .`"
 fi
+
+volsj # On prend pour version et options celles de notre logiciel sous-jacent.
+
+destiner
+
+echo "Auto-démarrage…" >&2
 		conf="$dest/etc/php-fpm$suffixe.conf"
 	[ -n "$varrun" ] || varrun="$dest/var/run"
 	[ -n "$varlog" ] || varlog="$dest/var/log"
