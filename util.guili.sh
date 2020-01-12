@@ -351,6 +351,31 @@ _nouveauPour()
 	prerequisPour="$prerequisPour $p"
 }
 
+# Peut être appelé dans l'analyserParametresInstall d'un amorceur pour reporter sur son premier LSJ (ex.: nginx pour l'amorceur _nginx) les options et contraintes de version passées à l'amorceur.
+apiReporterParamsLsj()
+{
+	# Si pas de LSJ, pas d'objet.
+	[ -n "$lsj" ] || return 0
+	
+	local o l var
+	
+	for l in $lsj ; do break ; done
+	
+	# Si le LSJ dispose explicitement de ses options propres, pas de report (ex./ `./_nginx +optionAmorceur nginx +optionLSJ ">= 1.15"`).
+	eval '[ -z "$guili_params_'$l'" ]' || return 0
+	
+	# On marque les options comme prises en compte pour ne pas péter au moment de la vérification.
+	IFS=+ ; for o in $argOptions ; do [ -n "$o" ] || continue ; option $o ; done ; unset IFS
+	
+	# Dans nos prérequis, des contraintes s'ajoutent.
+	prerequis="$prerequis $l$argOptions $argVersion"
+	
+	# Et on passe nos options à notre LSJ.
+	var=guili_params_$l
+	[ -z "$argOptions" ] || eval $var'="$'$var'$guili_sep$argOptions"'
+	[ -z "$argVersion" ] || eval $var'="$'$var'$guili_sep$argVersion"'
+}
+
 # À invoquer juste avant sutiliser, pour installer (si demandé par option) un greffon.
 greffon()
 {
