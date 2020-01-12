@@ -20,6 +20,20 @@
 
 prerequis()
 {
+	local l params
+	
+	# Prérequis LSJ (logiciels sous-jacents): on les recalcule explicitement, pour qu'ils aillent chercher leur dernière version disponible, plutôt que simplement s'assurer qu'il existe une version répondant aux critères (comme fait dans la boucle classique).
+	# En outre cela permet de leur passer des paramètres supplémentaires (les $prerequis classiques sont cantonnés aux options + contraintes de version; mais par exemple pas d'--alias).
+	if [ -n "$lsj" ]
+	then
+		for l in $lsj
+		do
+			eval 'params="$guili_params_'$l'"'
+			IFS="$guili_sep"
+			tifs "$SCRIPTS/$lsj" $params
+		done
+	fi
+	
 	# Si l'environnement est configuré pour que nous renvoyons simplement nos prérequis, on obtempère ici (on considère qu'un GuiLI qui atteint ce point n'a plus rien à faire qui puisse influer sur le calcul de $prerequis.
 	if [ ! -z "$PREREQUIS_THEORIQUES" ]
 	then
