@@ -217,6 +217,7 @@ analyserParametresInstall()
 		case "$1" in
 			--force) GUILI_INSTALLER_VIEILLE=oui ;;
 			--src) shift ; install_obtenu="$1" ;;
+			--alias) shift ; guili_alias="$guili_alias:$1" ;;
 			--dest) shift ; install_dest="$1" ;;
 			+) export INSTALLS_MAX=1 ;;
 			+-[a-z]*) argOptions="$argOptions`echo "$1" | cut -d + -f 2-`" ;;
