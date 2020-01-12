@@ -52,6 +52,27 @@ destiner()
 {
 	local argOptionsResolu
 	verifierConsommationOptions
+	
+	# Un amorceur peut désirer s'installer à un endroit générique (pour rester en place tandis que son logiciel sous-jacent évolue).
+	case "$install_dest:$logiciel:$guili_alias" in
+		":_"*":") true ;;
+		":_"*":"?*)
+			local alias
+			IFS=:
+			for alias in $guili_alias
+			do
+				case "$alias" in
+					"$logiciel"*)
+						# Le premier alias trouvé avec pour préfixe $logiciel devient destination d'install (plutôt que simple alias vers la destination d'install).
+						gris "Installation générique dans $INSTALLS/$alias" >&2
+						install_dest="$INSTALLS/$alias"
+						break
+						;;
+				esac
+			done
+			;;
+	esac
+	
 	if [ -z "$install_dest" ]
 	then
 		# Comparaison options demandées / options effectives:
