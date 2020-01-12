@@ -20,6 +20,30 @@
 
 prerequisOpenssl()
 {
+	case "$argOptions" in
+		# Au moins une option OpenSSL positive: on va pouvoir passer à la suite (qui gérera l'aiguillage).
+		*+ossl*|*+openssl*) true ;;
+		# Aucune option positive, mais au moins une négative explicite.
+		*-ossl[-+]|*-openssl[-+]) virerPrerequis openssl ; return 0 ;; # On retourne, mais après avoir viré toute référence à OpenSSL.
+		# Aucune mention, donc selon le mode d'appel.
+		*)
+			local opsi=
+			case "$1" in
+				# Le plus contraignant: s'il existe exclusivement installé par GuiLI.
+				--si-guili) opsi="optionSi ossl/openssl" ;;
+				# Si on trouve une commande openssl quelque part.
+				--si-la|--si-present|--si-installe) opsi="optionSi ossl/openssl commande openssl" ;;
+				# Mode par défaut (implicite).
+				"") true ;;
+				# Toute autre option est une faute de frappe d'un des --si- ci-dessus.
+				*) rouge "# prerequisOpenssl: option non reconnue: $1" >&2 ; return 1 ;;
+			esac
+			# Si un des modes de recherche est mentionné, on le tente.
+			[ -z "$opsi" ] || $opsi || ! virerPrerequis openssl || return 0
+			# Sinon mode implicite: on prend l'option (un peu à la façon d'opSiPasPas, sauf que là on jongle entre +ossl et +openssl).
+			;;
+	esac
+	
 	local osslxx=ossl11
 	
 	if option ossl10
