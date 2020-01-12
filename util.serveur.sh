@@ -765,10 +765,6 @@ serveur_chownVars()
 # À appeler après prerequis() mais avant destiner() pour pouvoir refléter sur notre $dest les options et version, non pas qui nous ont été passées, mais celles de notre LSJ (par exemple si le LSJ réécrit l'option +ossl comme un +ossl10, on prendra cette dernière plutôt que l'originale).
 volsj()
 {
-	# À FAIRE: l'option -g (générique) pour dire qu'on lancera l'instance de $INSTALLS/bin plutôt que de $dest/bin (donc que si le LSJ change on prendra le nouveau) doit laisser nos options intouchées. Cf. _redis
-	local lsj="$lsj"
-	[ -n "$lsj" ] || lsj="`echo "$logiciel" | cut -c 2-`" # Par convention, _nginx a pour logiciel sous-jacent nginx.
-	
 	IFS=:
 	tifs _volsj $guili_ppath
 }
