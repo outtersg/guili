@@ -127,11 +127,13 @@ configManuel()
 # Variables
 
 v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c="";n=$4;while(n>25){n-=25;c=c"z"}if(n)c=c""substr(t,n,1);print $1"."$2"."$3""c}'`"
+v_maj="`echo "$v_alpha" | tr -d 'a-z'`"
 archive=http://www.openssl.org/source/$logiciel-$v_alpha.tar.gz
 # Difficile maintenant de trouver la source sur un serveur HTTP non 'S'.
 archive=http://artfiles.org/openssl.org/source/$logiciel-$v_alpha.tar.gz
 case "$version" in
 	0.9.*) archive="https://ftp.openssl.org/source/old/0.9.x/openssl-$v_alpha.tar.gz" ;;
+	1.0.*|1.1.0.*) archive="https://ftp.openssl.org/source/old/$v_maj/openssl-$v_alpha.tar.gz" ;;
 esac
 
 destiner
