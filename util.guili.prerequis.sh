@@ -106,6 +106,16 @@ prerequis()
 	else
 	_cheminsExportes
 	fi
+	
+	# Surcharge de nos $dest<lsj> éventuels.
+	
+	if [ -n "$lsj" ]
+	then
+		for l in $lsj
+		do
+			eval '[ -z "$lsj_dest_'$l'" -o ! -e "$lsj_dest_'$l'/.complet" ] || dest'$l'="$lsj_dest_'$l'"'
+		done
+	fi
 }
 
 # S'assure de la présence d'un prérequis, en mode rapide (si quelque chose existe qui réponde aux critères, on ne s'embête pas à lui demander de vérifier ses propres prérequis récursivement, on le prend illico).
