@@ -214,6 +214,12 @@ guili_tirerAlias()
 			
 			[ -z "$preserves" ] || eval "case \"\$pseudo\" in $preserves) continue ;; esac"
 			
+			# Soit déjà nous-mêmes.
+			
+			case "`readlink "$INSTALLS/$pseudo"`" in "$dest") continue ;; esac
+			
+			# Bon sinon ça saute.
+			
 			rm "$INSTALLS/$pseudo"
 		fi
 		
