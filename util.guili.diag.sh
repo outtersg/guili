@@ -41,5 +41,12 @@ diag_aff()
 	echo "$diag_indentation$op [$logiciel$GUILI_MOIRE] $*" >&2
 }
 
+diag_modifs()
+{
+	case "$1" in
+		"+"|"=") printf '%s\n' "$*" >&7 ;;
+	esac
+}
+
 diag . "$0" "$@"
 export diag_indentation="$diag_indentation  "
