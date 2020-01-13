@@ -20,20 +20,29 @@
 
 prerequis()
 {
+	[ -z "$lsj" ] || prerequisAmorceur
+	
+	_prerequis
+	
+	[ -z "$lsj" ] || postprerequisAmorceur
+}
+
+prerequisAmorceur()
+{
 	local l params
 	
 	# Prérequis LSJ (logiciels sous-jacents): on les recalcule explicitement, pour qu'ils aillent chercher leur dernière version disponible, plutôt que simplement s'assurer qu'il existe une version répondant aux critères (comme fait dans la boucle classique).
 	# En outre cela permet de leur passer des paramètres supplémentaires (les $prerequis classiques sont cantonnés aux options + contraintes de version; mais par exemple pas d'--alias).
-	if [ -n "$lsj" ]
-	then
 		for l in $lsj
 		do
 			eval 'params="$guili_params_'$l'"'
 			IFS="$guili_sep"
 			tifs "$SCRIPTS/$lsj" $params
 		done
-	fi
-	
+}
+
+_prerequis()
+{
 	# Si l'environnement est configuré pour que nous renvoyons simplement nos prérequis, on obtempère ici (on considère qu'un GuiLI qui atteint ce point n'a plus rien à faire qui puisse influer sur le calcul de $prerequis.
 	if [ ! -z "$PREREQUIS_THEORIQUES" ]
 	then
@@ -106,16 +115,17 @@ prerequis()
 	else
 	_cheminsExportes
 	fi
-	
+}
+
+postprerequisAmorceur()
+{
 	# Surcharge de nos $dest<lsj> éventuels.
 	
-	if [ -n "$lsj" ]
-	then
+	local l
 		for l in $lsj
 		do
 			eval '[ -z "$lsj_dest_'$l'" -o ! -e "$lsj_dest_'$l'/.complet" ] || dest'$l'="$lsj_dest_'$l'"'
 		done
-	fi
 }
 
 # S'assure de la présence d'un prérequis, en mode rapide (si quelque chose existe qui réponde aux critères, on ne s'embête pas à lui demander de vérifier ses propres prérequis récursivement, on le prend illico).
