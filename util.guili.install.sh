@@ -141,6 +141,7 @@ sutiliser()
 	
 	guili_localiser
 	
+	diag + "$sut_lv"
 	utiliserSiDerniere "$INSTALLS/$sut_lv"
 	
 	infosInstall
