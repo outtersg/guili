@@ -35,4 +35,11 @@ diag()
 	done
 }
 
+diag_aff()
+{
+	local op="$1" ; shift
+	echo "$diag_indentation$op [$logiciel$GUILI_MOIRE] $*" >&2
+}
+
 diag . "$0" "$@"
+export diag_indentation="$diag_indentation  "
