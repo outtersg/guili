@@ -224,6 +224,7 @@ guili_tirerAlias()
 		fi
 		
 		gris "Alias $dest <- $pseudo"
+		diag = "$pseudo -> $dest"
 		sudoku ln -s "$dest" "$INSTALLS/$pseudo"
 	done
 }
