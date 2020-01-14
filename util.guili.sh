@@ -299,7 +299,7 @@ analyserParametresInstallLsj()
 		
 		# Cumul des paramètres destiné à notre $lsjcourant.
 		
-		eval guili_params_$lsjcourant='"$guili_params_'$lsjcourant'$guili_sep$1"'
+		eval guili_params_$lsjcourant='"$guili_params_'$lsjcourant'$1$guili_sep"'
 		
 		# Suivant!
 		
@@ -384,8 +384,8 @@ apiReporterParamsLsj()
 	
 	# Et on passe nos options à notre LSJ.
 	var=guili_params_$l
-	[ -z "$argOptions" ] || eval $var'="$'$var'$guili_sep$argOptions"'
-	[ -z "$argVersion" ] || eval $var'="$'$var'$guili_sep$argVersion"'
+	[ -z "$argOptions" ] || eval $var'="$'$var'$argOptions$guili_sep"'
+	[ -z "$argVersion" ] || eval $var'="$'$var'$argVersion$guili_sep"'
 }
 
 # À invoquer juste avant sutiliser, pour installer (si demandé par option) un greffon.
