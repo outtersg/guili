@@ -256,7 +256,16 @@ analyserParametresInstall()
 			+[a-z]*) argOptions="$argOptions$1" ;;
 			--sans-*) argOptions="$argOptions-`echo "$1" | cut -d - -f 4-`" ;;
 			# Le reste peut être cumulé dans $guili_params_: par exemple pour vérification ultérieure que n'a pas été mentionné de paramètre non reconnu.
-			*) analyserParametresInstallLsj "" "$1" ;; # À FAIRE: argVersion devrait aussi être expurgé d'ici.
+			*)
+				# À FAIRE: argVersion devrait aussi être expurgé d'ici.
+				# Certains paramètres applicatifs ont un complément susceptible d'être interprété spécialement; on permet à l'appli de nous préciser lesquels doivent "englober" le paramètre suivant (ex.: dans `-u -`, le - ne doit pas être interprété comme $INSTALLS_MIN, mais faire corps avec le -u pour signifier "l'utilisateur courant").
+				if [ -n "$argsAppli" ]
+				then
+					case " $argsAppli " in
+						*" $1 "*) analyserParametresInstallLsj "" "$1" "$2" ; shift ; shift ; continue ;;
+					esac
+				fi
+				analyserParametresInstallLsj "" "$1" ;;
 		esac
 		shift
 	done
