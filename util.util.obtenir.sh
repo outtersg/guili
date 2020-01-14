@@ -25,10 +25,17 @@ obtenir()
 	dest="$INSTALL_MEM/$fichier"
 	if [ ! -f "$dest" ] ; then
 		echo "Téléchargement de ${fichier}…" >&2
-		commande=curl
-		[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
-		affSiBinaire $commande -L -k -s "$1" > "$dest" || rm -f "$dest"
+		telech "$1" "$fichier" > "$dest" || rm -f "$dest"
 		[ -e "$dest" ] || return 1
 	fi
 	echo "$dest"
+}
+
+telech()
+{
+	local u="$1" l="$2" commande
+	[ -n "$l" ] || l="$u"
+	commande=curl
+	[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
+	affSiBinaire $commande -L -k -s "$u"
 }
