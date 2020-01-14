@@ -21,6 +21,8 @@
 # GUILI: Grosse Usine à Installs Locales Interdépendantes
 # GuiLI: Guillaume's Lightweight Installers
 
+COMPLET=".complet"
+
 #- Versions --------------------------------------------------------------------
 
 # rlvo: Racine - Logiciel - Version - Options
