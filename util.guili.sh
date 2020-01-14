@@ -51,7 +51,7 @@ rlvo()
 # Récupère tout ce qui ressemble à une contrainte de version dans ses paramètres.
 argVersion()
 {
-	argVersionSauf "" "$@"
+	argVersionSauf "$argsAppli" "$@"
 }
 
 argVersionSauf()
