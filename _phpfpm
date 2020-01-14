@@ -88,6 +88,8 @@ analyserParametres()
 			exit 1
 		fi
 	fi
+	
+	nomServeur="php-fpm$suffixe"
 }
 
 filtrerConfs()
@@ -177,7 +179,7 @@ serveur \
 	-e PATH="$PATH_ENRICHI" \
 	-e LD_LIBRARY_PATH="$LD_LIBRARY_PATH_PHP_ET_DEPS" $PARAMS_SERVEUR \
 	--sigre USR2 \
-	demon php-fpm$suffixe \
+	demon $nomServeur \
 	"$destphp/sbin/php-fpm --fpm-config $conf"
 
 sutiliser -
