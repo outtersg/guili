@@ -259,7 +259,7 @@ analyserParametresInstall()
 			*)
 				# À FAIRE: argVersion devrait aussi être expurgé d'ici.
 				# Certains paramètres applicatifs ont un complément susceptible d'être interprété spécialement; on permet à l'appli de nous préciser lesquels doivent "englober" le paramètre suivant (ex.: dans `-u -`, le - ne doit pas être interprété comme $INSTALLS_MIN, mais faire corps avec le -u pour signifier "l'utilisateur courant").
-				if [ -n "$argsAppli" ]
+				if [ -n "$argsAppli" -a -n "$1" ] # Le "$1" parce qu'historiquement les méthodes de découpe des prérequis peuvent nous faire appeler avec un premier paramètre vide.
 				then
 					case " $argsAppli " in
 						*" $1 "*) analyserParametresInstallLsj "" "$1" "$2" ; shift ; shift ; continue ;;
