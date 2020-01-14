@@ -29,7 +29,7 @@ prerequis()
 
 prerequisAmorceur()
 {
-	local l params diags="$guili_diag"
+	local l params diags="$guili_diag" lpr opr vpr
 	
 	case " $guili_diag " in
 		*" diag_modifs "*) true ;;
@@ -42,7 +42,15 @@ prerequisAmorceur()
 		do
 			eval 'params="$guili_params_'$l'"'
 			IFS="$guili_sep"
-			tifs "$SCRIPTS/$lsj" $params
+			INSTALLS_AVEC_INFOS=dest tifs "$SCRIPTS/$lsj" $params 6> "$TMP/$$/temp.dest"
+			# On ajoute aux prérequis les options et version du logiciel installé, afin d'augmenter nos chances de retomber sur le même dans la boucle de prérequis.
+			# À FAIRE: il devrait y avoir moyen de passer le résultat directement à la boucle pour qu'elle ne cherche pas une seconde fois (avec risque de se tromper).
+			# À FAIRE: avant cela, s'assurer qu'on n'a pas dans nos prérequis le logiciel avec des options supplémentaires; si si, les reporter. En effet, si les prérequis disent truc+ossl et que nous sommes invoqués en `./_truc truc +postgresql ">= 2"`, l'appel précédent pourra avoir donné truc+postgresql-2.1 tandis que les prérequis trouveront truc+ossl11-2.1.
+			if [ -s "$TMP/$$/temp.dest" ]
+			then
+				love -e "lpr opr vpr" "`tail -1 < "$TMP/$$/temp.dest"`"
+				[ -z "$vpr" -o -z "$lpr" ] || prerequis="$prerequis $lpr$opr $vpr"
+			fi
 	done 7> $TMP/$$/temp.modifs
 	# Restituons ce qu'on a mangé, et restaurons ce qu'on a changé.
 	( cat $TMP/$$/temp.modifs >&7 ) 2> /dev/null || true
