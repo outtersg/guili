@@ -29,7 +29,12 @@ prerequis()
 
 prerequisAmorceur()
 {
-	local l params
+	local l params diags="$guili_diag"
+	
+	case " $guili_diag " in
+		*" diag_modifs "*) true ;;
+		*) export guili_diag="$guili_diag diag_modifs" ;;
+	esac
 	
 	# Prérequis LSJ (logiciels sous-jacents): on les recalcule explicitement, pour qu'ils aillent chercher leur dernière version disponible, plutôt que simplement s'assurer qu'il existe une version répondant aux critères (comme fait dans la boucle classique).
 	# En outre cela permet de leur passer des paramètres supplémentaires (les $prerequis classiques sont cantonnés aux options + contraintes de version; mais par exemple pas d'--alias).
@@ -38,7 +43,10 @@ prerequisAmorceur()
 			eval 'params="$guili_params_'$l'"'
 			IFS="$guili_sep"
 			tifs "$SCRIPTS/$lsj" $params
-		done
+	done 7> $TMP/$$/temp.modifs
+	# Restituons ce qu'on a mangé, et restaurons ce qu'on a changé.
+	( cat $TMP/$$/temp.modifs >&7 ) 2> /dev/null || true
+	guili_diag="$diags"
 }
 
 _prerequis()
