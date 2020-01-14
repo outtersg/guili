@@ -157,7 +157,7 @@ multiarchCombinerDarwin()
 			# Traitement des "Only in".
 			case "$op" in
 				+)
-					case "$f" in .complet|.guili*) continue ;; esac
+					case "$f" in $COMPLET|.guili*) continue ;; esac
 					echo "$f" >&6
 					continue
 					;;

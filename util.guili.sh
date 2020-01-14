@@ -381,8 +381,8 @@ apiReporterParamsLsj()
 # À invoquer juste avant sutiliser, pour installer (si demandé par option) un greffon.
 greffon()
 {
-	sudoku touch "$dest/.complet" # Le greffon repose sans doute sur la complétude de notre installation; simulons le résultat post-sutiliser.
-	! option "$1" || ( cd "$SCRIPTS" ; "$SCRIPTS/$1" --pour "$dest" ) || ( sudoku rm "$dest/.complet" ; false )
+	sudoku touch "$dest/$COMPLET" # Le greffon repose sans doute sur la complétude de notre installation; simulons le résultat post-sutiliser.
+	! option "$1" || ( cd "$SCRIPTS" ; "$SCRIPTS/$1" --pour "$dest" ) || ( sudoku rm "$dest/$COMPLET" ; false )
 }
 
 #- Environnement ---------------------------------------------------------------
@@ -471,7 +471,7 @@ guili_temoins()
 _def_guili_temoins()
 {
 	local moi="`basename "$1"`"
-	guili_temoins="$1/.complet"
+	guili_temoins="$1/$COMPLET"
 	shift
 	local param
 	for param in "$@"
@@ -483,7 +483,7 @@ _def_guili_temoins()
 				guili_temoins=
 			else
 				[ -z "$guili_temoins" ] || guili_temoins="$guili_temoins:"
-				guili_temoins="$guili_temoins$bout/.complet.$moi"
+				guili_temoins="$guili_temoins$bout/$COMPLET.$moi"
 			fi
 		done
 	done
@@ -496,7 +496,7 @@ guili_temoinsPresents()
 	do
 		# Cas particulier: un témoin trouvé via un lien symbolique occupant notre $dest est invalide. Ce peut être par exemple un libjpeg-x.y -> libjpegturbo-z.t, alors que nous tentons d'installer le libjpeg officiel.
 		case "$temoin" in
-			"$dest/.complet") [ -L "$dest" ] && return 1 || true ;;
+			"$dest/$COMPLET") [ -L "$dest" ] && return 1 || true ;;
 		esac
 		[ -e "$temoin" ] || return 1
 	done

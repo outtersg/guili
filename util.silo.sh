@@ -71,7 +71,7 @@ installerBinaireSilo()
 			cd \"$ddest\" \\
 			&& rm -Rf \"$bdest.temp\" \\
 			&& mkdir \"$bdest.temp\" \\
-			&& ( cd \"$bdest.temp\" && tar xzf \"$INSTALL_MEM/$archive\" && rm -f .complet ) \\
+			&& ( cd \"$bdest.temp\" && tar xzf \"$INSTALL_MEM/$archive\" && rm -f $COMPLET ) \\
 			&& if [ -e \"$bdest\" ] ; then rm -Rf \"$bdest.vieux\" && mv \"$bdest\" \"$bdest.vieux\" ; fi \\
 			&& mv \"$bdest.temp\" \"$bdest\" \\
 			|| ( rm -Rf \"$dest.temp\" && false )

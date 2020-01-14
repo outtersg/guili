@@ -132,7 +132,7 @@ postprerequisAmorceur()
 	local l
 		for l in $lsj
 		do
-			eval '[ -z "$lsj_dest_'$l'" -o ! -e "$lsj_dest_'$l'/.complet" ] || dest'$l'="$lsj_dest_'$l'"'
+		eval '[ -z "$lsj_dest_'$l'" -o ! -e "$lsj_dest_'$l'/$COMPLET" ] || dest'$l'="$lsj_dest_'$l'"'
 		done
 }
 
