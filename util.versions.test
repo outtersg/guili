@@ -39,3 +39,25 @@ _vmax_tester()
 	echo "vmax $*: $res au lieu de $att" >&2
 	return 126
 }
+
+aliasVersion_test()
+{
+	. "$SCRIPTS/util.test.sh"
+	
+	tester _aliasVersion_tester "truc_x:truc_xxxx:xx:trucxy:trucx:trucx.x:truc_xx" 3.14.15 "truc_3:truc_x31415:314:trucxy:truc3:truc3.14:truc_314"
+}
+
+_aliasVersion_tester()
+{
+	guili_alias="$1"
+	version="$2"
+	aliasVersion x
+	[ "$guili_alias" != "$3" ] || return 0
+	(
+		echo "aliasVersion $1 avec $2:"
+		echo "  $guili_alias"
+		echo "au lieu de"
+		echo "  $3"
+	) >&2
+	return 126
+}
