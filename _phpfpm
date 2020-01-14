@@ -58,7 +58,7 @@ analyserParametres()
 				suffixe="$2"
 				case "$guili_sep$guili_params_php" in
 					*"$guili_sep--alias${guili_sep}php"*) true ;;
-					*) guili_params_php="$guili_params_php$guili_sep-l${guili_sep}php$suffixe" ;;
+					*) guili_params_php="$guili_params_php--alias${guili_sep}php$suffixe$guili_sep" ;;
 				esac
 				guili_alias="$guili_alias:$logiciel$suffixe"
 				shift
