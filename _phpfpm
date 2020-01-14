@@ -119,14 +119,11 @@ prerequis
 
 # Variables
 
-# Si le suffixe vaut x, xx, xxx, etc., on remplace par les éléments de version correspondants.
-if echo "$suffixe" | grep -q '^xx*$'
-then
-	nElementsSuffixe="`printf "%s" "$suffixe" | wc -c | tr -d ' '`"
-	suffixe="`echo "$version_php" | cut -d . -f "1-$nElementsSuffixe" | tr -d .`"
-fi
-
 volsj # On prend pour version et options celles de notre logiciel sous-jacent.
+
+# Si le suffixe vaut x, xx, xxx, etc., on remplace par les éléments de version correspondants.
+aliasVersion 'x'
+suffixe="`guili_alias="$suffixe" ; aliasVersion x ; echo "$guili_alias"`"
 
 destiner
 
