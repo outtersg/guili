@@ -278,3 +278,30 @@ _vmax_tester()
 	echo "vmax $*: $res au lieu de $att" >&2
 	return 126
 }
+
+aliasVersion()
+{
+	# Inutile de se fatiguer si $guili_alias ne contient rien qui au moins ressemble à un nom suffixé 
+	case "$guili_alias:" in
+		*$1:*) true ;;
+		*) return 0 ;;
+	esac
+	
+	local x="$1" sep="`printf '\003'`" esed=
+	IFS=.
+	tifs _aliasVersionConstituerEsed $version
+	guili_alias="`IFS="$sep" ; echo "$guili_alias:" | sed $esed -e 's/:$//'`"
+}
+
+_aliasVersionConstituerEsed()
+{
+	local rech= rempl= n=1
+	while [ $# -gt 0 ]
+	do
+		rech="$rech\\([._]*\\)$x"
+		rempl="$rempl\\$n$1"
+		esed="-e${sep}s/$rech:/$rempl:/g$sep$esed" # On cumule par le début, pour que les plus longs soient traités d'abord (_x_x doit être remplacé par _3_14 par l'expression 2 éléments, et non par _x_3 par l'expression un élément).
+		n=`expr $n + 1`
+		shift
+	done
+}
