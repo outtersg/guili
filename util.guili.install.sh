@@ -234,6 +234,23 @@ sortieSansReinstall()
 	# Oups, avait-on oublié de se référencer la dernière fois? On corrige.
 	
 	utiliserSiNouvelle "$dest" || true
+	
+	# Si nous sommes un amorceur, notre LSJ a lui peut-être été réinstallé.
+	
+	case "$logiciel" in
+		_*) sortieAmorceurSansReinstall ;;
+	esac
+}
+
+sortieAmorceurSansReinstall()
+{
+	[ -s "$TMP/$$/temp.modifs" ] || return 0
+	local nomServeur="$nomServeur" serveur
+	[ -n "$nomServeur" ] || nomServeur="`echo "$logiciel" | cut -c 2-`$suffixe"
+	for serveur in $nomServeur
+	do
+		servir "$serveur" restart
+	done
 }
 
 # Utilise (place ses pions dans $INSTALLS/bin, etc.) le logiciel en cours d'installation s'il s'agit de la version la plus récente sur cette machine et:
