@@ -26,8 +26,6 @@ lsj="php" # Logiciel Sous-Jacent (à préciser car nous ne sommes pas _$lsj).
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-argVersion="`argVersionSauf "-p -s" "$@"`" # Un suffixe indiqué en "-s 7.2" ne veut pas dire qu'on force à la version 7.2 (qui n'existe pas d'ailleurs).
-
 # Historique des versions gérées
 
 prerequis=php
