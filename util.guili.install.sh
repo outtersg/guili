@@ -229,6 +229,13 @@ guili_tirerAlias()
 	done
 }
 
+sortieSansReinstall()
+{
+	# Oups, avait-on oublié de se référencer la dernière fois? On corrige.
+	
+	utiliserSiNouvelle "$dest" || true
+}
+
 # Utilise (place ses pions dans $INSTALLS/bin, etc.) le logiciel en cours d'installation s'il s'agit de la version la plus récente sur cette machine et:
 # - il est invoqué en direct
 # - ou c'est la première fois qu'on l'utilise
