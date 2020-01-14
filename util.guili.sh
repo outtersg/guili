@@ -251,6 +251,7 @@ analyserParametresInstall()
 			--alias) shift ; guili_alias="$guili_alias:$1" ;;
 			--dest) shift ; install_dest="$1" ;;
 			+) export INSTALLS_MAX=1 ;;
+			-) INSTALLS_MIN=1 ;; # en ce cas on vérifie juste la présence d'un nous-mêmes répondant aux paramètres, sans chercher à installer la dernière version.
 			+-[a-z]*) argOptions="$argOptions`echo "$1" | cut -d + -f 2-`" ;;
 			+[a-z]*) argOptions="$argOptions$1" ;;
 			--sans-*) argOptions="$argOptions-`echo "$1" | cut -d - -f 4-`" ;;

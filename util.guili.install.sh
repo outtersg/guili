@@ -88,7 +88,7 @@ destiner()
 		
 		# Détermination de la destination.
 		
-		dest="`versions -v "$version" "$logiciel+$argOptions" | tail -1`"
+		dest="`destCible`"
 		if [ -z "$dest" ]
 		then
 			dest="$INSTALLS/$logiciel$argOptionsResolu-$version"
@@ -105,6 +105,16 @@ destiner()
 	if [ -L "$dest" ]
 	then
 		rm "$dest"
+	fi
+}
+
+destCible()
+{
+	if [ -z "$INSTALLS_MIN" ]
+	then
+		versions -1 -f -v "$version" "$logiciel+$argOptions"
+	else
+		versions -1 -f "$logiciel+$argOptions" "$argVersion"
 	fi
 }
 
