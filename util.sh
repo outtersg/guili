@@ -54,21 +54,6 @@ retirerModif()
 	done
 }
 
-obtenir()
-{
-	fichier="$2"
-	[ "$fichier" = "" ] && fichier=`echo "$1" | sed -e 's:^.*/::'`
-	dest="$INSTALL_MEM/$fichier"
-	if [ ! -f "$dest" ] ; then
-		echo "Téléchargement de ${fichier}…" >&2
-		commande=curl
-		[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
-		affSiBinaire $commande -L -k -s "$1" > "$dest" || rm -f "$dest"
-		[ -e "$dest" ] || return 1
-	fi
-	echo "$dest"
-}
-
 de7z()
 {
 	7za x -bd -y "$@" | sed -e '/^Extracting /!d' -e 's///' > "$TMP/$$/de7z.liste"
