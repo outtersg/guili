@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+argsAppli="$argsAppli -p -s -u -uf -uv -up" # Un suffixe indiqué en `-s 7.2` ne veut pas dire qu'on force à la version 7.2 (qui n'existe pas d'ailleurs); un compte en `-up -` n'est pas à interpréter comme le - donnant lieu à $INSTALLS_MIN.
+
 # Les fonctions serveurXxx() attendent les variables suivantes:
 # - $nom: petit nom du serveur
 # - $commande: commande, avec ses paramètres
