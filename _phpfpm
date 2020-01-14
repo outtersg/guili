@@ -56,7 +56,7 @@ analyserParametres()
 			-u) compte="$2" ; shift ;;
 			-s)
 				suffixe="$2"
-				case "$guili_params_php" in
+				case "$guili_sep$guili_params_php" in
 					*"$guili_sep--alias${guili_sep}php"*) true ;;
 					*) guili_params_php="$guili_params_php$guili_sep-l${guili_sep}php$suffixe" ;;
 				esac
