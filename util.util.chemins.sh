@@ -18,6 +18,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# dirname en pur shell.
+# Sur mon FreeBSD 11.2 sous VirtualBox avec un SSD, pour 1000 dirname ou dn ../../openssl/lib/openssl/libssl.so:
+# - dirname: 6,80 s
+# - dn:      0,16 s
+# À FAIRE: si un dirname est détecté intégré au shell, l'utiliser à notre place.
+dn()
+{
+	IFS=/
+	_dn $1
+}
+
+_dn()
+{
+	unset IFS
+	case $# in
+		0) echo / ; return ;;
+		1) if [ -z "$1" ] ; then echo / ; else echo . ; fi ; return ;;
+	esac
+	local r=
+	while [ $# -gt 2 ] ; do r="$r$1/" ; shift ; done
+	r="$r$1"
+	[ -n "$r" ] || r=/
+	echo "$r"
+}
+
 # Crée un lien symbolique relatif vers un autre chemin.
 # Utilisation: ln_sr [-e <var>] [-a] <original> <lien>
 #   -e <var>
