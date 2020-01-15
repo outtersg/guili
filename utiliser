@@ -121,13 +121,7 @@ utiliser()
 		if [ -L "$prefixe/$1" ]
 		then
 			a="`readlink "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
-			eval \
-			'
-			case "$a" in
-				'"$EXPR_PRESERVES"'"") gentillesse=2 ;;
-				$radical[-][0-9]*.[0-9]*|$radical+*) gentillesse= ;; # Même radical, version sans doute plus ancienne à ne pas préserver, on écrase.
-			esac
-			'
+			calcGentillesse "$radical" "$a"
 			if [ -z "$gentillesse" ]
 			then
 				rm "$prefixe/$1"
@@ -164,6 +158,22 @@ s#^#*/#
 }' | tr '\012' '|'
 }
 
+defCalcGentillesse()
+{
+	local preserves="$1"
+	local exprPreserves="`exprPreserves "$preserves"`"
+	eval \
+	'
+		calcGentillesse()
+		{
+			case "$2" in
+				'"$exprPreserves"'"") gentillesse=2 ;;
+				$1[-][0-9]*.[0-9]*|$1+*) gentillesse= ;; # Même radical, version sans doute plus ancienne à ne pas préserver, on écrase.
+			esac
+		}
+	'
+}
+
 analyserParametresEtTourner()
 {
 	local lv
@@ -177,7 +187,7 @@ do
 			*/*) prefixeIci="`dirname "$1"`" ; lv="`basename "$1"`" ;;
 			*) prefixeIci="$prefixe" ; lv="$1" ;;
 	esac
-		EXPR_PRESERVES="`exprPreserves "$preserves"`"
+		defCalcGentillesse "$preserves"
 		[ -d "$prefixeIci/$lv" ] || auSecours "$prefixeIci/$lv"
 	prefixe=$prefixeIci allerUtiliser "$lv"
 		shift
