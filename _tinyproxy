@@ -97,7 +97,8 @@ analyserParametres()
 	remplacerPrerequis "tinyproxy $argVersion"
 }
 
-analyserParametres "$@"
+IFS="$guili_sep"
+tifs analyserParametres $guili_params_
 
 prerequis
 
