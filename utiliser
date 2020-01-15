@@ -205,23 +205,37 @@ _ridiculiserp()
 	[ "x$1" = x.. ] || rp="$1"
 }
 
+mechant()
+{
+	# Repérage du radical de chaque côté.
+	ridiculiser "$1" "$2"
+	# Si l'un est vide, on n'a pas de comparaison possible.
+	[ -n "$rc" -a -n "$rp" ] || return 1
+	# On valide (return 0) à moins que le videur ne sorte pas le mot de passe convenu.
+	( appelerVideur ) || [ $? != 42 ] || return 0
+	# Si on arrive là, return 1 (on refuse d'être méchant).
+	return 1
+}
+
 defCalcGentillesse()
 {
 	local preserves="$1" videur="$2"
 	local exprPreserves="`exprPreserves "$preserves"`"
-	[ -z "$videur" ] || \
-		videur='; ridiculiser "$2" "$3" ; [ -z "$rc" -o -z "$rp" ] || (
-			'"$videur"' "$rc" "$rp"
-		) || [ $? != 42 ] || gentillesse='
+	local vi2r=
+	[ -z "$videur" ] || vi2r='; mechant "$2" "$3" && gentillesse= || true'
 	eval \
 	'
+		appelerVideur()
+		{
+			'"$videur"' "$rc" "$rp"
+		}
 		calcGentillesse()
 		{
 			local rc rp # radical du candidat, radical du présent
 			case "$3" in
 				'"$exprPreserves"'"") gentillesse=2 ;;
 				$1[-][0-9]*.[0-9]*|$1+*) gentillesse= ;; # Même radical, version sans doute plus ancienne à ne pas préserver, on écrase.
-				*) gentillesse=1 '"$videur"' ;;
+				*) gentillesse=1 '"$vi2r"' ;;
 			esac
 		}
 	'
