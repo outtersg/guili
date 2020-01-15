@@ -191,7 +191,7 @@ derniereVersionModule()
 	case "$url" in
 		https://github.com/*/archive/master.zip)
 			ua="`echo "$url" | sed -e 's#://github.com#://api.github.com/repos#' -e 's#/archive/master.zip#/tags#'`"
-			curl -s "$ua" | sed -e  '/"name"/!d' -e 's/.*: *"/v-/' -e 's/".*//' | filtrerVersions "$v" | triversions | cut -c 3- | tail -1 # v- en préfixe, car filtrerVersions a besoin d'un nom de logiciel fictif avant la version.
+			telech "$ua" | sed -e  '/"name"/!d' -e 's/.*: *"/v-/' -e 's/".*//' | filtrerVersions "$v" | triversions | cut -c 3- | tail -1 # v- en préfixe, car filtrerVersions a besoin d'un nom de logiciel fictif avant la version.
 			;;
 	esac
 }
