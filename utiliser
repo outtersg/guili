@@ -114,7 +114,7 @@ utiliser()
 	local ou="$1"
 	local a
 	shift
-	local gentillesse
+	local gentillesse info
 	
 	local radical
 	radicaliser "$ou"
@@ -122,6 +122,7 @@ utiliser()
 	until [ $# = 0 ]
 	do
 		gentillesse=1
+		info=
 		# On commence par virer les liens qu'une de nos précédentes versions
 		# auraient placés, et pour les liens déjà utilisés par un autre
 		# logiciel, on les remplace si possible par un dossier qu'on va se
@@ -141,7 +142,7 @@ utiliser()
 				echo "On ménage $a…" >&2
 				( allerUtiliser "$a" )
 			else
-				[ $gentillesse -gt 1 ] || echo "$1 déjà occupé par $a" >&2
+				info=" (déjà occupé par $a)"
 			fi
 		fi
 		if [ -d "$1" -a -d "$prefixe/$1" -a ! -L "$prefixe/$1" ]
@@ -151,7 +152,7 @@ utiliser()
 		then
 			ln -s "$ou/$1" "$prefixe/$1"
 		else
-			[ $gentillesse -gt 1 ] || echo Impossible d\'écraser $1
+			[ $gentillesse -gt 1 ] || echo "Impossible d'écraser $1$info" >&2
 		fi
 		shift
 	done
