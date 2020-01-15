@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+GUILI_F_VERSION=".guili.version"
+
 # NOTE: DPOM
 # Destiner, Prérequis, Obtenir, Modifs
 # - Destiner: calcule le chemin du dossier d'install: <logiciel><+options>*-<version>
@@ -182,11 +184,27 @@ utiliserSiDerniere()
 	fi
 	if [ -d "$dest" ]
 	then
-		sudoku "$SCRIPTS/utiliser" -p "$cadets" "$dest"
+		# Si notre dossier d'installation ne porte pas notre logiciel et notre version, on l'inscrit dans un fichier explicitant ce que nous contenons en terme de $logiciel-$version.
+		[ "$lv" = "$ddest" ] || sudoku sh -c "echo $lv > $dest/$GUILI_F_VERSION"
+		sudoku "$SCRIPTS/utiliser" -p "$cadets" --videur "$SCRIPTS/util siPlusRecent42 $logiciel $lv" "$dest"
 		# Si notre logiciel a des alias (ex.: libjpegturbo en tant que libjpeg, ou curl+ossl11 en tant que curl), allons-y.
 		IFS=:
 		tifs guili_tirerAlias -p "`unset IFS ; f() { IFS=\| ; echo "$*" ; } ; f $cadets`" "$dest" $guili_alias
 	fi
+}
+
+# Arbitre destiné à $SCRIPTS/utiliser
+# Utilisation: siPlusRecent42 <logiciel> <logiciel0> <logiciel1>
+# Sort avec un code 42 si <logiciel0> est plus récent que <logiciel1> (soit que le nommage en <logiciel>(+<option>)*-<version> l'indique, soit qu'un $INSTALLS/<logicielx>/.guili.version permette de retrouver cette version).
+siPlusRecent42()
+{
+	local l="$1" l0="$2" l1="$3"
+	[ -s "$INSTALLS/$l0/$GUILI_F_VERSION" ] && l0="`cat "$INSTALLS/$l0/$GUILI_F_VERSION"`" || true
+	[ -s "$INSTALLS/$l1/$GUILI_F_VERSION" ] && l1="`cat "$INSTALLS/$l1/$GUILI_F_VERSION"`" || true
+	case "$l0" in $l+*|$l-[0-9][0-9.]*) true ;; *) exit 1 ;; esac
+	case "$l1" in $l+*|$l-[0-9][0-9.]*) true ;; *) exit 1 ;; esac
+	[ "`( echo "$l0" ; echo "$l1" ) | triversions | tail -1`" = "$l0" ] || exit 1
+	exit 42
 }
 
 guili_tirerAlias()
