@@ -15,10 +15,25 @@ TERMINE
 	fi
 	cat >&2 <<TERMINE
 # Utiliser
-# Crée des liens de $prefixe/<x> vers $prefixe/<biblio>/<x>
+# Crée récursivement des liens de $prefixe/<x>/<y> vers $prefixe/<cible>/<x>/<y>
 # © Guillaume Outters 2003-2004,2007,2019-2020
 
-Utilisation: $0 <biblio>
+Utilisation: $0 [-r <racine>] [-p <préservés>] <cible>
+  -r <racine>
+    Va chercher sous <racine> plutôt qu'/usr/local.
+    Voir aussi la possibilité de préciser la racine dans <cible>.
+  -p <préservés>
+    <préservés> est une liste de noms de dossier dont préserver les liens.
+    Ainsi \`utiliser -p "logiciel-2.0 logiciel-3.0" logiciel-1.0\` n'écrasera-t-il pas <racine>/bin/logiciel par ../logiciel-1.0/bin/logiciel si c'est un lien symbolique vers ../logiciel-2.0/bin/logiciel.
+  <cible>
+    Cible des liens symboliques, sous la forme <logiciel>(+<option>)*-<version>.
+    En cas de chemin complet, son dirname est pris comme racine.
+
+En cas de conflit sur un emplacement (quelque chose existe là où l'on voudrait créer notre lien), l'existant est préservé (on ne s'installe pas), sauf si:
+- il s'agit d'un lien symbolique vers un dossier
+  Auquel cas il devient un vrai dossier et on travaille les liens symboliques un niveau en-dessous (si bin est un lien symbolique vers sudo-1.x.y/bin alors qu'on a besoin de lier vers notre openssl-1.z/bin, alors bin est transformé en dossier, et des liens symboliques y sont créés bin/sudo -> ../sudo-1.x.y/bin/sudo et bin/openssl -> ../openssl-1.z/bin/openssl)
+- c'est un lien symbolique vers une autre version du même logiciel (ET cette autre version ne fait pas partie des préservés)
+  Ainsi ../openssl-1.0.x/bin/openssl remplacera-t-il ../openssl-0.9.y/bin/openssl, sauf si on a été appelés avec un -p openssl-0.9.y
 TERMINE
 	exit 1
 }
