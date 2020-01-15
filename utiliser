@@ -19,13 +19,20 @@ TERMINE
 # Crée récursivement des liens de $prefixe/<x>/<y> vers $prefixe/<cible>/<x>/<y>
 # © Guillaume Outters 2003-2004,2007,2019-2020
 
-Utilisation: $0 [-r <racine>] [-p <préservés>] <cible>
+Utilisation: $0 [-r <racine>] [-p <préservés>] [--videur <videur>] <cible>
   -r <racine>
     Va chercher sous <racine> plutôt qu'/usr/local.
     Voir aussi la possibilité de préciser la racine dans <cible>.
   -p <préservés>
     <préservés> est une liste de noms de dossier dont préserver les liens.
     Ainsi \`utiliser -p "logiciel-2.0 logiciel-3.0" logiciel-1.0\` n'écrasera-t-il pas <racine>/bin/logiciel par ../logiciel-1.0/bin/logiciel si c'est un lien symbolique vers ../logiciel-2.0/bin/logiciel.
+  --videur <videur>
+    Shell appelé pour trancher si l'on peut remplacer des liens symboliques hors de notre champ habituel de travail (ne référençant pas une autre version du même <logiciel>).
+    Le <videur> est invoqué avec pour paramètres <logiciel> <autre racine> (ex.: \`libjpegturbo-2.0.2 libjpeg-8.4\` si se pose la question de remplacer lib/libjpeg.so -> ../libjpeg-8.4/lib/libjpeg.so par -> ../libjpegturbo-2.0.2/lib/libjpeg.so).
+    Il doit renvoyer précisément 42 pour valider l'écrasement (ce qui permet de distinguer à la fois des erreurs classiques type 127 pour commande introuvable, erreur de syntaxe, segmentation fault, et du 0 d'un script qui aurait oublié de valider explicitement).
+    Il lui est possible aussi d'accéder aux variables \$rc (radical candidat) et \$rp (radical présent), auquel cas il lui faut terminer par un # pour éviter que les \$rc et \$rp lui soient passés en paramètres. On peut ainsi préciser:
+      --videur '[ "\$rp" != a-1.0.0 ] || exit 42 #'
+    qui autorisera l'écrasement du seul a-1.0.0
   <cible>
     Cible des liens symboliques, sous la forme <logiciel>(+<option>)*-<version>.
     En cas de chemin complet, son dirname est pris comme racine.
@@ -35,6 +42,7 @@ En cas de conflit sur un emplacement (quelque chose existe là où l'on voudrait
   Auquel cas il devient un vrai dossier et on travaille les liens symboliques un niveau en-dessous (si bin est un lien symbolique vers sudo-1.x.y/bin alors qu'on a besoin de lier vers notre openssl-1.z/bin, alors bin est transformé en dossier, et des liens symboliques y sont créés bin/sudo -> ../sudo-1.x.y/bin/sudo et bin/openssl -> ../openssl-1.z/bin/openssl)
 - c'est un lien symbolique vers une autre version du même logiciel (ET cette autre version ne fait pas partie des préservés)
   Ainsi ../openssl-1.0.x/bin/openssl remplacera-t-il ../openssl-0.9.y/bin/openssl, sauf si on a été appelés avec un -p openssl-0.9.y
+- le <videur> a permis la suppression de l'élément.
 TERMINE
 	exit 1
 }
@@ -121,7 +129,7 @@ utiliser()
 		if [ -L "$prefixe/$1" ]
 		then
 			a="`readlink "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
-			calcGentillesse "$radical" "$a"
+			calcGentillesse "$radical" "$ou" "$a"
 			if [ -z "$gentillesse" ]
 			then
 				rm "$prefixe/$1"
@@ -158,17 +166,61 @@ s#^#*/#
 }' | tr '\012' '|'
 }
 
+# Retrouve en parallèle le radical (premier élément de chemin différent de ..) de ses deux paramètres, les affectant à rc et rp.
+# Le premier élément sert de référence: le radical du second doit se trouver au même niveau de ../ que celle du second, sans quoi rp sera vidé.
+# Ex.:
+#   `ridiculiser ../../xyz ../../abc/bin/plof` renverra rc=xyz rp=abc
+#   `ridiculiser ../../xyz ../../../abc/bin/plof` renverra rc=xyz rp=
+#   `ridiculiser ../../xyz ../abc/bin/plof` renverra rc=xyz rp=
+# (ridiculiser car radicaliser était déjà prise, et vu que l'on réduit à la portion la plus ridicule qui soit, ça a du sens)
+ridiculiser()
+{
+	local niveaux=
+	IFS=/ ; _ridiculiserc $1
+	IFS=/ ; _ridiculiserp $2
+}
+
+_ridiculiserc()
+{
+	unset IFS
+	while [ "x$1" = x.. ]
+	do
+		shift
+		niveaux="$niveaux ."
+	done
+	rc="$1"
+}
+
+_ridiculiserp()
+{
+	unset IFS
+	local pouet
+	rp=
+	for pouet in $niveaux
+	do
+		[ "x$1" = x.. ] || return 0
+		shift || return 0
+	done
+	[ "x$1" = x.. ] || rp="$1"
+}
+
 defCalcGentillesse()
 {
-	local preserves="$1"
+	local preserves="$1" videur="$2"
 	local exprPreserves="`exprPreserves "$preserves"`"
+	[ -z "$videur" ] || \
+		videur='; ridiculiser "$2" "$3" ; [ -z "$rc" -o -z "$rp" ] || (
+			'"$videur"' "$rc" "$rp"
+		) || [ $? != 42 ] || gentillesse='
 	eval \
 	'
 		calcGentillesse()
 		{
-			case "$2" in
+			local rc rp # radical du candidat, radical du présent
+			case "$3" in
 				'"$exprPreserves"'"") gentillesse=2 ;;
 				$1[-][0-9]*.[0-9]*|$1+*) gentillesse= ;; # Même radical, version sans doute plus ancienne à ne pas préserver, on écrase.
+				*) gentillesse=1 '"$videur"' ;;
 			esac
 		}
 	'
@@ -178,16 +230,18 @@ analyserParametresEtTourner()
 {
 	local lv
 	local preserves=
+	local videur=
 	local une=
 	while [ $# -gt 0 ]
 do
 		case "$1" in
 			-h) auSecours ;;
 			-p) preserves="$preserves $2" ; shift ; shift ; continue ;;
+			--videur) videur="$2" ; shift ; shift ; continue ;;
 			*/*) prefixeIci="`dirname "$1"`" ; lv="`basename "$1"`" ;;
 			*) prefixeIci="$prefixe" ; lv="$1" ;;
 	esac
-		defCalcGentillesse "$preserves"
+		defCalcGentillesse "$preserves" "$videur"
 		[ -d "$prefixeIci/$lv" ] || auSecours "$prefixeIci/$lv"
 	prefixe=$prefixeIci allerUtiliser "$lv"
 		shift
