@@ -137,7 +137,7 @@ utiliserEtoile()
 utiliser()
 {
 	local ou="$1"
-	local a
+	local a audessus
 	shift
 	local gentillesse info
 	
@@ -156,10 +156,11 @@ utiliser()
 		then
 			a="`readlink "$prefixe/$1"`" # Vers où ça pointe pour l'heure?
 			calcGentillesse "$radical" "$ou" "$a"
+			audessus="`dn "$1"`"
 			if [ -z "$gentillesse" ]
 			then
 				rm "$prefixe/$1"
-			elif [ -d "$prefixe/`dirname "$1"`/$a" -a ! -L "$prefixe/`dirname "$1"`/$a" ] # La destination est un répertoire, on peut l'utiliser.
+			elif [ -d "$prefixe/$audessus/$a" -a ! -L "$prefixe/$audessus/$a" ] # La destination est un répertoire, on peut l'utiliser.
 			then
 				rm "$prefixe/$1"
 				mkdir "$prefixe/$1"
