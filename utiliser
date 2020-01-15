@@ -31,7 +31,7 @@ Utilisation: $0 [-r <racine>] [-p <préservés>] [--videur <videur>] <cible>
     Le <videur> est invoqué avec pour paramètres <logiciel> <autre racine> (ex.: \`libjpegturbo-2.0.2 libjpeg-8.4\` si se pose la question de remplacer lib/libjpeg.so -> ../libjpeg-8.4/lib/libjpeg.so par -> ../libjpegturbo-2.0.2/lib/libjpeg.so).
     Il doit renvoyer précisément 42 pour valider l'écrasement (ce qui permet de distinguer à la fois des erreurs classiques type 127 pour commande introuvable, erreur de syntaxe, segmentation fault, et du 0 d'un script qui aurait oublié de valider explicitement).
     Il lui est possible aussi d'accéder aux variables \$rc (radical candidat) et \$rp (radical présent), auquel cas il lui faut terminer par un # pour éviter que les \$rc et \$rp lui soient passés en paramètres. On peut ainsi préciser:
-      --videur '[ "\$rp" != a-1.0.0 ] || exit 42 #'
+      --videur 'case "\$rp" in a-1.0.0) exit 42 ;; esac #'
     qui autorisera l'écrasement du seul a-1.0.0
     Les résultats du videur sont cachés, de manière à n'invoquer qu'une fois le videur par radical trouvé.
   <cible>
