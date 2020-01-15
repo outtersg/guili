@@ -125,17 +125,17 @@ destCible()
 #	 Si non mentionné: comportement de - si on est un amorceur (car supposé installer des trucs dans le système, un peu partout ailleurs que dans $dest); sinon comportement de +.
 sutiliser()
 {
-	local biner=
+	local biner= ddest="`basename "$dest"`" lov="$logiciel$argOptions-$version"
 	[ "x$1" = "x-" -o "x$1" = "x+" ] && biner="$1" && shift || true
-	sut_lv="$1"
-	[ ! -z "$sut_lv" ] || sut_lv="`basename "$dest"`"
 	if [ -z "$biner" ]
 	then
-		case "$sut_lv" in
+		case "$logiciel" in
 			_*) biner=- ;; # Par défaut, un amorceur n'est pas silotable (car il s'installe un peu partout dans le système: rc.d, init.d, systemd, etc.).
 			*) biner=+ ;;
 		esac
 	fi
+	
+	[ $# -eq 0 ] || jaune "# Attention, sutiliser déduit maintenant ses paramètres de l'environnement ($lov) et non plus de ses paramètres ($*)." >&2
 	
 	[ "x$biner" = x- ] || guili_postcompil
 	
@@ -146,40 +146,38 @@ sutiliser()
 	# Si on est censés pousser notre binaire vers un silo central, on le fait.
 	if [ "x$biner" = "x+" ]
 	then
-		pousserBinaireVersSilo "$sut_lv"
+		pousserBinaireVersSilo "$lov"
 	fi
 	
 	guili_localiser
 	
-	diag + "$sut_lv"
-	utiliserSiDerniere "$INSTALLS/$sut_lv"
+	diag + "$ddest"
+	[ "$ddest" = "$lov" ] || diag : "($lov)"
+	utiliserSiDerniere
 	
 	infosInstall
 }
 
 utiliserSiDerniere()
 {
-	_affecterVeLo()
-	{
-		version="$1"
-		logiciel="$2"
-	}
+	local lv="$logiciel$argOptions-$version"
+	local ddest="`bn "$dest"`"
+	local aff="$ddest"
+	[ "$lv" = "$ddest" ] || aff="$aff ($lv)"
 	
-	local dest="$dest"
-	[ -z "$1" ] || dest="$1"
+	# Si $logiciel et $version ont été bouffés quelque part, c'est une erreur, car on va en avoir besoin dans ce qui suit.
+	case "$version" in
+		""|*[^.0-9]*|.*|*.) rouge "# Votre logiciel doit posséder une version pour être comparé aux précédentes installation." >&2 ; return 1 ;;
+	esac
 	
-	local lv="`basename "$dest"`"
-	local logiciel version
-	_affecterVeLo `velo "$lv"`
-	
-	local cadets="`cadets "$dest"`"
+	local cadets="`cadets "$INSTALLS/$lv"`"
 	if [ -n "$cadets" ]
 	then
 		local derniere="`echo "$cadets" | tail -1`"
 		derniere="`basename "$derniere"`"
 		if [ "$lv" != "$derniere" -a -z "$GUILI_INSTALLER_VIEILLE" ]
 		then
-			echo "# Attention, $lv ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $lv" >&2
+			echo "# Attention, $aff ne sera pas utilisé par défaut, car il existe une $derniere plus récente. Si vous voulez forcer l'utilisation par défaut, faites un $SCRIPTS/utiliser $ddest" >&2
 		fi
 	fi
 	if [ -d "$dest" ]
