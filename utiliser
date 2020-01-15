@@ -5,6 +5,7 @@ prefixe=/usr/local
 [ -z "$PREFIXE_UTILISER" ] || prefixe="$PREFIXE_UTILISER"
 [ "x$1" = "x-r" ] && shift && prefixe="$1" && shift
 
+command -v proff > /dev/null 2>&1 || proff() { cat ; }
 auSecours()
 {
 	if [ -n "$1" ]
@@ -13,7 +14,7 @@ auSecours()
 # "$1" introuvable.
 TERMINE
 	fi
-	cat >&2 <<TERMINE
+	proff >&2 <<TERMINE
 # Utiliser
 # Crée récursivement des liens de $prefixe/<x>/<y> vers $prefixe/<cible>/<x>/<y>
 # © Guillaume Outters 2003-2004,2007,2019-2020
