@@ -44,6 +44,7 @@ v 2.58.2 || true
 v 2.58.3 || true
 v 2.60.5 && prerequis="meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ cheminMeson || true
 v 2.60.6 || true
+v 2.63.3 || true
 
 archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
