@@ -42,7 +42,7 @@ v 2.52.1 || true
 v 2.52.2 || true
 v 2.58.2 || true
 v 2.58.3 || true
-v 2.60.5 && prerequis="meson \\ $prerequis" && retirerModif pasBesoinDeCarbon || true
+v 2.60.5 && prerequis="meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ cheminMeson || true
 v 2.60.6 || true
 
 prerequis
@@ -50,6 +50,23 @@ prerequis
 archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.34.3 && archive="http://ftp.acc.umu.se/pub/GNOME/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
+
+cheminMeson()
+{
+	export PYTHONPATH="`dest="$destmeson" pypadest`"
+}
+
+environ()
+{
+	# Sous les BSD, environ doit être laissée dans les biblios dynamiques même si introuvable (il sera défini pour l'exécutable final).
+	# https://git.sailfishos.org/mer-core/qtbase/commit/ccf74b592809e0c5a613eff27d6431a4c659e368
+	# Notons que c'est une régression introduite par meson, puisque m4macros/attributes.m4 savait déjà faire une exception.
+	
+	[ `uname` = FreeBSD ] || return 0
+	
+	filtrer gio/fam/meson.build sed -e "s#'-Wl,-no-undefined' *,*##g"
+	optionsMeson="$optionsMeson -Db_lundef=false"
+}
 
 # Le machin vérifie que biblio et iconv.h sont bien d'accord, soit tout GNU iconv, soit tout système. Problème: sur Darwin, on a un hybride. Et sur mon BSD, il s'emmêle les pédales. En plus on s'en fout, parce que l'ifdef n'est utilisé nulle part ailleurs.
 micMacGnuIconv()
@@ -72,6 +89,12 @@ sansDtrace()
 	optionsConfigure="$optionsConfigure --disable-dtrace"
 }
 
+sansXattr()
+{
+	echo '#include <attr/xattr.h>' > $TMP/1.c
+	$CC -c -o $TMP/1.o $TMP/1.c 2> /dev/null || optionsConfigure="$optionsConfigure --disable-xattr" optionsMeson="$optionsMeson -Dxattr=false"
+}
+
 destiner
 
 prerequis
@@ -86,15 +109,18 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 if pge "$version" 2.60
 then
-	meson build
+	meson build --prefix="$dest" $optionsMeson
+	cd build
+	make=ninja
 else
 ./configure --prefix="$dest" $optionsConfigure
+	make=make
 fi
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
-sudo make install
+sudoku PYTHONPATH="$PYTHONPATH" $make install
 
 sutiliser
