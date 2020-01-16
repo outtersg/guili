@@ -24,18 +24,18 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 2.2.3 && prerequis="gettext" || true
+v 2.2.3 && prerequis="gettext iconv" || true
 v 2.6.5 || true
 v 2.12.12 && modifs="micMacGnuIconv pasBesoinDeCarbon" || true
 v 2.22.5 || true
-v 2.34.3 && prerequis="gettext libffi >= 3" || true
+v 2.34.3 && prerequis="gettext iconv libffi >= 3" || true
 v 2.36.4 || true
 v 2.38.1 || true
 v 2.40.0 && modifs="pasBesoinDeCarbon micMacGnuIconv sansDtrace" || true
 v 2.41.2 || true
 v 2.42.1 || true
 v 2.44.0 || true
-v 2.48.0 && prerequis="libtool gettext libffi >= 3 python pkgconfig pcre" || true # libtool car en 2.58.3 en tout cas, sans, il reste une macro LT_PREREQ dans le configure.
+v 2.48.0 && prerequis="libtool python pkgconfig \\ gettext iconv libffi >= 3 pcre" || true # libtool car en 2.58.3 en tout cas, sans, il reste une macro LT_PREREQ dans le configure.
 v 2.48.1 || true
 v 2.48.2 || true
 v 2.52.1 || true
