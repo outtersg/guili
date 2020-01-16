@@ -44,11 +44,26 @@ v 2.7.13 || true
 v 2.7.14 || true
 v 2.7.15 || true
 v 2.7.16 || true
-v 3.4.3 && modifs="incdirbourrin" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
+v 3.4.3 && modifs="incdirbourrin testsLocalhost" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
 v 3.7.4 || true
 
 # Modifications
+
+testsLocalhost()
+{
+	local localhost="`localhost`"
+	[ -n "$localhost" -a "$localhost" != 127.0.0.1 ] || return 0
+	
+	rm -f Lib/test/test_socket.py
+	
+	# Ce qui suit ne marche pas; on sera plus efficaces ci-dessus.
+	true || \
+	grep -rl 127.0.0.1 Lib/test | while read f
+	do
+		filtrer "$f" sed -e "s/127.0.0.1/$localhost/g"
+	done
+}
 
 # Enrobe un python binaire de quelque chose qui lui donne l'environnement nécessaires (en particulier le LD_LIBRARY_PATH).
 pythonenboiter()
