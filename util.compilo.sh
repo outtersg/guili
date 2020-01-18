@@ -115,12 +115,40 @@ compiloSysVersion()
 
 compilo_cheminLibcxx()
 {
+	local cheminBienVoulu suffixes suffixe
+	
 	eval "cheminBienVoulu=\$dest$bienVoulu"
-	if [ -d "$cheminBienVoulu" -a -d "$cheminBienVoulu/include/c++/v1" ]
-	then
-		#export CPPFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CPPFLAGS"
-		export 	CXXFLAGS="-cxx-isystem $cheminBienVoulu/include/c++/v1 $CXXFLAGS"
-	fi
+	
+	[ -d "$cheminBienVoulu" ] || return 0
+	
+	case "$bienVoulu" in
+		clang) suffixes="include/c++/v1" ;;
+		*) return 0 ;;
+	esac
+	
+	for suffixe in $suffixes
+	do
+		[ -d "$cheminBienVoulu/$suffixe" ] || continue
+		
+		case "$bienVoulu" in
+			clang) compilo_cheminLibcxxClang "$cheminBienVoulu/$suffixe" ;;
+		esac
+		
+		return 0
+	done
+}
+
+compilo_cheminLibcxxClang()
+{
+	# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit pas être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
+	case "$logiciel" in
+		gcc)
+			export CXX="$CXX -cxx-isystem $cheminBienVoulu/$suffixe"
+			return 0
+			;;
+	esac
+	
+	export 	CXXFLAGS="-cxx-isystem $cheminBienVoulu/$suffixe $CXXFLAGS"
 }
 
 _tmpBinEnTeteDePath()
