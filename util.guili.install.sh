@@ -106,7 +106,7 @@ destiner()
 	# Reste le cas du lien symbolique, par exemple si nous voulons installer libjpeg-x.y alors qu'il existe un alias libjpeg-x.y -> libjpegturbo-z.t: en ce cas nous prenons le pas sur l'alias (c'était un pis-aller, nous sommes l'install officielle). Laisser l'alias serait catastrophique: nous écraserions l'install de libjpegturbo par celle de libjpeg.
 	if [ -L "$dest" ]
 	then
-		rm "$dest"
+		sudoku rm "$dest"
 	fi
 }
 
