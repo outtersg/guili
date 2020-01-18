@@ -60,7 +60,9 @@ esac
 
 # Si nous sommes l'itération 0 d'une compil Freetype + Harfbuzz (0. freetype --sans-hb ; 1. harfbuzz ; 2. freetype+hb) nous nous compilerons sans Harfbuzz, mais nous nous remettons tout de même l'option, afin que destiner() nous donne la même $dest que l'itération 2, et qu'ainsi l'Harfbuzz du 1. ait pour prérequis ce $dest cible.
 case "$GUILI_MOIRE:" in
-	*:hb:*) argOptions="`options "$argOptions+hb"`" ;;
+	*:hb:*)
+		argOptions="`options "$argOptions+hb"`"
+		;;
 esac
 
 destiner
@@ -92,7 +94,11 @@ echo Installation… >&2
 sudo make install
 
 case "$GUILI_MOIRE:" in
-	*:hb:*) guili_deps_pondre ;; # À l'intérieur du moiré (Freetype itération 0), sutiliser() est surchargée pour ne rien faire. Cependant l'Harfbuzz (itération 1) aura besoin de nos dépendances pour les inclure aux siennes. Il nous faut donc au moins le guili_deps_pondre.
+	*:hb:*)
+		# À l'intérieur du moiré (Freetype itération 0), sutiliser() est surchargée pour ne rien faire.
+		# Cependant l'Harfbuzz (itération 1) aura besoin de nos dépendances pour les inclure aux siennes. Il nous faut donc au moins le guili_deps_pondre.
+		guili_deps_pondre
+		;;
 esac
 sutiliser
 
