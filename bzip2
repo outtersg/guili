@@ -24,8 +24,20 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 1.0.6 && modifs="fpic meilleurCompilo" || true
+v 1.0.6 && modifs="fpic meilleurCompilo dyna" || true
 v 1.0.7 || true
+
+dyna()
+{
+	filtrer Makefile awk '
+/^all: /{ print $0" libbz2.so"; next; }
+/^libbz2\.a:/{ print "libbz2.so: $(OBJS)"; print "\t$(CC) -shared -fPIC -o $@ $(OBJS)" ; print ""; }
+{ print; }
+/^install:/{ install = 1; }
+install&&/^$/{ install = 0; }
+install&&/libbz2\.a/{ gsub(/libbz2\.a/, "libbz2.so"); print; }
+'
+}
 
 archive="https://netix.dl.sourceforge.net/project/bzip2/bzip2-$version.tar.gz"
 archive="https://sourceware.org/pub/bzip2/bzip2-$version.tar.gz"
