@@ -29,7 +29,7 @@ v 1.12.14 && prerequis="pkgconfig \\ pixman >= 0.30 glib libpng" || true
 v 1.12.16 || true
 v 1.12.18 && modifs="strndup" || true
 v 1.14.6 || true
-v 1.14.8 && prerequis="$prerequis freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
+v 1.14.8 && prerequis="$prerequis harfbuzz freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
 #v 1.15.2 || true # Lien cassé?
 v 1.16.0 || true
 
@@ -50,6 +50,8 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 }'
 	done
 }
+
+optionSi hb/harfbuzz && prerequis="$prerequis harfbuzz+-cairo" || true # On précise bien qu'on veut l'harfbuzz sans cairo, sinon on se mord la queue.
 
 destiner
 
