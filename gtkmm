@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,34 +21,26 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
-
-logiciel=gtkmm
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-v 2.6.3 && v_glibmm=">= 2.6" || true
-v 2.24.2 && v_glibmm=">= 2.28 < 2.35" && v_gtk="< 2.80" || true
-v 3.0.1 && v_glibmm=">= 2.28" || true
-v 3.6.0 && v_glibmm=">= 2.34" && v_pangomm=">= 2.27.1" && v_gtk=">= 3.6" && v_cairomm=">= 1.9.2" && v_gdk_pixbuf=">= 2.22.1" && v_atkmm=">= 2.22.2" || true
+v 2.6.3 && prerequis="glibmm >= 2.6" || true
+v 2.24.2 && prerequis="glibmm >= 2.28 < 2.35 gtk < 2.80" || true
+v 3.0.1 && prerequis="glibmm >= 2.28 gtk < 2.80" || true
+v 3.6.0 && prerequis="glibmm >= 2.34 pangomm >= 2.27.1 gtk >= 3.6 cairomm >= 1.9.2 gdk-pixbuf >= 2.22.1 atkmm >= 2.22.2" || true
 
 # Modifications
 
 # Variables
 
-[ -z "$v_gtk" ] || inclure gtk+ "$v_gtk"
-[ -z "$v_glibmm" ] || inclure glibmm "$v_glibmm"
-[ -z "$v_pangomm" ] || inclure pangomm "$v_pangomm"
-[ -z "$v_cairomm" ] || inclure cairomm "$v_cairomm"
-[ -z "$v_gdk_pixbuf" ] || inclure gdk-pixbuf "$v_gdk_pixbuf"
-[ -z "$v_atkmm" ] || inclure atkmm "$v_atkmm"
-
-dest="$INSTALLS/$logiciel-$version"
 archive=http://ftp.gnome.org/pub/GNOME/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2
 pge $version 3.1 && archive=http://ftp.gnome.org/pub/gnome/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz || true
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -63,6 +55,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
