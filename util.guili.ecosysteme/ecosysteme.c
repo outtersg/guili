@@ -102,7 +102,23 @@ void pousserPrerequis(char * ptrL, int tL, char * ptrO, int tO, char * ptrV, int
 		}
 	
 	if((p = (Prerequis *)L_chercherN(resultatAgrege, ptrL, tL)))
+	{
 		Prerequis_fusionnerN(p, ptrO, tO, ptrV, tV);
+		// Certains prérequis spéciaux (séparateurs) s'agrègent à la dernière occurrence trouvée plutôt qu'à la première: en ce cas on décale tout le monde.
+		if(tL == 1 && *ptrL == '\\')
+		{
+			i = L_posN(resultatAgrege, ptrL, tL);
+			char * cle = resultatAgrege->cles[i];
+			char * val = resultatAgrege->vals[i];
+			while(++i < resultatAgrege->n)
+			{
+				resultatAgrege->cles[i - 1] = resultatAgrege->cles[i];
+				resultatAgrege->vals[i - 1] = resultatAgrege->vals[i];
+			}
+			resultatAgrege->cles[i - 1] = cle;
+			resultatAgrege->vals[i - 1] = val;
+		}
+	}
 	else
 	{
 		p = Prerequis_creerN(ptrL, tL, ptrO, tO, ptrV, tV);
