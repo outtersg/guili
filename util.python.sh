@@ -43,7 +43,7 @@ pyextinit()
 
 sudokupy()
 {
-	sudoku LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PYTHONPATH="`pypadest`" SSL_CERT_FILE="$SSL_CERT_FILE" "$@"
+	sudoku PATH="$PATH" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PYTHONPATH="`pypadest`" SSL_CERT_FILE="$SSL_CERT_FILE" "$@"
 }
 
 pylanceur()
