@@ -226,7 +226,7 @@ guili_tirerAlias()
 		
 		# Existe-t-il quelque chose auquel nous ne devons pas toucher?
 		
-		if [ -e "$INSTALLS/$pseudo" ]
+		if [ -e "$INSTALLS/$pseudo" -o -L "$INSTALLS/$pseudo" ] # -e renvoie "faux" sur les liens cassés.
 		then
 			# Soit un vrai dossier ou fichier.
 			
