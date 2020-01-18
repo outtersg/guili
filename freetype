@@ -56,6 +56,8 @@ opSiPasPas hb harfbuzz
 		;;
 esac
 
+[ -z "$GUILI_MOIRE_FT" ] || GUILI_MOIRE="$GUILI_MOIRE$GUILI_MOIRE_FT"
+
 # Si nous sommes l'itération 0 d'une compil Freetype + Harfbuzz (0. freetype --sans-hb ; 1. harfbuzz ; 2. freetype+hb) nous nous compilerons sans Harfbuzz, mais nous nous remettons tout de même l'option, afin que destiner() nous donne la même $dest que l'itération 2, et qu'ainsi l'Harfbuzz du 1. ait pour prérequis ce $dest cible.
 case "$GUILI_MOIRE:" in
 	*:hb:*) argOptions="`options "$argOptions+hb"`" ;;
@@ -69,6 +71,7 @@ destiner
 if option hb
 then
 	moire -i hb --sans-hb
+	export GUILI_MOIRE_FT=":hb" # Pour qu'il soit transmis au freetype+-hb qu'appellera harfbuzz (les prerequis() intermédiaires effacent $GUILI_MOIRE).
 fi
 
 prerequis
