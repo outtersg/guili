@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,42 +21,33 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
-inclure fontconfig
-
-logiciel=xft
-
-v 2.1.2
-v 2.1.7
-v 2.3.1
+v 2.1.2 && prerequis="pkgconfig \\ fontconfig" || true
+v 2.1.7 || true
+v 2.3.1 || true
 
 pge $version 2.1.2 && archive=http://xlibs.freedesktop.org/release/$logiciel-$version.tar.gz || true
 pge $version 2.1.7 && archive=http://xlibs.freedesktop.org/release/libXft-$version.tar.bz2 || true
 pge $version 2.3 && archive=http://xorg.freedesktop.org/releases/individual/lib/libXft-$version.tar.bz2 || true
 
-dest=/usr/local/$logiciel-$version
+destiner
 
-[ -d "$dest" ] && exit 0
+prerequis
 
-if [[ $version = *-* ]] ; then
-	obtenirEtAllerDansCvs -d $version $archive_cvs
-else
-	obtenirEtAllerDans "$archive"
-fi
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --x-includes=/usr/local/include # Le x-includes pour qu'il trouve Xrender.h; normalement ça devrait être /usr/X11R6/include, mais avec ça, les programmes qui utilisent pkg-config incluent /usr/X11R6/include avant notre répertoire, qui est censé le surcharger.
+./configure --prefix="$dest" --x-includes="$INSTALLS" # Le x-includes pour qu'il trouve Xrender.h; normalement ça devrait être /usr/X11R6/include, mais avec ça, les programmes qui utilisent pkg-config incluent /usr/X11R6/include avant notre répertoire, qui est censé le surcharger.
 
 echo Compilation… >&2
 make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+sutiliser
