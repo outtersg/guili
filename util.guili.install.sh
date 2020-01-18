@@ -162,7 +162,7 @@ sutiliser()
 
 utiliserSiDerniere()
 {
-	local lv="$logiciel$argOptions-$version"
+	local lv="$logiciel`argOptions`-$version"
 	local ddest="`bn "$dest"`"
 	local aff="$ddest"
 	[ "$lv" = "$ddest" ] || aff="$aff ($lv)"
