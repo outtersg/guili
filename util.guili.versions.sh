@@ -99,6 +99,21 @@ _v_filtreTrouves()
 	esac
 }
 
+# Logiciel-Options-Version Explicite ou Rapporté
+# Récupère le triplet LOV d'un dossier, en lisant le .guili.version si présent, sinon le dossier lui-même.
+lover()
+{
+	local d="$1" r="$1"
+	case "$d" in
+		*/*) r="`bn "$r"`" ;;
+		*) d="$INSTALLS/$d" ;;
+	esac
+	if [ -s "$d/$GUILI_F_VERSION" ] ; then r="`cat "$d/$GUILI_F_VERSION"`" ; fi
+	IFS=-
+	tifs estUnLOV -v $r || return 1
+	echo "$r"
+}
+
 # Liste les versions "supérieures" à une version donnée: soit version ultérieure, soit même version mais plus d'options.
 # Utilisation: cadets <logiciel>+
 #   <logiciel>
