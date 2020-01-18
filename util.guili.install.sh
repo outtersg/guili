@@ -127,7 +127,7 @@ destCible()
 #	 Si non mentionné: comportement de - si on est un amorceur (car supposé installer des trucs dans le système, un peu partout ailleurs que dans $dest); sinon comportement de +.
 sutiliser()
 {
-	local biner= ddest="`basename "$dest"`" lov="$logiciel$argOptions-$version"
+	local biner=
 	[ "x$1" = "x-" -o "x$1" = "x+" ] && biner="$1" && shift || true
 	if [ -z "$biner" ]
 	then
@@ -137,7 +137,23 @@ sutiliser()
 		esac
 	fi
 	
-	[ $# -eq 0 ] || jaune "# Attention, sutiliser déduit maintenant ses paramètres de l'environnement ($lov) et non plus de ses paramètres ($*)." >&2
+	local dest="$dest" desto="$dest" logiciel="$logiciel" argOptions="`argOptions`" version="$version"
+	local lov="$logiciel$argOptions-$version"
+	# Nous demande-t-on de sutiliser autre chose que nous (par exemple nous n'avons pas de destination propre, nous nous greffons à autre chose)?
+	# En ce cas nous devons en retrouver les options et version, afin de déterminer nos cadets.
+	case "$1" in
+		"") true ;;
+		"$logiciel-$version"|"$logiciel$argOptions-$version") # Ancienne mode: on précisait quoi utiliser.
+			jaune "# Attention, sutiliser déduit maintenant ses paramètres de l'environnement ($lov) et non plus de ses paramètres ($*)." >&2
+			;;
+		*)
+			dest="$1"
+			lov="`lover "$dest"`"
+			[ -n "$lov" ] || err "# \"$1\" doit être un identifiable comme logiciel+options-version."
+			love -e "logiciel argOptions version" "$lov"
+			;;
+	esac
+	local ddest="`bn "$dest"`"
 	
 	[ "x$biner" = x- ] || guili_postcompil
 	
