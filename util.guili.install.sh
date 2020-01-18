@@ -262,7 +262,7 @@ guili_tirerAlias()
 			
 			# Bon sinon ça saute.
 			
-			rm "$INSTALLS/$pseudo"
+			sudoku rm "$INSTALLS/$pseudo"
 		fi
 		
 		gris "Alias $dest <- $pseudo"
