@@ -110,6 +110,11 @@ compiloSysVersion()
 	
 	# En général le compilo vient avec sa libc++.
 	
+	compilo_cheminLibcxx
+}
+
+compilo_cheminLibcxx()
+{
 	eval "cheminBienVoulu=\$dest$bienVoulu"
 	if [ -d "$cheminBienVoulu" -a -d "$cheminBienVoulu/include/c++/v1" ]
 	then
