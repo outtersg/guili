@@ -4,6 +4,7 @@ GuiLI
 Les GuiLI, *Grosse Usine à Installs Locales Interdépendantes / Guillaume's Lightweight Installers*, sont un gestionnaire de paquets compilés, aptes à être déployés sur une machine POSIX.
 
 Ils suivent une philosophie proche de [Nix](https://nixos.org/nix/) ou des [ports FreeBSD](https://www.freebsd.org/ports/).
+Par certains aspects (gestion de dépendances, préparation de l'environnement pour la compilation) les GuiLI se rapprochent de [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/).
 
 Plusieurs versions d'un logiciel peuvent cohabiter (numéro de version ou options différentes), des liens symboliques permettant de référencer la version par défaut depuis un dossier du `$PATH` (et le `$LD_LIBRARY_PATH` correspondant).
 
