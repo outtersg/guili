@@ -49,7 +49,7 @@ sudokupy()
 pylanceur()
 {
 	local lance="$1"
-	local chaineAbs="`egrep 'absolutiseScripts\(|delie\(' < "$install_moi"`"
+	local chaineAbs="`egrep '[dD]elieS\(|absolutiseScripts\(|delie\(' < "$install_moi"`"
 	cat <<TERMINE
 #!/bin/sh
 $chaineAbs
