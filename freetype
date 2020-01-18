@@ -62,6 +62,9 @@ esac
 case "$GUILI_MOIRE:" in
 	*:hb:*)
 		argOptions="`options "$argOptions+hb"`"
+		# De plus nous marquons notre .encours comme témoin valide (au même titre que .complet).
+		# En effet l'harfbuzz qui nous a en prérequis va normalement le trouver et le prendre tel quel, sauf en cas d'$INSTALLS_MAX: dans ce cas il nous appellera pour valider la chose, or la validation de destiner() (dans nous) est plus stricte que celle de prerequis() (dans l'harfbuzz appelant).
+		GUILI_TEMOINS_ENCOURS="$INSTALLS/$logiciel`argOptions`-$version"
 		;;
 esac
 
