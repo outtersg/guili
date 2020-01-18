@@ -63,7 +63,7 @@ TERMINE
 finaliserInstallPyExt()
 {
 	local pyext="$INSTALLS/$PYEXT"
-	( cd "$dest" && tar cf - . ) | ( sudoku mkdir -p "$pyext" && cd "$pyext" && sudoku tar xf - )
+	( cd "$desto" && tar cf - . ) | ( sudoku mkdir -p "$pyext" && cd "$pyext" && sudoku tar xf - )
 }
 
 PYEXT="pyext-1.0"
