@@ -33,6 +33,7 @@ v 2.9.0 && modifs=pthread290 || true
 v 2.9.2 && modifs= || true
 v 2.9.7 || true
 v 2.9.9 || true
+v 2.9.10 || true
 
 archive=http://xmlsoft.org/sources/libxml2-$version.tar.gz
 
