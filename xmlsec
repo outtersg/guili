@@ -29,12 +29,18 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 OPTIONS_CONF=
 
-v 1.2.27 && prerequis="libtool libxml libxslt openssl nss" && modifs="inclusions inclusionsNss" || true
+v 1.2.27 && prerequis="libtool libxml libxslt openssl nss" && modifs="inclusions inclusionsNss nssPasMozilla" || true
 
 option nss && virerPrerequis openssl || virerPrerequis nss
 option nss && OPTIONS_CONF="$OPTIONS_CONF --with-nss --without-openssl --with-default-crypto=nss" || true
 
 # Modifications
+
+nssPasMozilla()
+{
+	# Pour retrouver le nom du paquet (pkg-config) nss et nspr, et l'inscrire dans les prérequis, le configure a toute une stratégie pour essayer les divers noms. Mais si aucune ne fonctionne (ex.: on lui a forcé un --with-nss=xxx, lui disant où trouver son nss sans pkg-config), il inscrit un nom de paquet nss par défaut: mozilla-nss. Or on sait bien, nous, que celui qu'on lui a demandé de prendre est le nss standard.
+	filtrer configure sed -e '/^[A-Z_]*_PACKAGE=mozilla-/s/mozilla-//'
+}
 
 inclusions()
 {
