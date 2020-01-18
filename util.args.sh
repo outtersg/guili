@@ -293,6 +293,7 @@ decoupePrerequisSansCompilo()
 fusionnerPrerequis()
 {
 	# On souhaite avoir en sortie l'ordre d'apparition en entrée. Le for(tableau) n'est pas prédictible (certains awk sortent par ordre d'arrivée, d'autre par ordre alphabétique). On utilise donc un tableau d'ordre à indices numériques, prédictibles.
+	# Les \ se combinant dans le sens inverse (on garde la position du dernier), en cas de double \ on décale tout le monde pour prendre la position du dernier rencontré.
 	awk '
 BEGIN{ nPrerequis = 0; }
 {
@@ -307,6 +308,13 @@ BEGIN{ nPrerequis = 0; }
 	{
 		ordre[nPrerequis++]=l;
 		logiciels[l]=1;
+	}
+	else if(l == "\\")
+	{
+		for(i = -1; ordre[++i] != l;) {}
+		while(++i < nPrerequis)
+			ordre[i - 1] = ordre[i];
+		ordre[i - 1] = l;
 	}
 	options[l]=options[l]""o;
 	versions[l]=versions[l]" "v;
