@@ -27,6 +27,8 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 0.50.0 && prerequis="python >= 3.5" || true
+v 0.51.1 || true
+v 0.52.1 || true
 
 # Modifications
 
