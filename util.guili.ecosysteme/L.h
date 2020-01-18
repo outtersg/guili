@@ -36,4 +36,5 @@ L;
 L * L_creer();
 void * L_chercherN(L * t, char * cle, int tailleCle);
 int L_pos(L * t, char * cle);
+int L_posN(L * t, char * cle, int tailleCle);
 void L_placer(L * t, char * cle, void * val);

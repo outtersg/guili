@@ -59,6 +59,15 @@ int L_pos(L * t, char * cle)
 	return -1;
 }
 
+int L_posN(L * t, char * cle, int tailleCle)
+{
+	int i;
+	for(i = -1; ++i < t->n;)
+		if(0 == strncmp(cle, t->cles[i], tailleCle) && t->cles[i][tailleCle] == 0)
+			return i;
+	return -1;
+}
+
 void L_placer(L * t, char * cle, void * val)
 {
 	int pos;
