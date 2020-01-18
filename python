@@ -413,7 +413,7 @@ echo Compilation… >&2
 fi
 
 echo Installation… >&2
-( proxy "" && sudo make install )
+( proxy "" && sudokupy make install )
 [ -e "$dest/bin/python" ] || sudo ln -s python3 "$dest/bin/python"
 pythonenboiter
 # http://legacy.python.org/dev/peps/pep-3149/
