@@ -44,6 +44,7 @@ v 2.7.13 || true
 v 2.7.14 || true
 v 2.7.15 || true
 v 2.7.16 || true
+# À FAIRE: sur mon FreeBSD 10.2, failed to compile bsddb readline: pour le second, prérequérir readline et ncurses ferait-il l'affaire?
 v 3.4.3 && modifs="incdirbourrin testsLocalhost" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
 v 3.7.4 || true
