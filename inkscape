@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2005 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,50 +21,14 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
-calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
-calcScripts "$0"
-. "$SCRIPTS/util.bash"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
-inclure glib
-
-logiciel=inkscape
-
-v 0.41 && modifs="xmlparser finite" && v_gtkmm=">= 0" && v_gtk=">= 0" && v_libxml=">= 0" && v_libxslt=">= 0" && v_sigcpp=">= 0" && v_gc=">= 0" && v_popt=">= 0" || true
-v 0.48.2 && modifs="putainDeLibJPEGDeMacOSX" && v_intltool=">= 0.22" && v_littlecms="< 2" && v_glibmm=">= 2.4" && v_gtkmm=">= 2.10 < 2.80" && v_gtk=">= 2" && v_libxml=">= 2.6.11" && v_libxslt=">= 1.0.15" && v_cairo=">= 0" && v_sigcpp=">= 2.0.12" && v_libpng=">= 1.2" && v_gsl=">= 0" && v_gc= && v_popt= || true
-
-[ -z "$v_intltool" ] || inclure intltool "$v_intltool"
-[ -z "$v_glibmm" ] || inclure glibmm "$v_glibmm"
-[ -z "$v_gtkmm" ] || inclure gtkmm "$v_gtkmm"
-[ -z "$v_gtk" ] || inclure gtk+ "$v_gtk"
-[ -z "$v_libxml" ] || inclure libxml "$v_libxml"
-[ -z "$v_libxslt" ] || inclure libxslt "$v_libxslt"
-[ -z "$v_cairo" ] || inclure cairo "$v_cairo"
-[ -z "$v_sigcpp" ] || inclure sigc++ "$v_sigcpp"
-[ -z "$v_libpng" ] || inclure libpng "$v_libpng"
-[ -z "$v_gsl" ] || inclure gsl "$v_gsl"
-[ -z "$v_popt" ] || inclure libpopt "$v_popt"
-[ -z "$v_gc" ] || inclure gc "$v_gc"
+v 0.41 && modifs="finite" && prerequis="glib gtkmm gtk libxml libxslt libsigcxx gc popt" || true
+v 0.48.2 && modifs="putainDeLibJPEGDeMacOSX" && prerequis="glib intltool >= 0.22 littlecms < 2 glibmm >= 2.4 gtkmm >= 2.10 < 2.80 gtk >= 2 libxml >= 2.6.11 libxslt >= 1.0.15 cairo libsigcxx >= 2.0.12 libpng >= 1.2 gsl gc popt" || true
 
 archive=http://switch.dl.sourceforge.net/project/inkscape/inkscape/$version/inkscape-$version.tar.gz
-
-xmlparser()
-{
-	if perl -mXML::Parser < /dev/null 2> /dev/null
-	then
-		true
-	else
-		pushd /tmp/
-		obtenirEtAllerDans http://search.cpan.org/CPAN/authors/id/M/MS/MSERGEANT/XML-Parser-2.34.tar.gz
-		cd /tmp/
-		tar xzf /Users/installs/XML-Parser-2.34.tar.gz
-		cd XML-Parser-2.34
-		perl Makefile.PL
-		make
-		sudo make install
-		popd
-	fi
-}
+archive=https://media.inkscape.org/dl/resources/file/inkscape-$version.tar.bz2
 
 finite()
 {
@@ -75,9 +39,9 @@ finite()
 
 # Variables
 
-dest=$INSTALLS/$logiciel-$version
+destiner
 
-[ -d "$dest" ] && exit 0
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -102,6 +66,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
