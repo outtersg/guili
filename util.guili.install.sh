@@ -371,7 +371,7 @@ guili_deps_pondre()
 		# - ou bien on vient de recompiler sur la présente machine, et on écrase une précédente install'. Cependant ceci ne peut arriver que si le .complet a été dégommé (et le .prerequis a de fortes chances de l'avoir été aussi), ou si un passage outre est effectué (mais dans ce cas on suppose la situation maîtrisée).
 		jaune "# Attention, ce paquet est installé dans un environnement différent de celui pour lequel il a originellement été compilé:" >&2
 		diff "$fpr" "$fprt" | jaune >&2
-		mv "$fpr" "$fpr.orig"
+		sudoku mv "$fpr" "$fpr.orig"
 	fi
 	
 	local temoin destbis
