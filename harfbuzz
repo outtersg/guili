@@ -36,7 +36,9 @@ v 2.3.1 && ft_v=">= 2.8" prerequis="make \\ icu graphite >= 1.2 freetype+hb $ft_
 # Modifications
 
 optionsEtPrerequisIcu
-optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || true
+optionSi cairo || OPTIONS_CONF="$OPTIONS_CONF --without-cairo"
+optionSi fontconfig || OPTIONS_CONF="$OPTIONS_CONF --without-fontconfig"
+optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || OPTIONS_CONF="$OPTIONS_CONF --without-graphite2"
 # Pour ce qui est du freetype, finalement on ne le prérequiert que s'il est déjà installé dans la version voulue (par exemple itération 0 d'un freetype+hb).
 # Ce après l'optionsEtPrerequisIcu() afin qu'il ait toutes ses options (ICU) d'étiquetées.
 pftv="`decoupePrerequis "$prerequis" | grep ^freetype`"
