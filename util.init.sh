@@ -65,6 +65,8 @@ util_menage()
 			"$install_obtenu") true ;;
 			*/tmp/[_A-Za-z0-9]*) rm -Rf "$dossierCourant" ;;
 		esac
+	else # En cas de meurtre, on ne laisse aucune trace des fichiers de presque bonne exécution.
+		[ ! -f "$dest/$ENCOURS" ] || sudoku -d "$dest" rm "$dest/$ENCOURS"
 	fi
 }
 

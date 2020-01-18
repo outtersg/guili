@@ -21,7 +21,6 @@
 # Renvoie les versions pour un logiciel donnée, triées par version croissante.
 versions()
 {
-	# À FAIRE: un .encours, qui pourrait être déposé après le sudoku make install mais avant le sutiliser, si par exemple on a entre les deux des choses à faire qui reposent sur notre future présence (ex.: ./php +xdebug fait `sudoku make install ; ./xdebug ; sutiliser`: le xdebug doit pouvoir trouver le php qui l'a appelé). Ce .encours serait supprimé dans menage(); il serait valable aux yeux de version -f.
 	local GUILI_PATH="$GUILI_PATH"
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	
@@ -92,9 +91,9 @@ versions()
 _v_filtreTrouves()
 {
 	case "$filtreDernier$filtreComplet" in
-		"11") while read d ; do [ -f "$d/$COMPLET" ] && echo "$d" || true ; done | tail -1 ;;
+		"11") while read d ; do [ -f "$d/$COMPLET" -o "$d/$ENCOURS" ] && echo "$d" || true ; done | tail -1 ;;
 		"10") tail -1 ;;
-		"01") while read d ; do [ -f "$d/$COMPLET" ] && echo "$d" || true ; done ;;
+		"01") while read d ; do [ -f "$d/$COMPLET" -o "$d/$ENCOURS" ] && echo "$d" || true ; done ;;
 		*) cat ;;
 	esac
 }

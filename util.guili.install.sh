@@ -120,6 +120,13 @@ destCible()
 	fi
 }
 
+# À appeler juste après un sudoku make install pour marquer l'arbo comme "temporairement complète", en attendant sutiliser.
+# Exemple d'utilisation: si après le sudoku make install, mais avant le sutiliser, on compile des greffons qui ont besoin que nous apparaissions complets.
+preutiliser()
+{
+	[ -f "$dest/$ENCOURS" -o ! -d "$dest" ] || sudoku touch "$dest/$ENCOURS"
+}
+
 # Utilisation: sutiliser [-|+]
 #   -|+
 #	 Si +, et si $INSTALL_SILO est définie, on pousse une archive binaire de notre $dest installé vers ce silo. Cela permettra à de futurs installant de récupérer notre produit de compil plutôt que de tout recompiler.
@@ -158,6 +165,7 @@ sutiliser()
 	[ "x$biner" = x- ] || guili_postcompil
 	
 	# On arrive en fin de parcours, c'est donc que la compil s'est terminée sans erreur. On le marque.
+	[ ! -f "$dest/$ENCOURS" ] || sudoku rm "$dest/$ENCOURS"
 	sudo touch `guili_temoins`
 	guili_deps_pondre
 	

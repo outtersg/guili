@@ -55,7 +55,7 @@ moire()
 	
 	# Si nous sommes appelés par un moire(), nous ne devons surtout pas terminer notre installation (fichier témoin .complet, poussage du binaire vers un silo, branchement dans $INSTALLS/bin, etc.). Le sutiliser() qui nous suivra sera donc vide.
 	case "$GUILI_MOIRE" in
-		:*) sutiliser() { true ; } ;;
+		:*) sutiliser() { preutiliser ; } ;;
 	esac
 }
 

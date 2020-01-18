@@ -22,6 +22,7 @@
 # GuiLI: Guillaume's Lightweight Installers
 
 COMPLET=".complet"
+ENCOURS=".encours"
 
 #- Versions --------------------------------------------------------------------
 
@@ -391,8 +392,8 @@ apiReporterParamsLsj()
 # À invoquer juste avant sutiliser, pour installer (si demandé par option) un greffon.
 greffon()
 {
-	sudoku touch "$dest/$COMPLET" # Le greffon repose sans doute sur la complétude de notre installation; simulons le résultat post-sutiliser.
-	! option "$1" || ( cd "$SCRIPTS" ; "$SCRIPTS/$1" --pour "$dest" ) || ( sudoku rm "$dest/$COMPLET" ; false )
+	preutiliser
+	! option "$1" || ( cd "$SCRIPTS" ; "$SCRIPTS/$1" --pour "$dest" ) || ( sudoku rm "$dest/$ENCOURS" ; false )
 }
 
 #- Environnement ---------------------------------------------------------------
@@ -508,8 +509,28 @@ guili_temoinsPresents()
 		case "$temoin" in
 			"$dest/$COMPLET") [ -L "$dest" ] && return 1 || true ;;
 		esac
-		[ -e "$temoin" ] || return 1
+		[ -e "$temoin" ] || guili_temoinEnCoursTenantLieuDeComplet "$temoin" || return 1
 	done
+}
+
+guili_temoinEnCoursTenantLieuDeComplet()
+{
+	# A-t-on des .encours autorisés à tenir lieu de .complet?
+	[ -n "$GUILI_TEMOINS_ENCOURS" ] || return 1
+	# Notre témoin est-il bien un .complet?
+	local tcomplet="$1"
+	case "$tcomplet" in
+		*/$COMPLET) true ;;
+		*) return 1 ;;
+	esac
+	# Quel serait le .encours correspondant?
+	local dcomplet="`dn "$tcomplet"`"
+	case ":$GUILI_TEMOINS_ENCOURS:" in
+		*":$dcomplet:"*) true ;;
+		*) return 1 ;;
+	esac
+	# Et existe-t-il, cet ersatz?
+	[ -e "$dcomplet/$ENCOURS" -a ! -L "$dcomplet/$ENCOURS" ]
 }
 
 guili_sortirAvecInfosSiDejaInstalle()
