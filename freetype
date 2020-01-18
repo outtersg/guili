@@ -70,6 +70,7 @@ destiner
 # On installe une première version de nous, sans Harfbuzz, entre notre destiner() et notre prerequis():
 # - si on le faisait avant notre destiner(), ce dernier nous estimerait déjà installé et ne poursuivrait pas.
 # - si on le faisait après notre prerequis(), Harfbuzz, qui se trouve dans les prérequis, ne nous détecterait pas (enfin ne détecterait pas le freetype itération 0. "de compil" mais qui s'est installé à notre emplacement, donc aux yeux d'harfbuzz c'est nous).
+# - si on ne le faisait pas du tout, harfbuzz qu'on va appeler ensuite et qui va nous prérequérir, risquerait de tomber sur une ancienne version de nous et de s'en satisfaire.
 if option hb
 then
 	moire -i hb --sans-hb
