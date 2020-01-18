@@ -24,6 +24,11 @@ pyp()
 	echo "lib/python$pvc/site-packages"
 }
 
+pyla()
+{
+	PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib64:$dest/lib:$LD_LIBRARY_PATH" python "$@"
+}
+
 # Renvoie un PYTHONPATH incluant les lib/pythonxx/site-packages de $dest, $INSTALLS/$PYEXT,  et $destpython.
 pypadest()
 {
