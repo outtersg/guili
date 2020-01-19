@@ -68,3 +68,5 @@ unexportMoire()
 }
 
 unexportMoire
+
+export GUILI_PILE="$GUILI_PILE$logiciel:"
