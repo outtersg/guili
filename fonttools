@@ -21,20 +21,14 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; }
-calcScripts() { absolutiseScripts "`command -v "$1"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`" ; }
-calcScripts "$0"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=fonttools
-
-v 2.4 && modifs=retrouvePython || true
-v 2.4.0.1.57032a0544db2dcf07dac9f78643e8e67437138e.git || true
+v 2.4 && prerequis="python \\ " && modifs=retrouvePython || true
+v 2.4.0.1 && versionComplete="$version.57032a0544db2dcf07dac9f78643e8e67437138e.git" || true
 
 archive=http://netcologne.dl.sourceforge.net/project/fonttools/$version/fonttools-$version.tar.gz
 archive_git=git://git.code.sf.net/p/fonttools/code
-
-dest=$INSTALLS/$logiciel-$version
 
 retrouvePython()
 {
@@ -55,7 +49,9 @@ TERMINE
 	) > $TMP/$$/ttx.2 && cat $TMP/$$/ttx.2 > Tools/ttx
 }
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -67,7 +63,16 @@ echo Configuration… >&2
 echo Compilation… >&2
 
 echo Installation… >&2
-sudo ./setup.py install --prefix=$dest
-sutiliser "$logiciel-$version"
-
-rm -Rf $TMP/$$
+dest0="`pwd`/dest"
+rm -Rf "$dest0"
+pyextinit "$dest0"
+./setup.py install --prefix="$dest0"
+for f in dest/bin/*
+do
+	mv $f $f.py
+	pylanceur "`basename "$f"`.py" > "$f"
+	chmod a+x "$f"
+done
+sudoku mkdir -p "$dest"
+sudoku cp -Rp "$dest0/." "$dest/."
+sutiliser - "$PYEXT"
