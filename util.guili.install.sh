@@ -125,6 +125,9 @@ destCible()
 preutiliser()
 {
 	[ -f "$dest/$ENCOURS" -o ! -d "$dest" ] || sudoku touch "$dest/$ENCOURS"
+	
+	# Si on préutilise, on considère notre logiciel complet pour cette exécution, et tout ce qui arrivera en-dessous (ex.: des greffons) pourra nous voir comme terminés.
+	export GUILI_TEMOINS_ENCOURS="$GUILI_TEMOINS_ENCOURS:$dest"
 }
 
 # Utilisation: sutiliser [-|+]
