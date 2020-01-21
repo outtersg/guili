@@ -344,10 +344,11 @@ analyserParametresPour()
 
 _nouveauPour()
 {
-	local p
+	local p chemin
 	case "$1" in
 		# Si c'est chez nous, on en fait un prérequis.
 		"$INSTALLS/"*)
+			chemin="$p"
 			p="`basename "$1" | sed -e 's/-\([0-9]\)/ \1/'`"
 			;;
 		# Un chemin pas chez nous: on l'ajoute juste au $PATH, histoire que le binaire soit détecté par l'éventuel configure qui suivra, mais c'est moche.
@@ -358,10 +359,12 @@ _nouveauPour()
 		# Tout le reste est un prérequis déjà sous la bonne forme.
 		*)
 			p="$1"
+			chemin="`versions -1 -f "$p"`"
 			;;
 	esac
 	
 	prerequisPour="$prerequisPour $p"
+	[ -z "$chemin" ] || GUILI_TEMOINS_ENCOURS="$GUILI_TEMOINS_ENCOURS:$chemin"
 }
 
 # Peut être appelé dans l'analyserParametresInstall d'un amorceur pour reporter sur son premier LSJ (ex.: nginx pour l'amorceur _nginx) les options et contraintes de version passées à l'amorceur.
