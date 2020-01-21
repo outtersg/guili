@@ -63,6 +63,7 @@ destiner()
 			IFS=:
 			for alias in $guili_alias
 			do
+				unset IFS
 				case "$alias" in
 					"$logiciel"*)
 						# Le premier alias trouvé avec pour préfixe $logiciel devient destination d'install (plutôt que simple alias vers la destination d'install).
@@ -72,6 +73,7 @@ destiner()
 						;;
 				esac
 			done
+			unset IFS
 			;;
 	esac
 	
