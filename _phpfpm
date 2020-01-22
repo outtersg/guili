@@ -95,6 +95,16 @@ filtrerConfs()
 	local commentaireSiDejaCompteLocal=
 	[ "$compteMaitre" = root ] || commentaireSiDejaCompteLocal=";"
 	
+	local bdestophp
+	if [ -L "$destphp" ]
+	then
+		bdestophp="`readlink "$destphp"`"
+		case "$bdestophp" in
+			../..|../*/*) bdestophp= ;;
+			../*) bdestophp="`bn "$bdestophp"`" ;;
+		esac
+	fi
+	
 	groupe="`id -g -n $compte`"
 	for i in "$@"
 	do
@@ -104,6 +114,7 @@ filtrerConfs()
 			-e "/^group *=/s#=.*#= $groupe#" \
 			-e "/^group *=/s/^/$commentaireSiDejaCompteLocal/" \
 			-e "/^listen *=/s#=.*#= 127.0.0.1:$port#" \
+			-e "s#/$bdestophp/etc/php-fpm.d#/$bdest/etc/php-fpm$suffixe.d#g" \
 			-e "s#/$bdestphp/etc/php-fpm.d#/$bdest/etc/php-fpm$suffixe.d#g"
 	done
 }
