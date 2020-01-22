@@ -380,3 +380,5 @@ libcxxgcc()
 	
 	prerequerir libstdcxx $v # Va installer libstdcxx, et modifier l'environnement ($guili_ppath): ainsi lorsque le logiciel sera installé, il aura pour dépendance libstdcxx.
 }
+
+compilo_sep="`printf '\003'`"
