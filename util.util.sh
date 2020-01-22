@@ -665,17 +665,49 @@ fi
 #  tifs commande $params
 # Ou:
 #  tifs commande --sep "|" "p1|p2|p3"
+# Pour ce qui est de l'environnement, s'assure que:
+# - s'il est une fonction shell, l'appelé le sera dans le shell courant plutôt qu'un sous-shell (donc il pourra modifier les variables de l'appelant)
+# - les éventuelles variables seront bien transmises à l'appelé (fonction shell ou programme externe)
+# - mais ne baveront pas sur le shell courant
+# Ceci pallie entre autres un problème avec certains sh, qui dans certaines conditions, font baver une variable:
+#   f() { echo $VAR ; } ; g() { local VAR ; VAR=0 f ; } ; VAR=1 ; g ; echo $VAR
+# devrait afficher 0 1 (le VAR=0 f devant cantonner la valeur de VAR à f), mais affiche 0 0 sous certains sh Linux, lorsque:
+# - VAR est déclarée local
+# - et est passée en VAR=0 f
+# - et f est une fonction shell
 tifs()
 {
 	# unset IFS, pour répondre au cas d'appel habituel.
 	unset IFS
 	
+	# Le cas facile: les paramètres sont déjà séparés, et on n'a pas de variable à définir.
+	case "$1" in
+		*=*) true ;;
+		*)
+			case " $* " in
+				*" --sep "*) true ;;
+				*) "$@" ; return $? ;;
+			esac
+			;;
+	esac
+	
+	# Choix d'un séparateur.
+	local sep=
+	for sep in '\034' '\035' '\036' '\037' ""
+	do 
+		sep="`printf "$sep"`"
+		case "$*" in *"$sep"*) continue ;; esac
+		break
+	done
+	[ -n "$sep" ] || err "# tifs: impossible de trouver un séparateur, les paramètres comportent trop de caractères spéciaux: $*" || return 1
+	
 	# Les affectations de variables à ne pas faire baver sur l'appelant.
 	
+	local _tifs_vars=
 	while true
 	do
 		case "$1" in
-			*=*) local "$1" ;;
+			*=*) _tifs_vars="$_tifs_vars$1$sep" ;;
 			*) break ;;
 		esac
 		shift
@@ -685,21 +717,12 @@ tifs()
 	
 	case " $* " in
 		*" --sep "*) true ;;
-		*) "$@" ; return $? ;;
+		*) _tifs_lancer "$@" ; return $? ;;
 	esac
 	
 	# Exécution compliquée.
 	
-	local _tifs_params= sep= r=0
-	
-	# Choix d'un séparateur.
-	for sep in '\034' '\035' '\036' '\037' ""
-	do 
-		sep="`printf "$sep"`"
-		case "$*" in *"$sep"*) continue ;; esac
-		break
-	done
-	[ -n "$sep" ] || err "# tifs: impossible de trouver un séparateur, les paramètres comportent trop de caractères spéciaux: $*" || return 1
+	local r=0 _tifs_params=
 	
 	# Découpe.
 	while [ $# -gt 0 ]
@@ -718,7 +741,7 @@ tifs()
 	
 	# Exécution.
 	IFS="$sep"
-	$_tifs_params || r=$?
+	_tifs_lancer $_tifs_params || r=$?
 	unset IFS
 	return $r
 }
@@ -730,6 +753,25 @@ _tifs_plus()
 	do
 		_tifs_params="$_tifs_params$p$sep"
 	done
+}
+
+_tifs_lancer()
+{
+	unset IFS
+	
+	# Comment transmettre les variables? Notre premier paramètre nous le dira:
+	# - si c'est un programme externe, il faut les lui passer à l'invocation
+	# - si c'est une fonction, on les déclare locales chez nous et elle en héritera
+	
+	if [ -z "$_tifs_vars" ]
+	then
+		"$@"
+	else
+		case "`command -v "$1" || true`" in
+			/*) ( IFS="$sep" ; export $_tifs_vars ; unset IFS ; "$@" ) ;;
+			*) IFS="$sep" ; local $_tifs_vars ; unset IFS ; "$@" ;;
+		esac
+	fi
 }
 
 # Ajoute des valeurs à une variable.

@@ -27,6 +27,10 @@ tifs_test()
 	tester _tifs_tester "a.b,c,d,e,f.g" _tifs_afficher "$p0" $p1 "$p2"
 	tester _tifs_tester "a.b,c,d,e,f.g" _tifs_afficher "a.b" --sep . c.d.e "f.g"
 	tester _tifs_tester "iable;a.b,c,d,e,f.g" VAR=iable _tifs_afficher "a.b" --sep . c.d.e "f.g"
+	local TIFS_STDOUT=1
+	tester _tifs_tester "iable;" VAR=iable sh -c 'echo "$VAR;"'
+	tester _tifs_tester "iable;" VAR=iable echo "iable;"
+	tester _tifs_tester "iable;" VAR=iable _tifs_pondre
 }
 
 _tifs_tester()
@@ -36,7 +40,13 @@ _tifs_tester()
 	_tifs_pondre() { [ -z "$VAR" ] || printf "%s;" "$VAR" ; while [ $# -gt 0 ] ; do printf "%s" "$1" ; [ $# -le 1 ] || printf , ; shift ; done ; }
 	_tifs_afficher() { res="`_tifs_pondre "$@"`" ; }
 	
+	if [ -n "$TIFS_STDOUT" ]
+	then
+		tifs "$@" > $TMP/$$/temp.tifs.test
+		res="`cat $TMP/$$/temp.tifs.test`"
+	else
 	tifs "$@"
+	fi
 	
 	[ "$res" != "$att" -o -n "$IFS" -o -n "$VAR" ] || return 0
 	[ -z "$IFS" ] || echo "tifs $*: \$IFS non effacé ($IFS)" >&2
