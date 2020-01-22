@@ -41,8 +41,7 @@ prerequisAmorceur()
 		for l in $lsj
 		do
 			eval 'params="$guili_params_'$l'"'
-			IFS="$guili_sep"
-			INSTALLS_AVEC_INFOS=dest tifs "$SCRIPTS/$lsj" $params 6> "$TMP/$$/temp.dest"
+			tifs INSTALLS_AVEC_INFOS=dest "$SCRIPTS/$lsj" --sep "$guili_sep" "$params" 6> "$TMP/$$/temp.dest"
 			# On ajoute aux prérequis les options et version du logiciel installé, afin d'augmenter nos chances de retomber sur le même dans la boucle de prérequis.
 			# À FAIRE: il devrait y avoir moyen de passer le résultat directement à la boucle pour qu'elle ne cherche pas une seconde fois (avec risque de se tromper).
 			# À FAIRE: avant cela, s'assurer qu'on n'a pas dans nos prérequis le logiciel avec des options supplémentaires; si si, les reporter. En effet, si les prérequis disent truc+ossl et que nous sommes invoqués en `./_truc truc +postgresql ">= 2"`, l'appel précédent pourra avoir donné truc+postgresql-2.1 tandis que les prérequis trouveront truc+ossl11-2.1.
