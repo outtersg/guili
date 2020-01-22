@@ -96,6 +96,14 @@ compiloSysVersion()
 		echo "# Attention, vous n'avez aucun compilateur d'installé. La suite des opérations risque d'être compliquée." >&2
 		fi
 	else
+		# Si un compilo avait déjà été configuré:
+		# - soit c'était le même, alors on peut sortir de suite.
+		# - soit c'en était un autre, alors il faut faire le ménage avant de nous installer (ex.: la première passe, automatique, aurait affecté le compilo système clang, puis le logiciel aurait décidé de basculer vers du gcc).
+		if compiloSysDejaConfigure "$binaire"
+		then
+			return 0
+		fi
+		
 		case "$bienVoulu" in
 			gcc) enrobeurCompilos gcc g++ ;;
 		esac
@@ -103,6 +111,7 @@ compiloSysVersion()
 		# Ce binaire a-t-il été installé par GuiLI? En ce cas il n'est certainement pas dans un dossier système, donc il faudra aussi aller chercher tout son environnement (lib, include, etc.).
 		local gpp="$guili_ppath" ; guili_ppath= # Préparatifs à s'inscrire en queue plutôt qu'en tête.
 		reglagesCompilSiGuili "$binaire"
+		COMPILO_AJOUTS="guili_ppath$compilo_sep<:$guili_ppath$compilo_sep$COMPILO_AJOUTS" # À FAIRE: toutes les autres guili_…path modifiées par reglagesCompilSiGuili; ou alors, comme noté quelque part, faire en sorte que reglagesCompilSiGuili ne les définisse pas toutes mais qu'elles soient toutes déduites de $guili_ppath une fois cette dernière stabilisée.
 		guili_ppath="$gpp<:$guili_ppath"
 	fi
 	
@@ -111,6 +120,40 @@ compiloSysVersion()
 	# En général le compilo vient avec sa libc++.
 	
 	compilo_cheminLibcxx
+}
+
+compiloSysDejaConfigure()
+{
+	if [ -n "$COMPILO_SYS" ]
+	then
+		[ "$COMPILO_SYS" != "$1" ] || return 0
+		
+		# Un compilo avait déjà été configuré, mais on change. On fait donc le ménage.
+		# Les variables écrasées, on s'en fiche. Par contre là où il y a du boulot, c'est sur les variables cumulatives.
+		
+		tifs _compilo_purgerEnv --sep "$compilo_sep" "$COMPILO_AJOUTS"
+		
+		# Et on prépare le terrain pour inscrire les modifications que *ce* compilo va effectuer (des fois qu'on rerechange de compilo une troisième fois).
+		
+		COMPILO_AJOUTS=
+	fi
+	
+	COMPILO_SYS="$binaire"
+	
+	return 1
+}
+
+_compilo_purgerEnv()
+{
+	local var val extraction
+	while [ $# -gt 0 ]
+	do
+		var="$1" ; shift
+		extraction="$1" ; shift
+		eval 'val="$'$var'"'
+		val="`echo "$val" | sed -e "s!$extraction!!"`" # s sans g, car pour un truc ajouté, on en retire un, pas tous.
+		eval $var='"$val"'
+	done
 }
 
 compilo_cheminLibcxx()
@@ -140,15 +183,18 @@ compilo_cheminLibcxx()
 
 compilo_cheminLibcxxClang()
 {
+	local ajout="-cxx-isystem $cheminBienVoulu/$suffixe"
 	# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit pas être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
 	case "$logiciel" in
 		gcc)
-			export CXX="$CXX -cxx-isystem $cheminBienVoulu/$suffixe"
+			export CXX="$CXX $ajout"
+			COMPILO_AJOUTS="CXX$compilo_sep $ajout$compilo_sep$COMPILO_AJOUTS"
 			return 0
 			;;
 	esac
 	
-	export 	CXXFLAGS="-cxx-isystem $cheminBienVoulu/$suffixe $CXXFLAGS"
+	export 	CXXFLAGS="$ajout $CXXFLAGS"
+	COMPILO_AJOUTS="CXXFLAGS$compilo_sep$ajout $compilo_sep$COMPILO_AJOUTS"
 }
 
 _tmpBinEnTeteDePath()
