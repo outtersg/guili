@@ -18,3 +18,29 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+tifs_test()
+{
+	. "$SCRIPTS/util.test.sh"
+	
+	IFS=. ; local p0=a.b p1=c.d.e p2=f.g
+	tester _tifs_tester "a.b,c,d,e,f.g" _tifs_afficher "$p0" $p1 "$p2"
+	tester _tifs_tester "a.b,c,d,e,f.g" _tifs_afficher "a.b" --sep . c.d.e "f.g"
+	tester _tifs_tester "iable;a.b,c,d,e,f.g" VAR=iable _tifs_afficher "a.b" --sep . c.d.e "f.g"
+}
+
+_tifs_tester()
+{
+	local att="$1" ; shift
+	
+	_tifs_pondre() { [ -z "$VAR" ] || printf "%s;" "$VAR" ; while [ $# -gt 0 ] ; do printf "%s" "$1" ; [ $# -le 1 ] || printf , ; shift ; done ; }
+	_tifs_afficher() { res="`_tifs_pondre "$@"`" ; }
+	
+	tifs "$@"
+	
+	[ "$res" != "$att" -o -n "$IFS" -o -n "$VAR" ] || return 0
+	[ -z "$IFS" ] || echo "tifs $*: \$IFS non effacé ($IFS)" >&2
+	[ -z "$VAR" ] || echo "tifs $*: \$VAR non vide ($VAR)" >&2
+	[ "$res" = "$att" ] || echo "tifs $*: $res au lieu de $att" >&2
+	return 126
+}

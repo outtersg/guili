@@ -658,14 +658,78 @@ else
 fi
 
 # Temp IFS: réinitialise \$IFS après qu'il a été modifié pour un appel.
+# Pourrait s'appeler Fonction Isolée à Locales et Séparateurs
 # Ex.:
 #  params="p1|p2|p3"
 #  IFS="|"
 #  tifs commande $params
+# Ou:
+#  tifs commande --sep "|" "p1|p2|p3"
 tifs()
 {
+	# unset IFS, pour répondre au cas d'appel habituel.
 	unset IFS
-	"$@"
+	
+	# Les affectations de variables à ne pas faire baver sur l'appelant.
+	
+	while true
+	do
+		case "$1" in
+			*=*) local "$1" ;;
+			*) break ;;
+		esac
+		shift
+	done
+	
+	# La suite comporte-t-elle des séparateurs? Si non, on a juste à l'exécuter. Si oui, il faudra découper (ce qui sera plus long).
+	
+	case " $* " in
+		*" --sep "*) true ;;
+		*) "$@" ; return $? ;;
+	esac
+	
+	# Exécution compliquée.
+	
+	local _tifs_params= sep= r=0
+	
+	# Choix d'un séparateur.
+	for sep in '\034' '\035' '\036' '\037' ""
+	do 
+		sep="`printf "$sep"`"
+		case "$*" in *"$sep"*) continue ;; esac
+		break
+	done
+	[ -n "$sep" ] || err "# tifs: impossible de trouver un séparateur, les paramètres comportent trop de caractères spéciaux: $*" || return 1
+	
+	# Découpe.
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--sep)
+				IFS="$2"
+				_tifs_plus $3
+				unset IFS
+				shift ; shift
+				;;
+			*) _tifs_params="$_tifs_params$1$sep" ;;
+		esac
+		shift
+	done
+	
+	# Exécution.
+	IFS="$sep"
+	$_tifs_params || r=$?
+	unset IFS
+	return $r
+}
+
+_tifs_plus()
+{
+	local p
+	for p in "$@"
+	do
+		_tifs_params="$_tifs_params$p$sep"
+	done
 }
 
 # Ajoute des valeurs à une variable.
