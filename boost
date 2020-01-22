@@ -125,3 +125,5 @@ IFS="$sep"
 tifs sudo ./bjam $optionsBjam install
 
 sutiliser
+
+sudoku chown -R "`id -nu`:`id -gn`" . # L'install a pu laisser des traces.
