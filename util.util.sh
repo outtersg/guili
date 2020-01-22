@@ -174,6 +174,7 @@ reglagesCheminsPrerequis()
 # Règle tous les chemins pour aller taper dans une arbo conventionnelle (bin, lib, include, etc.).
 chemins()
 {
+	# À FAIRE: ici on ne devrait toucher que guili_ppath, et en déduire les autres chemins tout à la fin.
 	unset IFS # Des fois que notre appelant l'ait réglé à :
 	local optionsPreChemin=
 	[ "x$1" = x--sans-c-cxx ] && optionsPreChemin="$1" && shift || true
