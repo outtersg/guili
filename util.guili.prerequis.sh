@@ -186,7 +186,7 @@ postprerequis()
 	
 	# Seuls les prérequis d'exécution nous intéressent. On retire donc ceux de compil.
 	
-	prerequis="`IFS='\' ; f() { while [ $# -gt 1 ] ; do shift ; done ; echo "$1" ; } ; f $prerequis`"
+	prerequis="`IFS='\' ; f() { while [ $# -gt 1 ] ; do shift ; done ; echo "$1" ; } ; pr="$prerequis " ; f $pr`" # Un petit espace à la fin pour les cas où le \ en dernière position risquerait d'être ignoré.
 	
 	# On combine les prérequis du scripts d'install avec ceux précisés dans le paquet binaire, avec pour règles:
 	# - si on a une version précise d'installée, on fait sauter les autres contraintes sur la version (pour éviter les cas du genre après une génération de binaire avec une dépendance 1.0.3 du temps où la contrainte était >= 1.0, on s'est rendu compte qu'une >= 1.1 serait mieux, et on l'a inscrite dans l'installeur; la combinaison des deux nous donnerait un dépendance 1.0.3 >= 1.1, impossible à résoudre et donnant donc un échec. On privilégie donc la version binaire (après tout si ç'a été poussé ça doit sans doute quand même marcher).
