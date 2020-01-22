@@ -86,8 +86,6 @@ analyserParametres()
 			exit 1
 		fi
 	fi
-	
-	nomServeur="php-fpm$suffixe"
 }
 
 filtrerConfs()
@@ -124,6 +122,7 @@ volsj # On prend pour version et options celles de notre logiciel sous-jacent.
 # Si le suffixe vaut x, xx, xxx, etc., on remplace par les éléments de version correspondants.
 aliasVersion 'x'
 suffixe="`guili_alias="$suffixe" ; aliasVersion x ; echo "$guili_alias"`"
+nomServeur="php-fpm$suffixe"
 
 destiner
 
