@@ -26,12 +26,14 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 sep="`printf '\003'`"
 
+bjam=./bjam
 # prerequis compiloSysVersion: la libc++ livrée avec un FreeBSD 10.2 est insuffisante pour les dernières versions de Boost. Partant du postulat qu'un compilo est livré avec une biblio C++ contemporaine, on impose un compilo un peu récent.
 v 1.45.0 && prerequis="icu python" && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis optionsBjam" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
 v 1.52.0 && true # On laisse les modifs actuelles.
 v 1.57.0 && modifs="optionsBjam" || true
 v 1.63.0 && modifs="optionsBjam toolset pythonPatate" || true
 v 1.69.0 && prerequis="compiloSysVersion(clang >= 3.5, gcc >= 5) python \\ icu" || true
+v 1.72.0 && bjam=./b2 && CXXFLAGS="$CXXFLAGS -std=c++17" || true
 
 # Modifications
 
@@ -117,12 +119,11 @@ for modif in true $modifspostconfig ; do $modif ; done
 
 echo Compilation… >&2
 # Ici il faudrait vérifier que l'ulimit n'est pas trop basse. En outre, alors que GCC 4.2 arrive à tourner sur une petite machine à 512 Mo de RAM (et à peu près autant en swap) en -j4, GCC 4.9 bouffe jusqu'à 1 Go par compil. Donc une seconde passe en -j1.
-IFS="$sep"
-tifs ./bjam -j4 $optionsBjam
+tifs $bjam -j4 --sep "$sep" "$optionsBjam"
 
 echo Installation… >&2
-IFS="$sep"
-tifs sudo ./bjam $optionsBjam install
+# À FAIRE: il y a sans doute beaucoup plus à transmettre de l'environnement pour qu'il ne recompile pas tout en root (après avoir cru que, l'environnement changeant, il fallait tout refaire par prudence).
+tifs sudoku $bjam --sep "$dep" "$optionsBjam" install
 
 sutiliser
 
