@@ -231,8 +231,7 @@ varsPrerequis()
 			*)
 				paramsInclure="$vp_logiciel"
 				[ -z "$vp_version" ] || paramsInclure="$paramsInclure|$vp_version"
-				IFS=\|
-				INSTALLS_AVEC_INFOS="$vp_vars" tifs inclure $paramsInclure 6>&1 >&2
+				tifs INSTALLS_AVEC_INFOS="$vp_vars" inclure --sep \| "$paramsInclure" 6>&1 >&2
 				;;
 		esac
 	done < $TMP/$$/temp.prerequis
