@@ -21,16 +21,14 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=tmux
 
 # Historique des versions gérées
 
 v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent bonneNcurses surMac" || true
-v 1.9a
-v 2.2
+v 1.9.1 || true
+v 2.2 || true
 v 2.6 || true # Sait correctement détecter ncursesw.
 v 2.7 || true
 v 2.8 || true
@@ -64,9 +62,8 @@ surMac()
 
 v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c="";n=$3;while(n>25){n-=25;c=c"z"}if(n)c=c""substr(t,n,1);print $1"."$2""c}'`"
 archive="https://github.com/tmux/tmux/releases/download/$v_alpha/tmux-$v_alpha.tar.gz" || true
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -81,6 +78,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
