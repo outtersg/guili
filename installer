@@ -4,8 +4,23 @@ set -e
 
 faire()
 {
+	if [ $# -ne 2 ]
+	then
+		echo "# Utilisation: installer <source> <dest>" >&2
+		echo "Si <source> est un fichier, il est copié *dans* <dest>." >&2
+		echo "Si <source> est un dossier, il est copié *en tant que* <dest>." >&2
+		echo "Une seule <source> peut être installée à la fois, pour éviter les installer dossier/* <dest> qui peuvent donner un imprédictible résultat si dossier contient à la fois des fichiers et des dossiers." >&2
+		return 1
+	fi
+	
 	local source="$1"
 	local dest="$2"
+	
+	if [ ! -e "$source" ]
+	then
+		echo "# $source inexistant." >&2
+		return 1
+	fi
 	
 	if [ -d "$source" ]
 	then
