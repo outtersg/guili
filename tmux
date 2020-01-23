@@ -62,8 +62,8 @@ surMac()
 
 # Variables
 
-archive="http://heanet.dl.sourceforge.net/project/tmux/tmux/tmux-$version/tmux-$version.tar.gz"
-pge $version 2 && archive="https://github.com/tmux/tmux/releases/download/$version/tmux-$version.tar.gz" || true
+v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c="";n=$3;while(n>25){n-=25;c=c"z"}if(n)c=c""substr(t,n,1);print $1"."$2""c}'`"
+archive="https://github.com/tmux/tmux/releases/download/$v_alpha/tmux-$v_alpha.tar.gz" || true
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
