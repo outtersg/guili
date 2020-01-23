@@ -27,6 +27,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 0.6.2 && prerequis="compiloSysVersion(+ gcc) pkgconfig libtool \\ libxml >= 2.1" && modifs="" || true
+v 0.6.3 || true
 
 # Modifications
 
