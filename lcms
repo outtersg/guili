@@ -27,11 +27,17 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 1.16 || true
-v 2.7 || true
+v 2.7 && modifs="sansRegister" || true
 v 2.8 || true
 v 2.9 || true
 
 # Modifications
+
+sansRegister()
+{
+	# https://github.com/mm2/Little-CMS/issues/190 (qui n'est cela dit pas satisfaisant car à activer manuellement plutôt que de détecter C++17).
+	filtrer include/lcms2.h sed -e 's/register //g'
+}
 
 # Variables
 
