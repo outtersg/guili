@@ -26,10 +26,18 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-prerequis="pkgconfig boost \\ glm gperf liblangtag librevenge libxml mdds < 1.4"
-v 0.1.9 || true
+prerequis="pkgconfig boost \\ glm gperf liblangtag librevenge libxml mdds"
+v 0.1.9 && remplacerPrerequis "mdds < 1.5" && modifs="mdds14" || true
 
 # Modifications
+
+mdds14()
+{
+	# libetonyek 0.1.9 cherche par défaut l'API 1.2 de mdds (exposée par mdds 1.2.x et 1.3.x).
+	# Cependant LibreOffice 6.3 embarque libetonyek 0.1.9 et la branche sur une mdds 1.4.x, qui est supportée, et apparemment ça marche. Faisons donc de même.
+	
+	OPTIONS_CONF="$OPTIONS_CONF --with-mdds=1.4"
+}
 
 # Variables
 
@@ -45,7 +53,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
