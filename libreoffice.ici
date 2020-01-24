@@ -41,6 +41,8 @@ IFS="`printf '\003'`"
 export $minEnv
 unset IFS
 
+export guili_diag=diag_aff
+
 set -e
 
 if [ "x$1" = x- ] ; then # Pour finir uniquement.
