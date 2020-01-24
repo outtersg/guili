@@ -76,6 +76,8 @@
 
 int g_trace = 0;
 
+char estVersion(char * chaine);
+
 /*- Chaînes de prérequis -----------------------------------------------------*/
 
 void pousserPrerequis(char * ptrL, int tL, char * ptrO, int tO, char * ptrV, int tV, L * resultatAgrege)
@@ -165,6 +167,15 @@ void decouperPrerequis(char * chaine, L * resultatAgrege)
 		pousserPrerequis(ptrL, tL, ptrO, tO, ptrV, tV, resultatAgrege);
 		while(*chaine == ' ') ++chaine;
 	}
+}
+
+char estVersion(char * chaine)
+{
+	if(*chaine < '0' || *chaine > '9') return 0;
+	while(*++chaine && *chaine != ' ')
+		if(*chaine != '.' && (*chaine < '0' || *chaine > '9'))
+			return 0;
+	return chaine[-1] != '.';
 }
 
 void afficherPrerequis(L * t)
