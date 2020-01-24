@@ -28,6 +28,22 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
+prSys()
+{
+	local l
+	remplacerPrerequis "$@"
+	for l in "$@"
+	do
+		IFS=" +"
+		for l in $l
+		do
+			unset IFS
+			plus OPTIONS_CONF "--with-system-$l"
+			break
+		done
+	done
+}
+
 OPTIONS_CONF=
 v 4.4.2.2 && modifs="enTetesPoppler log10 vraiSh" && prerequis="patch bison pkgconfig \\ gperf >= 3 boost libxslt flex >= 2.5.35 zip python >= 3" || true
 v 5.0.0.5 && modifs="enTetesPoppler log10 vraiSh" || true
