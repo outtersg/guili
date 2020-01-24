@@ -9,8 +9,37 @@ export TMP=/tmp/soustmp
 mkdir -p "$TMP"
 
 # Des fois qu'/usr/local se soit installé partout dans le $PATH.
-export PATH=/usr/bin:/usr/sbin:/bin:/sbin
-export CPPFLAGS= LD_LIBRARY_PATH= PYTHONPATH=
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+CPPFLAGS= LD_LIBRARY_PATH= PYTHONPATH=
+
+# Constitution de l'environnement minimal pour notre LibreOffice.
+# Le but: qu'il soit compilé le plus indépendamment possible (sans dépendance envers notre $INSTALLS habituel).
+# Seuls certains logiciels (dont le compilo) rentreront en petit plus.
+minEnv()
+{
+	(
+		. "$SCRIPTS/util.sh"
+		exclusivementPrerequis
+		for v in PATH LD_LIBRARY_PATH
+		do
+			val="`eval 'args_reduc -d : "$'$v'"'`"
+			echo "$v=$val"
+		done
+		for v in CC CXX
+		do
+			eval "echo \"$v=\$$v\""
+		done
+		for v in CPPFLAGS CFLAGS CXXFLAGS LDFLAGS
+		do
+			val="`eval 'args_reduc "$'$v'"'`"
+			echo "$v=$val"
+		done
+	)
+}
+minEnv="`minEnv | tr '\012' '\003'`"
+IFS="`printf '\003'`"
+export $minEnv
+unset IFS
 
 set -e
 
