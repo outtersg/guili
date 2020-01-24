@@ -285,7 +285,7 @@ decoupePrerequis()
 
 decoupePrerequisSansCompilo()
 {
-	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | fusionnerPrerequis
+	echo "$*" | sed -e 's#  *\([<>0-9]\)#@\1#g' -e 's#@\([0-9][_a-zA-Z]\)# \1#g' | tr ' :' '\012 ' | sed -e 's#@# #g' -e '/^$/d' -e 's/\([<>=]\)/ \1/' | fusionnerPrerequis
 }
 
 # Fusionne les prérequis, de manière à ce que plusieurs occurrences du même prérequis n'en fassent plus qu'une.
