@@ -21,21 +21,32 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+#SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 . "$SCRIPTS/util.guili.nss.sh"
 
 # Historique des versions gérées
 
-v 4.4.2.2 && modifs="enTetesPoppler log10 vraiSh" && prerequis="gperf >= 3 boost libxslt flex >= 2.5.35 bison patch zip python >= 3" || true
-v 5.0.0.5 && modifs="enTetesPoppler log10 vraiSh" && prerequis="patch zip" || true
+OPTIONS_CONF=
+v 4.4.2.2 && modifs="enTetesPoppler log10 vraiSh" && prerequis="patch bison pkgconfig \\ gperf >= 3 boost libxslt flex >= 2.5.35 zip python >= 3" || true
+v 5.0.0.5 && modifs="enTetesPoppler log10 vraiSh" || true
 # Première version qui accepte le GL qu'on lui propose (grâce à glew 2.0.0).
-v 5.3.1.1 && modifs="log10 vraiSh enTetesNss mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne" && prerequis="patch zip automake libtool 2.4.2 boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
+v 5.3.1.1 && modifs="log10 vraiSh enTetesNss mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne" && prerequis="patch bison automake libtool 2.4.2 pkgconfig \\ zip python >= 3 boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
 # v_libtool à faire varier entre 2.4.6 et 2.4.2, car certains bouts sont restés en 2.4.2 et pètent s'ils sont compilés par un 2.4.6. Donc pour aller jusqu'au bout, il faut commencer avec l'une, changer quand ça pète pour faire passer le point de blocage, rebasculer, etc.
-v 5.3.1.2 && modifsDyn="enTetesNss" modifs="$modifsDyn log10 vraiSh mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne envpourri" && prerequis="patch zip automake libtool $v_libtool boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
+v 5.3.1.2 && modifsDyn="libtoolAdaptatif enTetesNss" && modifs="$modifsDyn log10 vraiSh mesa eteteComplet cluceneFbsd pythonPatate sansTestServices boostMentionne envpourri" && prerequis="patch bison automake libtool $v_libtool pkgconfig \\ zip python >= 3 boost >= 1.47 nspr nss curl lcms cairo icu harfbuzz mesa glew >= 2 glu postgresql 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1" || true
 v 5.3.2.2 || true
-v 6.1.5.1 && modifsPostTel="fbsdSansAucunGL" && modifs="$modifs pasetime pthread_np prioPasConst sysmacros cheminOpenssl tribool opensslOuNss inclusionsNssLocales lepoxy selectionhandlers sansMenageOpenSsl sansMenageExceptions" && prerequis="bash patch zip automake libtool $v_libtool boost >= 1.47 nspr nss curl libjpegturbo lcms cairo >= 1.2.0 `varsPrerequis prerequis-r "cairo >= 1.2.0"` icu harfbuzz+icu+graphite >= 0.9.42 mesa glew >= 2 glu postgresql+ossl10 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1 openssl < 1.1 libepoxy mariadb poppler+xpdf xmlsec+nss" || true # OpenSSL < 1.1 car CryptTools.cppxx repose sur evp_cipher_ctx_st passé en opaque en 1.1 (https://unix.stackexchange.com/questions/477481/evp-cipher-ctx-in-openssl-1-1-x).
+v 5.4.6.2 || true
+# OpenSSL < 1.1 car CryptTools.cppxx repose sur evp_cipher_ctx_st passé en opaque en 1.1 (https://unix.stackexchange.com/questions/477481/evp-cipher-ctx-in-openssl-1-1-x).
+# harfbuzz tout à la fin (qui est le plus prioritaire), car LibreOffice veut absolument une harfbuzz+graphite, par contre il se fiche d'avoir un cairo+harfbuzz. Donc il faut que le chemin d'harfbuzz+graphite passe avant celui de l'harfbuzz qui pourrait être ramené par cairo mais sans graphite. Bon idéalement il faudrait harfbuzz+cairo+fontconfig+graphite+icux (c'est possible, j'en ai un sur ma machine, bien que je ne sache comment il a réussi à se compiler avec toutes ces options).
+v 6.1.5.1 && modifsPostTel="fbsdSansAucunGL" && modifs="$modifs pasetime pthread_np prioPasConst sysmacros cheminOpenssl tribool opensslOuNss inclusionsNssLocales lepoxy selectionhandlers sansMenageOpenSsl sansMenageExceptions" && prerequis="patch bash bison automake libtool $v_libtool pkgconfig \\ zip python >= 3 boost >= 1.47 nspr nss curl libjpegturbo lcms cairo >= 1.2.0 icu mesa glew >= 2 glu postgresql+ossl10 9.2.1 coinmp 1.7.6 libxml neon 0.30.1 clucene fontconfig >= 2.4.1 openssl < 1.1 libepoxy mariadb poppler+xpdf xmlsec+nss harfbuzz+icu+graphite >= 0.9.42" || true
 v 6.2.2.1 || true
+
+# Ma version Freetype, embarquée par Harfbuzz si elle a été détectée, requiert bzip2 mais n'en fait pas état. Zut.
+versions freetype && prerequis="$prerequis bzip2" && export LDFLAGS="$LDFLAGS -lbz2" || true
+
+argOptions="$argOptions+ossl10" # En 6.3, repose toujours sur des struct devenues private en OpenSSL 1.1.
+prerequisOpenssl
 
 prerequis
 
@@ -118,6 +129,32 @@ sysmacros()
 		Linux) true ;;
 		*) filtrer desktop/unx/source/pagein.c grep -v sysmacros.h ;;
 	esac
+}
+
+libtoolAdaptatif()
+{
+return 0
+	vraiChemin="`echo "$PATH" | sed -e 's#[^:]*/localbin:##g'`"
+	vraiBinaire="`PATH="$vraiChemin" ; command -v cmake`"
+	mkdir -p localbin
+	cat > localbin/libtoolize <<TERMINE
+#!/bin/sh
+SCRIPTS="$SCRIPTS"
+. "\$SCRIPTS/util.sh"
+echo "===========" >> /tmp/h
+pwd >> /tmp/h
+echo "\$# params" >> /tmp/h
+for param in "\$@" ; do printf "\\"%s\\" " "\$param" ; done >> /tmp/h
+echo >> /tmp/h
+env >> /tmp/h
+set -x
+exec >> /tmp/h 2>&1
+exit 1
+"$vraiBinaire" "\$@"
+TERMINE
+	chmod a+x localbin/libtoolize
+	PATH="`pwd`/localbin:$PATH"
+	export PATH
 }
 
 creerDestBinSoffice()
@@ -350,6 +387,20 @@ log10()
 '
 }
 
+sansMenageExceptions()
+{
+	# Le ménage d'exceptions fait une manip bizarre avec l'exception (du genre un -- sur son pointeur), et se vautre ensuite. On désactive, et on remplace par l'affichage de l'exception à sa levée.
+	filtrer bridges/source/cpp_uno/gcc3_linux_x86-64/except.cxx awk '{print}prochain&&/{/{prochain=0;print "return;"}/void.*deleteException/{prochain=1}'
+	filtrer bridges/source/cpp_uno/gcc3_linux_x86-64/except.cxx awk 'prochain&&/#if.*OSL_DEBUG_LEVEL/{prochain=0;$0="#if 1"}{print}/void.*raiseException/{prochain=1}'
+}
+
+sansMenageOpenSsl()
+{
+	# Pétage dans EVP_MD_CTX_destroy. Pourtant deux printf montrent que le pointeur que l'on supprime a été alloué comme il se doit auparavant, et la pile, qui montre que c'est deux niveaux en dessous de l'EVP_MD_CTX_destroy que ça pète, laisse penser qu'il n'y a pas eu corruption de mémoire.
+	# Mais comme on ne prépare notre LibreOffice que pour faire de la conversion en PDF, on se fiche qu'il y ait des fuites mémoire => on désactive le ménage.
+	filtrer comphelper/source/misc/hash.cxx sed -e '/EVP_MD_CTX_destroy/s/^/if(0) /'
+}
+
 # Variables
 
 vmin="`echo "$version" | cut -d . -f 1-3`"
@@ -386,25 +437,12 @@ else
 # clucene: les contribs-lib ne sont pas prises en compte dans celui à la sauce libreoffice.
 # epoxy, mariadb, poppler, xmlsec, harfbuzz, graphite: en 6
 # pdfium: en 6, mais ne compile pas
-OPTIONS_CONF=
 pge 0 $version || plus OPTIONS_CONF --with-system-nspr --with-system-glew --disable-gconf --disable-lockdown --disable-gltf --disable-collada
 pge 6 $version || moins OPTIONS_CONF --with-system-nspr --with-system-glew --disable-gconf --disable-lockdown --disable-gltf --disable-collada
 pge 6 $version || plus OPTIONS_CONF --with-system-epoxy --with-system-mariadb --with-system-poppler --with-system-xmlsec --with-system-graphite --with-system-harfbuzz --disable-pdfium
 
 #plus OPTIONS_CONF --enable-debug
-sansMenageExceptions()
-{
-	# Le ménage d'exceptions fait une manip bizarre avec l'exception (du genre un -- sur son pointeur), et se vautre ensuite. On désactive, et on remplace par l'affichage de l'exception à sa levée.
-	filtrer bridges/source/cpp_uno/gcc3_linux_x86-64/except.cxx awk '{print}prochain&&/{/{prochain=0;print "return;"}/void.*deleteException/{prochain=1}'
-	filtrer bridges/source/cpp_uno/gcc3_linux_x86-64/except.cxx awk 'prochain&&/#if.*OSL_DEBUG_LEVEL/{prochain=0;$0="#if 1"}{print}/void.*raiseException/{prochain=1}'
-}
-
-sansMenageOpenSsl()
-{
-	# Pétage dans EVP_MD_CTX_destroy. Pourtant deux printf montrent que le pointeur que l'on supprime a été alloué comme il se doit auparavant, et la pile, qui montre que c'est deux niveaux en dessous de l'EVP_MD_CTX_destroy que ça pète, laisse penser qu'il n'y a pas eu corruption de mémoire.
-	# Mais comme on ne prépare notre LibreOffice que pour faire de la conversion en PDF, on se fiche qu'il y ait des fuites mémoire => on désactive le ménage.
-	filtrer comphelper/source/misc/hash.cxx sed -e '/EVP_MD_CTX_destroy/s/^/if(0) /'
-}
+# Une autre façon pour déboguer est de remplacer dans tous les Makefile* ou *.mk les -O3 par des -g, make, et gdb / lldb.
 
 ./configure --prefix="$dest" \
 	--with-tls=openssl \
@@ -459,3 +497,5 @@ sudo make install
 sudo cp -R dest/. "$dest/."
 
 sutiliser
+
+cd "$TMP/$$" # Pour éviter que le ménage de notre dossier de compilation se fasse: on pourrait vouloir revenir dessus, car sur un logiciel d'une telle complexité, une compil réussie ne veut pas dire que le résultat est bon du premier coup.
