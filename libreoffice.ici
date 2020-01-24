@@ -58,9 +58,14 @@ fi # Pour finir uniquement.
 
 monooo="`versions libreoffice | tail -1`"
 
+installsTemp="$INSTALLS"
 unset INSTALLS
 . "$SCRIPTS/util.sh"
 
+# Si ça se trouve l'$INSTALLS défini plus haut (maintenant dans $installsTemp) a été écrabouillé par l'util.sh. Tout dépend de si l'util.local.sh tient compte de l'environnement ou force. S'il s'avère que nous avons bien installé dans un dossier temporaire, nous recopions maintenant.
+if [ "$installsTemp" != "$INSTALLS" ]
+then
 # À FAIRE: copier les biblios n'existant pas déjà dans un dossier propre, et ajouter celui-ci en tête de LD_LIBRARY_PATH dans le lanceur. En espérant que ça ne le gêne pas qu'on ait déplacé les biblios (dépend des OS).
-sudo cp -R "$monooo" /usr/local/
+sudoku cp -R "$monooo" "$INSTALLS/"
 sudo ./utiliser "`basename "$monooo"`"
+fi
