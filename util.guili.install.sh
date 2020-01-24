@@ -223,11 +223,12 @@ utiliserSiDerniere()
 }
 
 # Arbitre destiné à $SCRIPTS/utiliser
-# Utilisation: siPlusRecent42 <logiciel> <logiciel0> <logiciel1>
+# Utilisation: siPlusRecent42 <logiciel> <logiciel0> <logiciel0> <logiciel1>
 # Sort avec un code 42 si <logiciel0> est plus récent que <logiciel1> (soit que le nommage en <logiciel>(+<option>)*-<version> l'indique, soit qu'un $INSTALLS/<logicielx>/.guili.version permette de retrouver cette version).
+# À noter que le second <logiciel0> est celui qui nous est envoyé par utiliser, mais qu'on peut l'ignorer car il s'agit d'un nom de dossier, et on a la version déjà résolue dans le premier <logiciel0>.
 siPlusRecent42()
 {
-	local l="$1" l0="$2" l1="$3"
+	local l="$1" l0="$2" l1="$4"
 	[ -s "$INSTALLS/$l0/$GUILI_F_VERSION" ] && l0="`cat "$INSTALLS/$l0/$GUILI_F_VERSION"`" || true
 	[ -s "$INSTALLS/$l1/$GUILI_F_VERSION" ] && l1="`cat "$INSTALLS/$l1/$GUILI_F_VERSION"`" || true
 	case "$l0" in $l+*|$l-[0-9][0-9.]*) true ;; *) exit 1 ;; esac
