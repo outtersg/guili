@@ -352,6 +352,12 @@ meilleurCompilo()
 # Pour compatibilité.
 meilleurCompiloInstalle() { meilleurCompilo "$@" ; }
 
+cxx17()
+{
+	compiloSysVersion -i "clang >= 5" "gcc >= 7"
+	libcxx
+}
+
 cpp14()
 {
 	compiloSysVersion -i "clang >= 3.5" "gcc >= 5" # clang 3.4 supporte, mais en -std=c++1y.
