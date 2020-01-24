@@ -13,3 +13,5 @@
 #   Si à 1 (valeur par défaut), évitera autant que possible de passer root. À 0, passera root sans vergogne.
 # $INSTALL_SILO
 #   Entrepôt à versions précompilées (les installations tenteront de consulter le silo voir si une version compilée existe; dans la négative, ils compileront puis pousseront vers le silo, à l'intetion des prochains qui tenteront l'installation).
+
+[ -n "$INSTALLS" ] || INSTALLS="/usr/local"
