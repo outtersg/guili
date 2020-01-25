@@ -69,7 +69,7 @@ testsLocalhost()
 # Enrobe un python binaire de quelque chose qui lui donne l'environnement nécessaires (en particulier le LD_LIBRARY_PATH).
 pythonenboiter()
 {
-	local d="$TMP/$$/dest" f nom binaire
+	local d="$TMP/$$/dest" f nom binaire pyp="`pyp`"
 	mkdir -p "$d/bin"
 	for binaire in python
 	do
@@ -80,12 +80,14 @@ pythonenboiter()
 			# - Les scripts python qui utilisent #!/…/bin/python se plantent, puisque l'interpréteur ciblé n'en est plus un mais est un script shell (donc interprété); en conséquence l'OS décide de faire interpréter le script "client" par /bin/sh, ce qui ne marche pas des masses.
 			# - Les scripts installés post-remplacement (ex.: pip, easy_install, etc.) détectent qu'ils ont été lancés en fait par python.bin (leur $0), et donc codent celui-ci comme interpréteur. Sur ce dernier point on est bons, mais le script client ne passe alors plus par la surcharge d'environnement du …/bin/python.
 			# On passe donc par un binaire (qui ne modifie surtout pas l'argv[0] en appelant le .bin, de manière à ce que le binaire réel se croie appelé python).
+			# $PYEXT: pour éviter de polluer notre install, les extensions installées après Python lui-même iront se placer dans un dossier centralisé. On l'ajoute donc à notre chemin.
 			nom="`basename "$f"`"
 			cp "$f" "$d/bin/$nom.bin"
 			sed \
 				-e "s#\$bin#$dest/bin/$nom.bin#g" \
 				-e "s#\$PATH#$dest/bin:$INSTALLS/bin#g" \
 				-e "s#\$LD_LIBRARY_PATH#$dest/lib:$INSTALLS/lib64:$INSTALLS/lib#g" \
+				-e "s#\$PYTHONPATH#$INSTALLS/$PYEXT/$pyp:$dest/$pyp#g" \
 				< "$SCRIPTS/pythonenboite.c" > "$TMP/$$/$nom.c"
 			$CC -o "$d/bin/$nom" "$TMP/$$/$nom.c"
 			chmod a+x "$d/bin/$nom.bin" "$d/bin/$nom"
