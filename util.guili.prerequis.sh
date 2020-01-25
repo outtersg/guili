@@ -86,7 +86,9 @@ _prerequis()
 	# On passe donc maintenant par de la pure variable locale, qui ne sera pas touchée entre deux tours de boucle…
 	local prcourant requis versionRequis
 	local prdecoupes="`decoupePrerequis "$prerequis" | tr '\012' \; | sed -e 's/;$//'`"
-	[ -z "$prerequis" -o -n "$prdecoupes" ] || return 1 # Si $prdecoupes est vide alors que $prerequis non, decoupePrerequis a dû planter (mais son plantage est masqué par le | tr: le code de retour est celui du tr).
+	# Si $prdecoupes est vide alors que $prerequis non, decoupePrerequis a dû planter (mais son plantage est masqué par le | tr: le code de retour est celui du tr).
+	# On affine au cas où $prerequis n'était constitué que d'espaces.
+	[ -z "$prerequis" -o -n "$prdecoupes" ] || case "$prerequis" in *[^\ ]*) return 1 ;; esac
 	IFS=';'
 	for prcourant in $prdecoupes
 	do
