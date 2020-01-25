@@ -28,10 +28,48 @@ v 5.5.34 && prerequis="zlib libexecinfo iconv cmake lz4 openssl libevent" || tru
 v 5.5.63 || true
 v 10.2.22 && modifs="pasDUsrLocalInclude sansLto sansRelro" || true
 v 10.3.13 || true
+v 10.4.11 && modifs="$modifs sansDl vMroonga jemalloc" || true
 
 archive="http://mariadb.mirrors.ovh.net/MariaDB//mariadb-$version/source/mariadb-$version.tar.gz"
 
 # Modifications
+
+jemalloc()
+{
+	# Font chier ces gars qui développent uniquement pour Linux.
+	# https://jira.mariadb.org/browse/MDEV-20248#comment-132718
+	
+	filtrer storage/rocksdb/rocksdb/port/jemalloc_helper.h sed -e '/ifndef JEMALLOC_CXX_THROW/{
+i\
+#ifndef JEMALLOC_USABLE_SIZE_CONST
+i\
+#define JEMALLOC_USABLE_SIZE_CONST const
+i\
+#endif
+}'
+}
+
+vMroonga()
+{
+	# Pas de bol, mroonga inscrit sa version dans un fichier sobrement intitulé "version", dans un dossier faisant partie des chemins d'inclusion. Or tout plein de fichiers de la libc++ de clang 8 (cstddef, mutex, locale, etc.) font un #include <version> qui tombe sur ce fichier texte au lieu du version[.hpp] attendu.
+	# https://forum.directadmin.com/threads/how-to-mariadb-10-3-12-on-freebsd-11-2.57486/
+	# http://cgit.openembedded.org/meta-openembedded/tree/meta-oe/recipes-dbs/mysql/mariadb/clang_version_header_conflict.patch?h=master
+	mv storage/mroonga/version storage/mroonga/version.txt
+	filtrer storage/mroonga/CMakeLists.txt sed -e 's#/version #/version.txt #'
+}
+
+sansDl()
+{
+	# À FAIRE: une détection un peu plus précise de la nécessité d'un -ldl.
+	case "`uname`" in
+		FreeBSD) true ;;
+		*) return 0 ;;
+	esac
+	for f in plugin/auth_pam/CMakeLists.txt wsrep-lib/src/CMakeLists.txt
+	do
+		filtrer "$f" sed -e 's/ dl//'
+	done
+}
 
 pasDUsrLocalInclude()
 {
