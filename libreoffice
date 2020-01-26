@@ -475,6 +475,7 @@ pge 6 $version || plus OPTIONS_CONF --with-system-epoxy --with-system-mariadb --
 pg 6.3 $version || plus OPTIONS_CONF --with-system-cppunit
 
 #plus OPTIONS_CONF --enable-debug
+plus OPTIONS_CONF --enable-sal-log # Puis lancer soffice.bin avec un SAL_LOG=1
 # Une autre façon pour déboguer est de remplacer dans tous les Makefile* ou *.mk les -O3 par des -g, make, et gdb / lldb.
 
 ./configure --prefix="$dest" \
