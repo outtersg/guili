@@ -70,6 +70,13 @@ prerequis
 
 # Modifications
 
+pasTrouve()
+{
+	filtrer ucb/source/ucp/file/filglob.cxx sed -e '/bResourceName = true/a\
+if(bResourceName) { OString cstr(OUStringToOString(rPhysicalUrl, RTL_TEXTENCODING_ASCII_US)); fprintf(stderr, "Impossible de charger %s\n", cstr.getStr()); } else fprintf(stderr, "Impossible de charger un truc.\n");
+'
+}
+
 cxxflagsIgnores()
 {
 	# Les sous-Makefile ne tiennent pas toujours compte de $CXXFLAGS; on les pose donc dans $CXX, en lui souhaitant plus de succès.
