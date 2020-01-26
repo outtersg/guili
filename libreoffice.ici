@@ -98,5 +98,5 @@ if [ "$installsTemp" != "$INSTALLS" ]
 then
 # À FAIRE: copier les biblios n'existant pas déjà dans un dossier propre, et ajouter celui-ci en tête de LD_LIBRARY_PATH dans le lanceur. En espérant que ça ne le gêne pas qu'on ait déplacé les biblios (dépend des OS).
 sudoku cp -R "$monooo" "$INSTALLS/"
-sudo ./utiliser "`basename "$monooo"`"
+sudo "$SCRIPTS/utiliser" "`basename "$monooo"`"
 fi
