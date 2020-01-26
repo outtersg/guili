@@ -527,6 +527,7 @@ echo Installation… >&2
 # Apparemment la compil en headless oublie de produire trois fichiers, en tout cas oublie de prévenir l'installeur qu'ils ne sont pas utiles en étêté.
 touch instdir/program/ui-previewer instdir/program/libchartopengllo.so workdir/Package/chart2_opengl_shader.filelist
 creerDestBinSoffice
+sudo rm -Rf /tmp/LibreOffice_SDK # Celui-là traîne d'une tentative d'install à l'autre, et fait péter en permission denied.
 sudo make install
 sudo cp -R dest/. "$dest/."
 
