@@ -215,39 +215,14 @@ TERMINE
 	
 	# On rapatrie les biblios, histoire de pouvoir créer un paquet "tout compris" à partir du simple $dest.
 	
-	mkdir -p dest/lib/libreoffice/ext/
-	IFS=:
-	for biblio in \
-		libboost_system \
-		libssl3 \
-		libsmime3 \
-		libnss3 \
-		libnssutil3 \
-		libplds4 \
-		libplc4 \
-		libnspr4 \
-		liblcms2 \
-		libcairo \
-		libOSMesa \
-		libGLEW \
-		libboost_iostreams \
-		libboost_filesystem \
-		libpixman-1 \
-		libglapi \
-		libclucene-contribs-lib \
-		libjpeg \
-		libgraphite2 \
-		libharfbuzz \
-		libharfbuzz-icu
+	local ext=dest/lib/libreoffice/ext
+	mkdir -p "$ext"
+	biblios instdir/program/soffice.bin | grep "^$INSTALLS/" | sed -e 's#^.*$#& &#' -e 's#^[^ ]*/##' -e 's#\.so\(\.[0-9][0-9]*\)* #.so #' | while read biblio chemin
 	do
-		for chemin in $LD_LIBRARY_PATH ; do
-			if [ -e "$chemin/$biblio.so" ] ; then
-				cp "$chemin/$biblio.so"* dest/lib/libreoffice/ext/
-				break
-			fi
-		done
+		rm -f "$ext/`bn "$chemin"`" # Des fois qu'une précédente install ait laissé des traces.
+		cp "$chemin" "$ext/"
+		[ -e "$ext/$biblio" ] || ln -s "`bn "$chemin"`" "$ext/$biblio"
 	done
-	unset IFS
 }
 
 envpourri()
