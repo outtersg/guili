@@ -352,8 +352,26 @@ a\
 	vcl/opengl/texture \\
 }'
 	# En 6: OpenGLWrapper.hxx a bien un #ifdef LIBO_HEADLESS (si oui, isVCLOpenGLEnabled est définie en inline, et getBufferSwapCounter n'est pas déclarée), mais l'implémentation dans OpenGLContext.cxx n'en tient pas compte.
+	# En 6.3: il n'est défini en inline que sur le Wrapper, pas l'Helper. Curieux que ça compilât avec notre exclusion systématique.
 	filtrer vcl/source/opengl/OpenGLContext.cxx awk '/getBufferSwapCounter/{print "#ifndef LIBO_HEADLESS";dedans=1}{print}dedans&&/^}/{print "#endif";dedans=0}'
-	filtrer vcl/source/opengl/OpenGLHelper.cxx awk '/^bool .*::isVCLOpenGLEnabled/{print "#ifndef LIBO_HEADLESS";dedans=1}{print}dedans&&/^}/{print "#endif";dedans=0}'
+	local toutEstInline=0
+	pge $version 6.3 || toutEstInline=1
+	filtrer vcl/source/opengl/OpenGLHelper.cxx awk '
+/^bool .*::isVCLOpenGLEnabled/{
+	if('$toutEstInline' || match($0, /Wrapper::is/))
+		print "#ifndef LIBO_HEADLESS";
+	else
+	{
+		print "#ifdef LIBO_HEADLESS";
+		print;
+		print "{return false;}";
+		print "#else";
+	}
+	dedans = 1;
+}
+{print}
+dedans&&/^}/{print "#endif";dedans=0}
+'
 }
 
 mesa()
