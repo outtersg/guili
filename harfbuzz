@@ -42,8 +42,15 @@ optionSi fc/fontconfig || OPTIONS_CONF="$OPTIONS_CONF --without-fontconfig"
 optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || OPTIONS_CONF="$OPTIONS_CONF --without-graphite2"
 # Pour ce qui est du freetype, finalement on ne le prérequiert que s'il est déjà installé dans la version voulue (par exemple itération 0 d'un freetype+hb).
 # Ce après l'optionsEtPrerequisIcu() afin qu'il ait toutes ses options (ICU) d'étiquetées.
+optionSi ft/freetype || true
 pftv="`decoupePrerequis "$prerequis" | grep ^freetype`"
-[ -z "$pftv" ] || versions "$pftv" | grep -q . || virerPrerequis "`for l in $pftv ; do echo "$l" ; break ; done`"
+if [ -z "$pftv" ] || versions "$pftv" | grep -q .
+then
+	true
+else
+	virerPrerequis "`for l in $pftv ; do echo "$l" ; break ; done`"
+	argOptions="`options "$argOptions-ft"`"
+fi
 
 # Variables
 
