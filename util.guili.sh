@@ -100,35 +100,6 @@ ecosysteme()
 	"$SCRIPTS/ecosysteme" "$@"
 }
 
-prerequerir()
-{
-	local paramLocal=
-	[ "x$1" = x-l ] && paramLocal="$1" && shift || true
-	local paraml="$1" ; shift
-	local paramv="$*"
-	local pr_dest=
-	
-	[ -n "$INSTALLS_MAX" ] || pr_dest="`versions "$paraml $paramv" | tail -1`"
-	
-	if [ -z "$pr_dest" ]
-	then
-	( INSTALLS_AVEC_INFOS=1 inclure "$paraml" "$paramv" ) 6> "$TMP/$$/temp.inclureAvecInfos" || return $?
-	
-	# L'idéal est que l'inclusion ait reconnu INSTALLS_AVEC_INFOS et nous ait sorti ses propres variables, à la pkg-config, en appelant infosInstall() en fin (réussie) d'installation.
-	# Dans le cas contraire (inclusion ancienne mode peu diserte), on recherche parmi les paquets installés celui qui répond le plus probablement à notre demande, via reglagesCompilPrerequis.
-	
-	local pr_logiciel= pr_version=
-	IFS=: read pr_logiciel pr_logicielEtOptions pr_version pr_dest < "$TMP/$$/temp.inclureAvecInfos" || true
-	unset IFS # Le sh sur certains Linux ne sait pas cantonner le changement de variable à l'appel de la fonction.
-		[ -n "$pr_dest" ] || pr_dest="$paraml $paramv" # Pour les logiciels qui ne savent pas être inclusAvecInfos (qui ne renseignent pas les variables), on se rabat sur une description de contraintes.
-	fi
-	
-	retrouverPrerequisEtReglerChemins $paramLocal "$pr_dest"
-	
-	# Pour répondre à ma question "Comment faire pour avoir en plus de stdout et stderr une stdversunsousshellderetraitement" (question qui s'est posée un moment dans l'élaboration d'inclureAvecInfos):
-	# ( ( echo Un ; sleep 2 ; echo Trois >&3 ; sleep 2 ; echo Deux >&2 ; sleep 2 ; echo Trois >&3 ) 3>&1 >&4 | sed -e 's/^/== /' ) 4>&1
-}
-
 reglagesCompilPrerequis() { retrouverPrerequisEtReglerChemins "$@" ; } # Pour compatibilité.
 # Affecte tous les réglages compilo pour inclure un module s'il existe déjà (on ne tente pas de compiler sa dernière version, comme le fait prerequerir()).
 # Utilisation:
