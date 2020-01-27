@@ -573,7 +573,7 @@ perso()
 		cd "$cible"
 		if grep -q . < /tmp/temp.perso.$$.patch
 		then
-			patch -p0 -l < /tmp/temp.perso.$$.patch || \
+			patch -f -p0 -l < /tmp/temp.perso.$$.patch || \
 		(
 			echo "# Attention, les personnalisations de $* n'ont pu être appliquées. Consultez:"
 			find . -name "*.rej" | sed -e 's/^/  /'
