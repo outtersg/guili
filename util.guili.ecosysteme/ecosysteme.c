@@ -172,7 +172,7 @@ void decouperPrerequis(char * chaine, L * resultatAgrege)
 char estVersion(char * chaine)
 {
 	if(*chaine < '0' || *chaine > '9') return 0;
-	while(*++chaine && *chaine != ' ')
+	while(*++chaine && *chaine != ' ' && *chaine != '\t' && *chaine != '\n')
 		if(*chaine != '.' && (*chaine < '0' || *chaine > '9'))
 			return 0;
 	return chaine[-1] != '.';
