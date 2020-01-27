@@ -44,7 +44,7 @@ ftconfig()
 	OPTIONS_CONF="$OPTIONS_CONF --enable-freetype-config"
 }
 
-[ -z "$GUILI_MOIRE_FT" ] || GUILI_MOIRE="$GUILI_MOIRE$GUILI_MOIRE_FT"
+[ -z "$GUILI_MOIRE_FT" ] || case "::$GUILI_MOIRE::" in *:"$GUILI_MOIRE_FT":*) true ;; *) GUILI_MOIRE="$GUILI_MOIRE$GUILI_MOIRE_FT" ;; esac
 
 case "$GUILI_MOIRE:" in
 	*:hb:*)
