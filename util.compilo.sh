@@ -406,7 +406,7 @@ libcxxgcc()
 	
 	# La bibliothèque vient-elle bien d'une install GuiLI?
 	
-	rlvo "$libcxx" || return 0
+	[ -n "`rlvo "$libcxx"`" ] || return 0
 	
 	# Recherche de la version GuiLI de libcxx correspondante.
 	# Pour libstdcxx, c'est le suffixe.
