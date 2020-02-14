@@ -25,13 +25,15 @@ versions()
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	
 	versions_expr_version='[0-9.]+'
-	local filtreDernier=0 filtreComplet=0 fouines= fouine
+	local filtreDernier=0 filtreComplet=0 fouines= fouine versions_liste=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-1) filtreDernier=1 ;;
 			-f|--finalisees|--full|--completes|--fear-the-partial) filtreComplet=1 ;;
 			-v) versions_expr_version="$2" ; shift ;;
+			-li) fouines="$fouines versions_listerInstallees" ;;
+			-lv) fouines="$fouines versions_listerListe" ; versions_liste="$versions_liste$2 " ; shift ;;
 			*) break ;;
 		esac
 		shift
@@ -94,6 +96,14 @@ versions()
 versions_listerInstallees()
 {
 	tifs find --sep : "$GUILI_PATH" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
+}
+
+versions_listerListe()
+{
+	for truc in $versions_liste
+	do
+		echo "$truc"
+	done
 }
 
 _v_filtreTrouves()
