@@ -33,6 +33,7 @@ versions()
 			-f|--finalisees|--full|--completes|--fear-the-partial) filtreComplet=1 ;;
 			-v) versions_expr_version="$2" ; shift ;;
 			-li) fouines="$fouines versions_listerInstallees" ;;
+			-lp) PREparer ; fouines="$fouines versions_listerListe" ; versions_liste="$versions_liste$PREpare " ;;
 			-lv) fouines="$fouines versions_listerListe" ; versions_liste="$versions_liste$2 " ; shift ;;
 			*) break ;;
 		esac
