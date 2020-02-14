@@ -25,7 +25,7 @@ versions()
 	[ ! -z "$GUILI_PATH" ] || GUILI_PATH="$INSTALLS"
 	
 	versions_expr_version='[0-9.]+'
-	local filtreDernier=0 filtreComplet=0
+	local filtreDernier=0 filtreComplet=0 fouines= fouine
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
@@ -36,6 +36,7 @@ versions()
 		esac
 		shift
 	done
+	[ -n "$fouines" ] || fouines=versions_listerInstallees
 	
 	local logiciel options filtreVersion
 	while [ $# -gt 0 ]
@@ -81,10 +82,7 @@ versions()
 	case "$options" in
 		*-*) versions_expr_excl="(^|/)$versions_logiciel([+][^+]*)*`echo "$options" | sed -e 's/[+][^-=+]*//g' -e 's#-#|[+]#g' -e 's#|#(#'`)([+][^+]*)*-$versions_expr_version$" ;;
 	esac
-	(
-		IFS=:
-		find $GUILI_PATH -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
-		) \
+		for fouine in $fouines ; do $fouine ; done \
 		| egrep "$versions_expr" \
 		| ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) \
 		| filtrerVersions "$filtreVersion" \
