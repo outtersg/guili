@@ -88,6 +88,11 @@ versions()
 	done
 }
 
+versions_listerInstallees()
+{
+	tifs find --sep : "$GUILI_PATH" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
+}
+
 _v_filtreTrouves()
 {
 	case "$filtreDernier$filtreComplet" in
