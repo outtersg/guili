@@ -77,9 +77,9 @@ versions()
 	case "$options" in
 		*+*) versions_expr_options="`argOptions="$options" argOptions | sed -e 's/-[^-=+]*//g' -e 's#[+]#([+][^+]*)*[+]#g'`" ;;
 	esac
-	local versions_expr="/$versions_logiciel$versions_expr_options([+][^+]*)*-$versions_expr_version$"
+	local versions_expr="(^|/)$versions_logiciel$versions_expr_options([+][^+]*)*-$versions_expr_version$"
 	case "$options" in
-		*-*) versions_expr_excl="/$versions_logiciel([+][^+]*)*`echo "$options" | sed -e 's/[+][^-=+]*//g' -e 's#-#|[+]#g' -e 's#|#(#'`)([+][^+]*)*-$versions_expr_version$" ;;
+		*-*) versions_expr_excl="(^|/)$versions_logiciel([+][^+]*)*`echo "$options" | sed -e 's/[+][^-=+]*//g' -e 's#-#|[+]#g' -e 's#|#(#'`)([+][^+]*)*-$versions_expr_version$" ;;
 	esac
 	(
 		IFS=:
