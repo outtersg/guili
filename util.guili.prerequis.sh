@@ -134,6 +134,61 @@ _prerequis()
 	fi
 }
 
+# Prérequiert un logiciel, en tenant compte de ce que la variable $PRE déclare comme déjà présent.
+# Stratégies:
+# - OU: la première version trouvée dans les $PRE qui valide les critères de notre $* est prise en compte. Sinon, inclusion classique.
+#   N.B.: cela peut aboutir à des ensembles incohérents, où le fait qu'un logiciel appelant réclame openssl >= 1.1 mais un prérequis openssl < 1.1 ne dérange personne.
+# - ET: si le logiciel est présent dans les $PRE, les options et version de celui-ci sont combinées à celles passées en paramètres, ce qui accentue les contraintes, et augmente donc les risques de résolution impossible).
+# La stratégie OU se révèle utile dans le cas théorique d'un logiciel qui appellerait prerequerir plusieurs fois pour le même prerequis, mais avec des options différentes; par exemple un robot de test qui aurait besoin à la fois d'un OpenSSL 1.0, d'un 1.1, et d'un 1.2. Si le 1.0 et le 1.1 sont déjà installés et, détectés, figurent dans le $PRE (openssl-1.0.x openssl-1.1.y), avec la stratégie ET, le premier $PRE trouvé ajoutera la contrainte 1.0.x à *tous* les $prerequis openssl, faisant échouer les prérequis OpenSSL 1.1 et 1.2.
+PRErequerir()
+{
+	local l pr_ov= pr_dest=
+	l="$1" ; shift
+	pr_ov="$*"
+	
+	# À FAIRE: utiliser vmax() pour que $PRE puisse contenir des contraintes de version à la place d'une version précise et savoir alors si un élément de $PRE est compatible avec ce qui nous est passé en paramètres.
+	# La stratégie actuelle est en "ET": quand un logiciel est trouvé dans le $PRE, ses options et sa versison se combinent à celles de $prerequis (ce qui ajoute des contraintes et augmente les risques de résolution impossible).
+	
+	# Fouille des $PRE
+	
+	PREenrichirPrerequerir
+	prerequerir -l -d "$pr_dest" "$l" "$pr_ov"
+	
+	# À FAIRE: ajouter le prérequis trouvé à $PRE, ainsi que ses prérequis: ainsi toute la chaîne se calera sur les mêmes versions des logiciels. Notons que ceci ne efonctionne que si le chapeau sait ordonner son monde (soit manuellement, soit avec l'aide de l'ecosysteme): si sont appelés d'abord curl+ossl, puis openssl < 1.2, le curl+ossl aura tôt fait de choisir un OpenSSL 1.2.
+	# À FAIRE: … Avoir un mécanisme qui permette de NE PAS le faire, par exemple si le logiciel que nous compilons ne fait que lancer les binaires de ses prérequis par execve(), et donc n'a pas besoin que tous se lient au même OpenSSL (voire il souhaite qu'ils ne se lient pas au même OpenSSL, genre un orchestrateur qui tourne avec OpenSSL 1.1 mais qui pour une tâche précise invoque un logiciel déclaré en $prerequis qui ne compile que sous OpenSSL 1.0: en ce cas il ne faut surtout pas imposer notre OpenSSL 1.1). On pourrait faire ce choix en remplaçant DelieS() par un RelieS() ou autre, comme indicateur de mode.
+}
+
+PREenrichirPrerequerir()
+{
+	local quiColle aVoir lo op ve
+	PREparer
+	for quiColle in `versions -lv "$PREpare" "$l $pr_ov" | tail -1`
+	do
+		for aVoir in $PRE
+		do
+			# Y a-t-il d'indiqué un dossier correspondant à cette version?
+			case "$aVoir" in
+				"$quiColle"@*) pr_dest="`aff2() { echo "$2" ; } ; IFS=@ ; aff2 $aVoir`" ;;
+			esac
+			# Dans tous les cas on ajoute l'affinage de critères au prérequis.
+			case "$aVoir" in
+				"$quiColle"|"$quiColle"@*)
+					love -e "lo op ve" "$quiColle"
+					pr_ov="$pr_ov $op $ve"
+					break
+					;;
+			esac
+		done
+	done
+}
+
+PREparer()
+{
+	[ "$PRE" != "$PREparer_PRE" ] || return 0
+	PREpare="`for bout in $PRE ; do IFS=@ ; for debut in $bout ; do printf "$debut " ; break ; done ; unset IFS ; done`"
+	PREparer_PRE="$PRE"
+}
+
 prerequerir()
 {
 	local paramLocal=
