@@ -84,7 +84,12 @@ versions()
 	(
 		IFS=:
 		find $GUILI_PATH -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
-		) | egrep "$versions_expr" | ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) | filtrerVersions "$filtreVersion" | triversions | _v_filtreTrouves
+		) \
+		| egrep "$versions_expr" \
+		| ( [ -z "$versions_expr_excl" ] && cat || egrep -v "$versions_expr_excl" ) \
+		| filtrerVersions "$filtreVersion" \
+		| triversions \
+		| _v_filtreTrouves
 	done
 }
 
