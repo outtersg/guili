@@ -104,7 +104,7 @@ _prerequis()
 				tifs $appel
 				;;
 			*)
-				prerequerir -l $prcourant
+				PRErequerir $prcourant
 				;;
 		esac
 	done
