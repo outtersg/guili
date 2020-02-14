@@ -287,6 +287,7 @@ postprerequis()
 	prerequis="`decoupePrerequis "$prerequis" | sed -e '/ .*[0-9]  *\([0-9][.0-9]*\)$/s## \1#g'`"
 	
 	gris "postprerequis: `echo "$prerequis" | tr '\012' ' '`"
+	preutiliser # Si des prérequis nous ont comme prérequis (ex.: interdépendance Freetype - Harfbuzz), précisons que nous sommes viables.
 	prerequis
 }
 
