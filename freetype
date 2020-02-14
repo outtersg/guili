@@ -44,6 +44,7 @@ ftconfig()
 	OPTIONS_CONF="$OPTIONS_CONF --enable-freetype-config"
 }
 
+# Reconstitution du $GUILI_MOIRE si un intermédiaire l'a bousillé.
 [ -z "$GUILI_MOIRE_FT" ] || case "::$GUILI_MOIRE::" in *:"$GUILI_MOIRE_FT":*) true ;; *) GUILI_MOIRE="$GUILI_MOIRE$GUILI_MOIRE_FT" ;; esac
 
 case "$GUILI_MOIRE:" in
@@ -52,7 +53,7 @@ case "$GUILI_MOIRE:" in
 		;;
 esac
 
-# À moins qu'on ne nous désactive explicitement harfbuzz, on l'embarque.
+# Pour les versions pouvant prendre en compte Harfbuzz, on le prend (sauf si rejeté explicitement évidemment).
 case "$prerequis" in
 	*harfbuzz*)
 opSiPasPas hb harfbuzz
@@ -65,22 +66,39 @@ opSiPasPas hb harfbuzz
 esac
 
 # Si nous sommes l'itération 0 d'une compil Freetype + Harfbuzz (0. freetype --sans-hb ; 1. harfbuzz ; 2. freetype+hb) nous nous compilerons sans Harfbuzz, mais nous nous remettons tout de même l'option, afin que destiner() nous donne la même $dest que l'itération 2, et qu'ainsi l'Harfbuzz du 1. ait pour prérequis ce $dest cible.
-case "$GUILI_MOIRE:" in
-	*:hb:*)
+moireHb()
+{
 		argOptions="`options "$argOptions+hb"`"
 		# De plus nous marquons notre .encours comme témoin valide (au même titre que .complet).
 		# En effet l'harfbuzz qui nous a en prérequis va normalement le trouver et le prendre tel quel, sauf en cas d'$INSTALLS_MAX: dans ce cas il nous appellera pour valider la chose, or la validation de destiner() (dans nous) est plus stricte que celle de prerequis() (dans l'harfbuzz appelant).
 		GUILI_TEMOINS_ENCOURS="$INSTALLS/$logiciel`argOptions`-$version"
-		;;
-esac
+	moire -i hb "$@" --sans-hb
+	# À l'intérieur du moiré (Freetype itération 0), sutiliser() est surchargée pour ne rien faire.
+	# Cependant l'Harfbuzz (itération 1) aura besoin de nos dépendances pour les inclure aux siennes. Il nous faut donc au moins le guili_deps_pondre.
+	sutiliser() { preutiliser ; guili_deps_pondre ; diag + "`bn "$dest"`" ; }
+	# Idem si on est en simple visite de vérification: signalons que nous sommes installés.
+	sortieSansReinstall() { diag + "`bn "$dest"`" ; }
+}
 
-# On prend de l'avance sur notre passage en moiré, pour que nous-mêmes rappelés dans un cadre récursif sachions qu'on se compile sans Harfbuzz. En effet, le moire() ne gère que le cas simple de FreeType appelant FreeType. Mais dans notre prerequis, et même auparavant dans notre destiner qui, en $INSTALLS_MAX, peut être tenter d'invoquer un harfbuzz, nous (freetype) allons appeler harfbuzz qui lui-même rappellera freetype.
-if option hb
-then
+moirantHb()
+{
+	local guili_diag_original=
+	# Nous allons avoir besoin de récupérer le chemin d'install du moiré, qui préfigure le nôtre une fois calculé dans destiner().
+	case " $guili_diag " in
+		*" diag_modifs "*) true ;;
+		*) guili_diag_original="$guili_diag" ; export guili_diag="$guili_diag diag_modifs" ;;
+	esac
+	# On prend de l'avance sur notre passage en moiré, pour que nous-mêmes rappelés dans un cadre récursif sachions qu'on se compile sans Harfbuzz. En effet, le moire() ne gère que le cas simple de FreeType appelant FreeType. Mais dans notre prerequis, et même auparavant dans notre destiner qui, en $INSTALLS_MAX, peut être tenter d'invoquer un harfbuzz, nous (freetype) allons appeler harfbuzz qui lui-même rappellera freetype.
 	export GUILI_MOIRE_FT=":hb"
-fi
-
-destiner
+	moire -i hb "$@" --sans-hb 7> $TMP/$$/sortieMoire
+	destAvecHb="`grep "^+ $logiciel+" < $TMP/$$/sortieMoire | tail -1 | cut -c 3-`"
+	[ -n "$destAvecHb" ] || fatal "# L'itération 0 (Freetype sans Harfbuzz) n'a pas daigné signaler où elle s'installait."
+	destAvecHb="$INSTALLS/$destAvecHb"
+	# On signale au freetype que l'on va compiler dans les prerequis que ce serait bien qu'il se lie à nous (qui ne sommes pas encore installés, mais notre moiré qui l'est tient lieu).
+	export PRE="$logiciel`argOptions`-$version@$destAvecHb $PRE"
+	# À FAIRE: si on a l'option icu, idéalement, passer aussi en PRE l'icu auquel s'est lié notre moiré, pour être sûrs que harfbuzz utilise le même. Mais bon, étant donné qu'il passe comme nous par optionsEtPrerequisIcu, on a espoir qu'il tombe de toute façon sur le nôtre.
+	[ -z "$guili_diag_original" ] || export guili_diag="$guili_diag_original"
+}
 
 # On installe une première version de nous, sans Harfbuzz, entre notre destiner() et notre prerequis():
 # - si on le faisait avant notre destiner(), ce dernier nous estimerait déjà installé et ne poursuivrait pas.
@@ -88,10 +106,28 @@ destiner
 # - si on ne le faisait pas du tout, harfbuzz qu'on va appeler ensuite et qui va nous prérequérir, risquerait de tomber sur une ancienne version de nous et de s'en satisfaire.
 if option hb
 then
-	moire -i hb --sans-hb
+	moirantHb "$@"
+else
+	# Si l'option nous a été retirée *parce que* nous sommes dans le moiré, on modifie les options pour nous installer dans la destination théorique avec l'option.
+	case ":$GUILI_MOIRE:" in
+		*:hb:*)
+			moireHb "$@"
+			;;
+	esac
+	OPTIONS_CONF="$OPTIONS_CONF --with-harfbuzz=no"
 fi
 
 prerequis
+
+# Si nous avons besoin de Harfbuzz, notre itération 0 (Freetype sans Harfbuzz, nécessaire à Harfbuzz) s'est installée complètement dans notre $dest.
+# Nous devons donc nous assurer que destiner ne va pas croire qu'il s'agit de la version définitive.
+# Soit on supprime le marqueur de complétude ou d'en-cours, soit on restaure $PRE pour que ledit marqueur ne soit pas reconnu.
+[ -z "$destAvecHb" -o ! -e "$destAvecHb/$ENCOURS" ] || rm "$destAvecHb/$ENCOURS"
+destiner
+# ATTENTION: inconciabilité interdépendance / paquets binaires
+# À la façon dont nous nous installons (FT sans HB mais sous le chemin de FT+HB, puis HB, puis FT avec HB), si un paquet binaire est cherché pour la première étape on récupérera celui de FT+HB (puisque le paquet binaire est indexé par $dest), incluant dans son libfreetype.la (biblio libtool) une référence à harfbuzz. En conséquence, la compilation de harfbuzz échouera, puisque son libtool essaiera de la lier à un FT lié à une libharfbuzz.la qui n'existe pas encore.
+# IL N'EST DONC PAS POSSIBLE D'INSTALLER FT BINAIRE AVEC COMPILATION HARFBUZZ. Soit on compile tout, soit on installe tout depuis la version binaire.
+# Ceci dit: ceci ne doit pas se produire en temps normal; la première compilation des deux est censée pousser dans le silo les deux versions binaires, trouvables par les installations subséquentes.
 
 obtenirEtAllerDansVersion
 
@@ -108,13 +144,6 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 sudo make install
 
-case "$GUILI_MOIRE:" in
-	*:hb:*)
-		# À l'intérieur du moiré (Freetype itération 0), sutiliser() est surchargée pour ne rien faire.
-		# Cependant l'Harfbuzz (itération 1) aura besoin de nos dépendances pour les inclure aux siennes. Il nous faut donc au moins le guili_deps_pondre.
-		guili_deps_pondre
-		;;
-esac
 sutiliser
 
 cd "$TMP/$$" # Pour éviter que menage() n'efface le dossier de travail si on est en fin de compil 32bits alors que la compile 32+64 attend notre résultat pour continuer sur le même dossier.
