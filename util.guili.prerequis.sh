@@ -193,11 +193,12 @@ prerequerir()
 {
 	local paramLocal=
 	[ "x$1" = x-l ] && paramLocal="$1" && shift || true
+	local pr_dest=
+	[ "x$1" = "x-d" ] && pr_dest="$2" && shift && shift || true
 	local paraml="$1" ; shift
 	local paramv="$*"
-	local pr_dest=
 	
-	[ -n "$INSTALLS_MAX" ] || pr_dest="`versions "$paraml $paramv" | tail -1`"
+	[ -n "$INSTALLS_MAX" -o -n "$pr_dest" ] || pr_dest="`versions "$paraml $paramv" | tail -1`"
 	
 	if [ -z "$pr_dest" ]
 	then
