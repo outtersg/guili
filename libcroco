@@ -25,6 +25,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 . "$SCRIPTS/util.sh"
 
 v 0.6.8 && prerequis="make pkgconfig \\" || true
+v 0.6.13 || true
 
 vmin="`echo "$version" | cut -d . -f 1-2`"
 archive="https://download.gnome.org/sources/$logiciel/$vmin/$logiciel-$version.tar.xz"
