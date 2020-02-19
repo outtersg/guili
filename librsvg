@@ -25,6 +25,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 . "$SCRIPTS/util.sh"
 
 v 2.40.1 && prerequis="pkgconfig \\ libcroco >= 0.6.1 gobject-introspection pango >= 1.38.0" || true
+v 2.40.20 || true
 
 vmin="`echo "$version" | cut -d . -f 1-2`"
 archive="https://download.gnome.org/sources/librsvg/$vmin/librsvg-$version.tar.xz"
