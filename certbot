@@ -51,20 +51,10 @@ echo Compilation… >&2
 python setup.py build
 
 echo Installation… >&2
-pvc="`python --version 2>&1 | sed -e 's/[^0-9]*\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/'`" # Python version courte
-pyp="lib/python$pvc/site-packages"
-sudo mkdir -p "$dest/$pyp"
-sudo LD_LIBRARY_PATH="$LD_LIBRARY_PATH" PYTHONPATH="$dest/$pyp:$destpython/$pyp" SSL_CERT_FILE="$SSL_CERT_FILE" python setup.py install --prefix="$dest"
+# sudokupy ne devrait plus être nécessaire avec un python emboité.
+sudokupy python setup.py install --prefix="$dest"
 # On se compose un petit lanceur avec tout l'environnement qui va bien.
-chaineAbs="`grep absolutiseScripts < "$SCRIPTS/$logiciel"`"
-cat > moncertbot <<TERMINE
-#!/bin/sh
-$chaineAbs
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
-export PYTHONPATH="$dest/$pyp:$destpython/$pyp"
-export SSL_CERT_FILE="$SSL_CERT_FILE"
-\$SCRIPTS/certbot.py "\$@"
-TERMINE
+pylanceur certbot.py > moncertbot
 chmod a+x moncertbot
 sudo mv "$dest/bin/certbot" "$dest/bin/certbot.py"
 sudo cp moncertbot "$dest/bin/certbot"
