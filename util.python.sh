@@ -33,7 +33,9 @@ pyla()
 pypadest()
 {
 	local pyp="`pyp`"
-	echo "$dest/$pyp:$INSTALLS/$PYEXT/$pyp:$destpython/$pyp"
+	local r="$dest/$pyp:$INSTALLS/$PYEXT/$pyp"
+	[ -z "$destpython" ] || r="$r:$destpython/$pyp"
+	echo "$r"
 }
 
 # Prépare un dossier à recevoir une installation d'une extension Python.
