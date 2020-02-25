@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#- Détection -------------------------------------------------------------------
+
 # Remplaçons sudo.
 # L'usage principal de notre sudo surchargé est l'installation dans les dossiers privilégiés; 
 # En effet nous utilisons le sudo pour installer dans $INSTALLS, mais parfois ce n'est pas nécessaire de passer su pour cela.
@@ -51,6 +53,8 @@ vraisudo()
 	[ -z "$SUDO_VERBOSE" ] || gris "sudo $*" >&2
 	$sudo "$@"
 }
+
+#- Ajout de droits -------------------------------------------------------------
 
 # Ajoute une commande au sudoers.
 sudoer()
