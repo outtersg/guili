@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 # Mode de test: une fois en tant qu'utilisateur normal, une fois en root:
-# ( SCRIPTS="`pwd`" ; . "$SCRIPTS/util.sh" ; testsudoku )
+# ( SCRIPTS="`pwd`" ; . "$SCRIPTS/util.sh" ; . "$SCRIPTS/util.sudo.test" ; testsudoku )
 # À FAIRE: passer par util.test.sh
 testsudoku()
 {
