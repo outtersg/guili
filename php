@@ -101,6 +101,7 @@ v 7.3.9 || true
 v 7.3.10 || true
 v 7.3.11 && retirerModif cve201911043 || true # Tout ce qui est >= 7.3.11 (7.3.11, 7.3.12, etc., 7.4.0, 7.4.1, etc.) embarque le correctif à CVE-2019-11043.
 v 7.3.13 || true
+v 7.3.15 || true
 # Pour compiler la master:
 #v 7.5 && prerequis="re2c \\ $prerequis oniguruma" && OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-zts --enable-debug" || true
 
