@@ -96,7 +96,7 @@ versions()
 
 versions_listerInstallees()
 {
-	tifs find --sep : "$GUILI_PATH" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
+	tifs find -H --sep : "$GUILI_PATH" -maxdepth 1 \( -name "$versions_logiciel-*" -o -name "$versions_logiciel+*-*" \)
 }
 
 versions_listerListe()
