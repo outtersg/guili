@@ -571,6 +571,10 @@ perso()
 	done | sed -e "s#^\(--- [^	]*\)$suffixe#\1#" > /tmp/temp.perso.$$.patch
 	(
 		cd "$cible"
+		if [ -s /tmp/temp.perso.$$.tar ] || grep -q . < /tmp/temp.perso.$$.patch
+		then
+			diag _ "report des personnalisations de $*"
+		fi
 		if grep -q . < /tmp/temp.perso.$$.patch
 		then
 			patch -f -p0 -l < /tmp/temp.perso.$$.patch || \
