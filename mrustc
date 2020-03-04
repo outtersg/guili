@@ -44,6 +44,7 @@ v 2018.08.20 && versionComplete="$version.74c2ec9d3c7eb09540a2a5de3127390fa82521
 v 2018.10.06 && versionComplete="$version.1382500b5fdba00568a86f0122bc2e78584dfb5d.git" || true
 v 2019.01.15 && versionComplete="$version.1a3c5dfcab0776c9a9a057303f823cec16386517.git" || true
 v 2019.05.29 && versionComplete="$version.ebd8edeb4f1861943cc82d310564b1f592e63272.git" || true
+v 2020.01.07 && versionComplete="$version.7ae47eff58abb672dd8462fda84bf652b348225b.git" || true
 #v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(clang >= 8, gcc >= 6) git bash \\ openssl libssh curl" && modifs="target2 sousBsd pointpointbin patache" || true
 v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 binutils >= 2.21 git bash \\ openssl libssh curl" && modifs="target2 viaGcc libcxxspecifique sousBsd pointpointbin patache" || true
 v 2020.01.05 && versionComplete="$version.aa9d5a9fa0ee79650b15db06e69bbbf591710f68.git" || true
