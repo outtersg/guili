@@ -35,13 +35,28 @@ sansdoc()
 {
 	# asciidoc est vraiment trop vieux, et requiert un vraiment trop vieux Python.
 	rm -Rf docs
+	if [ -e configure ]
+	then
 	filtrer configure sed -e '/^ac_config_files=/s# docs/[^ "]*##g'
+	else
+		filtrer configure.ac grep -v '^docs/'
+	fi
+	if [ -e Makefile.in ]
+	then
 	filtrer Makefile.in grep -v docs
+	else
+		filtrer Makefile.am grep -v docs
+	fi
 }
 
 # Variables
 
 archive="https://github.com/tinyproxy/tinyproxy/releases/download/$version/tinyproxy-$version.tar.bz2"
+archive_git="https://github.com/tinyproxy/tinyproxy.git"
+
+case "$versionComplete" in
+	*.git) prerequis="git autoconf automake m4 \\ $prerequis" ;;
+esac
 
 destiner
 
@@ -53,7 +68,12 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ -e configure ]
+then
 ./configure --prefix="$dest"
+else
+	./autogen.sh --prefix="$dest"
+fi
 
 echo Compilation… >&2
 make
