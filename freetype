@@ -86,7 +86,7 @@ moirantHb()
 	# Nous allons avoir besoin de récupérer le chemin d'install du moiré, qui préfigure le nôtre une fois calculé dans destiner().
 	case " $guili_diag " in
 		*" diag_modifs "*) true ;;
-		*) guili_diag_original="$guili_diag" ; export guili_diag="$guili_diag diag_modifs" ;;
+		*) guili_diag_original=" $guili_diag" ; export guili_diag="$guili_diag diag_modifs" ;; # Avec un espace au début pour être sûrs qu'il ne soit pas -z
 	esac
 	# On prend de l'avance sur notre passage en moiré, pour que nous-mêmes rappelés dans un cadre récursif sachions qu'on se compile sans Harfbuzz. En effet, le moire() ne gère que le cas simple de FreeType appelant FreeType. Mais dans notre prerequis, et même auparavant dans notre destiner qui, en $INSTALLS_MAX, peut être tenter d'invoquer un harfbuzz, nous (freetype) allons appeler harfbuzz qui lui-même rappellera freetype.
 	export GUILI_MOIRE_FT=":hb"
