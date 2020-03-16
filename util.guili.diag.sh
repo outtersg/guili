@@ -43,6 +43,7 @@ diag_aff()
 
 diag_modifs()
 {
+	# À FAIRE: ne plus passer par un descripteur de fichier (assez violent s'il n'est pas ouvert au préalable) codé en dur (risque d'écrasement). Un fichier statique défini par l'appelant permettrait au pire de pondre vers un fichier jamais exploité.
 	case "$1" in
 		"+"|"=") printf '%s\n' "$*" >&7 ;;
 	esac
