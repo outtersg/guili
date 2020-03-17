@@ -121,6 +121,8 @@ compiloSysVersion()
 	
 	compilo_cheminLibcxx
 }
+# Sur les systèmes ne souhaitant pas de compilation (binaires uniquement), on s'efforce d'aller chercher le moins de compilateurs possible.
+[ -z "$GUILI_SANS_COMPIL" ] || compiloSysVersion() { true ; }
 
 compiloSysDejaConfigure()
 {
