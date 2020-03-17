@@ -487,8 +487,6 @@ _analyserParametresSusermod()
 
 #- Filtrage de fichiers --------------------------------------------------------
 
-# À FAIRE: rapatrier filtrer, changerConf, etc.
-
 # Reconstitue dans une arbo les fichiers de conf en fusionnant les .defaut avec les modifications effectuées sur une arbo plus ancienne.
 # Utilisation:
 #   perso <cible> <existant>*
