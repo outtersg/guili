@@ -20,9 +20,17 @@
 
 filtrer()
 {
+	FILTRER_RES=
 	fichier="$1"
 	shift
-	"$@" < "$fichier" > "$TMP/$$/temp" && cat "$TMP/$$/temp" > "$fichier"
+	if "$@" < "$fichier" > "$TMP/$$/temp"
+	then
+		if diff -q "$TMP/$$/temp" "$fichier" > /dev/null ; then return 0 ; fi
+		FILTRER_RES=1
+		cat "$TMP/$$/temp" > "$fichier"
+	else
+		return $?
+	fi
 }
 
 sufiltrer()
