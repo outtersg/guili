@@ -11,6 +11,8 @@
 #   Peut être /tmp, sauf si vous prévoyez de compiler des gros bidules susceptibles de faire exploser la partition sur laquelle se trouve /tmp (ex.: compiler un compilateur peut prendre plusieurs Go; si votre /tmp est sur une partition système de 4 Go, ça va péter, choisissez à la place un dossier sur un disque spacieux).
 # $SANSSU
 #   Si à 1 (valeur par défaut), évitera autant que possible de passer root. À 0, passera root sans vergogne.
+# $GUILI_SANS_COMPIL
+#   Si à 1, ne cherchera pas à utiliser de compilateur (autre que celui système).
 # $INSTALL_SILO
 #   Entrepôt à versions précompilées (les installations tenteront de consulter le silo voir si une version compilée existe; dans la négative, ils compileront puis pousseront vers le silo, à l'intetion des prochains qui tenteront l'installation).
 
