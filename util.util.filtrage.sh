@@ -18,6 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Filtre un fichier.
+# Utilisation: filtrer <fichier> <commande> <arg>...
+# Ex.: filtrer /tmp/fichier.conf sed -e /pourri/d # sed, à la différence de grep -v, ne sort pas en erreur s'il n'a pas trouvé.
+# En sortie, $FILTRER_RES est définie à 1 si un changement a eu lieu.
 filtrer()
 {
 	FILTRER_RES=
