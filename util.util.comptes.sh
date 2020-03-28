@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#- Listes ----------------------------------------------------------------------
+
 listeIdComptesBsd()
 {
 	(
@@ -47,6 +49,8 @@ groupesNormalises()
 {
 	echo "$1" | tr ', ' '\012\012' | grep -v "^$2$" | grep -v ^$ | sort -u | tr '\012' , | sed -e 's/,$//'
 }
+
+#- Création et modification de comptes -----------------------------------------
 
 susermod()
 {
