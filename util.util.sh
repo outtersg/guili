@@ -450,41 +450,6 @@ TERMINE
 	fi
 }
 
-#- Comptes ---------------------------------------------------------------------
-
-if ! commande usermod
-then
-	usermod()
-	{
-		case `uname` in
-			FreeBSD) pw usermod "$@" ;;
-			*)
-				echo "# Argh, impossible de faire un usermod $*" >&2
-				return 1
-				;;
-		esac
-	}
-fi
-
-_analyserParametresSusermod()
-{
-	local vars="qui"
-	qui=
-	groupe=
-	autresGroupes=
-	_apSusermodAuSecours() { echo "# susermod <qui> [-g <groupe>] [-G <autre groupe>]*" >&2 ; return 1 ; }
-	_apSusermodAffecter() { [ $# -ge 2 ] || _apSusermodAuSecours || return $? ; export $2="$1" ; shift ; shift ; vars="$*" ; }
-	while [ $# -gt 0 ]
-	do
-		case "$1" in
-			-g) groupe="$2" ; shift ;;
-			-G) autresGroupes="$autresGroupes,$2" ; shift ;;
-			*) _apSusermodAffecter "$1" $vars || return $? ;;
-		esac
-		shift
-	done
-}
-
 #- Filtrage de fichiers --------------------------------------------------------
 
 # Reconstitue dans une arbo les fichiers de conf en fusionnant les .defaut avec les modifications effectuées sur une arbo plus ancienne.
