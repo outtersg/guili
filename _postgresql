@@ -115,14 +115,7 @@ echo "Création de la base…" >&2
 fi
 
 echo "Auto-démarrage…" >&2
-case `uname` in
-	Darwin)
-		# Rien. On démarrera à la main.
-		;;
-	FreeBSD|Linux)
 serveur -u "$compte" simple postgresql$suffixe -e LD_LIBRARY_PATH "$destpostgresql/bin/postmaster -D $bdd"
-		;;
-esac
 
 rm -Rf "$TMP/$$"
 
