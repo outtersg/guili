@@ -117,6 +117,7 @@ echo "Création de la base…" >&2
 fi
 
 echo "Auto-démarrage…" >&2
+cd "$TMP" ; rm -Rf "$TMP/$$" # Sans cette ligne, le sudo … postgresql start se lance depuis $TMP/$$, qui sera effacé par menage() en sortie du présent script, donnant un "postmaster: find_my_exec: could not locate my own executable path". Curieusement, si place la présente ligne APRÈS le serveur -u (et donc le start), ça passe quand même, mais ça semble être un effet de chance inexplicable de l'ordonnancement, sur lequel il vaut mieux ne pas trop compter.
 serveur -u "$compte" simple postgresql$suffixe -e LD_LIBRARY_PATH "$destpostgresql/bin/postmaster -D $bdd"
 
 # Note: plusieurs instances de PostgreSQL à la fois sous FreeBSD (8):
