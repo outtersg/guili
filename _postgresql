@@ -21,7 +21,7 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
@@ -116,8 +116,6 @@ fi
 
 echo "Auto-démarrage…" >&2
 serveur -u "$compte" simple postgresql$suffixe -e LD_LIBRARY_PATH "$destpostgresql/bin/postmaster -D $bdd"
-
-rm -Rf "$TMP/$$"
 
 # Note: plusieurs instances de PostgreSQL à la fois sous FreeBSD (8):
 # PostgreSQL consomme en mémoire partagée ce qu'on lui donne (par défaut, 24 Mo) + de la mémoire pour tout le reste (dont les connexion; par défaut 100, qui doivent bouffer dans les 3 Mo au total) = 30 Mo de mémoire partagée par défaut pour une instance.
