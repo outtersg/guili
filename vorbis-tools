@@ -24,21 +24,34 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-prerequis
+modifs="compil3264 dyld105 ccMac"
+v 1.1.1 && modifs="$modifs MUTE" || true
+v 1.4.0 || true
 
-v 1.1.1.1 && prerequis="libao r10015 libogg 1.1.2 libvorbis 1.1.1 vorbis-tools 1.1.1" || true
-v 1.1.1.2 && prerequis="libao 0.8.6 libogg 1.1.3 libvorbis 1.1.2 vorbis-tools 1.1.1" || true
-v 1.4.0.1 && prerequis="libao 1.0.0 libogg 1.2.1 libvorbis 1.3.2 vorbis-tools 1.4.0" || true
-v 1.4.0.2 && prerequis="libao 1.1.0 libogg 1.2.2 libvorbis 1.3.2 vorbis-tools 1.4.0" || true
-v 1.4.0.3 && prerequis="libao 1.1.0 libogg 1.3.0 libvorbis 1.3.3 vorbis-tools 1.4.0" || true
-v 1.4.0.4 && prerequis="libao 1.2.0 libogg 1.3.2 libvorbis 1.3.4 vorbis-tools 1.4.0" || true
-v 1.4.0.5 && prerequis="libao 1.2.0 libogg 1.3.3 libvorbis 1.3.6 vorbis-tools 1.4.0" || true
-v 1.4.0.6 && prerequis="libao 1.2.0 libogg 1.3.4 libvorbis 1.3.6 vorbis-tools 1.4.0" || true
+MUTE()
+{
+	filtrer ogg123/http_transport.c grep -v CURLOPT_MUTE
+}
 
 prerequis
+
+archive=http://downloads.xiph.org/releases/vorbis/$logiciel-$version.tar.gz
+
 destiner
 
-# Nous sommes une coquille vide.
-sudoku mkdir -p "$dest"
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif "$@" ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+
+echo Compilation… >&2
+make
+for modif in true $modifspostcompil ; do $modif "$@" ; done
+
+echo Installation… >&2
+sudoku make install
 
 sutiliser
