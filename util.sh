@@ -433,7 +433,8 @@ dyld105()
 	export LDFLAGS CFLAGS CXXFLAGS CPPFLAGS
 }
 
-# CMake, ImageMagick, pour leur config, teste leur petit monde en essayant de se lier à Carbon.
+# CMake, ImageMagick, pkg-config, se lient aux Frameworks MacOS X qui cherchant une libJPEG.dylib spécifique Apple tombent sur notre libjpeg.dylib.
+# N.B.: depuis que DYLD_LIBRARY_PATH a été viré de _cheminsExportes, il est possible qu'on puisse se passer de ceci.
 putainDeLibJPEGDeMacOSX()
 {
 	[ -z "$dejaAppelePutainDeLibJPEGDeMacOSX" ] || return 0
