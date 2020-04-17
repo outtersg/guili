@@ -708,7 +708,9 @@ tifs()
 	
 	# Exécution.
 	IFS="$sep"
+	set -o noglob
 	_tifs_lancer $_tifs_params || r=$?
+	set +o noglob
 	unset IFS
 	return $r
 }
