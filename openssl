@@ -160,5 +160,3 @@ for modif in true $modifs ; do $modif ; done
 	sudo make install
 
 sutiliser
-
-rm -Rf "`pwd`" # Ménage pour si on doit recompiler la version 32bits au même endroit.
