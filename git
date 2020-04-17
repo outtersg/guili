@@ -39,6 +39,7 @@ v 2.16.0 || true
 v 2.18.0 || true
 v 2.20.1 || true
 v 2.23.0 || true
+v 2.25.1 || true
 
 if option svn
 then
