@@ -217,7 +217,6 @@ _cheminsExportes()
 	export \
 		PATH="$guili__xpath$guili_xpath$PATH" \
 		LD_LIBRARY_PATH="$guili_lpath$LD_LIBRARY_PATH" \
-		DYLD_LIBRARY_PATH="$guili_lpath$DYLD_LIBRARY_PATH" \
 		CMAKE_LIBRARY_PATH="$guili_lpath$CMAKE_LIBRARY_PATH" \
 		LDFLAGS="$guili_lflags $LDFLAGS" \
 		CPPFLAGS="$guili_cppflags $CPPFLAGS" \
