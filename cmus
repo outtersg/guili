@@ -24,7 +24,7 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-prerequis="ncurses ffmpeg mad ogg opusfile" # ncurses GNU pour le support des caractères multi-octets.
+prerequis="pkgconfig \\ ncurses iconv ffmpeg mad ogg opusfile" # pkgconfig pour ffmpeg et opus; ncurses GNU pour le support des caractères multi-octets.
 v 2.5.0 && modifs="fpic monCc strndupBsd" || true
 v 2.5.1 || true
 v 2.7.1 || true
