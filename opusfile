@@ -26,7 +26,8 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 0.7 && prerequis="opus ogg" && modifs="sansCompat" || true
+# openssl pour libopusurl.
+v 0.7 && prerequis="pkgconfig \\ opus libogg openssl" && modifs="sansCompat" || true
 v 0.9 || true
 v 0.11 || true
 
