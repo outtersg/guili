@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 0.15.1b && modifs="fpic i486" || true
+v 0.15.0.98 && v_archive=0.15.1b && modifs="fpic i486" || true
 
 # Modifications
 
@@ -38,8 +38,8 @@ i486()
 
 # Variables
 
-archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/lib$logiciel-$version.tar.gz
-archive="https://kent.dl.sourceforge.net/project/mad/libmad/$version/libmad-$version.tar.gz"
+archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/lib$logiciel-$v_archive
+archive="https://kent.dl.sourceforge.net/project/mad/libmad/$v_archive/libmad-$v_archive.tar.gz"
 
 destiner
 
