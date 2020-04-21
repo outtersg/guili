@@ -686,7 +686,7 @@ serveur_sudoer()
 		esac
 		# Consignons pour que l'appelant puisse connaître les droits à donner (à d'autres comptes, par exemple) pour effectuer les opérations de lancement du serveur.
 		case "$dest" in
-			$INSTALLS/$logiciel*) echo "$comm" >> "$dest/.sudo" ;;
+			$INSTALLS/$logiciel*) [ -d "$dest" ] || mkdir "$dest" ; echo "$comm" >> "$dest/.sudo" ;;
 		esac
 		# Sudoons pour ceux déclarés dès à présent.
 		IFS=', '
