@@ -29,6 +29,7 @@ v 2.0.16 && modifs="cheminBiblios" || true
 v 2.2.3 && prerequis="$prerequis libstemmer clucene" && modifs="cheminBiblios avecLucene" || true
 v 2.2.24 || true
 #v 2.2.25 || true # http://dovecot.org/list/dovecot/2016-July/105084.html, reproduit chez moi.
+v 2.3.10 || true
 
 # Modifications
 
