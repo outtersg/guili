@@ -21,27 +21,21 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=libstemmer
+archive="http://snowball.tartarus.org/dist/libstemmer_c.tgz"
 
-cat > /tmp/detemps.c <<TERMINE
-#include <time.h>
-#include <stdio.h>
-
-int main(int argc, char ** argv)
+dateArchive()
 {
-    char b[0x100];
-	struct tm t;
-	read(0, b, 0x100);
-	strptime(b, "%d-%b-%Y", &t);
-	printf("%4.4d-%2.2d-%2.2d", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
-	return 0;
+	local archive="$1"
+	local dtexte="`curl -I "$archive" | grep '^Last-Modified' | cut -d ' ' -f 2-`"
+	case `uname` in
+		Linux) date -d "$dtexte" +%Y.%m.%d ;;
+		*) LC_ALL=C date -jf "%a, %e %b %Y %H:%M:%S %Z" "$dtexte" +%Y.%m.%d ;;
+	esac
 }
-TERMINE
-( cd /tmp/ && cc -o detemps detemps.c )
-version="`curl -s http://snowball.tartarus.org/dist/ | grep _c.tgz | sed -e 's/.*>\([0-9]*-[A-Z][a-z][a-z]-[0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]\).*/\1/' | /tmp/detemps`"
+version="`dateArchive "$archive"`"
 modifs=makefile
 
 # Modifications
@@ -59,19 +53,15 @@ TERMINE
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
-archive="http://snowball.tartarus.org/dist/libstemmer_c.tgz"
-
-[ -d "$dest" ] && exit 0
+destiner
 
 echo Obtention et décompression… >&2
-obtenirEtAllerDansVersion
+obtenirEtAllerDansVersion "libstemmer_c.$version.tgz"
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-[ -z "$avec_lucene" ] || options="--with-clucene"
 
 echo Compilation… >&2
 make
@@ -81,6 +71,4 @@ sudo mkdir -p "$dest/lib"
 sudo cp libstemmer.so "$dest/lib/"
 sudo cp -R include "$dest/"
 
-sutiliser $logiciel-$version
-
-rm -Rf "$TMP/$$"
+sutiliser
