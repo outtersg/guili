@@ -21,25 +21,39 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-inclure db
-inclure sqlite
-inclure dovecot
-
-logiciel=exim
 
 # Historique des versions gérées
 
+prerequis="db < 6"
 v 4.77 && modifs="menageMakefile lthr majmin" || true
-v 4.80.1 && modifs="menageMakefile lthr majmin paf" && prerequis="pcre" || true
-v 4.82
-v 4.82.1
+v 4.80.1 && modifs="menageMakefile lthr majmin paf" && prerequis="$prerequis pcre" || true
+v 4.82 || true
+v 4.82.1 || true
 v 4.87 || true
-v 4.89 && modifs="uniquementPrerequis menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="pcre openssl" || true
+v 4.89 && modifs="menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="$prerequis openssl" || true
 v 4.90.1 || true
 v 4.91 || true
+
+BIBLIOS=
+prerequisOpenssl
+if optionSi bdb/db
+then
+	USE_DB=yes
+	BIBLIOS="$BIBLIOS -ldb"
+else
+	USE_DB=no
+fi
+if optionSi sqlite
+then
+	BIBLIOS="$BIBLIOS -lsqlite3"
+fi
+optionSi dovecot || true # Authentification.
+if optionSi ldap/openldap
+then
+	true
+fi
 
 prerequis
 
@@ -125,12 +139,11 @@ TERMINE
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://exim.mirror.fr/exim/exim4/$logiciel-$version.tar.bz2"
 archive="http://ftp.exim.llorien.org/exim/exim4/$logiciel-$version.tar.bz2"
 archive="http://exim.mirror.iphh.net/ftp/exim/exim4/$logiciel-$version.tar.bz2"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -139,7 +152,7 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 # Avec ou sans LDAP?
-if false
+if option ldap
 then
 	BIBLIOS_LDAP="-lldap -llber"
 else
@@ -160,14 +173,14 @@ sed < src/EDITME >> Local/Makefile \
 	-e "/^# LDAP_LIB_TYPE=OPENLDAP2/s/^# /$CONF_LDAP/" \
 	-e '/^# LOOKUP_INCLUDE=/{
 a\
-LOOKUP_INCLUDES='"-I$INSTALLS/include"'
+LOOKUP_INCLUDES='"$guili_cppflags -I$INSTALLS/include"'
 }' \
 	-e '/^# LOOKUP_LIBS=/a\
-LOOKUP_LIBS='"-L$INSTALLS/lib $BIBLIOS_LDAP -lsqlite3 -ldb -lpam $BIBLIOS_PTHREAD"'
+LOOKUP_LIBS='"$guili_lflags -L$INSTALLS/lib $BIBLIOS_LDAP $BIBLIOS -lpam $BIBLIOS_PTHREAD"'
 ' \
 	-e '${
 a\
-USE_DB=yes
+USE_DB='"$USE_DB"'
 a\
 CC=cc $(LOOKUP_INCLUDES)
 a\
@@ -183,6 +196,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
