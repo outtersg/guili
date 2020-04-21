@@ -35,6 +35,7 @@ v 4.87 || true
 v 4.89 && modifs="menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="$prerequis openssl" || true
 v 4.90.1 || true
 v 4.91 || true
+v 4.93 || true
 
 BIBLIOS=
 prerequisOpenssl
@@ -94,6 +95,10 @@ tlsManuel()
 	echo "SUPPORT_TLS=yes" >> Local/Makefile
 	echo "TLS_LIBS=-L$destopenssl/lib -lssl -lcrypto" >> Local/Makefile
 	echo "TLS_INCLUDE=-L$destopenssl/include" >> Local/Makefile
+	
+	# À partir de la 4.92 ou 4.93, il faut préciser quelle biblio.
+	
+	echo "USE_OPENSSL=yes" >> Local/Makefile
 }
 
 menageMakefile()
@@ -109,6 +114,7 @@ paf2()
 	echo "LOCAL_SCAN_SOURCE=Local/exim.paf2.c" >> Local/Makefile
 	echo "LOCAL_SCAN_HAS_OPTIONS=yes" >> Local/Makefile
 	echo "WITH_CONTENT_SCAN=yes" >> Local/Makefile # paf2 repose sur un SA ou un rspamd, qui ont besoin de cette option.
+	echo "HAVE_LOCAL_SCAN=yes" >> Local/Makefile # Nécessaire depuis la 4.92.
 }
 
 paf()
@@ -116,6 +122,7 @@ paf()
 	cp $HOME/src/projets/paf/paf.c Local/ || true
 	echo "LOCAL_SCAN_SOURCE=Local/paf.c" >> Local/Makefile
 	echo "LOCAL_SCAN_HAS_OPTIONS=yes" >> Local/Makefile
+	echo "HAVE_LOCAL_SCAN=yes" >> Local/Makefile # Nécessaire depuis la 4.92.
 }
 
 lthr()
