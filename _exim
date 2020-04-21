@@ -138,7 +138,7 @@ case `uname` in
 		fi
 		comptes="`dirname "$mels"`/comptes"
 		"$SCRIPTS/eximConfig" $optionsPaf -u "$compte" `echo "$domaines" | sed -e 's/  *\([^ ]\)/ -d \1/g'` "$mels" "$comptes" > "$TMP/$$/exim.conf"
-		sudo cp -R "$TMP/$$/dest" "$dest"
+		sudo cp -R "$TMP/$$/dest/." "$dest"
 		sudo cp "$TMP/$$/exim.conf" "$destexim/etc/exim"
 		sudo mkdir -p "$destexim/var/spool/exim/log"
 		if [ "$paf" = 1 ]
