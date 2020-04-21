@@ -165,6 +165,8 @@ then
 else
 	CONF_LDAP="# "
 fi
+# Hum, est-il normal que l'EDITME propose un LOOKUP_INCLUDE mais qu'on définisse un LOOKUP_INCLUDES (au pluriel)?
+# Au moins ça permet d'avoir plus de contrôle sur ce qu'on en fait, et en particulier d'inclure nos propres dossiers avant ceux proposés par défaut pour le système. Mais est-ce bien voulu et maîtrisé? Bon, pour le moment ça marche.
 sed < src/EDITME >> Local/Makefile \
 	-e "/^BIN_DIRECTORY=/s#=.*#=$dest/bin#" \
 	-e "/^CONFIGURE_FILE=/s#=.*#=$dest/etc/exim#" \
