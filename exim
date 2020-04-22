@@ -40,6 +40,8 @@ v 4.92.3 || true
 # Attention! La 4.93 refuse de charger un fichier dont le nom est calculé ("tainted data"). En particulier les filtres Sieve ne marchent plus (puisque le nom du fichier dépend du $local_part).
 v 4.93 || true
 v 4.93.0.4 || true
+# Celle-ci est encore pire, elle rejette les méls car même la lecture du fichier .aliases (dépendant de $domain) est considérée comme du "tainted data".
+v 4.93.0.4.2020.04.22 && versionComplete="$version.a06afb97d53eb100c7f1b5b00da746d071d52415.git" || true
 
 BIBLIOS=
 prerequisOpenssl
