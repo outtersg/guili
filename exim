@@ -167,6 +167,7 @@ archive="http://exim.mirror.fr/exim/exim4/$logiciel-$version.tar.bz2"
 archive="http://ftp.exim.llorien.org/exim/exim4/$logiciel-$version.tar.bz2"
 archive="http://exim.mirror.iphh.net/ftp/exim/exim4/$logiciel-$version.tar.bz2"
 archive="https://github.com/Exim/exim/archive/exim-$version.tar.gz"
+archive_git="https://github.com/Exim/exim.git"
 
 destiner
 
