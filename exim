@@ -36,6 +36,7 @@ v 4.89 && modifs="menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequi
 v 4.90.1 || true
 v 4.91 || true
 v 4.93 || true
+v 4.93.0.4 || true
 
 BIBLIOS=
 prerequisOpenssl
