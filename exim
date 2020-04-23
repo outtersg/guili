@@ -60,6 +60,20 @@ prerequis
 
 # Modifications
 
+degit()
+{
+	# Dans l'archive github, src/src contient le src habituel.
+	[ -d src/src ] || return 0
+	
+	cd src
+	cat > src/version.sh <<TERMINE
+EXIM_RELEASE_VERSION=$version
+EXIM_VARIANT_VERSION=
+EXIM_COMPILE_NUMBER=0
+TERMINE
+	mkdir Local
+}
+
 headcat()
 {
 	filtrer src/pdkim/pdkim.c awk '/^pdkim_headcat/{f=1}f!=2{print}f&&/^{/{f=2}f==2&&/^return/{f=0;while((getline<"'"$SCRIPTS/exim.pdkim_headcat"'")>0)print}'
@@ -153,6 +167,7 @@ archive="http://exim.mirror.iphh.net/ftp/exim/exim4/$logiciel-$version.tar.bz2"
 destiner
 
 obtenirEtAllerDansVersion
+degit
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
