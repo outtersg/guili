@@ -35,6 +35,8 @@ v 4.87 || true
 v 4.89 && modifs="menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="$prerequis openssl" || true
 v 4.90.1 || true
 v 4.91 || true
+v 4.92.3 || true
+# Attention! La 4.93 refuse de charger un fichier dont le nom est calculé ("tainted data"). En particulier les filtres Sieve ne marchent plus (puisque le nom du fichier dépend du $local_part).
 v 4.93 || true
 v 4.93.0.4 || true
 
