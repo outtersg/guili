@@ -74,7 +74,18 @@ analyserParametres()
 	[ -z "$versionRspamd" ] || prerequis="`echo " $prerequis " | sed -e "s# rspamd # rspamd $versionRspamd #g"`"
 }
 
+ajouterPaf()
+{
+	local paf="$SCRIPTS/../projets/paf.rspamd" # À FAIRE: boucler sur plusieurs emplacements possibles, à défaut télécharger.
+	
+	[ -f "$paf/make" ] || fatal "# Impossible de trouver les sources de paf."
+	
+	( cd "$paf" && sudoku ./make "$dest/etc/rspamd.0" )
+}
+
 analyserParametres "$@"
+
+option paf || true
 
 prerequis
 
@@ -114,6 +125,12 @@ sudoku sh -c \
 	mkdir -p \"$bdd\"
 	chown -R $compte: \"$dest/var/run\" \"$dest/var/log\" \"$bdd\"
 "
+
+if option paf
+then
+	ajouterPaf
+fi
+
 servir rspamd restart
 
 sutiliser -
