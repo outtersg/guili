@@ -43,9 +43,15 @@ libcStatique()
 		*) return 0 ;;
 	esac
 	
+	# Forçage pour certaines versions identifiées, où le test "élégant" ne fonctionne pas (apparemment plantage de ld entre un .o et un .a, alors que nous testons sans archive intermédiaire). Marre de trimballer ce test, on force.
+	local force=
+	case "`uname` `uname -r`" in
+		"Linux 2."*) force=1 ;;
+	esac
+	
 	( echo "#include <stdlib.h>" ; echo "int main(int argc, char ** argv) { return 0; }" ) > $TMP/$$/1.c
 	echo "#include <stdlib.h>" > $TMP/$$/2.c
-	if $CC -O2 -D_FORTIFY_SOURCE=2 -std=c99 $TMP/$$/[12].c -o $TMP/$$/1 2>&1 | grep 'ultiple definitions'
+	if [ -n "$force" ] || $CC -O2 -D_FORTIFY_SOURCE=2 -std=c99 $TMP/$$/[12].c -o $TMP/$$/1 2>&1 | grep -q 'ultiple definitions'
 	then
 		export CFLAGS="-fgnu89-inline $CFLAGS"
 		export CPPFLAGS="-fgnu89-inline $CPPFLAGS"
