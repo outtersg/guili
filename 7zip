@@ -48,7 +48,7 @@ sansLdl()
 
 clang()
 {
-	filtrer makefile.machine sed -e 's/g++/c++/g' -e 's/gcc/cc/g'
+	filtrer makefile.machine sed -e "s#g++#$CXX#g" -e "s#gcc#$CC#g"
 	# clang est notablement plus strict sur le typage.
 	filtrer CPP/Windows/ErrorMsg.cpp sed -e '/switch(errorCode/s/errorCode/(HRESULT)errorCode/'
 }
