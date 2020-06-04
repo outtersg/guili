@@ -30,8 +30,9 @@ guiliHomologuerSed()
 	guili_sed="`unalias sed 2> /dev/null || true ; unset -f sed 2> /dev/null || true ; command -v sed`"
 	case "`echo gloc | $guili_sed -E -e 's/g|c/p/g' 2> /dev/null`" in
 		plop) true ;;
-		*) "$SCRIPTS/sed" "< 4.3" ;;
+		*) "$SCRIPTS/sed" "< 4.3" ; guili_sed="`command -v sed`" ;;
 	esac
+	SEDE="$guili_sed -E"
 }
 
 guiliHomologuerSed "$0" "$@"
