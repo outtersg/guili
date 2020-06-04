@@ -38,7 +38,7 @@ strndup()
 	# Sur un Mac avec un GCC, il détecte les fonctions implicites de la lib GCC, mais sans leur définition, et donc il plante.
 	for i in perf/cairo-perf-report.c perf/cairo-perf-trace.c perf/cairo-analyse-trace.c
 	do
-		filtrer "$i" sed -E -e '/#(ifndef|define) _GNU_SOURCE/{
+		filtrer "$i" $SEDE -e '/#(ifndef|define) _GNU_SOURCE/{
 i\
 #include <stdio.h>
 i\
