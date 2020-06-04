@@ -172,7 +172,7 @@ nonInitialisees()
 	filtrer lib/libpkix/pkix_pl_nss/system/pkix_pl_oid.c sed -e '/^[ 	]*[_A-Za-z0-9]*[ 	]*cmpResult;/s/;/ = -1;/'
 	filtrer cmd/certutil/certext.c sed -e '/^[ 	]*[_A-Za-z0-9]*[ 	]*value;/s/;/ = 0;/'
 	filtrer lib/nss/nssinit.c sed -e '/^[ 	]*[_A-Za-z0-9]*[ *	]*context;/s/;/ = NULL;/'
-	filtrer lib/ssl/ssl3con.c sed -E -e '/^[ 	]*[_A-Za-z0-9]*[ *	]*(spkiScheme|scheme);/s/;/ = 0;/'
+	filtrer lib/ssl/ssl3con.c $SEDE -e '/^[ 	]*[_A-Za-z0-9]*[ *	]*(spkiScheme|scheme);/s/;/ = 0;/'
 }
 
 pasGcc()
