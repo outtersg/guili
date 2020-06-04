@@ -106,6 +106,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+optionsConfigure="$optionsConfigure --enable-libmount=no" optionsMeson="$optionsMeson -Dlibmount=false"
 if pge "$version" 2.60
 then
 	meson build --prefix="$dest" $optionsMeson
