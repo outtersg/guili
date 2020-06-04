@@ -27,10 +27,143 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 3.29.3 && v_nspr="4.13.1" && prerequis="zlib nspr $v_nspr" && modifs="pasGcc unistd alertesZlib" || true
-v 3.40.1 && v_nspr="4.20" && prerequis="zlib nspr $v_nspr" && modifs="$modifs nonInitialisees" || true
+v 3.40.1 && v_nspr="4.20" && prerequis="zlib nspr $v_nspr" && modifs="$modifs nonInitialisees putenv le64" || true
 v 3.42.1 || true
 
 # Modifications
+
+clmul()
+{
+	# Sur de vieux procs, NSS compile des instructions non reconnues.
+	# Il nous suffira de les désactiver, de toute façon à l'exécution la biblio détecte le processeur sur lequel elle tourne et utilisera la version logicielle, donc n'essaiera pas de passer par ce code optimisé (enfin, désactivé dans notre cas).
+	cat > /tmp/1.c <<TERMINE
+#include <wmmintrin.h>
+
+__m128i a()
+{
+    __m128i gros;
+    gros = _mm_set_epi32(0, 0, 0, 0);
+    return _mm_clmulepi64_si128(gros, gros, 0);
+}
+TERMINE
+	if $CC -c -mpclmul -o 1.o 1.c 2> /dev/null
+	then
+		return 0
+	fi
+	
+	prerequis="binutils \\ $prerequis"
+	
+	return 0
+	
+	# Ci-suivent les premières tentatives de désactivation du code "moderne".
+	# Mais en fait reposer sur binutils est bien mieux: mieux vaut que la bibliothèque embarque toutes les optims possibles, car de toute façon elles ne seront utilisées à l'exécution que si le processeur est détecté comme les supportant.
+	# Attention: ce qui suit est destiné à être utilisé dans $modifs (après obtenirEtAllerDansVersion), tandis que la version définitive (avant le return) modifie $prerequis (donc à lancer avant prerequis()).
+	
+	# On recopie le bout de code de gcm.c, qui jette en disant que l'optim matérielle n'est pas disponible.
+	filtrer lib/freebl/gcm-x86.c awk 'faire==2&&/^}/{faire=3}faire!=2{print}/^gcm_HashMult_hw/{faire=1}faire==1&&/{/{faire=2;print"PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);return SECFailure;"}'
+	# A priori même génération de processeurs que pour l'assistance AES: on désactive.
+	> lib/freebl/aes-x86.c 
+	filtrer lib/freebl/rijndael.c sed -e 's/#ifndef NSS_X86_OR_X64/#if 1/' # La version qui renvoie "Erreur: non implémenté" est là.
+	# Bon et puis ça continue longtemps comme ça: Hacl_Poly1305_128.c est le prochain sur la liste, et on ne sait où ça s'arrête.
+}
+
+le64()
+{
+	# Les NSS récentes tiennent pour acquis la présence de macros de conversion portées de BSD vers Linux; mais sur les vieux Linux ça ne marche pas.
+	
+	[ "`uname`" = Linux ] || return 0
+	
+	# https://github.com/evanmiller/mod_zip/issues/33
+	for f in lib/freebl/verified/kremlin/include/kremlin/lowstar_endianness.h lib/freebl/verified/kremlib.h
+	do
+		if [ -f "$f" ]
+		then
+			filtrer "$f" sed -e '/#include <endian.h>/{
+a\
+#ifndef htole64
+a\
+# include <byteswap.h>
+a\
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+a\
+#  define htobe16(x) __bswap_16 (x)
+a\
+#  define htole16(x) (x)
+a\
+#  define be16toh(x) __bswap_16 (x)
+a\
+#  define le16toh(x) (x)
+a\
+#  define htobe32(x) __bswap_32 (x)
+a\
+#  define htole32(x) (x)
+a\
+#  define be32toh(x) __bswap_32 (x)
+a\
+#  define le32toh(x) (x)
+a\
+#  define htobe64(x) __bswap_64 (x)
+a\
+#  define htole64(x) (x)
+a\
+#  define be64toh(x) __bswap_64 (x)
+a\
+#  define le64toh(x) (x)
+a\
+# else
+a\
+#  define htobe16(x) (x)
+a\
+#  define htole16(x) __bswap_16 (x)
+a\
+#  define be16toh(x) (x)
+a\
+#  define le16toh(x) __bswap_16 (x)
+a\
+#  define htobe32(x) (x)
+a\
+#  define htole32(x) __bswap_32 (x)
+a\
+#  define be32toh(x) (x)
+a\
+#  define le32toh(x) __bswap_32 (x)
+a\
+#  define htobe64(x) (x)
+a\
+#  define htole64(x) __bswap_64 (x)
+a\
+#  define be64toh(x) (x)
+a\
+#  define le64toh(x) __bswap_64 (x)
+a\
+# endif
+a\
+#endif
+}'
+			break
+		fi
+	done
+}
+
+putenv()
+{
+	[ "`uname`" = Linux -a "$CC" = gcc ] || return 0
+	
+	# Un GCC récent sur un vieux Linux surcharge dans son features.h celui du système, qui rend putenv introuvable.
+	# On passe donc l'inclusion de stdlib.h en premier, avant que features.h soit appelé (indirectement).
+	filtrer lib/util/secport.c sed -e '{
+x
+s/././
+x
+t
+}' -e '/^#include/{
+i\
+#define _GNU_SOURCE
+i\
+#include <stdlib.h>
+h
+}'
+}
 
 nonInitialisees()
 {
@@ -92,6 +225,8 @@ install()
 
 #archive="https://ftp.mozilla.org/pub/security/nss/releases/NSS_`echo "$version" | tr . _`_RTM/src/nss-$version-with-nspr-$v_nspr.tar.gz"
 archive="https://ftp.mozilla.org/pub/security/nss/releases/NSS_`echo "$version" | tr . _`_RTM/src/nss-$version.tar.gz"
+
+clmul
 
 destiner
 
