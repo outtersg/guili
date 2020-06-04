@@ -24,14 +24,22 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 1.12.8 && prerequis="pkgconfig \\ pixman >= 0.22 glib libpng" || true
+v 1.12.8 && prerequis="pkgconfig \\ pixman >= 0.22 glib libpng" && modifs="gnu89" || true
 v 1.12.14 && prerequis="pkgconfig \\ pixman >= 0.30 glib libpng" || true
 v 1.12.16 || true
-v 1.12.18 && modifs="strndup" || true
+v 1.12.18 && modifs="gnu89 strndup" || true
 v 1.14.6 || true
 v 1.14.8 && prerequis="$prerequis harfbuzz freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
 #v 1.15.2 || true # Lien cassé?
 v 1.16.0 || true
+
+gnu89()
+{
+	# https://gitlab.com/graphviz/graphviz/issues/1365
+	case "$CC" in
+		gcc*) export CFLAGS="$CFLAGS -std=gnu89" ;;
+	esac
+}
 
 strndup()
 {
