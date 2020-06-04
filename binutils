@@ -35,10 +35,18 @@ v 2.27 || true
 v 2.28.1 || true
 v 2.30 || true
 v 2.31.1 && modifs="$modifs max0" || true
+v 2.34 && modifs="$modifs sansdoc" || true
 
 prerequis
 
 # Modifications
+
+sansdoc()
+{
+	# Il nous réclame makeinfo et on n'a pas que ça à faire.
+	#filtrer binutils/doc/Makefile.in sed -e '/^info:/s/ info-am//'
+	filtrer binutils/doc/Makefile.in sed -e '/^INFO_DEPS *=/s/ binutils.info//'
+}
 
 max0()
 {
