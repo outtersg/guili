@@ -29,8 +29,16 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 3.29.3 && v_nspr="4.13.1" && prerequis="zlib nspr $v_nspr" && modifs="pasGcc unistd alertesZlib" || true
 v 3.40.1 && v_nspr="4.20" && prerequis="zlib nspr $v_nspr" && modifs="$modifs nonInitialisees putenv le64" || true
 v 3.42.1 || true
+v 3.52.1 && v_nspr="4.25" && prerequis="zlib nspr $v_nspr" || true
+v 3.53 && modifs="$modifs Iutil" || true
 
 # Modifications
+
+Iutil()
+{
+	# fatal error: seccomon.h: No such file or directory; pourtant il n'est pas loin.
+	export CFLAGS="$CFLAGS -I../util -I../freebl -I../softoken"
+}
 
 clmul()
 {
@@ -209,6 +217,9 @@ maqueue()
 
 install()
 {
+	# La 3.53 (et peut-être d'autres) n'intègre plus l'export des .h dans son make principal.
+	[ -d ../dist/public ] || maqueue export
+	
 	prefixeObj="`uname`"
 	rm -Rf dest
 	cp -R -L "`ls -d ../dist/$prefixeObj*.OBJ | tail -1`" dest # bin et lib
