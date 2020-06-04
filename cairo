@@ -43,6 +43,8 @@ gnu89()
 
 strndup()
 {
+	mac || return 0
+	
 	# Sur un Mac avec un GCC, il détecte les fonctions implicites de la lib GCC, mais sans leur définition, et donc il plante.
 	for i in perf/cairo-perf-report.c perf/cairo-perf-trace.c perf/cairo-analyse-trace.c
 	do
