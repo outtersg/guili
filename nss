@@ -202,6 +202,11 @@ configure()
 	echo "MK_SHLIB += $LDFLAGS" >> coreconf/`uname`.mk
 }
 
+maqueue()
+{
+	CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 make "$@"
+}
+
 install()
 {
 	prefixeObj="`uname`"
@@ -244,7 +249,7 @@ configure --prefix="$dest" $OPTIONS_CONF
 echo Compilation… >&2
 #CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make nss_build_all # Si l'on embarque nspr avec.
 #CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make
-CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 make
+maqueue
 
 echo Installation… >&2
 install
