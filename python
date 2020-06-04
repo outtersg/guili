@@ -386,6 +386,7 @@ else
 optionSi sqlite || true
 prerequisOpenssl --si-present # Quand même assez nécessaire pour aller chercher des trucs ez_setup.py etc. sur du https:// en 2019. Mais bon faisons comme si c'était optionnel.
 optionSi curl || true
+pg 3.3 $version || opSiPasPas xz || true # Pour éviter que lzma.py pète en No module named '_lzma' (utilisé entre autres par meson).
 pge $version 3 && OPTIONS_CONF="$OPTIONS_CONF --with-system-ffi" || true
 confOptims()
 {
