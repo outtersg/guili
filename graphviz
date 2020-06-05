@@ -58,7 +58,10 @@ gnu89()
 archive="http://www.graphviz.org/pub/graphviz/stable/SOURCES/graphviz-$version.tar.gz"
 archive="https://www2.graphviz.org/Packages/stable/portable_source/graphviz-$version.tar.gz"
 
-opSiPasPas pdf poppler
+if opSiPasPas pdf poppler+glib
+then
+	prerequis="$prerequis pango"
+fi
 
 prerequis
 
