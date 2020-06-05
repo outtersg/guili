@@ -36,6 +36,7 @@ v 2.3.1 && ft_v=">= 2.8" prerequis="pkgconfig make \\ gettext icu graphite >= 1.
 # Modifications
 
 optionsEtPrerequisIcu
+optionSi glib || true
 case ":$GUILI_PILE" in *:cairo:*) argOptions="`options $argOptions-cairo`" ;; esac
 optionSi cairo || OPTIONS_CONF="$OPTIONS_CONF --without-cairo"
 optionSi fc/fontconfig || OPTIONS_CONF="$OPTIONS_CONF --without-fontconfig"
