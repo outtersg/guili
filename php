@@ -96,6 +96,7 @@ v 7.2.11 || true
 v 7.2.14 || true
 v 7.2.17 || true
 v 7.2.29 || true
+v 7.2.31 || true
 v 7.3.1 && prerequis="$prerequis libzip+ossl10" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
 v 7.3.4 || true
 v 7.3.9 || true
@@ -103,6 +104,7 @@ v 7.3.10 || true
 v 7.3.11 && retirerModif cve201911043 || true # Tout ce qui est >= 7.3.11 (7.3.11, 7.3.12, etc., 7.4.0, 7.4.1, etc.) embarque le correctif à CVE-2019-11043.
 v 7.3.13 || true
 v 7.3.15 || true
+v 7.3.18 || true
 # Pour compiler la master:
 #v 7.5 && prerequis="re2c \\ $prerequis oniguruma" && OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-zts --enable-debug" || true
 
