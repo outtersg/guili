@@ -24,6 +24,8 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
+. "$SCRIPTS/libuv.util.sh"
+
 # Historique des versions gérées
 
 v 2.4.5 || true
@@ -120,6 +122,8 @@ archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
 
 ! commande openssl || prerequis="$prerequis openssl"
 prerequisOpenssl
+# La ligne suivante ne servirait que si, parmi les versions de cmake dont le libuv embarqué ne tourne pas sur certaines plates-formes (obsolètes), certaines pouvaient tourner avec un libuv externe (plus ancien que l'embarquée, mais tournant sur la plate-forme). Or il n'en existe pas: cmake repose étroitement sur des fonctionnalités de sa libuv embarquée, il est donc impossible de le compiler avec une libuv plus ancienne.
+#pge 3.13.5 $version || prerequisLibuv # Pour la 3.13.5 et en-dessous, la libuv intégrée est bonne, on s'en satisfait. Au dessus, il va falloir basculer vers une libuv externe.
 
 # Tous ces prérequis sont des prérequis de construction. À l'exécution, nos utilisateurs veulent simplement utiliser un cmake, et ne pas devoir dépendre de toutes les bibliothèques auxquelles lui est lié (exemple criant: un bidule nécessitant un OpenSSL < 1.1, se construisant avec cmake, n'a surtout pas envie que ce dernier lui impose son OpenSSL 1.1 "de compilation").
 prerequis="$prerequis \\"
