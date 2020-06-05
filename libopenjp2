@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 2.1.0 && prerequis="cmake \\ zlib libpng lcms" || true
 v 2.1.2 || true
 v 2.3.0 || true
+v 2.3.1 || true
 
 # Modifications
 
