@@ -37,6 +37,13 @@ v 2.8.12 && modifs="etToiAlors havefchdir" || true
 v 3.5.2 && modifs="etToiAlors speMac macGcc macOpenssl" || true
 v 3.13.1 || true
 v 3.13.5 || true
+if eventfd # À partir de là cmake repose sur une libuv qui ne compile pas sur les "vieux" systèmes.
+then
+v 3.14.7 || true
+v 3.15.7 || true
+v 3.16.8 || true
+v 3.17.3 || true
+fi
 
 # Modifications
 
