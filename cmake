@@ -134,7 +134,7 @@ exclusivementPrerequis() { true ; }
 for modif in true $modifs ; do $modif ; done
 
 echo Compilation… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make -j 4
