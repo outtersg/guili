@@ -195,6 +195,7 @@ chemins()
 		preParamsCompil "$racine"
 
 		guili_pcpath="$racine/lib/pkgconfig:$guili_pcpath"
+		[ ! -e "$racine/lib64/pkgconfig" ] || guili_pcpath="$racine/lib64/pkgconfig:$guili_pcpath"
 		if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 			guili_acpath="$racine/share/aclocal:$guili_acpath"
 		fi
