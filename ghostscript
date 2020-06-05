@@ -58,7 +58,7 @@ jpeg8()
 bibliosInternes()
 {
 	# Ce crétin embarque des biblios complètes, mais il fait passer nos CFLAGS devant, surchargeant donc les susdites et faisant planter la compil qui voit des bouts de l'embarquée, des bouts d'/usr/local.
-	preCFlag -I./libpng -I./zlib -I./obj
+	preCFlag -I./libpng -I./zlib -I./psi -I./obj -I./base -I./devices
 }
 
 # Boulot
