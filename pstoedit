@@ -28,6 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 v 3.40 && prerequis="libemf ghostscript" || true
 v 3.62 && modifs="sansLdl" || true
+v 3.75 || true
 
 prerequis
 
