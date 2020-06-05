@@ -30,6 +30,7 @@ v 8.51 && modifs="moinsL bibliosInternes" && prerequis="libpng libtiff+jpeg8 >= 
 v 9.10 || true
 v 9.15 || true
 v 9.23 && prerequis="libpng libtiff+jpeg9 >= 4 libjpeg >= 9" || true
+v 9.52 || true
 
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
 archive=http://heanet.dl.sourceforge.net/project/ghostscript/GPL%20Ghostscript/$version/ghostscript-$version.tar.bz2
