@@ -202,7 +202,10 @@ obtenirEtAllerDansVersion()
 	echo "=== $logiciel`argOptions`$GUILI_MOIRE $version ===" >&2
 	
 	# A-t-on un binaire déjà compilé?
+	
 	installerBinaireSilo
+	guili_sansBinaire # Appel de guili_sansBinaire si l'on arrive ici.
+	
 	# A-t-on déjà une copie des sources?
 	if [ ! -z "$install_obtenu" ]
 	then
@@ -231,4 +234,16 @@ obtenirEtAllerDansVersion()
 		t*) obtenirEtAllerDansSvn "-$version" "$archive_svn_tag" ;;
 		*) obtenirEtAllerDans "$archive" "$@" ;;
 	esac
+}
+
+# Les logiciels dont l'obtenirEtAllerDansVersion ne donne pas lieu à compilation (ex.: sources en un langage de script qui s'installe par simple dépôt) peuvent surcharger cette fonction en guili_sansBinaire() { true ; }
+guili_sansBinaire()
+{
+	if [ -n "$INSTALL_SANS_COMPIL" ]
+	then
+		rouge "# Aucun paquet binaire n'est disponible." >&2
+		jaune "(veuillez le générer sur une machine de compil' similaire (même processeur, même OS, même chemin d'\$INSTALLS) qui ensuite le pousse vers le silo central)" >&2
+		jaune "(attention, le binaire devra avoir exactement même version et mêmes options que sus-mentionné. Si le serveur de compil' prend la liberté d'ajouter une option +jantesalu, forcez-le à la désactiver via un +-jantesalu)" >&2
+		exit 1
+	fi
 }

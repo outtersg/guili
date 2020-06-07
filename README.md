@@ -66,6 +66,7 @@ INSTALL_MEM="$HOME/tmp/paquets" # Entrepôt local à archives binaires et source
 INSTALL_SILO="root@silo:/var/guili" # Entrepôt centralisé à archives binaires.
 INSTALL_SILO_RECUPERER="silo_ssh_recuperer" # Une fonction appelée pour récupérer un paquet binaire, recevant en paramètres $INSTALL_MEM/<logiciel><options>*-<version>.bin.tar.gz <proc>-<système>-<version>
 INSTALL_SILO_POUSSER="silo_ssh_pousser" # Une fonction appelée pour pousser un paquet binaire (mêmes paramètres que $INSTALL_SILO_RECUPERER).
+#INSTALL_SANS_COMPIL=1 # Interdit la compilation de paquets sur cette machine, elle ne pourra que recevoir des paquets binaires (précompilés).
 ```
 
 Une implémentation du silo par scp existe (`silo_ssh_recuperer` et `silo_ssh_pousser`), qui sera utilisée par défaut si `$INSTALL_SILO` a une forme d'URI SSH.
