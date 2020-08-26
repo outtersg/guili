@@ -347,6 +347,10 @@ meilleurCompilo()
 					break
 				fi
 			done
+			# À FAIRE: utiliser SDKROOT pour d'autres variables.
+			export SDKROOT="`xcrun --show-sdk-path`"
+			export CPPFLAGS="$CPPFLAGS -I$SDKROOT/usr/include"
+			export MACOSX_DEPLOYMENT_TARGET="`xcrun --show-sdk-version`"
 			;;
 	esac
 }
