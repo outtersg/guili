@@ -367,8 +367,10 @@ apiReporterParamsLsj()
 # À invoquer juste avant sutiliser, pour installer (si demandé par option) un greffon.
 greffon()
 {
+	local nom="$1" inst="$2"
+	[ -n "$inst" ] || inst="$nom"
 	preutiliser
-	! option "$1" || ( cd "$SCRIPTS" ; "$SCRIPTS/$1" --pour "$dest" ) || ( sudoku rm "$dest/$ENCOURS" ; false )
+	! option "$nom" || ( cd "$SCRIPTS" ; "$SCRIPTS/$inst" --pour "$dest" ) || ( sudoku rm "$dest/$ENCOURS" ; false )
 }
 
 #- Environnement ---------------------------------------------------------------
