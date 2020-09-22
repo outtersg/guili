@@ -304,7 +304,7 @@ analyserParametresPour()
 	if [ ! -z "$prerequisPour" ]
 	then
 		prerequis="$prerequisPour" prerequis
-		local logicielPrerequis logicielsPrerequis="`decoupePrerequis "$prerequisPour" | cut -d ' ' -f 1 | grep -v '[()]' | cut -d + -f 1 | sort`" # Le sort en vue de générer une liste d'argOptions (tenue d'être ordonnée).
+		local logicielPrerequis logicielsPrerequis="`decoupePrerequis "$prerequisPour" | cut -d ' ' -f 1 | grep -v '[()]' | cut -d + -f 1 | tr -d - | sort`" # Le sort en vue de générer une liste d'argOptions (tenue d'être ordonnée).
 		local v_prerequis
 		for logicielPrerequis in $logicielsPrerequis
 		do
