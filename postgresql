@@ -85,10 +85,6 @@ pathZic()
 archive=http://ftp.postgresql.org/pub/source/v$version/postgresql-$version.tar.bz2
 pge $version 9 || jar=http://jdbc.postgresql.org/download/postgresql-8.0-310.jdbc3.jar
 
-option ossl10 || true # L'option ossl10 sera utilisée plus tard (par prerequisOpenssl), mais il faut qu'on la consomme avant destiner(): ce dernier va l'inscrire dans le chemin d'install, et il ne veut rien mettre qui ne soit vraiment exploité. option() permet de lui dire "si, si, c'est une option que l'on prend bien en compte".
-
-destiner
-
 # Si on détecte perl, on laissera le configure le détecter, mais uniquement dans notre version prérequise.
 if command -v perl > /dev/null 2>&1
 then
@@ -98,6 +94,8 @@ prerequisMake
 prerequisOpenssl
 
 prerequis
+
+destiner
 
 obtenirEtAllerDansVersion
 
