@@ -28,6 +28,7 @@ prerequis="openssl"
 
 v 4.10 || true
 v 4.20 || true
+v 5.56 || true
 
 archive="http://www.stunnel.org/download/stunnel/src/$logiciel-$version.tar.gz"
 archive="https://www.stunnel.org/downloads/stunnel-$version.tar.gz"
