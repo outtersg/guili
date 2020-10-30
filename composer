@@ -46,7 +46,7 @@ echo Obtention et décompression… >&2
 mkdir $TMP/$$/local
 cd $TMP/$$/local
 mkdir bin
-cp "`obtenir "$archive"`" bin/composer
+cp "`obtenir "$archive" composer-$version.phar`" bin/composer
 chmod a+x bin/composer
 
 echo Installation… >&2
