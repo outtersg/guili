@@ -72,9 +72,9 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 if [ -e configure ]
 then
-./configure --prefix="$dest"
+	./configure --prefix="$dest" $optionsConf
 else
-	./autogen.sh --prefix="$dest"
+	./autogen.sh --prefix="$dest" $optionsConf
 fi
 
 echo Compilation… >&2
