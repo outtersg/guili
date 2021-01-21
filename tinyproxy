@@ -30,11 +30,23 @@ v 1.8.4 && modifs="sansdoc" || true
 # J'ai la même chose que https://github.com/tinyproxy/tinyproxy/issues/274
 v 1.10.0 || true
 v 1.10.2020.01.15 && versionComplete="$version.2e02dce0c3de4a231f74b44c34647406de507768.git" || true
+v 1.10.2020.10.19 && versionComplete="$version.adad565c03f3ffde6520646bc5d119ce1eadbadb.git" && modifs="$modifs linemax" || true
 
 # Modifications
 
+linemax()
+{
+	[ `uname` = FreeBSD ] || return 0
+	filtrer src/conf.c awk '/#include/&&!oui{print "#include <limits.h>";oui=1}{print}'
+}
+
 sansdoc()
 {
+	if pge $version 1.10.2020.10
+	then
+		optionsConf="$optionsConf --disable-manpage-support"
+	fi
+	
 	# asciidoc est vraiment trop vieux, et requiert un vraiment trop vieux Python.
 	rm -Rf docs
 	if [ -e configure ]
