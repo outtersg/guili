@@ -37,6 +37,8 @@ v 1.15.8 || true
 v 1.15.12 || true
 v 1.17.1 || true
 v 1.17.4 || true
+v 1.17.10 || true
+v 1.19.6 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
