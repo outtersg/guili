@@ -36,6 +36,8 @@ v 7.8.1 || true
 version_p="`echo "$version" | sed -e 's/\.\([0-9][0-9]*\)$/p\1/'`"
 archive=http://ftp.fr.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$version_p.tar.gz
 
+prerequisOpenssl
+
 destiner
 
 prerequis
