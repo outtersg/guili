@@ -439,4 +439,42 @@ libcxxgcc()
 	prerequerir libstdcxx $v # Va installer libstdcxx, et modifier l'environnement ($guili_ppath): ainsi lorsque le logiciel sera installé, il aura pour dépendance libstdcxx.
 }
 
+#- Spécificités ----------------------------------------------------------------
+
+pasfortiche()
+{
+	local vsys="`uname -r | cut -d - -f 1`"
+	local vcomp
+	case `uname` in
+		Linux)
+			pg 3 "$vsys" || return 0
+			case "$CC" in
+				gcc*)
+					vcomp="`versionCompiloChemin gcc`"
+					pge "$vcomp" 6 || return 0
+					;;
+				*) return 0 ;;
+			esac
+			;;
+		*) return 0 ;;
+	esac
+	
+	local f
+	local fichiers="configure"
+	
+	# FORTIFY_SOURCE=2 nous plante sur certaines plates-formes (ex.: Linux 2.6.18 avec gcc 7.5.0):
+	# le read est remplacé par une version qui fait du:
+	# __always_inline read() { if(__read_chk()) asm("read"); }
+	# Manque de pot l'__always_inline n'est pas forcément bien interprété, et donc les .o se retrouvent truffés de redéfinitions de read(),
+	# dont on peut certes éliminer un inconvénient (multiple definition) via un export LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition"
+	# … mais qui sont tout de même vues par l'assembleur comme du read, et donc read s'appelle lui-même en une joyeuse boucle infinie!
+	# (vu sur une compil' d'OpenSSH)
+	
+	for f in $fichiers
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e '/=/s/-D_FORTIFY_SOURCE=2//g'
+	done
+}
+
 compilo_sep="`printf '\003'`"
