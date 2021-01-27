@@ -28,6 +28,13 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 v 6.0.1 && prerequis="openssl zlib" && modifs="pasfortiche" || true
 v 7.8.1 || true
+v 7.9.1 || true
+v 8.0.1 || true
+v 8.1.1 || true
+# À partir de là les serveurs en diffie-hellman-group*-exchange-sha1 sont (par défaut) rejetés.
+# https://www.openssh.com/legacy.html
+v 8.2.1 || true
+v 8.4.1 || true
 
 # Modifications
 
