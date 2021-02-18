@@ -50,7 +50,10 @@ v 2.5.5 || true
 v 2.6.0 || true
 v 2.6.1 || true
 v 2.7.1 || true
+v 2.8.1 || true
 v 2.9.2 || true
+v 2.9.8 || true
+v 3.0.2 || true
 
 # Modifications
 
