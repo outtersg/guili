@@ -28,14 +28,18 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 analyserParametresPour --pour php "$@"
 
+# https://xdebug.org/docs/compat
+# /!\ Parfois en contradiction avec https://github.com/xdebug/xdebug.org/blob/master/src/XdebugVersion.php; on met en commentaire la version max proposée par ce dernier.
 case `php-config --version | cut -d . -f 1-2` in
 	5.3) argVersion="$argVersion < 2.3" ;;
 	5.4) argVersion="$argVersion < 2.5" ;;
 	5.[56]) argVersion="$argVersion < 2.6" ;;
-	7.0) argVersion="$argVersion >= 2.4" ;;
-	7.1) argVersion="$argVersion >= 2.5" ;;
+	7.0) argVersion="$argVersion >= 2.4 < 2.7" ;; # < 2.9
+	7.1) argVersion="$argVersion >= 2.5 < 3.0" ;;
 	7.2) argVersion="$argVersion >= 2.6" ;;
+	7.[34]) argVersion="$argVersion >= 2.7" ;;
 	7.*) argVersion="$argVersion >= 2.7" ;;
+	8.*) argVersion="$argVersion >= 3.0" ;;
 esac
 
 # Historique des versions gérées
