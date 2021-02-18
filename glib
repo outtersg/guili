@@ -42,7 +42,9 @@ v 2.52.1 || true
 v 2.52.2 || true
 v 2.58.2 || true
 v 2.58.3 || true
-v 2.60.5 && prerequis="meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ cheminMeson || true
+# Meson + Ninja en 2.60.
+# zlib lorsque meson a été compilé avec une zlib dynamique, sans quoi meson charge le paquet Python zquelquechose qui charge binascii qui explose s'il ne trouve pas libz.so.x
+v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ cheminMeson || true
 v 2.60.6 || true
 v 2.63.3 || true
 
