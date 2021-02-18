@@ -44,6 +44,7 @@ v 5.1.12 || true
 v 5.1.14 || true
 v 5.1.17 || true
 v 5.1.18 || true
+v 5.1.19 || true
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
 pge 4 $version || archive="https://pecl.php.net/get/apcu-$version.tgz"
