@@ -41,6 +41,8 @@ v 9.6.15 || true
 v 9.6.16 || true
 v 9.6.19 || true
 v 12.4 || true
+v 12.6 || true
+v 13.2 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 
