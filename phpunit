@@ -33,7 +33,13 @@ v 4.3.5 || true
 v 4.4.1 || true
 v 4.7.6 || true
 v 4.8.27 || true
+v 4.8.36 || true # Dernière version PHP 5.4 /!\ Et encore, fait mauvais ménage avec un Symfony 2.7, car la combinaison de E_STRICT et de machins qui ne passent plus en PHP 7 fait parfois exploser.
+v 5.7.9 || true # Dernière version PHP 5.6
 v 6.2.0 || true
+v 6.5.14 || true # Dernière version PHP 7.0
+v 7.5.20 || true # Dernière version PHP 7.1
+v 8.5.14 || true # Dernière version PHP 7.2
+v 9.5.0 || true
 
 # Modifications
 
