@@ -45,6 +45,7 @@ v 12.6 || true
 v 13.2 || true
 
 pg 8.4 $version || contribs="$contribs citext"
+pg 9.0 $version || contribs="$contribs unaccent"
 
 prerequisMake()
 {
