@@ -28,6 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 prerequis="autoconf automake m4 libtool \\"
 v 6.9.4 && modifs="autoc" || true
+v 6.9.6 && modifs="autoc" || true
 
 # Modifications
 
