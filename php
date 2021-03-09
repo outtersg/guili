@@ -312,11 +312,14 @@ TERMINE
 
 detectionIconvOuLibiconv()
 {
+	# En outre (PHP 8.0.3) le -liconv est un peu indispensable à la fin (https://bugs.php.net/80585).
+	export LDFLAGS="$LDFLAGS -liconv"
+	
 	# Encore nécessaire en 7.
 	for i in libiconv iconv
 	do
 		echo "char $i();int main(int argc, char ** argv) { $i(); return 0; }" > "$TMP/$$/testiconv.c"
-		cc $CFLAGS $LDFLAGS -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" -liconv 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" -e '/#undef iconv/a\
+		cc $CFLAGS $LDFLAGS -o "$TMP/$$/testiconv" "$TMP/$$/testiconv.c" 2> /dev/null && filtrer ext/iconv/iconv.c sed -e "s/define iconv .*/define iconv $i/" -e '/#undef iconv/a\
 #define iconv '"$i"'
 ' && break || continue
 	done
