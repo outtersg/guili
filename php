@@ -29,7 +29,8 @@ OPTIONS_CONF=
 # Historique des versions gérées
 
 ajouterModif cve201911043
-v 4.4.7 && prerequis="libjpeg libpng freetype gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
+# pkgconfig au moins pour libxml en PHP 8.
+v 4.4.7 && prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
