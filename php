@@ -177,8 +177,9 @@ pgsqlSetNoticeCallback()
 {
 	local suffixe= adaptation=cat
 	case $version in
+		[89].*|[1-9][0-9].*) suffixe=8 ;;
 		7.[0-2].*) suffixe=7 ; zsre() { sed -e 's/zend_string_release_ex(\(.*\), 0)/zend_string_release(\1)/g' ; } ; adaptation=zsre ;;
-		[789].*|[1-9][0-9].*) suffixe=7 ;;
+		[7].*) suffixe=7 ;;
 		5.6.*) suffixe=56 ;;
 		5.*) suffixe=5 ;;
 	esac

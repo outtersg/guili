@@ -1,0 +1,183 @@
+diff -ruw ext/pdo_pgsql/pgsql_driver.stub.php ext/pdo_pgsql/pgsql_driver.stub.php
+--- ext/pdo_pgsql/pgsql_driver.stub.php	2021-03-09 07:46:54.779841000 +0100
++++ ext/pdo_pgsql/pgsql_driver.stub.php	2021-03-09 07:52:52.415093000 +0100
+@@ -30,4 +30,10 @@
+ 
+     /** @return int */
+     public function pgsqlGetPid() {}
++
++	/**
++     * @param callable|null $callback
++     * @return bool
++     */
++    public function pgsqlSetNoticeCallback($callback) {}
+ }
+diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginfo.h
+--- ext/pdo_pgsql/pgsql_driver_arginfo.h	2015-09-01 22:09:37.000000000 +0200
++++ ext/pdo_pgsql/pgsql_driver_arginfo.h	2019-10-01 05:18:31.085807000 +0200
+@@ -45,6 +45,10 @@
+ 
+ #define arginfo_class_PDO_PGSql_Ext_pgsqlGetPid arginfo_class_PDO_PGSql_Ext_pgsqlLOBCreate
+ 
++ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_PDO_PGSql_Ext_pgsqlSetNoticeCallback, 0, 1, _IS_BOOL, 0)
++	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 1)
++ZEND_END_ARG_INFO()
++
+ 
+ ZEND_METHOD(PDO_PGSql_Ext, pgsqlCopyFromArray);
+ ZEND_METHOD(PDO_PGSql_Ext, pgsqlCopyFromFile);
+@@ -54,6 +58,7 @@
+ ZEND_METHOD(PDO_PGSql_Ext, pgsqlLOBUnlink);
+ ZEND_METHOD(PDO_PGSql_Ext, pgsqlGetNotify);
+ ZEND_METHOD(PDO_PGSql_Ext, pgsqlGetPid);
++ZEND_METHOD(PDO_PGSql_Ext, pgsqlSetNoticeCallback);
+ 
+ 
+ static const zend_function_entry class_PDO_PGSql_Ext_methods[] = {
+@@ -77,5 +82,6 @@
+ 	ZEND_ME(PDO_PGSql_Ext, pgsqlLOBUnlink, arginfo_class_PDO_PGSql_Ext_pgsqlLOBUnlink, ZEND_ACC_PUBLIC)
+ 	ZEND_ME(PDO_PGSql_Ext, pgsqlGetNotify, arginfo_class_PDO_PGSql_Ext_pgsqlGetNotify, ZEND_ACC_PUBLIC)
+ 	ZEND_ME(PDO_PGSql_Ext, pgsqlGetPid, arginfo_class_PDO_PGSql_Ext_pgsqlGetPid, ZEND_ACC_PUBLIC)
++	ZEND_ME(PDO_PGSql_Ext, pgsqlSetNoticeCallback, arginfo_class_PDO_PGSql_Ext_pgsqlSetNoticeCallback, ZEND_ACC_PUBLIC)
+ 	ZEND_FE_END
+ };
+diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
+--- ext/pdo_pgsql/pgsql_driver.c	2015-09-01 22:09:37.000000000 +0200
++++ ext/pdo_pgsql/pgsql_driver.c	2019-10-01 05:18:31.085807000 +0200
+@@ -98,7 +98,23 @@
+ 
+ static void _pdo_pgsql_notice(pdo_dbh_t *dbh, const char *message) /* {{{ */
+ {
+-/*	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data; */
++	int ret;
++	zval zarg;
++	zval retval;
++	pdo_pgsql_fci * fc;
++	if ((fc = ((pdo_pgsql_db_handle *)dbh->driver_data)->notice_callback)) {
++		ZVAL_STRINGL(&zarg, (char *) message, strlen(message));
++		fc->fci.param_count = 1;
++		fc->fci.params = &zarg;
++		fc->fci.retval = &retval;
++		if ((ret = zend_call_function(&fc->fci, &fc->fcc)) != FAILURE) {
++			zval_ptr_dtor(&retval);
++		}
++		zval_ptr_dtor(&zarg);
++		if (ret == FAILURE) {
++			pdo_raise_impl_error(dbh, NULL, "HY000", "could not call user-supplied function");
++		}
++	}
+ }
+ /* }}} */
+ 
+@@ -129,6 +141,16 @@
+ }
+ /* }}} */
+ 
++static void pdo_pgsql_cleanup_notice_callback(pdo_pgsql_db_handle *H) /* {{{ */
++{
++	if (H->notice_callback) {
++		zval_ptr_dtor(&H->notice_callback->fci.function_name);
++		efree(H->notice_callback);
++		H->notice_callback = NULL;
++	}
++}
++/* }}} */
++
+ /* {{{ pdo_pgsql_create_lob_stream */
+ static size_t pgsql_lob_write(php_stream *stream, const char *buf, size_t count)
+ {
+@@ -211,6 +233,7 @@
+ {
+ 	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data;
+ 	if (H) {
++		pdo_pgsql_cleanup_notice_callback(H);
+ 		if (H->server) {
+ 			PQfinish(H->server);
+ 			H->server = NULL;
+@@ -1121,6 +1144,54 @@
+ }
+ /* }}} */
+ 
++/* {{{ proto bool PDO::pgsqlSetNoticeCallback(mixed callback)
++   Sets a callback to receive DB notices (after client_min_messages has been set) */
++static PHP_METHOD(PDO, pgsqlSetNoticeCallback)
++{
++	zval *callback;
++	zend_string *cbname;
++	pdo_dbh_t *dbh;
++	pdo_pgsql_db_handle *H;
++	int ret;
++	pdo_pgsql_fci *fc;
++
++	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS(), "z", &callback)) {
++		RETURN_FALSE;
++	}
++	
++	dbh = Z_PDO_DBH_P(getThis());
++	PDO_CONSTRUCT_CHECK;
++	
++	H = (pdo_pgsql_db_handle *)dbh->driver_data;
++
++	if (Z_TYPE_P(callback) == IS_NULL) {
++		pdo_pgsql_cleanup_notice_callback(H);
++		RETURN_TRUE;
++	} else {
++		if (!(fc = H->notice_callback)) {
++			fc = (pdo_pgsql_fci*)ecalloc(1, sizeof(pdo_pgsql_fci));
++		} else {
++			zval_ptr_dtor(&fc->fci.function_name);
++			memcpy(&fc->fcc, &empty_fcall_info_cache, sizeof(fc->fcc));
++		}
++
++		if (FAILURE == zend_fcall_info_init(callback, 0, &fc->fci, &fc->fcc, &cbname, NULL)) {
++			php_error_docref(NULL, E_WARNING, "function '%s' is not callable", ZSTR_VAL(cbname));
++			zend_string_release_ex(cbname, 0);
++			efree(fc);
++			H->notice_callback = NULL;
++			RETURN_FALSE;
++		}
++		Z_TRY_ADDREF_P(&fc->fci.function_name);
++		zend_string_release_ex(cbname, 0);
++
++		H->notice_callback = fc;
++
++		RETURN_TRUE;
++	}
++}
++/* }}} */
++
+ 
+ static const zend_function_entry dbh_methods[] = {
+ 	PHP_ME(PDO, pgsqlLOBCreate, NULL, ZEND_ACC_PUBLIC)
+@@ -1107,7 +1172,7 @@
+ 		goto cleanup;
+ 	}
+ 
+-	PQsetNoticeProcessor(H->server, (void(*)(void*,const char*))_pdo_pgsql_notice, (void *)&dbh);
++	PQsetNoticeProcessor(H->server, (void(*)(void*,const char*))_pdo_pgsql_notice, (void *)dbh);
+ 
+ 	H->attached = 1;
+ 	H->pgoid = -1;
+diff -ruw ext/pdo_pgsql/php_pdo_pgsql_int.h ext/pdo_pgsql/php_pdo_pgsql_int.h
+--- ext/pdo_pgsql/php_pdo_pgsql_int.h	2015-09-01 22:09:37.000000000 +0200
++++ ext/pdo_pgsql/php_pdo_pgsql_int.h	2019-10-01 05:18:31.085743000 +0200
+@@ -36,6 +36,11 @@
+ 	char *errmsg;
+ } pdo_pgsql_error_info;
+ 
++typedef struct {
++	zend_fcall_info fci;
++	zend_fcall_info_cache fcc;
++} pdo_pgsql_fci;
++
+ /* stuff we use in a pgsql database handle */
+ typedef struct {
+ 	PGconn		*server;
+@@ -51,6 +56,7 @@
+ 	zend_bool       emulate_prepares;
+ 	zend_bool       disable_native_prepares; /* deprecated since 5.6 */
+ 	zend_bool       disable_prepares;
++	pdo_pgsql_fci * notice_callback;
+ } pdo_pgsql_db_handle;
+ 
+ typedef struct {
