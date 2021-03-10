@@ -38,7 +38,7 @@ _itineraireBis()
 {
 	unset IFS
 	local racine v
-	for v in \
+	for v in guili_ppath_mono \
 		guili_xpath guili_lpath guili_lpath guili_pcpath guili_acpath
 	do
 		eval $v=
@@ -47,6 +47,14 @@ _itineraireBis()
 	for racine in "$@"
 	do
 		[ "$racine" != "<" ] || continue
+		
+		# Contrôle d'unicité: on ne conserve que le premier de la série.
+		# Les variables qui doivent être restituées telles quelles, quitte à apparaître en doublon, doivent être travaillées *avant* cette ligne.
+		# Les variables qui souhaiteraient privilégier la *dernière* valeur devraient se faire un args_suppr plutôt à la place du continue.
+		case ":$guili_ppath_mono" in
+			*:$racine:*) continue ;;
+		esac
+		guili_ppath_mono="$guili_ppath_mono$racine:"
 		
 		guili_xpath="$guili_xpath$racine/bin:"
 		guili_lpath="$guili_lpath$racine/lib:"
