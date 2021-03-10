@@ -65,7 +65,18 @@ v 3.0.2 || true
 
 archive="http://www.xdebug.org/files/xdebug-$version.tgz"
 
-destiner "$destphp"
+# Le debugclient autonome était fourni avant la version 3.
+# Désormais seuls sont proposés:
+# - d'utiliser le client intégré à l'IDE
+# - ou de télécharger dbgpClient, un binaire sans source, réécrit vraisemblablement en Go, et dont le contenu fait référence à l'inexistante URL https://github.com/derickr/dbgp-tools
+pge $version 3 || opSiPasPas debugclient
+
+# Rien À Installer: si on n'a rien à caler dans $INSTALLS/xdebug-x.y.z, on peut se contenter de se greffer à $INSTALLS/php-m.n.o
+# En ce cas un : préfixant la destination indique que l'on renonce à notre dossier d'install.
+rai=
+option debugclient || rai=:
+
+destiner "$rai$destphp"
 
 prerequis
 
@@ -91,6 +102,8 @@ sufiltrer "$ini" sed -e '$a\
 zend_extension="'"$monPhp"'/lib/'"$f"'"
 '
 
+if option debugclient
+then
 cd debugclient
 ./configure --prefix="$dest"
 [ -e install.sh ] && chmod a+x install.sh
@@ -105,5 +118,6 @@ else
 sudo make install
 fi
 cd ..
+fi
 
 sutiliser -
