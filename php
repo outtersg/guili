@@ -362,7 +362,7 @@ pge $v_archive 5.3.27 || archive="http://museum.php.net/php`echo $v_archive | cu
 
 if false
 then
-	cd /tmp/$logiciel-$version
+	cd $TMP/$logiciel-$version
 	echo "BASH EST À VOUS"
 	bash
 else
