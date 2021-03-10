@@ -174,7 +174,6 @@ reglagesCheminsPrerequis()
 # Règle tous les chemins pour aller taper dans une arbo conventionnelle (bin, lib, include, etc.).
 chemins()
 {
-	# À FAIRE: ici on ne devrait toucher que guili_ppath, et en déduire les autres chemins tout à la fin.
 	unset IFS # Des fois que notre appelant l'ait réglé à :
 	local optionsPreChemin=
 	[ "x$1" = x--sans-c-cxx ] && optionsPreChemin="$1" && shift || true
@@ -192,18 +191,12 @@ chemins()
 		esac
 		
 		guili_ppath="$racine:$guili_ppath" # p comme prérequis, ou préfixes.
-		guili_xpath="$racine/bin:$guili_xpath"
-		guili_lpath="$racine/lib:$guili_lpath"
-		[ ! -e "$racine/lib64" ] || guili_lpath="$racine/lib64:$guili_lpath"
-		guili_ipath="$racine/include:$guili_ipath"
-
+		
+		# À FAIRE: ce truc-là ne pourrait-il pas aller dans itineraireBis?
+		# Pour le moment il ne fonctionne qu'en préfixage, donc non, mais à voir.
+		# D'autant que son bout de code pour éviter les duplications devrait être inutile du fait du "Déjà en tête de chemin" plus haut.
+		# /!\ Peut-être à glisser *avant* la vérification d'unicité qui ne conserve que le premier: sur du -L / -I etc., n'est-ce pas le *dernier* qu'il faut conserver? Que prend en compte le compilo?
 		preParamsCompil "$racine"
-
-		guili_pcpath="$racine/lib/pkgconfig:$guili_pcpath"
-		[ ! -e "$racine/lib64/pkgconfig" ] || guili_pcpath="$racine/lib64/pkgconfig:$guili_pcpath"
-		if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
-			guili_acpath="$racine/share/aclocal:$guili_acpath"
-		fi
 	done
 	[ oui = "$rc_local" ] || _cheminsExportes
 }
@@ -216,6 +209,8 @@ _pverso()
 
 _cheminsExportes()
 {
+	itineraireBis # Mise à jour des $guili_*path.
+	
 	local guili_acflags="`_pverso -I "$guili_acpath"`"
 	ACLOCAL="`echo "$ACLOCAL" | sed -e 's/^ *$/aclocal/' -e "s#aclocal#aclocal$guili_acflags#"`"
 	export \
@@ -288,6 +283,7 @@ preParamsCompil()
 
 # Petite exception à notre règle "pas de variable globale dans ce fichier": dès qu'on a défini chemin(), on charge un éventuel environnement, afin de pouvoir dans ce qui suit détecter de nouveaux logiciels (et donc mettre en place ou non des palliatifs).
 
+. "$SCRIPTS/util.itineraires.sh" # Devrait s'appeler util.util.itineraires.sh, mais doit être manuellement inclus en premier pour avoir dans notre $PATH les utilitaires qu'on est amenés à pallier dans la suite.
 if [ ! -z "$chemins_init" ]
 then
 	$chemins_init
