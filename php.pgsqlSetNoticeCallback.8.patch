@@ -26,7 +26,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginf
  
  ZEND_METHOD(PDO_PGSql_Ext, pgsqlCopyFromArray);
  ZEND_METHOD(PDO_PGSql_Ext, pgsqlCopyFromFile);
-@@ -54,6 +58,7 @@
+@@ -55,6 +59,7 @@
  ZEND_METHOD(PDO_PGSql_Ext, pgsqlLOBUnlink);
  ZEND_METHOD(PDO_PGSql_Ext, pgsqlGetNotify);
  ZEND_METHOD(PDO_PGSql_Ext, pgsqlGetPid);
@@ -34,7 +34,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginf
  
  
  static const zend_function_entry class_PDO_PGSql_Ext_methods[] = {
-@@ -77,5 +82,6 @@
+@@ -67,5 +72,6 @@
  	ZEND_ME(PDO_PGSql_Ext, pgsqlLOBUnlink, arginfo_class_PDO_PGSql_Ext_pgsqlLOBUnlink, ZEND_ACC_PUBLIC)
  	ZEND_ME(PDO_PGSql_Ext, pgsqlGetNotify, arginfo_class_PDO_PGSql_Ext_pgsqlGetNotify, ZEND_ACC_PUBLIC)
  	ZEND_ME(PDO_PGSql_Ext, pgsqlGetPid, arginfo_class_PDO_PGSql_Ext_pgsqlGetPid, ZEND_ACC_PUBLIC)
@@ -44,7 +44,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginf
 diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 --- ext/pdo_pgsql/pgsql_driver.c	2015-09-01 22:09:37.000000000 +0200
 +++ ext/pdo_pgsql/pgsql_driver.c	2019-10-01 05:18:31.085807000 +0200
-@@ -98,7 +98,23 @@
+@@ -103,7 +103,23 @@
  
  static void _pdo_pgsql_notice(pdo_dbh_t *dbh, const char *message) /* {{{ */
  {
@@ -69,7 +69,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
  }
  /* }}} */
  
-@@ -129,6 +141,16 @@
+@@ -125,6 +141,16 @@
  }
  /* }}} */
  
@@ -84,9 +84,9 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +/* }}} */
 +
  /* {{{ pdo_pgsql_create_lob_stream */
- static size_t pgsql_lob_write(php_stream *stream, const char *buf, size_t count)
+ static ssize_t pgsql_lob_write(php_stream *stream, const char *buf, size_t count)
  {
-@@ -211,6 +233,7 @@
+@@ -207,6 +233,7 @@
  {
  	pdo_pgsql_db_handle *H = (pdo_pgsql_db_handle *)dbh->driver_data;
  	if (H) {
@@ -94,7 +94,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
  		if (H->server) {
  			PQfinish(H->server);
  			H->server = NULL;
-@@ -1121,6 +1144,53 @@
+@@ -1140,6 +1167,53 @@
  }
  /* }}} */
  
@@ -145,10 +145,10 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +}
 +/* }}} */
 +
- 
- static const zend_function_entry dbh_methods[] = {
- 	PHP_ME(PDO, pgsqlLOBCreate, NULL, ZEND_ACC_PUBLIC)
-@@ -1107,7 +1172,7 @@
+ static const zend_function_entry *pdo_pgsql_get_driver_methods(pdo_dbh_t *dbh, int kind)
+ {
+ 	switch (kind) {
+@@ -1248,7 +1322,7 @@
  		goto cleanup;
  	}
  
@@ -160,7 +160,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 diff -ruw ext/pdo_pgsql/php_pdo_pgsql_int.h ext/pdo_pgsql/php_pdo_pgsql_int.h
 --- ext/pdo_pgsql/php_pdo_pgsql_int.h	2015-09-01 22:09:37.000000000 +0200
 +++ ext/pdo_pgsql/php_pdo_pgsql_int.h	2019-10-01 05:18:31.085743000 +0200
-@@ -36,6 +36,11 @@
+@@ -32,6 +32,11 @@
  	char *errmsg;
  } pdo_pgsql_error_info;
  
@@ -172,7 +172,7 @@ diff -ruw ext/pdo_pgsql/php_pdo_pgsql_int.h ext/pdo_pgsql/php_pdo_pgsql_int.h
  /* stuff we use in a pgsql database handle */
  typedef struct {
  	PGconn		*server;
-@@ -51,6 +56,7 @@
+@@ -45,6 +50,7 @@
  	zend_bool       emulate_prepares;
  	zend_bool       disable_native_prepares; /* deprecated since 5.6 */
  	zend_bool       disable_prepares;
