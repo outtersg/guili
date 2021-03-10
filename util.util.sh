@@ -185,6 +185,11 @@ chemins()
 	while [ $i -gt 0 ]
 	do
 		eval "racine=\${$i}"
+		i=`expr $i - 1` || true # Crétin d'expr qui sort si son résultat est 0. Ce sera aussi notre condition de sortie, mais laissez-moi faire mon dernier tour de boucle, voulez-vous bien?
+		
+		case "$guili_ppath:" in
+			"$racine":*) continue ;; # Déjà en tête de chemin.
+		esac
 		
 		guili_ppath="$racine:$guili_ppath" # p comme prérequis, ou préfixes.
 		guili_xpath="$racine/bin:$guili_xpath"
@@ -199,8 +204,6 @@ chemins()
 		if [ -e "$dossierRequis/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 			guili_acpath="$racine/share/aclocal:$guili_acpath"
 		fi
-		
-		i=`expr $i - 1` || break # Crétin d'expr qui sort si son résultat est 0. Pas grave, c'est aussi notre condition de sortie.
 	done
 	[ oui = "$rc_local" ] || _cheminsExportes
 }
