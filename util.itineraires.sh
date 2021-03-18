@@ -68,3 +68,19 @@ _itineraireBis()
 		fi
 	done
 }
+
+# Mémorise l'environnement que nous allons modifier ($LD_LIBRARY_PATH etc.).
+# Ainsi si nous devons l'agréger deux fois, nous saurons retrouver la part d'origine.
+itinerairesSauvegardeEnv()
+{
+	# Uniquement la première fois. Les autres fois l'environnement est supposé déjà brouillé par les util.*.sh.
+	[ -z "$guili_memEnv" ] || return 0
+	
+	local var
+	for var in PATH LD_LIBRARY_PATH CMAKE_LIBRARY_PATH LDFLAGS CPPFLAGS CFLAGS CXXFLAGS CMAKE_INCLUDE_PATH PKG_CONFIG_PATH ACLOCAL ACLOCAL_PATH
+	do
+		eval "guili_env_$var=\"\$$var\""
+	done
+	
+	guili_memEnv=1
+}
