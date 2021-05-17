@@ -203,6 +203,8 @@ MODULES_EXTERNES=
 
 moduleNginxSiOption realip http_realip_module
 moduleNginxSiOption geoip http_geoip_module
+moduleNginxSiOption dav http_dav_module
+moduleNginxSiOption dav https://github.com/arut/nginx-dav-ext-module/archive/master.zip
 moduleNginxSiOption upstreamcheck https://github.com/yaoweibin/nginx_upstream_check_module/archive/master.zip
 moduleNginxSiOption headersmore https://github.com/openresty/headers-more-nginx-module/archive/master.zip
 moduleNginxSiOption cscript https://github.com/outtersg/ngx_conf_defs/archive/master.zip
@@ -210,12 +212,23 @@ moduleNginxSiOption twinswelcome https://github.com/outtersg/ngx_twins_welcome/a
 moduleNginxSiOption relinc 'relinc()'
 
 if option geoip ; then prerequis="$prerequis geoip" ; fi
+if option dav ; then prerequis="$prerequis libxml libxslt" ; modifs="$modifs proppatch"; fi
+
+proppatch()
+{
+	# https://github.com/arut/nginx-dav-ext-module/issues/52
+	# Mais il faut aussi réimplémenter a minima le PROPPATCH sous nginx, façon:
+	# http://netlab.dhis.org/wiki/ru:software:nginx:webdav
+	local rustine="`obtenir https://github.com/arut/nginx-dav-ext-module/files/3835180/proppatch.patch.gz`"
+	gunzip < "$rustine" | ( cd "$TMP/$$/modules.dav" && patch -p5 )
+}
 
 # Boulot
 
 destiner
 
 prerequis
+if option dav ; then export CPPFLAGS="-I$destlibxml/include/libxml2 $CPPFLAGS" ; fi
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
