@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-prerequis="libxml"
+prerequis="pkgconfig \\ libxml"
 v 1.1.14
 v 1.1.24
 v 1.1.28
