@@ -51,6 +51,7 @@ v 7.61.0 || true
 v 7.63.0 || true
 v 7.64.0 || true
 v 7.65.3 || true
+v 7.77.0 || true
 
 # OpenSSL:
 # - s'il ne préexiste pas, on ne force pas: on est peut-être sur un système qui a besoin de cURL pour installer OpenSSL.
@@ -58,6 +59,10 @@ v 7.65.3 || true
 if command -v openssl 2>&1 > /dev/null
 then
 	prerequis="$prerequis openssl"
+	if pge $version 7.70 # À vérifier à partir de quelle version il réclame.
+	then
+		OPTIONS_CONF="$OPTIONS_CONF --with-openssl"
+	fi
 fi
 
 # LibSSH: si on la trouve dans notre $INSTALLS, alors on l'utilise. On ne se lie pas à une libssh système.
