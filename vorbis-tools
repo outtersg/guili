@@ -28,6 +28,7 @@ modifs="compil3264 dyld105 ccMac"
 prerequis="libvorbis"
 v 1.1.1 && modifs="$modifs MUTE" || true
 v 1.4.0 || true
+v 1.4.2 || true
 
 MUTE()
 {

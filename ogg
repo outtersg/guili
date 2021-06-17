@@ -34,6 +34,7 @@ v 1.4.0.3 && prerequis="libao 1.1.0 libogg 1.3.0 libvorbis 1.3.3 vorbis-tools 1.
 v 1.4.0.4 && prerequis="libao 1.2.0 libogg 1.3.2 libvorbis 1.3.4 vorbis-tools 1.4.0" || true
 v 1.4.0.5 && prerequis="libao 1.2.0 libogg 1.3.3 libvorbis 1.3.6 vorbis-tools 1.4.0" || true
 v 1.4.0.6 && prerequis="libao 1.2.0 libogg 1.3.4 libvorbis 1.3.6 vorbis-tools 1.4.0" || true
+v 1.4.2.1 && prerequis="libao 1.2.0 libogg 1.3.5 libvorbis 1.3.7 vorbis-tools 1.4.2" || true
 
 prerequis
 destiner

@@ -30,6 +30,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 0.7 && prerequis="pkgconfig \\ opus libogg openssl" && modifs="sansCompat" || true
 v 0.9 || true
 v 0.11 || true
+v 0.12 || true
 
 # Modifications
 
