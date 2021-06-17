@@ -25,6 +25,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 . "$SCRIPTS/util.sh"
 
 modifs="compil3264 dyld105 ccMac"
+prerequis="libogg"
 v 1.1.1 || true
 v 1.1.2 || true
 v 1.3.2 || true

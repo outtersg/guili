@@ -26,9 +26,9 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 0.1.5 && prerequis="opus ogg" || true
+v 0.1.5 && prerequis="pkgconfig \\ opus ogg" || true
 v 0.1.6 || true
-v 0.1.9 && prerequis="opus ogg flac" || true
+v 0.1.9 && prerequis="pkgconfig \\ opus ogg flac" || true
 v 0.1.10 || true
 v 0.2 || true
 
