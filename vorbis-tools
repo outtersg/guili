@@ -29,11 +29,12 @@ modifs="compil3264 dyld105 ccMac"
 # Par contre il détecte alors tout plein d'autres trucs, du genre un curl dont le .h semble avoir un #if sans #endif.
 prerequis="pkgconfig \\ libvorbis iconv curl openssl"
 v 1.1.1 && modifs="$modifs MUTE" || true
-v 1.4.0 || true
+v 1.4.0 && retirerModif MUTE || true
 v 1.4.2 || true
 
 MUTE()
 {
+	# Sur certaines versions, CURLOPT_MUTE (optionnel dans libcurl) n'était pas protégé par un #ifdef.
 	filtrer ogg123/http_transport.c grep -v CURLOPT_MUTE
 }
 
