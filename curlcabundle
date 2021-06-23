@@ -79,7 +79,11 @@ installerAC()
 	if [ ! -s "$destoac" ]
 	then
 		mkdir -p "$desto/$arbo"
+		(
+			# Sur Mac, ce DYLD_LIBRARY_PATH réglé à LD_LIBRARY_PATH pour les besoins des compil, fiche la grouille à l'exécution du compilé (notre $bin/curl), car il s'emmêle les pinceaux entre les deux libiconv chargés (celui GNU, via les dépendances de dépendances du cURL GuiLI, qui définit libiconv(), et celui Apple, via libcups via libSystem etc., qui définit liconv(). Résultat: iconv() introuvable dans lib(gnu)iconv.dylib.
+			export DYLD_LIBRARY_PATH=
 		"$bin/curl" -s "$@" -L http://curl.haxx.se/ca/cacert.pem -o "$destoac.original"
+		)
 		cp "$destoac.original" "$destoac" # Équivalent d'un perso "$destp"
 		rm -Rf "$destp"
 	fi
