@@ -111,7 +111,10 @@ determinerFinalisationInstallSelonPrerequis()
 if [ -e "$SCRIPTS/curlcabundle" ] && faitDuTls11
 then
 	. "$SCRIPTS/curlcabundle"
-	installerACDest() { PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC "$@" ; }
+	installerACDest()
+	{
+		PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC "$@"
+	}
 else
 	installerACDest() { true ; }
 fi
