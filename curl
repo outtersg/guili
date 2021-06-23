@@ -113,6 +113,7 @@ then
 	. "$SCRIPTS/curlcabundle"
 	installerACDest()
 	{
+		[ -z "$GUILI_MOIRE" ] || return 0
 		PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC "$@"
 	}
 else
