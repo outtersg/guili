@@ -33,8 +33,8 @@ v 3.7.17 && v_annee=2013 && modifs= || true
 v 3.14.1 && v_annee=2016 || true
 v 3.22.0 && v_annee=2018 || true
 v 3.29.0 && v_annee=2019 || true
-v 3.35.5 && v_annee=2021 || true
-v 3.36.0 && vautomake=">= 1.15 < 1.16" || true
+v 3.35.5 && v_annee=2021 && vautomake=">= 1.15 < 1.16" || true
+v 3.36.0 || true
 
 # Modifications
 
