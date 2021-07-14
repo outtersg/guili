@@ -34,9 +34,18 @@ v 3.14.1 && v_annee=2016 || true
 v 3.22.0 && v_annee=2018 || true
 v 3.29.0 && v_annee=2019 || true
 v 3.35.5 && v_annee=2021 || true
-v 3.36.0 || true
+v 3.36.0 && vautomake=">= 1.15 < 1.16" || true
 
 # Modifications
+
+pcre()
+{
+	options="$options --enable-pcre"
+	patch -p0 < "$SCRIPTS/sqlite_pcre.patch"
+	pg 3.36 $version || patch -p0 < "$SCRIPTS/sqlite_pcre.3.36.patch"
+	local pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
+	cat "$pcre_c" >> sqlite3.c
+}
 
 foutuTclPourLePointH()
 {
@@ -53,6 +62,12 @@ version_="`echo "$version" | tr . _`"
 pge "$version" 3.6.24 && archive="http://www.sqlite.org/sqlite-amalgamation-$version_.zip"
 version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
 pge $version 3.7 && archive="http://www.sqlite.org/$v_annee/sqlite-autoconf-$version0.tar.gz"
+
+if optionSi pcre
+then
+	prerequis="autoconf automake $vautomake m4 \\ $prerequis" # La modification du configure.ac déclenche une regénération du reste.
+	modifs="$modifs pcre"
+fi
 
 destiner
 
