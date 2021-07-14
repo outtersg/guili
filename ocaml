@@ -35,6 +35,7 @@ v 3.12.0 || true
 v 3.12.1 || true
 v 4.03.0 && modifs="" || true
 v 4.04.1 && modifs="installBytePourrie" || true
+v 4.12.0 && modifs= || true
 
 # Modifications
 
