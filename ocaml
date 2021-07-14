@@ -21,12 +21,12 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=ocaml
-
 # Historique des versions gérées
+
+prerequis="make \\"
 
 v 3.09.3 && modifs="sansGcc" || true
 v 3.10.2 || true
@@ -70,9 +70,10 @@ sansGcc()
 
 version_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 archive="http://caml.inria.fr/pub/distrib/$logiciel-$version_maj/$logiciel-$version.tar.gz"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+prerequis
+
+destiner
 
 obtenirEtAllerDansVersion
 
@@ -88,6 +89,5 @@ make opt
 
 echo Installation… >&2
 sudo make install
-sutiliser $logiciel-$version
 
-rm -Rf $TMP/$$
+sutiliser
