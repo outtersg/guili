@@ -21,15 +21,13 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=unison
-
-v 2.40.63 && prerequis="ocaml < 4" && modifs="espaces" || true
+v 2.40.63 && prerequis="ocaml < 4 make \\" && modifs="espaces" || true
 v 2.40.128 || true
-v 2.48.4 && prerequis="ocaml >= 4 < 4.04" && modifs="espaces sansVersionMac" || true
-v 2.51.2 && prerequis="ocaml >= 4" || true
+v 2.48.4 && prerequis="ocaml >= 4 < 4.04 make \\" && modifs="espaces sansVersionMac" || true
+v 2.51.2 && prerequis="ocaml >= 4 make \\" || true
 
 # Modifications
 
@@ -47,12 +45,11 @@ espaces()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://www.seas.upenn.edu/~bcpierce/unison//download/releases/unison-$version/unison-$version.tar.gz"
 
-[ -d "$dest" ] && exit 0
-
 prerequis
+
+destiner
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
@@ -69,6 +66,4 @@ echo Installation… >&2
 sudo mkdir -p "$dest/bin"
 sudo cp unison "$dest/bin/"
 
-sutiliser $logiciel-$version
-
-rm -Rf "$TMP/$$"
+sutiliser
