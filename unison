@@ -28,6 +28,7 @@ v 2.40.63 && prerequis="ocaml < 4 make \\" && modifs="espaces" || true
 v 2.40.128 || true
 v 2.48.4 && prerequis="ocaml >= 4 < 4.04 make \\" && modifs="espaces sansVersionMac" || true
 v 2.51.2 && prerequis="ocaml >= 4 make \\" || true
+v 2.51.4 || true
 
 # Modifications
 
@@ -45,7 +46,8 @@ espaces()
 
 # Variables
 
-archive="http://www.seas.upenn.edu/~bcpierce/unison//download/releases/unison-$version/unison-$version.tar.gz"
+archive="https://github.com/bcpierce00/unison/archive/refs/tags/v$version.tar.gz"
+pge $version 2.51.4 || archive="http://www.seas.upenn.edu/~bcpierce/unison//download/releases/unison-$version/unison-$version.tar.gz"
 
 prerequis
 
@@ -53,6 +55,7 @@ destiner
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
+[ ! -d src ] || cd src
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
