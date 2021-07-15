@@ -55,3 +55,6 @@ sudoku mkdir -p "$dest/lib"
 sudoku cp sqlite-pcre.so "$dest/lib/"
 
 sutiliser
+
+echo "[33m# Pensez à activer l'extension en ajoutant dans votre \$HOME/.sqliterc un:[0m" >&2
+echo ".load $INSTALLS/lib/sqlite-pcre.so"
