@@ -27,6 +27,8 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 1.5.22 || true
+v 2.2.6 || true
+v 2.2.6.1 || true
 v 2.4.2 || true
 v 2.4.6 && prerequis="m4 >= 1.4.16" || true
 
@@ -35,6 +37,10 @@ v 2.4.6 && prerequis="m4 >= 1.4.16" || true
 # Variables
 
 archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz"
+case "$version" in
+	2.2.6.1) archive="`echo "$archive" | sed -e "s/$version/${version}b/"`" ;;
+	2.2.6) archive="`echo "$archive" | sed -e "s/$version/${version}a/"`" ;;
+esac
 
 destiner
 
