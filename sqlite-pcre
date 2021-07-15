@@ -27,20 +27,19 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 prerequis="sqlite pcre"
-v 2007.01.20 && rev=cee3 || true
+v 2007.01.20 && versionComplete="$version.4229ecc3.git" || true
 
 # Variables
 
 archive="http://git.altlinux.org/people/at/packages/?p=sqlite3-pcre.git;a=blob_plain;f=pcre.c;h=$rev"
+archive_git="https://github.com/outtersg/sqlite3-pcre.git"
 
 prerequis
 
 destiner
 
 echo Obtention et décompression… >&2
-cd "$TMP"
-source="`obtenir "$archive" sqlite3-pcre.$rev.c`"
-cp "$source" ./pcre.c
+obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
