@@ -30,6 +30,7 @@ v 1.4.15 || true
 v 1.4.16 || true
 v 1.4.17 || true
 v 1.4.18 || true
+v 1.4.19 || true
 
 libcStatique()
 {
