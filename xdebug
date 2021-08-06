@@ -39,7 +39,8 @@ case `php-config --version | cut -d . -f 1-2` in
 	7.2) argVersion="$argVersion >= 2.6" ;;
 	7.[34]) argVersion="$argVersion >= 2.7" ;;
 	7.*) argVersion="$argVersion >= 2.7" ;;
-	8.*) argVersion="$argVersion >= 3.0" ;;
+	8.0) argVersion="$argVersion >= 3.0" ;;
+	8.*) argVersion="$argVersion >= 3.1" ;;
 esac
 
 # Historique des versions gérées
