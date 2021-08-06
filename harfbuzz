@@ -55,7 +55,8 @@ fi
 
 # Variables
 
-archive="http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$version.tar.bz2"
+archive="http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$version.tar.xz"
+pge $version 2.5.0 || archive="`echo $archive | sed -e s/xz/bz2`"
 
 destiner
 
