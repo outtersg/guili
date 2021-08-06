@@ -147,6 +147,15 @@ case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
 esac
 prerequisIcu # Demandons à nos prérequis leur version qui se lie à l'ICU que l'on impose.
 
+# Modules simples.
+for module in bcmath
+do
+	if option "$module"
+	then
+		plus OPTIONS_CONF --enable-$module
+	fi
+done
+
 # Fin octobre 2019, prerequis() accumule les variables $*FLAGS de tous nos prérequis, sans dédoublonnage (de peur que l'ordre joue).
 # Cela pose problème au configure de PHP qui fait un sed -e "s#$*FLAGS#…#", ce qui explose certaines implémentations de sed (limités à 2048 octets pour leur expression à remplacer).
 # De toute manière les lignes à rallonge ne sont pas les bienvenues.
