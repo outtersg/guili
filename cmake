@@ -43,6 +43,8 @@ v 3.14.7 || true
 v 3.15.7 || true
 v 3.16.8 || true
 v 3.17.3 || true
+v 3.20.3 || true
+v 3.21.1 || true
 fi
 
 # Modifications
