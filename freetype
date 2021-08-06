@@ -42,6 +42,15 @@ ftconfig()
 {
 	# À partir de la 2.9, freetype fait du pkg-config; on demande cependant freetype-config pour compatibilité (ex.: PHP le requiert encore jusq'aux versions 7.3.x).
 	OPTIONS_CONF="$OPTIONS_CONF --enable-freetype-config"
+	# De plus il distingue Libs de Libs.private (dans lequel il met par exemple -lbz2); sauf que les utilisateurs plantent car freetype-config / pkg_config ne le leur signale pas.
+	patch -p0 <<TERMINE
+--- builds/unix/freetype2.in
++++ builds/unix/freetype2.in
+@@ -9,2 +9,1 @@
+-Libs: -L\${libdir} -lfreetype
+-Libs.private: %LIBS_PRIVATE%
++Libs: -L\${libdir} -lfreetype %LIBS_PRIVATE%
+TERMINE
 }
 
 # Reconstitution du $GUILI_MOIRE si un intermédiaire l'a bousillé.
