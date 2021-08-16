@@ -41,11 +41,14 @@ v 9.6.15 || true
 v 9.6.16 || true
 v 9.6.19 || true
 v 9.6.22 || true
+v 9.6.23 || true
 v 12.4 || true
 v 12.6 || true
 v 12.7 || true
+v 12.8 || true
 v 13.2 || true
 v 13.3 || true
+v 13.4 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
