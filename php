@@ -23,6 +23,7 @@ set -e
 
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.guili.curl.sh"
 
 OPTIONS_CONF=
 
@@ -493,6 +494,10 @@ if pge $version 5.5 ; then
 else
 	echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2
 fi
+	local ccb="`curlcabundle`"
+	# /!\ Forcer curl.cainfo empêche PHP d'aller lire une variable d'environnement \$CURL_CA_BUNDLE (si l'on souhaite pouvoir changer de liste d'AC comme de chemise).
+	# D'un autre côté ça apporte une cohérence au système (tout le monde utilise la même liste, et si vous voulez ajouter une AC vous l'ajoutez à la liste système, ou alors vous redéfinissez votre liste d'AC au moment de l'appel, mais pas par variable d'environnement).
+	[ -z "$ccb" ] || echo "curl.cainfo = $ccb"
 }
 
 _patronTemp()
