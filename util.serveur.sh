@@ -391,7 +391,7 @@ serveurFreebsd()
 			;;
 	esac
 	
-	mkdir -p "$desttemp/etc/rc.d" "$desttemp/var/run"
+	mkdir -p "$desttemp/etc/rc.d"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
 #!/bin/sh
 # PROVIDE: $nomPropre
