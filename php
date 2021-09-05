@@ -500,7 +500,7 @@ fi
 	local ccb="`curlcabundle`"
 	# /!\ Forcer curl.cainfo empêche PHP d'aller lire une variable d'environnement \$CURL_CA_BUNDLE (si l'on souhaite pouvoir changer de liste d'AC comme de chemise).
 	# D'un autre côté ça apporte une cohérence au système (tout le monde utilise la même liste, et si vous voulez ajouter une AC vous l'ajoutez à la liste système, ou alors vous redéfinissez votre liste d'AC au moment de l'appel, mais pas par variable d'environnement).
-	[ -z "$ccb" ] || echo "curl.cainfo = $ccb"
+	[ -z "$ccb" ] || { echo "openssl.cafile = $ccb" ; echo "curl.cainfo = $ccb" ; }
 }
 
 _patronTemp()
