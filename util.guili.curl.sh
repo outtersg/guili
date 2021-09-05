@@ -17,3 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# Renvoie l'emplacement du CURL_CA_BUNDLE tel que configuré dans le curl accessible.
+# Si possible en renvoie un emplacement générique (lien vers celui propre à la version de cURL).
+curlcabundle()
+{
+	# COPIE: affecterArboSiArboDeGuillaume dans curlcabundle (le script d'install).
+	local ccb="`curl-config --ca`"
+	[ -n "$ccb" ] || return 1
+	local ccb2="`echo "$ccb" | sed -e "s#/curl[-+][^/]*##"`"
+	[ ! -f "$ccb2" ] || ccb="$ccb2"
+	echo "$ccb"
+}
