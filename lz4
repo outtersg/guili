@@ -47,11 +47,11 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-export PREFIX="$dest"
 
 echo Compilation… >&2
 make
 
 echo Installation… >&2
-sudo make install
+sudoku make install PREFIX="$dest"
+
 sutiliser
