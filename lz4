@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 prerequis="make \\ bzip2"
 v 1.8.3 || true
 v 1.9.2 || true
+v 1.9.3 || true
 
 # Modifications
 
