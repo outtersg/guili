@@ -83,6 +83,12 @@ listeZip()
 
 #- Récupération et décompression -----------------------------------------------
 
+nomArchive()
+{
+	echo "$1" | sed \
+		-e 's#\([^/]*\)\(/archive/refs/tags/\)v*\([0-9][^/]*\)$#\1\2\1-\3#'
+}
+
 # Téléchargege $1 et va dans le dossier obtenu en décompressant.
 obtenirEtAllerDans()
 {
@@ -94,7 +100,9 @@ obtenirEtAllerDans()
 	fichier="$2"
 	if [ -z "$fichier" ]
 	then
-		fichier="`basename "$1"`"
+		fichier="`nomArchive "$1"`"
+		fichier="`basename "$fichier"`"
+		# À FAIRE: ce qui suit doit remonter dans nomArchive:
 		echo "$1" | egrep '/archive/v*[0-9][0-9.]*(\.tar|\.gz|\.tgz|\.xz|\.bz2|\.7z|\.zip|\.Z){1,2}$' && fichier="`echo "$1" | sed -e 's#/archive/v*#-#' -e 's#.*/##'`" || true
 	fi
 	archive=`obtenir "$1" "$fichier"`
