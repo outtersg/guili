@@ -48,6 +48,8 @@ v 2.7.16 || true
 v 3.4.3 && modifs="incdirbourrin testsLocalhost" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
 v 3.7.4 || true
+v 3.9.5 || true
+v 3.9.7 || true
 
 # Modifications
 
