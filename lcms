@@ -30,6 +30,7 @@ v 1.16 || true
 v 2.7 && modifs="sansRegister" || true
 v 2.8 || true
 v 2.9 || true
+v 2.12 || true
 
 # Modifications
 
