@@ -33,6 +33,7 @@ v 0.9.37 || true
 v 1.3.2 || true
 v 2.3.1 && ft_v=">= 2.8" prerequis="pkgconfig make \\ gettext icu graphite >= 1.2 freetype+hb $ft_v" || true
 v 2.6.7 || true
+v 2.9.1 && prerequis="autoconf automake m4 libtool \\ $prerequis" && modifs="autoc $modifs" || true
 
 # Modifications
 
@@ -54,8 +55,16 @@ else
 	argOptions="`options "$argOptions-ft"`"
 fi
 
+configure=./configure
+autoc()
+{
+	[ -f configure ] || { filtrer autogen.sh sed -e 's/which/command -v/g' && configure=./autogen.sh ; }
+}
+
 # Variables
 
+archive="https://github.com/harfbuzz/harfbuzz/archive/refs/tags/$version.tar.gz"
+pge $version 2.7 || \
 archive="http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-$version.tar.xz"
 pge $version 2.5.0 || archive="`echo $archive | sed -e s/xz/bz2`"
 
@@ -69,7 +78,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" $OPTIONS_CONF
+$configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
