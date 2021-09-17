@@ -26,11 +26,13 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 3.29.3 && v_nspr="4.13.1" && prerequis="zlib nspr $v_nspr" && modifs="pasGcc unistd alertesZlib" || true
-v 3.40.1 && v_nspr="4.20" && prerequis="zlib nspr $v_nspr" && modifs="$modifs nonInitialisees putenv le64" || true
+v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib" || true
+v 3.40.1 && v_nspr="4.20" && modifs="$modifs nonInitialisees putenv le64" || true
 v 3.42.1 || true
-v 3.52.1 && v_nspr="4.25" && prerequis="zlib nspr $v_nspr" || true
+v 3.52.1 && v_nspr="4.25" || true
 v 3.53 && modifs="$modifs Iutil" || true
+
+prerequis="make \\ $prerequis zlib nspr $v_nspr"
 
 # Modifications
 
