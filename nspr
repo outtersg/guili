@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 4.13.1 && prerequis="make \\" && modifs="" || true
 v 4.20 || true
 v 4.25 || true
+v 4.32 || true
 
 # Modifications
 
