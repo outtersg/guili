@@ -42,7 +42,7 @@ sansRegister()
 # Variables
 
 archive="http://www.littlecms.com/$logiciel-$version.tar.gz"
-archive="http://vorboss.dl.sourceforge.net/project/lcms/lcms/$version/lcms2-$version.tar.gz";
+archive="https://deac-ams.dl.sourceforge.net/project/lcms/lcms/$version/lcms2-$version.zip"
 
 optionSi jpeg/libjpeg || true
 optionSi tiff/libtiff || true
