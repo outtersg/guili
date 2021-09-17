@@ -39,6 +39,7 @@ v 0.72.0 && modifs="$modifs nssVisible" && prerequis="$prerequis nss curl" || tr
 v 0.75.0 || true
 v 0.84.0 || true
 v 0.89.0 || true
+v 21.09.0 && modifs="$modifs sanssplash incpng" || true
 
 # Pour LibreOffice, il nous faut les en-têtes internes (Inkscape a le même souci, cf. https://bugs.launchpad.net/inkscape/+bug/254849).
 if option xpdf
@@ -48,6 +49,20 @@ then
 fi
 
 # Modifications
+
+incpng()
+{
+	# "HtmlOutputDev.cc: fatal error: 'png.h' file not found" parce que png/include ne fait pas partie des CFLAGS transmis par CMake dans utils.
+	filtrer utils/CMakeLists.txt sed -e '/target_link_libraries(pdftohtml/i\
+target_include_directories(pdftohtml PRIVATE '"$destlibpng/include"')
+'
+}
+
+sanssplash()
+{
+	# "Boost recommended for Splash.  Use ENABLE_BOOST=OFF to skip.": ben on s'en fout, on fait du Cairo.
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_BOOST=OFF"
+}
 
 nssVisible()
 {
