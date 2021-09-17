@@ -31,8 +31,8 @@ OPTIONS_CMAKE=
 
 prerequis="python cmake pkgconfig \\ libpng"
 v 0.22.5 && modifs="llongmax" || true
-v 0.24.4 && modifs="llongmax" || true
-v 0.32.0 && modifs="llongmax" && prerequis="$prerequis libopenjp2" || true
+v 0.24.4 || true
+v 0.32.0 && prerequis="$prerequis libopenjp2" || true
 v 0.34.0 || true
 v 0.52.0 && prerequis="$prerequis cairo libtiff curl" || true
 v 0.72.0 && modifs="$modifs nssVisible" && prerequis="$prerequis nss curl" || true # Pour la signature des PDF.
