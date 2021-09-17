@@ -27,11 +27,24 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 prerequis="make \\ expat zlib"
-v 2.38.0 && modifs="sfFlags gnu89" || true
+v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf" || true
 v 2.40.1 || true
 v 2.44.0 || true
 
 # Modifications
+
+sansps2pdf()
+{
+	# Mais on s'en fout d'avoir le manuel en PDF!
+	# Et en plus pour ça ils te codent en dur un ps2pdf qui en cas d'absence vautre tout le make.
+	# https://github.com/Homebrew/homebrew-core/pull/57132, https://github.com/vvulpes0/homebrew-vv/blob/master/Formula/graphviz.rb
+	grep -rl '\(EXTRA_DIST\|DATA\).*pdf' . | while read f
+	do
+		filtrer "$f" sed -E \
+			-e '/^(DATA|EXTRA_DIST) *=/s/\$\(pdf_DATA\)//g' \
+			-e '/install-data-am:/s/install-pdfDATA//g'
+	done
+}
 
 sfFlags()
 {
