@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-prerequis="make \\ expat zlib"
+prerequis="make pkgconfig \\ expat zlib"
 v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf" || true
 v 2.40.1 || true
 v 2.44.0 || true
