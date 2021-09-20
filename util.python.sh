@@ -60,8 +60,14 @@ pylanceur()
 	cat <<TERMINE
 #!/bin/sh
 $chaineAbs
+oeufs()
+{
+	unset IFS
+	local d
+	find "\$@" -maxdepth 1 -name "*.egg" | tr '\\012' :
+}
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
-export PYTHONPATH="`pypadest`"
+export PYTHONPATH="`pypadest`:\`oeufs "$INSTALLS/$PYEXT/`pyp`"\`"
 export SSL_CERT_FILE="$SSL_CERT_FILE"
 "\$SCRIPTS/$lance" "\$@"
 TERMINE
