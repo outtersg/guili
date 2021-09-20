@@ -55,6 +55,13 @@ sudokupy()
 
 pylanceur()
 {
+	# /!\ Ne fonctionne qu'au premier niveau, car certains logiciels (ex.: meson), invoqués par leur lanceur, génèrent ensuite des lignes de commande "python meson.py", court-circuitant le lanceur.
+	# N.B.: la partie LD_LIBRARY_PATH est normalement prise en charge par pythonenboiter (du moment que le LD_LIBRARY_PATH peut être codé en dur à l'installation).
+	# N.B.: la partie PYTHONPATH est normalement prise en charge par pyext.pth.
+	# Bref en théorie on n'a plus à appeler cette fonction.
+	# À FAIRE: alerte si quelqu'un s'avise encore de l'appeler.
+	# À FAIRE: la retirer si le monde continue à tourner alors que plus personne ne l'utilise.
+	
 	local lance="$1"
 	local chaineAbs="`egrep '[dD]elieS\(|absolutiseScripts\(|delie\(' < "$install_moi"`"
 	cat <<TERMINE

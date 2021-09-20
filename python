@@ -83,6 +83,9 @@ pythonenboiter()
 			# - Les scripts installés post-remplacement (ex.: pip, easy_install, etc.) détectent qu'ils ont été lancés en fait par python.bin (leur $0), et donc codent celui-ci comme interpréteur. Sur ce dernier point on est bons, mais le script client ne passe alors plus par la surcharge d'environnement du …/bin/python.
 			# On passe donc par un binaire (qui ne modifie surtout pas l'argv[0] en appelant le .bin, de manière à ce que le binaire réel se croie appelé python).
 			# $PYEXT: pour éviter de polluer notre install, les extensions installées après Python lui-même iront se placer dans un dossier centralisé. On l'ajoute donc à notre chemin.
+			# Avantage supplémentaire: notre installation d'un 3.9.1, puis 3.9.2, puis 3.9.3 liront le même $PYEXT: inutile d'installer trois fois chaque extension.
+			# Mais reste encore un souci: par PYTHONPATH, on atteint les modules inclus directement sous le dossier. Par contre, ceux figurant sous un sous-dossier .egg, même si celui-ci est référencé par un easy-install.pth, ne sont pas chargés: les .pth ne sont lus que depuis le site-packages du dossier de python, codé en dur.
+			# Donc, du moment que les site-packages ne sont pas bloqués, le pyext.pth (cf. plus bas) sera plus robuste.
 			nom="`basename "$f"`"
 			cp "$f" "$d/bin/$nom.bin"
 			sed \
