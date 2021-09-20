@@ -107,7 +107,7 @@ i\
 archive="http://poppler.freedesktop.org/poppler-$version.tar.xz"
 pge $version 0.24 || archive="http://poppler.freedesktop.org/poppler-$version.tar.gz"
 
-optionSi ft/freetype && prerequis="$prerequis bzip2" && export LDFLAGS="$LDFLAGS -lbz2" || true
+optionSi ft/freetype || true
 optionSi glib || true
 
 destiner
