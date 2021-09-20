@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 0.50.0 && prerequis="python >= 3.5" || true
 v 0.51.1 || true
 v 0.52.1 || true
+v 0.59.1 || true
 
 # Modifications
 
