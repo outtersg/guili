@@ -98,6 +98,13 @@ pythonenboiter()
 	sudoku "$SCRIPTS/installer" "$d" "$dest"
 }
 
+# pyp() mais avec la version planifiée pour install et non la courante.
+pypo()
+{
+	deux() { printf "$1.$2" ; }
+	echo "lib/python`IFS=. ; tifs deux $version`/site-packages"
+}
+
 selinuxrobuste()
 {
 	# Le module SELinux "public" est une simple coquille d'amorçage du module SELinux système (qui lui possède entre autre le .so avec les vraies fonctions).
