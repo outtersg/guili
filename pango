@@ -51,12 +51,20 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if pge $version 1.40
+then
+	meson build --prefix="$dest"
+	make=ninja
+	cd build
+else
 ./configure --prefix="$dest" $OPTIONS_CONF
+	make=make
+fi
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
-sudo make install
+sudoku $make install
 
 sutiliser
