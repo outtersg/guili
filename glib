@@ -44,18 +44,13 @@ v 2.58.2 || true
 v 2.58.3 || true
 # Meson + Ninja en 2.60.
 # zlib lorsque meson a été compilé avec une zlib dynamique, sans quoi meson charge le paquet Python zquelquechose qui charge binascii qui explose s'il ne trouve pas libz.so.x
-v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ cheminMeson || true
+v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ || true
 v 2.60.6 || true
 v 2.63.3 || true
 
 archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.34.3 && archive="http://ftp.acc.umu.se/pub/GNOME/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
-
-cheminMeson()
-{
-	export PYTHONPATH="`dest="$destmeson" pypadest`"
-}
 
 environ()
 {
