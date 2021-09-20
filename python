@@ -96,6 +96,11 @@ pythonenboiter()
 		done
 	done
 	sudoku "$SCRIPTS/installer" "$d" "$dest"
+	
+	# Constitution d'un .pth sachant charger depuis $PYEXT;
+	# non seulement les .py (ça on sait déjà faire, $PYEXT étant présumé dans $PYTHONPATH),
+	# mais aussi les .pth (par exemple easy-install.pth, et donc tous les .egg).
+	echo "import sys; addsitedir(\"$INSTALLS/$PYEXT/`pypo`\");" | sudokupy sh -c "cat > $dest/`pypo`/pyext.pth"
 }
 
 # pyp() mais avec la version planifiée pour install et non la courante.
