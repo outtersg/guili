@@ -43,18 +43,6 @@ ftconfig()
 {
 	# À partir de la 2.9, freetype fait du pkg-config; on demande cependant freetype-config pour compatibilité (ex.: PHP le requiert encore jusq'aux versions 7.3.x).
 	OPTIONS_CONF="$OPTIONS_CONF --enable-freetype-config"
-	# De plus il distingue Libs de Libs.private (dans lequel il met par exemple -lbz2); sauf que les utilisateurs plantent car freetype-config / pkg_config ne le leur signale pas.
-	# En outre, même s'il y inclut -lbz2, il faut lui forcer le -L correspondant, sans quoi on déporte la nécessité de ce -L sur le logiciel appelant
-	# (voire même, pour meson, ça ne sert à rien, car ce dernier fait de l'isolation de processus et ne cherche le -l que dans les -L renvoyés par le _même_ appel à pkg-config: donc fournir le -L "à part" ne fonctionne pas).
-	# À FAIRE: ceci semblait poser problème lorsque freetype état compilée avec un mélange de bzip2 statiques et dynamiques; est-ce encore nécessaire maintenant que tout est compilé en dynamique (et que le -lbz2 utilisé pour compiler freetype.so est censé inscrire libbzip2.so en dépendance de libfreetype.so)?
-	patch -p0 <<TERMINE
---- builds/unix/freetype2.in
-+++ builds/unix/freetype2.in
-@@ -9,2 +9,1 @@
--Libs: -L\${libdir} -lfreetype
--Libs.private: %LIBS_PRIVATE%
-+Libs: -L\${libdir} -L$destbzip2/lib -lfreetype %LIBS_PRIVATE%
-TERMINE
 }
 
 # Reconstitution du $GUILI_MOIRE si un intermédiaire l'a bousillé.
