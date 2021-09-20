@@ -30,6 +30,7 @@ esac
 
 # Historique des versions gérées
 
+prerequis="make \\"
 v 2.24 && modifs="sbrk" || true
 v 2.27 || true
 v 2.28.1 || true
