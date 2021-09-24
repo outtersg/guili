@@ -44,6 +44,7 @@ v 8.1.608 && demarrage="" || true
 v 8.1.804 || true
 #v 8.1.805 || true # digraph.c:16:2: error: unterminated conditional directive: #if defined(FEAT_DIGRAPHS) || defined(PROTO)
 #v 8.1.1176 || true # Toujours pas corrigé
+v 8.2.3455 && modifs="$modifs char_from_string" || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
@@ -51,6 +52,30 @@ v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
 
 # Modifications.
+
+char_from_string()
+{
+	# Fonction définie deux fois (vim9execute.c et eval.c).
+	#filtrer src/eval.c sed -e s/char_from_string/char_from_string_orig/g
+	# On transforme une des deux en simple déclaration.
+	filtrer src/eval.c sed -e '/^char_from_string/{
+s/$/;/
+h
+a\
+#if 0
+}' -e '/^}/{
+x
+s/././
+t-)
+x
+b
+:-)
+s/.*//
+x
+a\
+#endif
+}'
+}
 
 ncursesw()
 {
