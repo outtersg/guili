@@ -39,7 +39,10 @@ telech()
 	[ -n "$l" ] || l="$u"
 	commande=curl
 	[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
+	(
+		export PATH="$INSTALLS/bin:$PATH" LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
 	affSiBinaire $commande -L -k -s "$u"
+	)
 }
 
 #- Décompression ---------------------------------------------------------------
