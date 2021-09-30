@@ -132,6 +132,11 @@ v 8.0.9 || true
 v 8.0.10 || true
 v 8.0.11 || true
 
+if pge $version 7.2 # Ou plus tôt que ça?
+then
+	prerequis="`echo "$prerequis" | sed -e "s/ossl10/ossl11/g"`"
+fi
+
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
 
