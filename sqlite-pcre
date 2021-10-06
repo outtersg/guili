@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 prerequis="sqlite pcre"
 v 2007.01.20 && versionComplete="$version.4229ecc3.git" || true
 v 2007.01.20.1 && versionComplete="$version.bc988508.git" || true
+v 2021.10.06 && versionComplete="$version.ae8a1c03.git" || true
 
 # Variables
 
