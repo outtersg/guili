@@ -151,6 +151,12 @@ then
 	OPTIONS_CONF="$OPTIONS_CONF --without-mysql --without-pdo-mysql"
 fi
 
+# Si SQLite est présent en GuiLI, on l'utilise: il est sans doute plus moderne (cf. sqlite-pcre).
+if versions sqlite | grep -q .
+then
+	prerequis="$prerequis sqlite"
+fi
+
 # Sur de très vieilles machines, PHP 7, qui utilise du sed -E, va se vautrer. Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
 PATH_EP="`echo "$PATH" | tr : '\012' | egrep -v "^$INSTALLS/s?bin$" | tr '\012' ':' | sed -e 's/:$//'`" # Le PATH sous lequel tournera le configure sera celui d'exclusivementPrerequis.
 case "`echo gloc | PATH="$PATH_EP" sed -E -e 's/g|c/p/g' 2> /dev/null`" in
@@ -485,6 +491,7 @@ pge $version 5.6 && OPTIONS_CONF="$OPTIONS_CONF --enable-phpdbg" || true
 commande mysql && OPTIONS_CONF="$OPTIONS_CONF --with-mysql --with-pdo-mysql" || true
 plus OPTIONS_CONF `if pge $version 7.4.0 ; then printf "%s" --with-freetype ; else printf "%s" --with-freetype-dir="$destfreetype" ; fi`
 plus OPTIONS_CONF --enable-calendar
+[ -z "$version_sqlite" ] || plus OPTIONS_CONF --with-sqlite3="$destsqlite" --with-pdo-sqlite="$destsqlite"
 # gettext: pour Horde
 # ssl: pour Horde IMP
 ./configure --prefix="$dest" --with-zlib --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets $OPTIONS_CONF #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
