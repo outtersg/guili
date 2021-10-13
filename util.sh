@@ -73,7 +73,18 @@ cheminsGuili()
 	export CFLAGS="-O3 $CFLAGS"
 	export CXXFLAGS="-O3 $CXXFLAGS"
 }
+# Détecte le "degré de modernité" du GuiLI appelant.
+# Cette détection se fonde sur la fonction par laquelle est calculé SCRIPTS.
+detecterModernite()
+{
+	MODERNITE=0
+	# 2: exclusivementPrerequis: le logiciel sait déclarer tous ses prérequis plutôt que de reposer sur une détection (contraignant, mais maîtrisé et reproductible).
+	if command -v DelieS > /dev/null 2>&1 ; then MODERNITE=2
+	fi
+}
+
 chemins_init=cheminsGuili
+detecterModernite
 
 . "$SCRIPTS/util.args.sh"
 . "$SCRIPTS/util.guili.sed.sh" # Va nous servir pour beaucoup de choses.
