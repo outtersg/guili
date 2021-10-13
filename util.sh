@@ -78,8 +78,10 @@ cheminsGuili()
 detecterModernite()
 {
 	MODERNITE=0
+	# 3: meilleurCompilo appelé uniquement au moment de prerequis() (l'environnement n'est pas pollué par le "premier choix" automatique de compilo si le logiciel en choisit un autre).
+	if command -v Delicat > /dev/null 2>&1 ; then MODERNITE=3
 	# 2: exclusivementPrerequis: le logiciel sait déclarer tous ses prérequis plutôt que de reposer sur une détection (contraignant, mais maîtrisé et reproductible).
-	if command -v DelieS > /dev/null 2>&1 ; then MODERNITE=2
+	elif command -v DelieS > /dev/null 2>&1 ; then MODERNITE=2
 	fi
 }
 
@@ -709,7 +711,7 @@ analyserParametresInstall "$@"
 
 prerequis= # Certains installeurs appellent prerequis(), mais sans avoir initialisé $prerequis. Résultat, ils héritent de l'environnement; pour peu que quelqu'un prérequière un de ces logiciels, ses prerequis seront donc lui-même, et nous voilà partis pour une boucle infinie…
 guili__xpath=
-meilleurCompilo
+[ $MODERNITE -ge 3 ] || meilleurCompilo
 _initPrerequisLibJpeg
 proxy -
 

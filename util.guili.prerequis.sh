@@ -20,6 +20,15 @@
 
 prerequis()
 {
+	# On ajoute le compilo dans la chaîne de prérequis, à moins que celle-ci n'inclue déjà une demande de compilo précis.
+	if [ $MODERNITE -ge 3 ]
+	then
+		case "$prerequis" in
+			*compiloSys*) true ;;
+			*) meilleurCompilo ;;
+		esac
+	fi
+	
 	[ -z "$lsj" ] || prerequisAmorceur
 	
 	_prerequis
