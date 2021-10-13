@@ -48,8 +48,34 @@ v 2020.01.07 && versionComplete="$version.7ae47eff58abb672dd8462fda84bf652b34822
 #v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(clang >= 8, gcc >= 6) git bash \\ openssl libssh curl" && modifs="target2 sousBsd pointpointbin patache" || true
 v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 binutils >= 2.21 git bash \\ openssl libssh curl" && modifs="target2 viaGcc libcxxspecifique sousBsd pointpointbin patache" || true
 v 2020.01.05 && versionComplete="$version.aa9d5a9fa0ee79650b15db06e69bbbf591710f68.git" || true
+prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 git bash \\ openssl libssh curl"
+modifs="$modifs dylib"
+v 2020.08.10 && versionComplete="$version.32f67fd7f219cabc1d1b219e7d72dcab32130503.git" || true
+v 2021.01.25 && versionComplete="$version.40800d3dc098ae4b604a5192f309ff0f5ecc600e.git" || true
+v 2021.03.06 && versionComplete="$version.0eaf40b1d305d69372a5047f6a9323c00978aa11.git" || true
+v 2021.04.28 && versionComplete="$version.8f7baf68165571d381ddb47bef19eb4cd672924c.git" || true
+v 2021.10.01 && versionComplete="$version.5c07a88cb51c8fb6d66272db6559c1cb99c4affe.git" || true
 
 # Modifications
+
+dylib()
+{
+	# rustc: les premières biblios indépendantes compilent, mais le premier de "(0/85) BUILDING rustc_platform_intrinsics v0.0.0" échoue en "terminate called after throwing an instance of 'Lexer::EndOfFile'".
+	# En effet dans le dossier output, les .rlilb.o sont bien pleins, mais les .rlib (en résultant?) sont tous vides.
+	# Et voilà que dans le codegen_c.cpp, on voit un beau: "HACK! Static libraries aren't implemented properly yet, just touch the output file"
+	# En relançant la commande tracée avec du dylib (format) ou so (suffixe) au lieu de rlib, hop, on a un .so tout beau!
+	filtrer tools/minicargo/build.cpp sed -e 's/: PackageTarget::CrateType::rlib/: PackageTarget::CrateType::dylib/' -e 's/getenv.*MINICARGO_DYLIB/1 || &/'
+	filtrer minicargo.mk sed -e 's/rlib/so/g'
+	case `uname` in
+		FreeBSD)
+			filtrer run_rustc/Makefile sed -e 's/ -l dl//'
+			for f in script-overrides/*/build_std.txt
+			do
+				filtrer "$f" grep -v "cargo:rustc-link-lib=dl"
+			done
+			;;
+	esac
+}
 
 patache()
 {
@@ -142,6 +168,8 @@ sousBsdSansLdl()
 sousBsdLienLlvm()
 {
 	# FreeBSD définit la variable globale environ dans crt1.o (le machin embarqué uniquement dans les applis finales), plutôt que dans une biblio. Du coup si ld est un tantinet chiant avec les symboles indéfinis dans les .so, on se fait jeter car on n'a pas moyen de lui indiquer "mais si mais si, à l'exécution, ton environ sera forcément défini car le binaire aura forcément inclut crt1.so).
+	# Problème: ce truc est inscrit ensuite en dur dans mrustc, qui le propose à la compil de rust; or ce dernier passe LDFLAGS directement au compilo, sans -W,l
+	true || \
 	export LDFLAGS="$LDFLAGS --warn-unresolved-symbols"
 }
 
@@ -214,8 +242,45 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 
 echo Compilation… >&2
+minicargo=bin/minicargo
+if pge $version 2020.08.10
+then
+if true
+then
+	make $OPTIONS_MAKE
+	make $OPTIONS_MAKE -C tools/minicargo/
+else
+	make $OPTIONS_MAKE RUSTCSRC
+
+appelsSysBsdPurs()
+{
+	# Va-t'en comprendre pourquoi, les src/vendor/libc/src/unix/**/mod.rs et src/liblibc/src/unix/**/mod.rs codent en dur que l'appel système fstat (et d'autres) valent asm("fstat@FBSD_1.0"). Ce qui est vrai in fine, mais d'une ce n'est pas au .rs fourni avec rustc de coder en dur ce qui pourrait être résolu à l'édition de liens, de deux ça nous fout la grouille en assembleur.
+	# En effet, la compilation (via gcc en tout cas) transforme cela en 'call fstat@FBSD_1.0', or pour GNU as, "@" est un caractère réservé, il faudrait donc le mettre sous la forme 'call "fstat@FBSD_1.0"'.
+	# De plus cc1 en optimise l'exécution en lui ajoutant un @PLT (xxx@PLT est une procédure mutante, qui au début pointe sur la version lourde (initialisation puis réécriture de xxx@PLT pour pointer directement sur xxx puis appel de cette dernière), les appels subséquents allant directement à xxx).
+	# L'expression résultante 'call fstat@FBSD_1.0@PLT' est donc plantogène ("Error: junk `@FBSD_1.0@PLT' after expression"); on le résout en virant le suffixe @FBSD_x.x.
+	grep -rl @FBSD_ src/liblibc src/vendor | while read f
+	do
+		filtrer "$f" sed -e 's/@FBSD_[.0-9]*//g'
+	done
+}
+
+sousBsdLienLlvm()
+{
+	# FreeBSD définit la variable globale environ dans crt1.o (le machin embarqué uniquement dans les applis finales), plutôt que dans une biblio. Du coup si ld est un tantinet chiant avec les symboles indéfinis dans les .so, on se fait jeter car on n'a pas moyen de lui indiquer "mais si mais si, à l'exécution, ton environ sera forcément défini car le binaire aura forcément inclus crt1.so).
+	export LDFLAGS="$LDFLAGS -Wl,--warn-unresolved-symbols"
+	# Malgré ce qui est indiqué dans la doc GNU ld, le -z defs pète en génération de biblio partagée. Il faut donc ajouter notre --warn APRÈS le -z defs.
+	filtrer src/llvm/cmake/modules/HandleLLVMOptions.cmake sed -e 's#-Wl,-z,defs#-Wl,-z,defs -Wl,--warn-unresolved-symbols#g'
+	# On vire toutes les options passées au compilo chapeau (sans -Wl,):
+	args_suppr -e LDFLAGS --warn-unresolved-symbols # Celui du sousBsdLienLlvm de mrustc.
+}
+	( cd rustc-1.29.0-src && appelsSysBsdPurs && sousBsdLienLlvm )
+	make $OPTIONS_MAKE -f minicargo.mk
+fi
+else
+	minicargo=tools/bin/minicargo
 make $OPTIONS_MAKE
 make $OPTIONS_MAKE -f minicargo.mk tools/bin/minicargo
+fi
 if option rustc # À ne pas utiliser; mieux vaut compiler mrustc de son côté, puis rust 1.19.0 +viamrustc
 then
 	# https://github.com/thepowersgang/mrustc: sous FreeBSD il est possible qu'il faille remplacer make par:
@@ -231,7 +296,7 @@ fi
 
 echo Installation… >&2
 mkdir dest dest/bin dest/share dest/share/mrustc
-cp bin/mrustc tools/bin/minicargo dest/bin/
+cp bin/mrustc "$minicargo" dest/bin/
 cp -R lib dest/lib
 tar cf - Makefile minicargo.mk rust-version tools/minicargo tools/common script-overrides rust*src.patch lib | ( cd dest/share/mrustc && tar xf - )
 sudo cp -R dest "$dest"
