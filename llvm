@@ -49,6 +49,25 @@ v 6.0.1 && prerequis="python >= 3 cmake \\" || true
 v 7.0.1 || true
 v 7.1.0 || true
 v 8.0.1 || true
+v 12.0.0 || true
+v 12.0.1 || true
+
+lieur()
+{
+	# Compiler un 12 avec un 8, sur un FreeBSD 11.2 avec le ld par défaut (GNU ld 2.17.50 [FreeBSD] 2007-07-03) pète (à 97%, grrr) sur l'édition de liens. Possibilités à tester:
+	# 1. binutils plus récent
+	# 2. gold
+	# 3. lld (https://wiki.freebsd.org/LLD)
+	# À FAIRE: en fait la condition est: si celui par lequel on compile n'est pas celui système.
+	pge $version 12 || return 0
+	
+	local lieur=binutils # Solution 1.
+	#lieur="clang+lld < $version"
+	
+	[ -z "$lieuri" ] || prerequis="$lieur \\ $prerequis"
+}
+
+lieur
 
 archive()
 {
@@ -252,13 +271,20 @@ integrer()
 	( obtenirEtAllerDans "`archive "$2"`" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
 }
 if [ "`basename "$0"`" = clang ] ; then
-integrer tools/clang          cfe
+modulesClang()
+{
+	local moduleClang=clang
+	pge $version 9 || moduleClang=cfe
+	integrer tools/clang          $moduleClang
 integrer projects/compiler-rt compiler-rt
 integrer projects/libcxx      libcxx
 ! pge $version 3.5 || integrer projects/libcxxabi libcxxabi
 # lldb doit être compilé à part, car il requiert libc++ qui elle-même ne peut être compilé qu'après le compilo.
 # Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
-#! pge $version 3.9 || integrer tools/lldb           lldb
+	if option lldb ; then integrer tools/lldb lldb ; fi
+	if option lld ; then integrer tools/lld lld ; fi
+}
+modulesClang
 fi
 
 echo Correction… >&2
