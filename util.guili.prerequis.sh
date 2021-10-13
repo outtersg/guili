@@ -75,7 +75,7 @@ _prerequis()
 		exit 0
 	fi
 	# exclusivementPrerequis devrait systématiquement être appelé, pour s'assurer que l'environnement ne pointe que vers les prérequis explicites, et n'embarque pas des dépendances implicites. Cependant, le rattrapage pour migrer tout le monde est monumental, donc nous nous contentons d'une alerte.
-	commande DelieS && modifs="exclusivementPrerequis $modifs" || true # On considère que les fichiers modernes, utilisant la dernière mouture de SCRIPTS (avec DelieS), sont prêts à faire de l'exclusivementPrerequis, autrement dit savent déclarer tous leurs prérequis plutôt que de reposer sur une détection.
+	[ 2 -gt $MODERNITE ] || modifs="exclusivementPrerequis $modifs"
 	case "$modifs" in
 		*exclusivementPrerequis*) true ;;
 		*)
@@ -119,7 +119,7 @@ _prerequis()
 	done
 	unset IFS
 	# On modifie l'environnement pour lui ajouter tout ce qu'il faut pour la compilation (-L, -I, etc.), en allant chercher récursivement dans les prérequis de nos prérequis.
-	if commande DelieS # … Uniquement sur les GuiLI modernes. À terme on forcera tout le monde à passer par là.
+	if [ $MODERNITE -ge 2 ] # … Uniquement sur les GuiLI modernes. À terme on forcera tout le monde à passer par là.
 	then
 	# À FAIRE: l'ordre n'est sans doute pas bon (<prérequis 1>:<pr 1 du pr 1>:<pr 2>); il vaudrait mieux sans doute d'abord lister tous les prérequis directs, puis tous ceux de niveau 1, etc. (<pr 1>:<pr 2>:<pr 1 du pr 1>).
 	# Afin de ne pas polluer les guili_*path (devant contenir uniquement les prérequis directs), on les déclare locales pour contenir les prérequis des prérequis.
