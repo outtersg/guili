@@ -110,6 +110,7 @@ compiloSysVersion()
 		
 		# Ce binaire a-t-il été installé par GuiLI? En ce cas il n'est certainement pas dans un dossier système, donc il faudra aussi aller chercher tout son environnement (lib, include, etc.).
 		local gpp="$guili_ppath" ; guili_ppath= # Préparatifs à s'inscrire en queue plutôt qu'en tête.
+		bibliosCompiloSys "$binaire"
 		reglagesCompilSiGuili "$binaire"
 		COMPILO_AJOUTS="guili_ppath$compilo_sep<:$guili_ppath$compilo_sep$COMPILO_AJOUTS" # À FAIRE: toutes les autres guili_…path modifiées par reglagesCompilSiGuili; ou alors, comme noté quelque part, faire en sorte que reglagesCompilSiGuili ne les définisse pas toutes mais qu'elles soient toutes déduites de $guili_ppath une fois cette dernière stabilisée.
 		guili_ppath="$gpp<:$guili_ppath"
@@ -143,6 +144,24 @@ compiloSysDejaConfigure()
 	COMPILO_SYS="$binaire"
 	
 	return 1
+}
+
+bibliosCompiloSys()
+{
+	case "$binaire" in
+		*clang*)
+			# Si c'est un clang GuiLI, il est peut-être trop moderne pour le ld système. On se cherche donc un lieur plus récent:
+			# 1. binutils plus récent
+			# 2. gold
+			# 3. lld (https://wiki.freebsd.org/LLD)
+			# COPIE: lieur() dans llvm
+			if [ -n "`rlvo "$binaire"`" ]
+			then
+				local lieur="`versions -1 binutils`"
+				[ -z "$lieur" ] || reglagesCompilSiGuili "$lieur"
+			fi
+			;;
+	esac
 }
 
 _compilo_purgerEnv()
