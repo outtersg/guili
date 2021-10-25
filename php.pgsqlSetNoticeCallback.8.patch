@@ -1,16 +1,13 @@
 diff -ruw ext/pdo_pgsql/pgsql_driver.stub.php ext/pdo_pgsql/pgsql_driver.stub.php
 --- ext/pdo_pgsql/pgsql_driver.stub.php	2021-03-09 07:46:54.779841000 +0100
 +++ ext/pdo_pgsql/pgsql_driver.stub.php	2021-03-09 07:52:52.415093000 +0100
-@@ -30,4 +30,10 @@
+@@ -30,4 +30,7 @@
  
-     /** @return int */
-     public function pgsqlGetPid() {}
+     /** @tentative-return-type */
+     public function pgsqlGetPid(): int {}
 +
-+	/**
-+     * @param callable|null $callback
-+     * @return bool
-+     */
-+    public function pgsqlSetNoticeCallback($callback) {}
++    /** @tentative-return-type */
++    public function pgsqlSetNoticeCallback(?callable $callback): bool {}
  }
 diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginfo.h
 --- ext/pdo_pgsql/pgsql_driver_arginfo.h	2015-09-01 22:09:37.000000000 +0200
@@ -173,9 +170,9 @@ diff -ruw ext/pdo_pgsql/php_pdo_pgsql_int.h ext/pdo_pgsql/php_pdo_pgsql_int.h
  typedef struct {
  	PGconn		*server;
 @@ -45,6 +50,7 @@
- 	zend_bool       emulate_prepares;
- 	zend_bool       disable_native_prepares; /* deprecated since 5.6 */
- 	zend_bool       disable_prepares;
+ 	bool       emulate_prepares;
+ 	bool       disable_native_prepares; /* deprecated since 5.6 */
+ 	bool       disable_prepares;
 +	pdo_pgsql_fci * notice_callback;
  } pdo_pgsql_db_handle;
  

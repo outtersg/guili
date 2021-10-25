@@ -240,6 +240,15 @@ pgsqlSetNoticeCallback()
 {
 	local suffixe= adaptation=cat
 	case $version in
+		8.0.*)
+			suffixe=8
+			pp80()
+			{
+				cat "$SCRIPTS/php.pgsqlSetNoticeCallback.80.patch.patch"
+				sed -e 's#^\([ 	]*\)bool#\1zend_bool#' -e '/pgsql_driver.stub.php/,/diff.*arginfo/d'
+			}
+			adaptation=pp80
+			;;
 		[89].*|[1-9][0-9].*) suffixe=8 ;;
 		7.[0-2].*) suffixe=7 ; zsre() { sed -e 's/zend_string_release_ex(\(.*\), 0)/zend_string_release(\1)/g' ; } ; adaptation=zsre ;;
 		[7].*) suffixe=7 ;;
