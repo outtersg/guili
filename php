@@ -509,6 +509,17 @@ plus OPTIONS_CONF --enable-calendar
 [ -z "$version_sqlite" ] || plus OPTIONS_CONF --with-sqlite3="$destsqlite" --with-pdo-sqlite="$destsqlite"
 # gettext: pour Horde
 # ssl: pour Horde IMP
+# En manuel:
+true || \
+{
+	#autoreconf -i -W all
+	#autoupdate
+	autoconf
+	export PKG_CONFIG_PATH="$HOME/local/lib/pkgconfig" CPPFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib"
+	./configure --with-pdo-pgsql=$HOME/local --with-libxml=$HOME/local --with-iconv=$HOME/local
+	# Faire sauter le if unable to infer tagged configuration et son contenu
+	make -j4 && TEST_PHP_EXECUTABLE=`pwd`/sapi/cli/php ./sapi/cli/php run-tests.php ext/pdo_pgsql/tests
+}
 ./configure --prefix="$dest" --with-zlib --with-iconv --enable-exif --with-gd --with-jpeg-dir --with-ncurses --with-readline --with-curl --enable-sqlite-utf8 --enable-shared --enable-mbstring --enable-soap --enable-sysvsem --enable-sysvshm --with-gettext --with-openssl --enable-zip --enable-sockets $OPTIONS_CONF #--with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
 
 fi
