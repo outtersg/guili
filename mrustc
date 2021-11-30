@@ -55,6 +55,7 @@ v 2021.01.25 && versionComplete="$version.40800d3dc098ae4b604a5192f309ff0f5ecc60
 v 2021.03.06 && versionComplete="$version.0eaf40b1d305d69372a5047f6a9323c00978aa11.git" || true
 v 2021.04.28 && versionComplete="$version.8f7baf68165571d381ddb47bef19eb4cd672924c.git" || true
 v 2021.10.01 && versionComplete="$version.5c07a88cb51c8fb6d66272db6559c1cb99c4affe.git" || true
+v 2021.11.23 && versionComplete="$version.2ba326cde8122f545a45e5ee4181ecce4837fa5e.git" || true
 
 # Modifications
 
