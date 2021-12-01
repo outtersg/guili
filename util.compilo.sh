@@ -434,7 +434,7 @@ libcxxgcc()
 	[ -n "`rlvo "$libcxx"`" ] || return 0
 	
 	# Recherche de la version GuiLI de libcxx correspondante.
-	# Pour libstdcxx, c'est le suffixe.
+	# Pour libstdcxx, c'est le suffixe quand il a trois parties; mais les versions embarquées par gcc (en tout cas pour GCC 7 ont un simple .6 :-(
 	
 	v="`bn "$libcxx"`"
 	_point123()
@@ -450,12 +450,15 @@ libcxxgcc()
 		done
 		echo "$3.$4.$5"
 	}
-	IFS=.
 	v="`IFS=. ; _point123 $v || true`"
-	[ -n "$v" ] || return 0
-	unset IFS
 	
+	if [ -n "$v" ]
+	then
 	prerequerir libstdcxx $v # Va installer libstdcxx, et modifier l'environnement ($guili_ppath): ainsi lorsque le logiciel sera installé, il aura pour dépendance libstdcxx.
+	else
+		# À défaut (libstdc++ embarquée dans gcc), on prérequiert ce dernier.
+		prerequerir `rlvo "$libcxx" | { read r l v o ; echo $l$o $v ; }`
+	fi
 }
 
 #- Spécificités ----------------------------------------------------------------
