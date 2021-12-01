@@ -204,7 +204,7 @@ compilo_cheminLibcxx()
 
 compilo_cheminLibcxxClang()
 {
-	local ajout="-cxx-isystem $cheminBienVoulu/$suffixe"
+	local ajout="-cxx-isystem $cheminBienVoulu/$suffixe -cxx-isystem /usr/include"
 	# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit pas être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
 	case "$logiciel" in
 		gcc)
