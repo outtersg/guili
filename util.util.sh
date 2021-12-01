@@ -136,19 +136,51 @@ readlinky()
 		Linux) readlink -e "$@" ;;
 		*)
 			local c="$1"
-			local l
-			while [ -L "$c" ]
-			do
-				l="`readlink "$c"`"
-				case "$l" in
-					/*) c="$l" ;;
-					*) c="`dirname "$c"`/$l" ;;
-				esac
-			done
+			case "$c" in [^/]*) c="`pwd`/$c" ;; esac
+			IFS=/
+			c="`_readlinky $c`"
+			unset IFS
 			[ -e "$c" ] || return 1
 			echo "$c"
 			;;
 	esac
+}
+
+_readlinky()
+{
+	# À FAIRE: en marche arrière, d'une on repérerait plus rapidement les .., de deux si un lien en fin était un absolu on le trouverait rapidement et on remplacerait tout par ce chemin absolu sans calculer les liens relatifs intermédiaires.
+	local r= l
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			""|.) true ;;
+			..)
+				_readlinky_remonte $r
+				;;
+			*)
+				if [ -L "$r/$1" ]
+				then
+					l="`readlink "$r/$1"`"
+					case "$l" in
+						/*) r= ;;
+					esac
+					shift
+					set -- $l "$@"
+					continue
+				fi
+				r="$r/$1"
+				;;
+		esac
+		shift
+	done
+	echo "$r"
+}
+
+_readlinky_remonte()
+{
+	r=
+	shift # Le premier est un /
+	while [ $# -gt 1 ] ; do r="$r/$1" ; shift ; done
 }
 
 #- Système: environnement chemins ----------------------------------------------
