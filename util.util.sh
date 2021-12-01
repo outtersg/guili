@@ -183,6 +183,28 @@ _readlinky_remonte()
 	while [ $# -gt 1 ] ; do r="$r/$1" ; shift ; done
 }
 
+# readlink -e, mais qui ne cherche pas à résoudre $INSTALLS.
+# Ce de façon à pouvoir comparer son résultat à $INSTALLS de façon normalisée:
+# Avec $INSTALLS valant /home/gui/local
+# si readlinky $INSTALLS/lib/libation.so vaut /usr/home/gui/local/ation-1.0/lib/libation.so.1.0
+#       lilien $INSTALLS/lib/libation.so vaut     /home/gui/local/ation-1.0/lib/libation.so.1.0
+# ce qui permet de préserver l'$INSTALLS au départ.
+lilien()
+{
+	if [ -z "$lilien_installs" -o -z "$_lilien_iorig" -o "$_lilien_iorig" != "$lilien_installs" -o -z "$_lilien_ibis" ]
+	then
+		[ -n "$lilien_installs" ] || lilien_installs="$INSTALLS"
+		_lilien_iorig="$lilien_installs"
+		_lilien_ibis="`readlinky "$_lilien_iorig"`"
+	fi
+	local r="`readlinky "$1"`"
+	[ -n "$r" ] || return 1
+	case "$r" in
+		"$_lilien_ibis"*) echo "$r" | sed -e "s#^$_lilien_ibis#$_lilien_iorig#" ; return ;;
+	esac
+	echo "$r"
+}
+
 #- Système: environnement chemins ----------------------------------------------
 
 reglagesCheminsPrerequis()
