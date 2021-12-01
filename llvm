@@ -248,6 +248,8 @@ complications()
 	#filtrer tools/lldb/source/Host/macosx/Host.mm sed -e 's/_handler (source, ^{/_handler_f (source, [](dispatch_source_t source){/'
 }
 
+option dyn || true
+
 destiner
 
 prerequis
@@ -300,9 +302,12 @@ if pge $version 3.9
 then
 	mkdir -p build
 	cd build
+	# -DBUILD_SHARED_LIBS=ON: bof, ça triple le temps d'exécution par rapport au clang système (sur un petit .cxx: g++ 11 0,5 s; /usr/bin/clang++ 0,6 s; clang++ divers sans -O3 1,6 à 2 s; clang++ 13 avec -O3 0,7 s).
+	# https://reviews.llvm.org/D61804
+	option dyn && OPTIONS_CMAKE="$OPTIONS_CMAKE -DBUILD_SHARED_LIBS=ON" || true
 	cmake \
 		-DCMAKE_INSTALL_PREFIX="$dest/" \
-		-DBUILD_SHARED_LIBS=ON \
+		-DLLVM_BUILD_LLVM_DYLIB=ON \
 		-DCMAKE_C_FLAGS="$CPPFLAGS $CFLAGS" \
 		-DCMAKE_CXX_FLAGS="$CPPFLAGS $CXXFLAGS" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
