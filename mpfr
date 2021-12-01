@@ -30,6 +30,7 @@ v 3.1.2 && prerequis="gmp >= 4.1" && modifs="fbsd8" || true
 v 3.1.6 || true
 v 4.0.1 && prerequis="gmp >= 5" || true
 v 4.0.2 || true
+v 4.1.0 || true
 
 prerequis
 
