@@ -68,10 +68,11 @@ cheminsGuili()
 # Les -I n'ont rien à faire dans les C(XX)FLAGS. Les logiciels doivent aller piocher dans CPPFLAGS, sinon c'est qu'ils sont foireux et doivent recevoir une rustine spécifique. Ajouter les -I aux CFLAGS empêche par exemple PostgreSQL de se compiler: il fait un cc $CFLAGS -I../src/include $CPPFLAGS, ce qui fait que si /usr/local/include est dans CFLAGS, et possède mettons des .h de la 9.2, ceux-ci sont inclus avant les .h de la 9.5 lors de la compilation de celui-ci.
 	chemins --sans-c-cxx $GUILI_PATH
 	unset IFS
-	export PATH="`echo $TMP/$$:$PATH | sed -e 's/^\.://' -e 's/:\.:/:/g' -e 's/::*/:/g'`"
+	
+	guili_env_PATH="`echo "$TMP/$$:$guili_env_PATH" | sed -e 's/^\.://' -e 's/:\.:/:/g' -e 's/::*/:/g'`"
 	# Trop de logiciels (PHP…) se compilent par défaut sans optimisation. C'est ballot.
-	export CFLAGS="-O3 $CFLAGS"
-	export CXXFLAGS="-O3 $CXXFLAGS"
+	guili_env_CFLAGS="-O3 $guili_env_CFLAGS"
+	guili_env_CXXFLAGS="-O3 $guili_env_CXXFLAGS"
 }
 # Détecte le "degré de modernité" du GuiLI appelant.
 # Cette détection se fonde sur la fonction par laquelle est calculé SCRIPTS.
