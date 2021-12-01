@@ -423,7 +423,7 @@ libcxxgcc()
 		libcxx="$d/libstdc++.so"
 		if [ -e "$libcxx" ]
 		then
-			libcxx="`readlinky "$libcxx"`"
+			libcxx="`lilien "$libcxx"`"
 			[ -f "$libcxx" ] && break || true
 		fi
 	done
