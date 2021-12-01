@@ -36,6 +36,7 @@ v 4.3.42 || true
 v 4.4.23 || true
 v 5.0.11 || true
 v 5.1.8 || true
+v 5.1.12 || true
 
 rustine="`echo "$version" | sed -e 's/^.*\.//'`"
 v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
