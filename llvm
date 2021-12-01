@@ -45,7 +45,7 @@ v 5.0.0 || true
 v 5.0.1 && modifs="$modifs emmintrim" || true # Tout à la fin, que l'on compile avec un 3.9.1 ou un 4.0.1: make[2]: *** [tools/clang/runtime/CMakeFiles/compiler-rt.dir/build.make:107: tools/clang/runtime/compiler-rt-stamps/compiler-rt-configure] Segmentation fault (core dumped); si on relance, il finit sa compil + install.
 v 5.0.2 || true
 v 6.0.0 || true
-v 6.0.1 && prerequis="python >= 3 cmake \\" || true
+v 6.0.1 && prerequis="binutils python >= 3 cmake \\" || true # binutils si on compile à partir d'un 8, rétroactivement un 6 ou 7
 v 7.0.1 || true
 v 7.1.0 || true
 v 8.0.1 || true
