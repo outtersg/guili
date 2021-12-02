@@ -5,6 +5,12 @@ prefixe=/usr/local
 [ -z "$PREFIXE_UTILISER" ] || prefixe="$PREFIXE_UTILISER"
 [ "x$1" = "x-r" ] && shift && prefixe="$1" && shift
 
+menage()
+{
+	find bin include lib libexec man share -type l | while read f ; do readlink "$f" | grep -q "$1" && rm -f "$f" ; done
+	find bin include lib libexec man share -type d | while read d ; do [ `ls "$d" | wc -l` -eq 0 ] && echo "$d" && rm -Rf "$d" ; done # Plusieurs fois, car un dossier supprimé peut rendre vide son parent.
+}
+
 command -v proff > /dev/null 2>&1 || proff() { cat ; }
 auSecours()
 {
