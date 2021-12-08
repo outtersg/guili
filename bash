@@ -43,6 +43,8 @@ v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 
 archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$v_maj.tar.gz"
 
+# Modifications
+
 completionUTF8MAC()
 {
 	filtrer Makefile.in sed -e '/LIBRARIES =/s/=/= @LIBICONV@/'
