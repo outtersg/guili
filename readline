@@ -24,15 +24,30 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 5.0 && modifs=darwin8aussi || true
-v 5.2.14 && modifs=darwin89aussi || true
-v 6.1.2 && modifs= || true
+v 5.0 && modifs="darwin8aussi asdc" || true
+v 5.2.14 || true
+v 6.1.2 && modifs=asdc || true
 v 6.2.1 || true
 v 6.3.8 || true
 v 7.0.5 || true
 v 8.1.1 || true
 
 # Modifications
+
+# antislash dollar complétion
+# Sur ls $t/truc<tab> lorsqu'il existe un "truc à espaces",
+# readline complète en \$t/truc\ à\ espaces,
+# avec des \ corrects devant les espaces, mais aussi un devant $.
+asdc()
+{
+	local vr
+	case "$version" in
+		8.1.*) vr=8.1 ;;
+		# Pour le moment on ne sait pas gérer les autres versions de readline.
+		*) return ;;
+	esac
+	patch -p0 < "$SCRIPTS/readline.non-intrusive-completion-quoting.$vr.patch"
+}
 
 darwin8aussi()
 {

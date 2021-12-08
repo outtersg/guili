@@ -1,0 +1,245 @@
+diff -ruw complete.c complete.c
+--- complete.c	2020-08-27 17:28:29.000000000 +0200
++++ complete.c	2021-12-08 06:20:13.883142000 +0100
+@@ -141,17 +141,18 @@
+ static char **gen_completion_matches PARAMS((char *, int, int, rl_compentry_func_t *, int, int));
+ 
+ static char **remove_duplicate_matches PARAMS((char **));
+-static void insert_match PARAMS((char *, int, int, char *));
++static void insert_match PARAMS((char *, int, int, char *, int));
+ static int append_to_match PARAMS((char *, int, int, int));
+-static void insert_all_matches PARAMS((char **, int, char *));
++static void insert_all_matches PARAMS((char **, int, char *, int));
+ static int complete_fncmp PARAMS((const char *, int, const char *, int));
+ static void display_matches PARAMS((char **));
+ static int compute_lcd_of_matches PARAMS((char **, int, const char *));
+ static int postprocess_matches PARAMS((char ***, int));
++static int longest_prefix PARAMS((const char *, const char *));
+ static int compare_match PARAMS((char *, const char *));
+ static int complete_get_screenwidth PARAMS((void));
+ 
+-static char *make_quoted_replacement PARAMS((char *, int, char *));
++static char *make_quoted_replacement PARAMS((char *, int, char *, int));
+ 
+ /* **************************************************************** */
+ /*								    */
+@@ -1751,10 +1752,11 @@
+ 
+ /* qc == pointer to quoting character, if any */
+ static char *
+-make_quoted_replacement (char *match, int mtype, char *qc)
++make_quoted_replacement (char *match, int mtype, char *qc, int replace_from)
+ {
+-  int should_quote, do_replace;
+-  char *replacement;
++  int should_quote, do_replace, repl_offset;
++  char *original, *replacement, *full;
++  char oqc;
+ 
+   /* If we are doing completion on quoted substrings, and any matches
+      contain any of the completer_word_break_characters, then auto-
+@@ -1764,7 +1766,8 @@
+      inserted quote character when it no longer is necessary, such as
+      if we change the string we are completing on and the new set of
+      matches don't require a quoted substring. */
+-  replacement = match;
++  original = replacement = match;
++  oqc = qc ? *qc : '\0';
+ 
+   should_quote = match && rl_completer_quote_characters &&
+ 			rl_filename_completion_desired &&
+@@ -1776,6 +1779,8 @@
+ 
+   if (should_quote)
+     {
++      if (replace_from > 0)
++        match = &match[replace_from];
+       /* If there is a single match, see if we need to quote it.
+          This also checks whether the common prefix of several
+ 	 matches needs to be quoted. */
+@@ -1788,19 +1793,46 @@
+ 	 word break character in a potential match. */
+       if (do_replace != NO_MATCH && rl_filename_quoting_function)
+ 	replacement = (*rl_filename_quoting_function) (match, do_replace, qc);
++      /* If we fed the quoting function only a partial copy of original,
++	 reconstitute the full string. */
++      if (replacement && replacement != original)
++	{
++	  /* If qc changed, it may have quoted at the start of the subpart;
++	     this potentially leaves the original quote opened, which can be
++	     a mess to handle. So fall back to the original behaviour, to let it
++	     quote-replace everything, without preserving replace_from chars. */
++	  if (oqc && *qc != oqc)
++	    {
++	      xfree (replacement);
++	      *qc = oqc;
++	      return make_quoted_replacement (original, mtype, qc, 0);
++	    }
++	  full = (char *)xmalloc (replace_from + strlen (replacement) + 1);
++      strncpy (full, original, replace_from);
++      repl_offset = 0;
++      /* If replacement starts with the quote character, and we were already in
++	 a quote, skip the replacement's one.
++	 Only do this in case of partial replace, because full replace gets
++	 handled by caller skipping the original quote. */
++      if (replace_from && qc && *qc && replacement[0] == *qc)
++        repl_offset = 1;
++      strcpy (&full[replace_from], &replacement[repl_offset]);
++	  xfree (replacement);
++	  replacement = full;
++	}
+     }
+   return (replacement);
+ }
+ 
+ static void
+-insert_match (char *match, int start, int mtype, char *qc)
++insert_match (char *match, int start, int mtype, char *qc, int replace_from)
+ {
+   char *replacement, *r;
+   char oqc;
+   int end, rlen;
+ 
+   oqc = qc ? *qc : '\0';
+-  replacement = make_quoted_replacement (match, mtype, qc);
++  replacement = make_quoted_replacement (match, mtype, qc, replace_from);
+ 
+   /* Now insert the match. */
+   if (replacement)
+@@ -1917,7 +1949,7 @@
+ }
+ 
+ static void
+-insert_all_matches (char **matches, int point, char *qc)
++insert_all_matches (char **matches, int point, char *qc, int replace_from)
+ {
+   int i;
+   char *rp;
+@@ -1934,7 +1966,7 @@
+     {
+       for (i = 1; matches[i]; i++)
+ 	{
+-	  rp = make_quoted_replacement (matches[i], SINGLE_MATCH, qc);
++	  rp = make_quoted_replacement (matches[i], SINGLE_MATCH, qc, replace_from);
+ 	  rl_insert_text (rp);
+ 	  rl_insert_text (" ");
+ 	  if (rp != matches[i])
+@@ -1943,7 +1975,7 @@
+     }
+   else
+     {
+-      rp = make_quoted_replacement (matches[0], SINGLE_MATCH, qc);
++      rp = make_quoted_replacement (matches[0], SINGLE_MATCH, qc, replace_from);
+       rl_insert_text (rp);
+       rl_insert_text (" ");
+       if (rp != matches[0])
+@@ -1965,6 +1997,17 @@
+   xfree (matches);
+ }
+ 
++/* Return the length of the common prefix between two strings. */
++static int
++longest_prefix (const char *a, const char *b)
++{
++  int i;
++
++  for (i = -1; a[++i] && a[i] == b[i]; ) {}
++
++  return i;
++}
++
+ /* Compare a possibly-quoted filename TEXT from the line buffer and a possible
+    MATCH that is the product of filename completion, which acts on the dequoted
+    text. */
+@@ -1999,7 +2042,7 @@
+ {
+   char **matches;
+   rl_compentry_func_t *our_func;
+-  int start, end, delimiter, found_quote, i, nontrivial_lcd;
++  int start, end, delimiter, found_quote, i, nontrivial_lcd, preserved_prefix_length;
+   char *text, *saved_line_buffer;
+   char quote_char;
+   int tlen, mlen, saved_last_completion_failed;
+@@ -2032,6 +2075,7 @@
+   /* nontrivial_lcd is set if the common prefix adds something to the word
+      being completed. */
+   nontrivial_lcd = matches && compare_match (text, matches[0]) != 0;
++  preserved_prefix_length = matches ? longest_prefix(text, matches[0]) : 0;
+   if (what_to_do == '!' || what_to_do == '@')
+     tlen = strlen (text);
+   xfree (text);
+@@ -2075,16 +2119,16 @@
+       if (what_to_do == TAB)
+         {
+           if (*matches[0])
+-	    insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char);
++	    insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char, preserved_prefix_length);
+         }
+       else if (*matches[0] && matches[1] == 0)
+ 	/* should we perform the check only if there are multiple matches? */
+-	insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char);
++	insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char, preserved_prefix_length);
+       else if (*matches[0])	/* what_to_do != TAB && multiple matches */
+ 	{
+ 	  mlen = *matches[0] ? strlen (matches[0]) : 0;
+ 	  if (mlen >= tlen)
+-	    insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char);
++	    insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char, preserved_prefix_length);
+ 	}
+ 
+       /* If there are more matches, ring the bell to indicate.
+@@ -2117,7 +2161,7 @@
+       break;
+ 
+     case '*':
+-      insert_all_matches (matches, start, &quote_char);
++      insert_all_matches (matches, start, &quote_char, preserved_prefix_length);
+       break;
+ 
+     case '?':
+@@ -2125,7 +2169,7 @@
+ 	 but this attempt returned a single match. */
+       if (saved_last_completion_failed && matches[0] && *matches[0] && matches[1] == 0)
+ 	{
+-	  insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char);
++	  insert_match (matches[0], start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char, preserved_prefix_length);
+ 	  append_to_match (matches[0], delimiter, quote_char, nontrivial_lcd);
+ 	  break;
+ 	}
+@@ -2787,11 +2831,11 @@
+   if (match_list_index == 0 && match_list_size > 1)
+     {
+       rl_ding ();
+-      insert_match (orig_text, orig_start, MULT_MATCH, &quote_char);
++      insert_match (orig_text, orig_start, MULT_MATCH, &quote_char, strlen (orig_text));
+     }
+   else
+     {
+-      insert_match (matches[match_list_index], orig_start, SINGLE_MATCH, &quote_char);
++      insert_match (matches[match_list_index], orig_start, SINGLE_MATCH, &quote_char, longest_prefix (matches[match_list_index], orig_text));
+       append_to_match (matches[match_list_index], delimiter, quote_char,
+ 		       compare_match (orig_text, matches[match_list_index]));
+     }
+@@ -2905,7 +2949,7 @@
+ 	 code below should take care of it. */
+       if (*matches[0])
+ 	{
+-	  insert_match (matches[0], orig_start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char);
++	  insert_match (matches[0], orig_start, matches[1] ? MULT_MATCH : SINGLE_MATCH, &quote_char, longest_prefix (matches[0], orig_text));
+ 	  orig_end = orig_start + strlen (matches[0]);
+ 	  completion_changed_buffer = STREQ (orig_text, matches[0]) == 0;
+ 	}
+@@ -2968,11 +3012,11 @@
+   if (match_list_index == 0 && match_list_size > 1)
+     {
+       rl_ding ();
+-      insert_match (matches[0], orig_start, MULT_MATCH, &quote_char);
++      insert_match (matches[0], orig_start, MULT_MATCH, &quote_char, longest_prefix (matches[0], orig_text));
+     }
+   else
+     {
+-      insert_match (matches[match_list_index], orig_start, SINGLE_MATCH, &quote_char);
++      insert_match (matches[match_list_index], orig_start, SINGLE_MATCH, &quote_char, longest_prefix (matches[match_list_index], orig_text));
+       append_to_match (matches[match_list_index], delimiter, quote_char,
+ 		       compare_match (orig_text, matches[match_list_index]));
+     }

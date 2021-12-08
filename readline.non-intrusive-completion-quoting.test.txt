@@ -1,0 +1,48 @@
+#!/bin/bash
+# OK that's really a /bin/type-this-by-hand-in-an-interactive-shell, but I gain syntax coloring by telling it's a /bin/bash.
+
+# Test for bash completion on $VAR/file<tab> where file<tab> completes to "file with spaces":
+# readline returns \$VAR/file\ with\ spaces
+# which correctly contains \ before spaces, but one before $ too, which is incorrect.
+# The attached patch makes the "90%" become a "98%" in https://lists.gnu.org/archive/html/bug-bash/2011-03/msg00235.html 
+
+t=/tmp/btest ; i="$t/spa ced" ; mkdir -p $t/solid "$i/con" "$i/contents" "$i/other" "$i/con/solid" "$i/con/spa ced"
+
+# Each test block lists:
+# Typed sequence
+Actual result with current bash + readline
+Result with current bash + patched readline
+
+# echo $t/<tab>
+echo $t/s
+echo $t/s
+
+# echo $t/so<tab>
+echo $t/solid/
+echo $t/solid/
+
+#echo $t/sp<tab>
+echo \$t/spa\ ced/ # \$ incorrect
+echo $t/spa\ ced/
+
+# echo $t/spa\ ced/<tab>
+echo \$t/spa\ ced/ # \$ incorrect
+echo $t/spa\ ced/
+
+#echo "$t/sp<tab>
+echo "\$t/spa\ ced/" # \$ incorrect, \  unnecessary.
+echo "$t/spa ced"/
+
+# /!\ Note there's still a problem when quotes are closed:
+# echo "$t/spa ced"/<tab>
+echo \$t/spa\ ced/ # \$ incorrect
+echo \$t/spa\ ced/ # Incorrect too
+# In forelast case the unclosed " made insert_match pass only the unquoted subpart (starting at $t), which matched with the results.
+# In the current case insert_match passes the whole string including quotes (starting at "$t), thus match ("$t) and replacement ($t) did not match.
+# This is the same as https://lists.gnu.org/archive/html/bug-bash/2021-06/msg00131.html
+# This could perhaps be handled by passing longest_prefix() the quote_char, so that it accepts comparing "$t" with $t when quote_char is "
+# (like compare_match does).
+# Or forcing callers *NOT* to dequote their matches (by temporarily inhibiting rl_filename_dequoting_function, mapping it to a function that
+# removes quotes but not backslashes?).
+
+# /!\ Note that I did *NOT* regress-test against a litteral $ in a filename.
