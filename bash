@@ -30,7 +30,7 @@ v 4.0.24 || true
 v 4.1.0 && modifs=completionUTF8MACreadline60 || true
 v 4.1.2 && modifs=
 v 4.1.7 || true
-v 4.2.45 || true
+v 4.2.45 && modifs="$modifs asdc" || true
 v 4.3.25 || true
 v 4.3.42 || true
 v 4.4.23 || true
@@ -44,6 +44,21 @@ v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$v_maj.tar.gz"
 
 # Modifications
+
+# antislash dollar complétion
+# Sur ls $t/truc<tab> lorsqu'il existe un "truc à espaces",
+# readline complète en \$t/truc\ à\ espaces,
+# avec des \ corrects devant les espaces, mais aussi un devant $.
+asdc()
+{
+	local vr
+	case "$version" in
+		5.1.*) vr=8.1 ;;
+		# Pour le moment on ne sait pas gérer les autres versions de readline.
+		*) return ;;
+	esac
+	( cd lib/readline && patch -p0 < "$SCRIPTS/readline.non-intrusive-completion-quoting.$vr.patch" )
+}
 
 completionUTF8MAC()
 {
