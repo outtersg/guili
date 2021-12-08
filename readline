@@ -31,6 +31,8 @@ v 6.2.1 || true
 v 6.3.8 || true
 v 7.0.5 || true
 
+# Modifications
+
 darwin8aussi()
 {
 	filtrer support/shobj-conf sed -e 's/darwin7/darwin[78]/'
