@@ -5,6 +5,9 @@
 # readline returns \$VAR/file\ with\ spaces
 # which correctly contains \ before spaces, but one before $ too, which is incorrect.
 # The attached patch makes the "90%" become a "98%" in https://lists.gnu.org/archive/html/bug-bash/2011-03/msg00235.html 
+# Other references:
+#   https://lists.gnu.org/archive/html/bug-bash/2015-08/msg00181.html
+#   https://askubuntu.com/questions/70750/how-to-get-bash-to-stop-escaping-during-tab-completion
 
 t=/tmp/btest ; i="$t/spa ced" ; mkdir -p $t/solid "$i/con" "$i/contents" "$i/other" "$i/con/solid" "$i/con/spa ced"
 
