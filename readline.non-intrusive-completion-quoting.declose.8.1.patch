@@ -1,0 +1,49 @@
+--- complete.c	2021-12-09 01:01:27.951261000 +0100
++++ complete.c	2021-12-09 21:45:10.747465000 +0100
+@@ -1118,8 +1118,13 @@
+ 
+ 	  if (quote_char != '\0')
+ 	    {
+-	      /* Ignore everything until the matching close quote char. */
+-	      if (rl_line_buffer[scan] == quote_char)
++	      /* Ignore everything until the matching close quote char.
++		 Special case: when !rl_completion_suppress_quote and the quote is last char,
++		 we can suppose it has been added automatically) and can be skipped
++		 (doing so allows considering the substring as an unmodifier user-typed part,
++		 which gives it more chances to be preserved in make_quoted_replacement
++		 with a non-zero replace_from). */
++	      if (rl_line_buffer[scan] == quote_char && (rl_completion_suppress_quote || rl_line_buffer[scan + 1]))
+ 		{
+ 		  /* Found matching close.  Abandon this substring. */
+ 		  quote_char = '\0';
+@@ -1898,6 +1903,13 @@
+   else if (rl_completion_suppress_append == 0 && rl_completion_append_character)
+     temp_string[temp_string_index++] = rl_completion_append_character;
+ 
++  /* If quoting, put the / *inside* the quote. */
++  if (quote_char && temp_string_index >= 2 && temp_string[temp_string_index - 1] == '/' && temp_string[temp_string_index - 2] == quote_char)
++    {
++      temp_string[temp_string_index - 2] = '/';
++      temp_string[temp_string_index - 1] = quote_char;
++    }
++
+   temp_string[temp_string_index++] = '\0';
+ 
+   if (rl_filename_completion_desired)
+@@ -1923,7 +1935,16 @@
+ 	      if (rl_point && rl_line_buffer[rl_point] == '\0' && rl_line_buffer[rl_point - 1] == '/')
+ 		;
+ 	      else if (rl_line_buffer[rl_point] != '/')
++		{
++		  /* If quoting, put the / *inside* the quote (assuming it is a
++		     quote-agnostic character).
++		     s gets reused as "swap chars". */
++		  if ((s = quote_char && rl_point && rl_line_buffer[rl_point - 1] == quote_char))
++		    --rl_point;
+ 		rl_insert_text ("/");
++		  if (s)
++		    ++rl_point;
++		}
+ 	    }
+ 	}
+ #ifdef S_ISLNK
