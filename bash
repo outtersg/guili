@@ -57,7 +57,13 @@ asdc()
 		# Pour le moment on ne sait pas gérer les autres versions de readline.
 		*) return ;;
 	esac
-	( cd lib/readline && patch -p0 < "$SCRIPTS/readline.non-intrusive-completion-quoting.$vr.patch" )
+	(
+		cd lib/readline
+		# Ne fait-on pas exactement ce que ferait un shopt -u complete_fullquote?
+		patch -p0 < "$SCRIPTS/readline.non-intrusive-completion-quoting.$vr.patch"
+		# Celui-ci est-il utile? Ne pourrait-on pas simplement activer rl_completion_suppress_quote?
+		patch -p0 < "$SCRIPTS/readline.non-intrusive-completion-quoting.declose.$vr.patch"
+	)
 }
 
 completionUTF8MAC()
