@@ -139,6 +139,7 @@ v 8.0.11 || true
 v 8.0.12 || true
 v 8.0.13 || true
 v 8.0.14 || true
+v 8.1.1 || true
 
 if pge $version 7.2 # Ou plus tôt que ça?
 then
