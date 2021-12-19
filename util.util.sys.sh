@@ -17,3 +17,23 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+# Le Mac a la fâcheuse tendance d'embarquer ses propres versions de composants Open Source (iconv, sqlite3…);
+# et d'y lier certaines de ses bibliothèques système.
+# Donc pour peu qu'un logiciel se lie à ses dernières (ex.: un truc cherchant un pontage vers CoreGraphics, ou un Python et son scproxy),
+# on est condamnés à se lier à ces versions système des Open Source, ou au moins à une version très compatible.
+
+# Pour un logiciel amené à se lier à des bibliothèques système, remplace dans $prerequis celles fournies par ledit système par un équivalent proche (voire se débrouille pour utiliser celle système).
+similisys()
+{
+	prerequis="`_similisys`"
+}
+
+_similisys()
+{
+	decoupePrerequis "$prerequis" | sed -e 's/+/ &/' | while read l reste
+	do
+		commande "similisys_$l" || { echo "$l $reste" ; continue ; }
+		similisys_$l "$reste"
+	done | sed -e 's/ +/+/g' | tr '\012' ' '
+}
