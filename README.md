@@ -136,7 +136,7 @@ sutiliser
 ```sh
 v 1.0 && modifs="tropWindows" || true
 # Modification plus nécessaire en 1.1.
-v 1.1 && prerequis="cmake \\ openssl >= 1.0" || true
+v 1.1 && modifs= || true
 
 tropWindows()
 {
