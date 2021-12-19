@@ -227,7 +227,8 @@ truefalse()
 	# Sur mon BSD l'inclusion d'on ne sait quelle version de quoi fait des équivalents #undef TRUE et FALSE.
 	# Serait-ce icucxx11?
 	# Pourtant celle-ci fonctionne, du moment qu'on reste en ossl10 et non ossl11.
-	grep -rl intl_convert.h ext/intl | while read f
+	# Si une précédente tentative de compil a laissé des artéfacts, on les ignore, surtout qu'ils ne sont pas du C préprocessable.
+	grep -rl intl_convert.h ext/intl | grep -v '\.dep' | while read f
 	do
 		filtrer "$f" sed -e '/intl_convert.h/{
 a\
