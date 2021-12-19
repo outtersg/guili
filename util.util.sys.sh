@@ -37,3 +37,23 @@ _similisys()
 		similisys_$l "$reste"
 	done | sed -e 's/ +/+/g' | tr '\012' ' '
 }
+
+# À FAIRE: pour le moment iconv s'autodétecte sur Mac et s'ajoute l'option +duo.
+#similisys_iconv()
+
+similisys_sqlite()
+{
+	local bib o v
+	for bib in \
+		/usr/lib/libsqlite3.dylib
+	do
+		if [ -e "$bib" ]
+		then
+			nm -o "$bib" | grep -q ' T .*intarray' && o="$o+intarray" || true # https://bugzilla.mozilla.org/show_bug.cgi?id=1055441#c28
+			nm -o "$bib" | grep -q ' T .*snapshot_free' && o="$o+snapshot" || true
+			break
+		fi
+	done
+	
+	echo "sqlite$o $1$v"
+}
