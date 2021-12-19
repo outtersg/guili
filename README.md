@@ -97,8 +97,8 @@ set -e
 
 # En-tête obligatoire:
 # - Définit $SCRIPTS au dossier contenant les GuiLI
-# - Le nom de la fonction (DelieS) indique en outre la modernité du script d'installation, et donc les fonctionnalités des GuiLI activables. DelieS est la version actuelle.
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+# - Le nom de la fonction (Delicat) indique en outre la modernité du script d'installation, et donc les fonctionnalités des GuiLI activables. Delicat est la version actuelle.
+Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delicat ; s="`dirname "$s"`" ; Delicat ; SCRIPTS="$s" ; } ; SCRIPTS
 # Inclusion des utilitaires GuiLI; analyse des paramètres standard (options, contraintes de version), définition des variables standard (dont $logiciel comme `basename "$0"`).
 . "$SCRIPTS/util.sh"
 
