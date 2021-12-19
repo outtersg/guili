@@ -30,7 +30,42 @@ v 1.14 && modifs="fbsd10" || true
 v 1.15 || true
 v 1.16 || true
 
+# Sur mac l'option duo est fortement préconisée (cf. note de lesdeux()).
+mac && argOptions="`options "$argOptions=duo"`" || true
+if option duo ; then modifs="$modifs lesdeux" ; fi
+
 # Modifications
+
+lesdeux()
+{
+	# libiconv peut se compiler soit façon système (iconv()), soit façon biblio additionnelle (libiconv(), pour ne pas écraser l'iconv() système).
+	# Problème: quand un logiciel (au hasard Python), embarquant des liens avec à la fois des biblios Open Source (habituées à libiconv()) et des biblios système (habituées à iconv()), une seule libiconv.so est chargée par le ld: à elle donc de définir les deux.
+	# … Mais pas pour FreeBSD, qui utilise cela en standard.
+	# … Mais avec des strong_alias, non supportés par tout le monde (ex.: Darwin, qui dit qu'il "only support weak aliases, mais en fait même pas).
+	# Donc on en revient à la bonne vieille méthode de l'appel direct.
+	
+	cat >> lib/iconv.c <<TERMINE
+#if !defined(LIBICONV_PLUG) && !defined(__FreeBSD__)
+
+#if 0
+#undef iconvlist
+#undef iconvctl
+#endif
+#undef iconv
+#undef iconv_open
+#undef iconv_close
+
+#if 0
+extern LIBICONV_DLL_EXPORTED int iconvctl (iconv_t icd, int request, void* argument) { return libiconvctl(icd, request, argument); }
+extern LIBICONV_DLL_EXPORTED void iconvlist (int (*do_one) (unsigned int namescount, const char * const * names, void* data), void* data) { libiconvlist(do_one, data); }
+#endif
+extern LIBICONV_DLL_EXPORTED iconv_t iconv_open (const char* tocode, const char* fromcode) { return libiconv_open(tocode, fromcode); }
+extern LIBICONV_DLL_EXPORTED size_t iconv (iconv_t icd, ICONV_CONST char* * inbuf, size_t *inbytesleft, char* * outbuf, size_t *outbytesleft) { return libiconv(icd, inbuf, inbytesleft, outbuf, outbytesleft); }
+extern LIBICONV_DLL_EXPORTED int iconv_close (iconv_t icd) { return libiconv_close(icd); }
+
+#endif
+TERMINE
+}
 
 # Variables
 
