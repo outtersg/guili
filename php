@@ -125,6 +125,7 @@ v 7.4.23 || true
 v 7.4.24 || true
 v 7.4.25 || true
 v 7.4.26 || true
+v 7.4.27 || true
 # Pour compiler la master:
 #v 7.5 && prerequis="re2c \\ $prerequis oniguruma" && OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-zts --enable-debug" || true
 v 8.0.1 && prerequis="$prerequis oniguruma" || true
@@ -137,6 +138,7 @@ v 8.0.10 || true
 v 8.0.11 || true
 v 8.0.12 || true
 v 8.0.13 || true
+v 8.0.14 || true
 
 if pge $version 7.2 # Ou plus tôt que ça?
 then
