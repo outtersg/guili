@@ -36,6 +36,10 @@ v 3.29.0 && v_annee=2019 || true
 v 3.35.5 && v_annee=2021 && vautomake=">= 1.15 < 1.16" || true
 v 3.36.0 || true
 
+option intarray && modifs="$modifs intarray" || true
+
+option snapshot && modifs="$modifs snapshot" || true
+
 # Modifications
 
 pcre()
@@ -45,6 +49,22 @@ pcre()
 	pg 3.36 $version || patch -p0 < "$SCRIPTS/sqlite_pcre.3.36.patch"
 	local pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
 	cat "$pcre_c" >> sqlite3.c
+}
+
+snapshot()
+{
+	export CPPFLAGS="$CPPFLAGS -DSQLITE_ENABLE_SNAPSHOT"
+}
+
+intarray()
+{
+	# https://bugzilla.mozilla.org/show_bug.cgi?id=1055441#c28
+	local f
+	for f in test_intarray.c test_intarray.h
+	do
+		curl -k "https://www.sqlite.org/src/file?name=src/$f" | sed -e '1,/<pre>/d' -e '/<\/pre>/,$d' -e 's/&quot;/"/g' -e 's/&gt;/>/g' -e 's/&lt;/</g' -e 's/&amp;/\&/g' > "$f"
+	done
+	cat test_intarray.c >> sqlite3.c
 }
 
 foutuTclPourLePointH()
