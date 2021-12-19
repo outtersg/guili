@@ -123,7 +123,7 @@ prerequis
 # Si nous avons besoin de Harfbuzz, notre itération 0 (Freetype sans Harfbuzz, nécessaire à Harfbuzz) s'est installée complètement dans notre $dest.
 # Nous devons donc nous assurer que destiner ne va pas croire qu'il s'agit de la version définitive.
 # Soit on supprime le marqueur de complétude ou d'en-cours, soit on restaure $PRE pour que ledit marqueur ne soit pas reconnu.
-[ -z "$destAvecHb" -o ! -e "$destAvecHb/$ENCOURS" ] || rm "$destAvecHb/$ENCOURS"
+[ -z "$destAvecHb" -o ! -e "$destAvecHb/$ENCOURS" ] || sudoku rm "$destAvecHb/$ENCOURS"
 destiner
 # ATTENTION: inconciabilité interdépendance / paquets binaires
 # À la façon dont nous nous installons (FT sans HB mais sous le chemin de FT+HB, puis HB, puis FT avec HB), si un paquet binaire est cherché pour la première étape on récupérera celui de FT+HB (puisque le paquet binaire est indexé par $dest), incluant dans son libfreetype.la (biblio libtool) une référence à harfbuzz. En conséquence, la compilation de harfbuzz échouera, puisque son libtool essaiera de la lier à un FT lié à une libharfbuzz.la qui n'existe pas encore.
