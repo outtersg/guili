@@ -30,7 +30,8 @@ analyserParametresPour --pour php "$@"
 # https://pecl.php.net/package-changelog.php?package=APCu: rechercher la dernière mention à "compatibility with PHP x.x".
 v_zoc=
 case `php-config --version | cut -d . -f 1-2` in
-	[89].*|[1-9][0-9].*) argVersion="$argVersion >= 5.1.19" ;;
+	[89].*|[1-9][0-9].*) argVersion="$argVersion >= 5.1.21" ;;
+	8.0) argVersion="$argVersion >= 5.1.19" ;;
 	7.4) argVersion="$argVersion >= 5.1.17" ;;
 	7.3) argVersion="$argVersion >= 5.1.10" ;;
 	7.[0-2]) argVersion="$argVersion >= 5.1.0" ;;
@@ -52,6 +53,7 @@ v 5.1.19 || true
 v 5.1.20 || true
 v 5.1.19 || true
 v 5.1.20 || true
+v 5.1.21 || true
 
 archive="http://pecl.php.net/get/APC-$version.tgz"
 pge 4 $version || archive="https://pecl.php.net/get/apcu-$version.tgz"
