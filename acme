@@ -64,3 +64,5 @@ echo Installation… >&2
 sudo cp -R dest "$dest"
 
 sutiliser
+
+jaune "Si vous avez déjà un compte sous lequel vous avez émis des certificats (ls ~/.acme.sh/ac), assurez-vous qu'il sera réutilisé, par ex.: acme.sh --set-default-ca --server letsencrypt" >&2
