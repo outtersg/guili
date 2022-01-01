@@ -499,4 +499,6 @@ pasfortiche()
 	done
 }
 
+#- Initialisation --------------------------------------------------------------
+
 compilo_sep="`printf '\003'`"
