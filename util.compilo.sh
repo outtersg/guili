@@ -355,21 +355,7 @@ meilleurCompilo()
 	case `uname` in
 		Darwin)
 			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
-			for f in /System/Library/SDKSettingsPlist/SDKSettings.plist /Library/Developer//CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.plist
-			do
-				if [ -e "$f" ]
-				then
-					cp "$f" "$TMP/$$/1.plist"
-					plutil -convert xml1 "$TMP/$$/1.plist"
-					plutil -convert xml1 "$TMP/$$/1.plist"
-					export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$TMP/$$/1.plist" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
-					break
-				fi
-			done
-			# À FAIRE: utiliser SDKROOT pour d'autres variables.
-			export SDKROOT="`xcrun --show-sdk-path`"
-			export CPPFLAGS="$CPPFLAGS -I$SDKROOT/usr/include"
-			export MACOSX_DEPLOYMENT_TARGET="`xcrun --show-sdk-version`"
+			envCompiloMac
 			;;
 	esac
 }
@@ -500,6 +486,24 @@ pasfortiche()
 }
 
 #--- Mac ---
+
+envCompiloMac()
+{
+	for f in /System/Library/SDKSettingsPlist/SDKSettings.plist /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.plist
+	do
+		if [ -e "$f" ]
+		then
+			cp "$f" "$TMP/$$/1.plist"
+			plutil -convert xml1 "$TMP/$$/1.plist"
+			export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$TMP/$$/1.plist" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
+			break
+		fi
+	done
+	# À FAIRE: utiliser SDKROOT pour d'autres variables.
+	export SDKROOT="`xcrun --show-sdk-path`"
+	export CPPFLAGS="$CPPFLAGS -I$SDKROOT/usr/include"
+	export MACOSX_DEPLOYMENT_TARGET="`xcrun --show-sdk-version`"
+}
 
 # Mon XML, parce que le format .plist XML est pourri de chez pourri.
 # Bon ça s'apparente plus à du JSON.
