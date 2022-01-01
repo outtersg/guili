@@ -499,6 +499,60 @@ pasfortiche()
 	done
 }
 
+#--- Mac ---
+
+# Mon XML, parce que le format .plist XML est pourri de chez pourri.
+# Bon ça s'apparente plus à du JSON.
+# Mettons que c'est le Monique's Markup Language (ou Monique s'aime, elle).
+moniquesML()
+{
+	cp "$1" "$TMP/$$/1.plist"
+	commande plutil && plutil -convert xml1 "$TMP/$$/1.plist" || true
+	sed -E < "$TMP/$$/1.plist" \
+		-e 's#<key>([^<">]*)</key>#\1:#g' \
+		-e 's#<string>([^<">]*)</string>#"\1",#g' \
+		-e 's#<dict>#{#g' \
+		-e 's#</dict>#},#g' \
+		-e 's#<array>#[#g' \
+		-e 's#</array>#],#g' \
+		-e 's#<array/>#[],#g' \
+	| awk \
+'
+# Pond ce qui avait été mémorisé tel quel (sur constat qu on n arrivera pas à pondre tassé).
+function abandon() { if(cle) { print cle; cle = ""; } if(n) for(i = 0; ++i <= n;) print tab[i]; delete tab; n = 0; }
+# Pond ce qui a été mémorisé tassé.
+function tasse() {
+	if(cle)
+	{
+		c = cle;
+		cle = "";
+	}
+	if(n)
+		for(i = 0; ++i <= n;)
+		{
+			bout = tab[i];
+			if(c) # Indentation supprimée, sauf pour le premier bloc.
+				sub(/^[ 	]*/, " ", bout);
+			sub(/[ 	]*$/, "", bout);
+			c = c""bout;
+		}
+	delete tab;
+	n = 0;
+	sub(/, \]/, " ]", c);
+	print c;
+}
+BEGIN{ n = 0; }
+/:$/{ if(cle) abandon(); cle = $0; next; }
+/\[\]/{ if(n) abandon(); tasse(); next; }
+/\[$/{ if(n) abandon(); tab[++n] = $0; next; }
+/^[ 	]*\]/{ if(n) { tab[++n] = $0; tasse(); } else print; next; }
+# Les chaînes trop longues restent sur une ligne à part, si elles font partie d un tableau.
+/^[ 	]*".{24,}/{ abandon(); print; next; }
+/^[ 	]*"[^"]*",?$/{ if(n || cle) tab[++n] = $0; if(cle && n == 1) tasse(); next; }
+{ abandon(); print; }
+'
+}
+
 #- Initialisation --------------------------------------------------------------
 
 compilo_sep="`printf '\003'`"
