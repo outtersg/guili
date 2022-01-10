@@ -489,20 +489,38 @@ pasfortiche()
 
 envCompiloMac()
 {
+	# Problème: sur certaines plates-formes, se cantonner à un SDK est une perte,
+	# car le SDK limite au système actuel, tandis que les biblios système savent revenir loin en arrière.
+	# Ex.: Bonemine est en 10.14.1, alors qu'il supporte jusqu'au 10.6.
+	# En particulier il refuse de compiler en i386 alors qu'il peut (si on le laisse se lier à /usr/lib plutôt qu'à $SDKROOT/usr/lib).
+	# https://lists.freedesktop.org/archives/gstreamer-commits/2016-October/096588.html
+	# https://reviews.llvm.org/D109460
+	# https://discourse.cmake.org/t/how-to-determine-which-architectures-are-available-apple-m1/2401/8
+
+	# À FAIRE: exporter, et récupérer de l'env: un openssl peut réutiliser celui calculé par le php qui l'a appelé.
+	compilo_sdk_min=
+
+	# À FAIRE: parcourir plusieurs SDK, jusqu'à trouver le min qui puisse compiler pour le présent système.
 	for f in /System/Library/SDKSettingsPlist/SDKSettings.plist /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/SDKSettings.plist
 	do
 		if [ -e "$f" ]
 		then
-			cp "$f" "$TMP/$$/1.plist"
-			plutil -convert xml1 "$TMP/$$/1.plist"
-			export MACOSX_DEPLOYMENT_TARGET="`tr -d '\012' < "$TMP/$$/1.plist" | sed -e 's#.*>MACOSX_DEPLOYMENT_TARGET</key>[ 	]*<string>##' -e 's#<.*##'`"
+			# On peut aussi chercher MACOSX_DEPLOYMENT_TARGET, mais ça revient à xcrun --show-sdk-version.
+			# On est plus intéressés par la version min, qui nous permet de compiler des trucs pour de vieux systèmes (on n'est pas trop intéressés par la modernité).
+			compilo_sdk_min="`moniquesML "$f" | sed -e '/^.*MinimumDeploymentTarget.*"\([^"]*\)"[^"]*$/!d' -e 's//\1/'`"
 			break
 		fi
 	done
+	
+	if [ -z "$compilo_sdk_min" ]
+	then
 	# À FAIRE: utiliser SDKROOT pour d'autres variables.
 	export SDKROOT="`xcrun --show-sdk-path`"
 	export CPPFLAGS="$CPPFLAGS -I$SDKROOT/usr/include"
 	export MACOSX_DEPLOYMENT_TARGET="`xcrun --show-sdk-version`"
+	else
+		export MACOSX_DEPLOYMENT_TARGET="$compilo_sdk_min"
+	fi
 }
 
 # Mon XML, parce que le format .plist XML est pourri de chez pourri.
