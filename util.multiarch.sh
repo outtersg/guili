@@ -123,7 +123,14 @@ mas()
 	multiarch_archs=
 	case "`uname`" in
 		Darwin)
-			multiarch_archs="x86_64 i386"
+			# Petit test rapide: il nous faut aller jusqu'à l'édition de liens, avec un appel à libc; en effet avec le mauvais SDKROOT, la compil peut bien se passer (le compilo sait gérer), par contre la lib n'a pas le symbole.
+			{ echo '#include <stdio.h>' ; echo 'int main(int argc, char ** argv) { fprintf(stdout, "oui\\n"); return 0; }' ; } > $TMP/$$/1.c
+			local archi
+			for archi in x86_64 i386
+			do
+				cc $CPPFLAGS $CFLAGS $LDFLAGS -arch $archi -o $TMP/$$/a.out $TMP/$$/1.c 2> /dev/null && [ oui = "`$TMP/$$/a.out`" ] && multiarch_archs="$multiarch_archs $archi" || true
+			done
+			[ -n "$multiarch_archs" ] || multiarch_archs="`uname -m`"
 			;;
 	esac
 }
