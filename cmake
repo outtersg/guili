@@ -35,7 +35,7 @@ v 2.8.6 && modifs=putainDeLibJPEGDeMacOSX || true
 v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
 v 2.8.12 && modifs="etToiAlors havefchdir" || true
 v 3.5.2 && modifs="etToiAlors speMac macGcc macOpenssl" || true
-v 3.13.1 || true
+v 3.13.1 && prerequis="cxx11()" || true
 v 3.13.5 || true
 if eventfd # À partir de là cmake repose sur une libuv qui ne compile pas sur les "vieux" systèmes.
 then
