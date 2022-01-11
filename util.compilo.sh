@@ -530,8 +530,26 @@ envCompiloMac()
 	# https://lists.freedesktop.org/archives/gstreamer-commits/2016-October/096588.html
 	# https://reviews.llvm.org/D109460
 	# https://discourse.cmake.org/t/how-to-determine-which-architectures-are-available-apple-m1/2401/8
-
+	# D'un autre côté, la partie C++ repose sur des en-têtes présents exclusivement dans le SDK (avec le compilo).
+	
 	# À FAIRE: exporter, et récupérer de l'env: un openssl peut réutiliser celui calculé par le php qui l'a appelé.
+	# /!\ Dépendant des tests lancés.
+	
+	local methode test
+	local tests=compilo_test_cc
+	# /!\ Du fait du scrutin sur $prerequis, envCompiloMac doit n'être appelé qu'après définition de celui-ci (MODERNITE >= 3).
+	case " $prerequis" in *" "cpp[1-9]*|*" "cxx[1-9]*) tests="$tests compilo_test_cxx" ;; esac
+	
+	for methode in compilo_mac_sdk_min compilo_mac_sdk_xcrun
+	do
+		compilo_tester $methode $tests || continue
+		$methode
+		break
+	done
+}
+
+compilo_mac_sdk_min()
+{
 	compilo_sdk_min=
 
 	# À FAIRE: parcourir plusieurs SDK, jusqu'à trouver le min qui puisse compiler pour le présent système.
@@ -546,15 +564,17 @@ envCompiloMac()
 		fi
 	done
 	
-	if [ -z "$compilo_sdk_min" ]
-	then
+	[ -n "$compilo_sdk_min" ] || return 1
+	
+	export MACOSX_DEPLOYMENT_TARGET="$compilo_sdk_min"
+}
+
+compilo_mac_sdk_xcrun()
+{
 	# À FAIRE: utiliser SDKROOT pour d'autres variables.
 	export SDKROOT="`xcrun --show-sdk-path`"
 	export CPPFLAGS="$CPPFLAGS -I$SDKROOT/usr/include"
 	export MACOSX_DEPLOYMENT_TARGET="`xcrun --show-sdk-version`"
-	else
-		export MACOSX_DEPLOYMENT_TARGET="$compilo_sdk_min"
-	fi
 }
 
 # Mon XML, parce que le format .plist XML est pourri de chez pourri.
