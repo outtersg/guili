@@ -104,7 +104,7 @@ etToiAlors()
 {
 	# Les includes ne sont nécessaires que pour compiler CMake lui-même; on inclut donc explicitement les répertoires requis pour *cette* compilation, répertoires qui sont temporaires, plutôt qu'un -I.: ainsi on s'assure que si CMake a des velléités de mémorisation, il ne nous ressortira pas un beau jour de nulle part un -I. dans les applis qu'on lui demande de compiler.
 	# Notons aussi que selon les étapes, la compil se fait dans le dossier du source, ou dans un Bootstrap.cmk. On doit donc tout inclure.
-	ln -s . toi
+	rm -f toi && ln -s . toi
 	mkdir -p Utilities/cmcurl/etToiAlors
 	tiens="-IetToiAlors/.. -I../toi/Utilities/cmlibuv/include"
 	CPPFLAGS="$tiens $CPPFLAGS"
