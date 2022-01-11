@@ -449,6 +449,8 @@ libcxxgcc()
 
 #- Spécificités ----------------------------------------------------------------
 
+#--- GCC ---
+
 pasfortiche()
 {
 	local vsys="`uname -r | cut -d - -f 1`"
