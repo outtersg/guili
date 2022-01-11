@@ -369,13 +369,15 @@ cxx17()
 	libcxx
 }
 
-cpp14()
+cpp14() { cxx14 "$@" ; }
+cxx14()
 {
 	compiloSysVersion -i "clang >= 3.5" "gcc >= 5" # clang 3.4 supporte, mais en -std=c++1y.
 	libcxx
 }
 
-cpp11()
+cpp11() { cxx11 "$@" ; }
+cxx11()
 {
 	compiloSysVersion -i "clang >= 3.3" "gcc >= 4.8.1"
 	libcxx
