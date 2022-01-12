@@ -373,6 +373,7 @@ ccMac()
 	esac
 }
 
+# À VIRER (remplacer par multiarch partout)
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
 # Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
 libtool3264()
@@ -387,6 +388,7 @@ libtool3264()
 	fi
 }
 
+# À VIRER (remplacer par multiarch partout)
 libtool3264bis()
 {
 	mac || return 0
@@ -396,6 +398,7 @@ command="`echo "$command" | sed -e "/ -M/s/ -arch [^ ]*//g"`"
 '
 }
 
+# À VIRER (remplacer par multiarch partout)
 # À ajouter en modif; après la compil dans l'archi cible, déterminera si celle-ci est une 64bits, et, si oui, lancera la recompil équivalente totale en 32bits, avant de combiner les produits via lipo.
 EN_32=non
 [ "x$1" = x-32 ] && EN_32=oui
@@ -433,6 +436,7 @@ compil3264bis()
 	done
 }
 
+# À FAIRE: à intégrer à envCompiloMac
 dyld105()
 {
 	mac || return 0
