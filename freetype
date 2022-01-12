@@ -25,7 +25,7 @@ Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" 
 . "$SCRIPTS/util.sh"
 
 v 2.1.9 && prerequis="make \\ zlib bzip2 libpng" || true
-v 2.4.3 && modifs="dyld105"
+v 2.4.3 || true
 v 2.4.4
 v 2.4.11
 v 2.4.12
@@ -133,18 +133,15 @@ destiner
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
-for modif in compil3264 $modifs ; do $modif "$@" ; done
+for modif in $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
-for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
 
 sutiliser
-
-cd "$TMP/$$" # Pour éviter que menage() n'efface le dossier de travail si on est en fin de compil 32bits alors que la compile 32+64 attend notre résultat pour continuer sur le même dossier.
