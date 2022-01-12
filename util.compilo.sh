@@ -537,7 +537,8 @@ envCompiloMac()
 	# https://lists.freedesktop.org/archives/gstreamer-commits/2016-October/096588.html
 	# https://reviews.llvm.org/D109460
 	# https://discourse.cmake.org/t/how-to-determine-which-architectures-are-available-apple-m1/2401/8
-	# D'un autre côté, la partie C++ repose sur des en-têtes présents exclusivement dans le SDK (avec le compilo).
+	# D'un autre côté, sur certaines machines on peut avoir compilé un clang à part, plus récent que celui système, mais incapable de gérer la partie C++;
+	# en ce cas revenir au SDK est plus sûr.
 	
 	# À FAIRE: exporter, et récupérer de l'env: un openssl peut réutiliser celui calculé par le php qui l'a appelé.
 	# /!\ Dépendant des tests lancés.
