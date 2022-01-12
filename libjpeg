@@ -26,9 +26,11 @@ Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" 
 
 # Historique des versions gérées
 
+modifs=multiarch
+
 v 6.2 && version_biblio=63 || true # version_biblio pour AquaScribus, entre autres.
 v 8.1 || true
-v 8.2 && modifs="compil3264 dyld105" && modifspostconf=dylib || true
+v 8.2 && modifspostconf=dylib || true
 v 8.3 || true
 v 8.4 || true
 v 9 || true
@@ -95,7 +97,6 @@ for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
-for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 pge $vnum 8 || sudo make install-lib
