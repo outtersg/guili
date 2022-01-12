@@ -460,6 +460,11 @@ compilo_tester()
 		# On lance la méthode (qui cherche des trucs et modifie l'environnement).
 		$1 || exit 1
 		shift
+		# Quelques modifications d'environnement demandées par la détection de compilo.
+		for m in true $modifs
+		do
+			case "$m" in _compilo_*) $m ;; esac
+		done
 		# Et on teste!
 		for test in "$@"
 		do
