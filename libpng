@@ -25,13 +25,14 @@ Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" 
 . "$SCRIPTS/util.sh"
 
 prerequis=zlib
+modifs=multiarch
 
 v 1.2.5
 v 1.2.25
 v 1.2.37
-v 1.4.1 && modifs="compat12"
-v 1.4.4 && modifs="compil3264 dyld105 compat12"
-v 1.5.2 && modifs="compil3264 dyld105" # Attention, la 1.5 retire des accès directs sur lesquels repose un vieux wx.
+v 1.4.1 && modifs="$modifs compat12" || true
+v 1.4.4 || true
+v 1.5.2 && retirerModif compat12 || true # Attention, la 1.5 retire des accès directs sur lesquels repose un vieux wx.
 v 1.5.6
 v 1.5.13
 v 1.5.17
@@ -77,11 +78,9 @@ LDFLAGS=-L. -L$(ZLIBLIB) -lpng -lz
 ' -e 's=-dynamiclib=-dynamiclib -install_name $(DL)/$@='
 cp scripts/makefile.macosx Makefile
 fi
-for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
-for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo mkdir -p "$dest" && sudo make install
