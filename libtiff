@@ -26,9 +26,11 @@ Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" 
 
 # Historique des versions gérées
 
-v 3.7.2
-version=2005-05-05 && modifs=detectionGLMac
-v 3.9.4 && modifs="compil3264 dyld105 jpeg9" && prerequis="zlib $prerequis_libjpeg" || true
+modifs=multiarch
+
+v 3.7.2 || true
+#version=2005-05-05 && modifs=detectionGLMac
+v 3.9.4 && modifs="$modifs jpeg9" && prerequis="zlib $prerequis_libjpeg" || true
 v 3.9.7 || true
 v 4.0.3 || true
 v 4.0.6 || true
@@ -283,11 +285,9 @@ for modif in true $modifs ; do $modif "$@" ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest" $OPTIONS_CONF
-for modif in true $modifspostconf ; do $modif "$@" ; done
 
 echo Compilation… >&2
 make
-for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
