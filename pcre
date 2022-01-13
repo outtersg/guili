@@ -40,7 +40,9 @@ v 8.45 || true
 
 if option cxx
 then
-	prerequis="$prerequis libcxx()"
+	prerequis="$prerequis cxx()"
+else
+	OPTIONS_CONF="$OPTIONS_CONF --disable-cpp"
 fi
 
 # Modifications
