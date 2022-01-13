@@ -59,3 +59,5 @@ pyextinit "$dest0"
 sudoku mkdir -p "$dest"
 sudoku cp -Rp "$dest0/." "$dest/."
 sutiliser - "$PYEXT"
+# meson a aussi un bin à lier, alors que pyextinit / sutiliser - ne fait qu'ajouter des .py au PYTHONPATH sans "installer" dans le bin.
+sudoku sh -c "cd $INSTALLS && rm -f bin/meson && ln -s ../$PYEXT/bin/meson bin/meson"
