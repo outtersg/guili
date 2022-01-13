@@ -67,7 +67,7 @@ destiner
 
 prerequis
 
-archive=http://cairographics.org/releases/cairo-$version.tar.xz
+archive=https://www.cairographics.org/snapshots/cairo-$version.tar.xz
 
 obtenirEtAllerDansVersion
 
