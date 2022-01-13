@@ -63,7 +63,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --enable-unicode-properties --enable-jit # unicodeprops en tout cas connu en 8.39; glib en a besoin; le JIT pour être utilisé de façon optimale depuis lua (pour rspamd).
+./configure --prefix="$dest" --enable-unicode-properties --enable-jit $OPTIONS_CONF # unicodeprops en tout cas connu en 8.39; glib en a besoin; le JIT pour être utilisé de façon optimale depuis lua (pour rspamd).
 
 echo Compilation… >&2
 make
