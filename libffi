@@ -42,6 +42,7 @@ putainDeLib64()
 # Variables
 
 archive="http://sourceware.org/pub/libffi/libffi-$version.tar.gz"
+archive="https://github.com/libffi/libffi/releases/download/v$version/libffi-$version.tar.gz"
 
 destiner
 
