@@ -134,6 +134,7 @@ compiloSysDejaConfigure()
 		# Un compilo avait déjà été configuré, mais on change. On fait donc le ménage.
 		# Les variables écrasées, on s'en fiche. Par contre là où il y a du boulot, c'est sur les variables cumulatives.
 		
+		# À FAIRE: ceci ne devrait plus être utile, puisque désormais nous ne modifions l'environnement qu'une seule fois, quand ont été déterminés les réglages définitifs.
 		tifs _compilo_purgerEnv --sep "$compilo_sep" "$COMPILO_AJOUTS"
 		
 		# Et on prépare le terrain pour inscrire les modifications que *ce* compilo va effectuer (des fois qu'on rerechange de compilo une troisième fois).
@@ -214,17 +215,21 @@ compilo_cheminLibcxx()
 compilo_cheminLibcxxClang()
 {
 	local ajout="-cxx-isystem $cheminBienVoulu/$suffixe -cxx-isystem /usr/include"
+	modifs="$modifs _compilo_cheminLibcxxClang"
 	# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit pas être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
 	case "$logiciel" in
 		gcc)
-			export CXX="$CXX $ajout"
 			COMPILO_AJOUTS="CXX$compilo_sep $ajout$compilo_sep$COMPILO_AJOUTS"
 			return 0
 			;;
 	esac
 	
-	export 	CXXFLAGS="$ajout $CXXFLAGS"
 	COMPILO_AJOUTS="CXXFLAGS$compilo_sep$ajout $compilo_sep$COMPILO_AJOUTS"
+}
+
+_compilo_cheminLibcxxClang()
+{
+	tifs _compilo_ajouterEnv --sep "$compilo_sep" "$COMPILO_AJOUTS"
 }
 
 _tmpBinEnTeteDePath()
@@ -335,7 +340,34 @@ _compiloBinaire()
 		[ $r -eq 42 -o $r -eq 0 ] || return $r
 		[ $r -eq 0 ] || return 0
 	fi
-		
+	
+	if [ $MODERNITE -ge 4 ]
+	then
+		_affCompiloSiConvientConfine
+	else
+		_affCompiloSiConvient
+	fi
+}
+
+_affCompiloSiConvientConfine()
+{
+	# Les versions modernes ont tendance à épurer au maximum l'environnement;
+	# le compilo, lui, a droit au traitement de faveur de pouvoir chercher dans le chemin *d'origine* ($PATH contenant $INSTALLS même lorsqu'exclusivementPrerequis est passé par là),
+	# et avant cela dans les chemins définis par de précédentes passes (genre un compiloSysVersion "tous azimuths" qui aurait trouvé un petit compilo de derrière les fagots: la nouvelle passe qu'on effectue doit essayer cette précédente trouvaille, qui s'il passe le test répondra aux contraintes précédentes + celles en cours de test).
+	(
+		# À FAIRE: si on codait en dur le chemin de cc et cxx directement dans $CC et $CXX, on ne s'enquiquinerait pas avec ces histoires de PATH.
+		# À FAIRE: de toute façon notre truc est un gros mic-mac, avec compiloSysVersion appelé une fois avec fouille d'$INSTALLS, une fois sans (mais espérant pouvoir reprendre le compilo calculé avec), etc. Rationnaliser, avec des prérequis normalisés "langc() langcxx(17) langpy() etc.", et qu'on n'invoque le calcul de compilo qu'une fois par langage, avec des variables COMPILO_xx_AJOUTS calculées séparément (mais s'intégrant ensuite dans le PATH, à voir dans quel ordre).
+		#          N.B.: si aucun lang*(), langc() implicite pour compatibilité avec l'actuel. Mais avec la possibilité d'un lang() pour signifier aucun langage (ex.: truc à déployer sans compil).
+		guili_ppath=
+		PATH="$GUILI_PATHEXT"
+		tifs _compilo_ajouterEnv --sep "$compilo_sep" "$COMPILO_AJOUTS"
+		export PATH="`echo "$guili_ppath:" | sed -e 's/^[^<]*//' -e 's/<:*//' -e 's#:#/bin:#'`$PATH"
+		compilo_tester _affCompiloSiConvient | tee /dev/tty || true
+	)
+}
+
+_affCompiloSiConvient()
+{
 	# La version actuellement dans notre $PATH répond-elle au besoin?
 	if commande "$bienVoulu" && testerVersion "`versionCompiloChemin "$bienVoulu"`" $versionVoulue
 	then
