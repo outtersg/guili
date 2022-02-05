@@ -112,6 +112,10 @@ _prerequis()
 				IFS=,
 				tifs $appel
 				;;
+			pkgconfig)
+				[ $MODERNITE -lt 3 ] || prcourant="$prcourant +strict" # On devrait même le mettre en niveau 2, mais j'ai compilé tant de choses en niveau 2 sans pkgconfig strict…
+				PRErequerir $prcourant
+				;;
 			*)
 				PRErequerir $prcourant
 				;;
