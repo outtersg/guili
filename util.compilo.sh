@@ -600,7 +600,7 @@ envCompiloMac()
 	local methode test
 	local tests=compilo_test_cc
 	# /!\ Du fait du scrutin sur $prerequis, envCompiloMac doit n'être appelé qu'après définition de celui-ci (MODERNITE >= 3).
-	case " $prerequis" in *" "cpp[1-9]*|*" "cxx[1-9]*) tests="$tests compilo_test_cxx" ;; esac
+	case " $prerequis" in *" "cpp[\(1-9]*|*" "cxx[\(1-9]*) tests="$tests compilo_test_cxx" ;; esac
 	
 	for methode in compilo_mac_sdk_min compilo_mac_sdk_xcrun
 	do
