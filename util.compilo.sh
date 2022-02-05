@@ -628,6 +628,7 @@ compilo_mac_sdk_min()
 	
 	[ -n "$compilo_sdk_min" ] || return 1
 	
+	gris "Compilation Mac avec MACOSX_DEPLOYMENT_TARGET=$compilo_sdk_min" >&2
 	modifs="$modifs _compilo_mac_sdk_min"
 }
 
@@ -636,12 +637,17 @@ _compilo_mac_sdk_min()
 	export MACOSX_DEPLOYMENT_TARGET="$compilo_sdk_min"
 }
 
-compilo_mac_sdk_xcrun() { modifs="$modifs _compilo_mac_sdk_xcrun" ; }
+compilo_mac_sdk_xcrun()
+{
+	compilo_sdk_root="`xcrun --show-sdk-path`"
+	gris "Compilation Mac avec SDKROOT=$compilo_sdk_root" >&2
+	modifs="$modifs _compilo_mac_sdk_xcrun"
+}
 
 _compilo_mac_sdk_xcrun()
 {
 	# À FAIRE: utiliser SDKROOT pour d'autres variables.
-	export SDKROOT="`xcrun --show-sdk-path`"
+	export SDKROOT="$compilo_sdk_root"
 	export CPPFLAGS="$CPPFLAGS -I$SDKROOT/usr/include"
 	export MACOSX_DEPLOYMENT_TARGET="`xcrun --show-sdk-version`"
 }
