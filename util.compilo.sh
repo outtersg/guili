@@ -343,14 +343,17 @@ varsCc()
 	esac
 }
 
-meilleurCompilo()
+langc()
 {
 	# À FAIRE:
 	# - classer les compilos disponibles par date de publication. Pour ce faire, établir une correspondance version -> date (la date donnée par certains compilos est celle de leur compilation, pas de leur publication initiale).
 	# - pouvoir privilégier un compilo en lui ajoutant virtuellement un certain nombre d'années d'avance sur les autres.
 	# - pouvoir spécifier un --systeme pour se cantonner au compilo livré avec le système (par exemple pour compiler une extension noyau, ou avoir accès aux saloperies de spécificités de Frameworks sous Mac OS X).
 	
-	compiloSysVersion + clang gcc
+	case "$*" in
+		"") compiloSysVersion + clang gcc ;;
+		*) compiloSysVersion "$@" ;;
+	esac
 	
 	case `uname` in
 		Darwin)
@@ -361,6 +364,7 @@ meilleurCompilo()
 }
 
 # Pour compatibilité.
+meilleurCompilo() { langc ; }
 meilleurCompiloInstalle() { meilleurCompilo "$@" ; }
 
 cxx17()
