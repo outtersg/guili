@@ -164,6 +164,15 @@ bibliosCompiloSys()
 	esac
 }
 
+_compilo_ajouterEnv()
+{
+	while [ $# -gt 0 ]
+	do
+		eval "export $1=\"\$$1 \$2\""
+		shift ; shift
+	done
+}
+
 _compilo_purgerEnv()
 {
 	local var val extraction
