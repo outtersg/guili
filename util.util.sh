@@ -315,7 +315,7 @@ preCFlag()
 	then
 		shift
 	else
-		guili_cxxflags="$* $guili_cflags"
+		guili_cflags="$* $guili_cflags"
 		guili_cxxflags="$* $guili_cxxflags"
 		_rc_export CFLAGS "$*" CXXFLAGS "$*"
 	fi
