@@ -21,19 +21,19 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 sep="`printf '\003'`"
 
 bjam=./bjam
 # prerequis compiloSysVersion: la libc++ livrée avec un FreeBSD 10.2 est insuffisante pour les dernières versions de Boost. Partant du postulat qu'un compilo est livré avec une biblio C++ contemporaine, on impose un compilo un peu récent.
-v 1.45.0 && prerequis="icu python" && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis optionsBjam" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
+v 1.45.0 && prerequis="langcxx() pkgconfig \\ icu python" && modifspostconfig="python105" && modifs="sanspch dyld105 dyld105bis optionsBjam" # La directive "compatible Mac OS X 10.5" (cf Compilation), avec laquelle bjam est censé tout gérer, oublie un petit bout.
 v 1.52.0 && true # On laisse les modifs actuelles.
 v 1.57.0 && modifs="optionsBjam" || true
 v 1.63.0 && modifs="optionsBjam toolset pythonPatate" || true
-v 1.69.0 && prerequis="compiloSysVersion(clang >= 3.5, gcc >= 5) python \\ icu" || true
-v 1.72.0 && bjam=./b2 && CXXFLAGS="$CXXFLAGS -std=c++17" || true
+v 1.69.0 && prerequis="langcxx(14) pkgconfig python \\ icu" || true
+v 1.72.0 && prerequis="langcxx(17) pkgconfig python \\ icu" && bjam=./b2 || true
 
 # Modifications
 
