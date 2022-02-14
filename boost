@@ -34,6 +34,7 @@ v 1.57.0 && modifs="optionsBjam" || true
 v 1.63.0 && modifs="optionsBjam toolset pythonPatate" || true
 v 1.69.0 && prerequis="langcxx(14) pkgconfig python \\ icu" || true
 v 1.72.0 && prerequis="langcxx(17) pkgconfig python \\ icu" && bjam=./b2 || true
+v 1.78.0 || true
 
 # Modifications
 
