@@ -79,8 +79,25 @@ cheminsGuili()
 detecterModernite()
 {
 	MODERNITE=0
+	# 5: le compilo doit être choisi par un des prérequis langx() (par défaut langc).
+	#   On évite ainsi:
+	#   - la multitude de façons de glisser un compilo (compiloSysVersion, meilleurCompilo, cxx1x, cpp1x, etc.), qui oblige à une sacrée gymnastique pour les détecter
+	#   - les problèmes de compilos qui se bouffent les mêmes variables: chaque compilo a son $COMPILO_lang_AJOUTS.
+	#     L'exemple le plus flagrant étant auparavant les cxx1x() qui commençaient leur vie avec un compiloSysVersion() dédié C, puis en rappellaient un autre pour basculer en C++, ou plutôt voir si par hasard celui trouvé à côté du compilo C pourrait faire l'affaire; les deux ne s'invoquant évidemment pas de la même manière, ça compliquait les choses, puisque le premier faisait une fouille exhaustive des $INSTALLS/compilo-*/bin, tandis que le second reposait sur le premier, sinon ne fouillait qu'$INSTALLS/bin: asymétrie.
+	#   - de fait on peut avoir des GuiLI multi-langages (juste petit point d'attention sur l'ordre d'agrégation des $COMPILO_lang_AJOUTS à l'environnement).
+	#   Pour compatibilité un langc() est implicitement ajouté à $prerequis si aucun autre langage ne se déclare; lang() permet de ficher les GuiLI n'ayant pas besoin de compilo (juste déployer un truc).
+	if command -v Delirant > /dev/null 2>&1 ; then MODERNITE=5
+	# 4: les prérequis directs apparaissent tous avant les prérequis de prérequis (auparavant: pr3 pr3pr2 pr3pr1 pr2 pr1 pr1pr1; maintenant: pr3 pr2 pr1 pr3pr2 pr3pr1 pr1pr1); DPOM (destiner avant prerquis: si déjà présent, on ne réexplore pas tous les prérequis); seul guili_ppath est accumulé, les autres n'en sont déduits qu'en toute fin; PKG_CONFIG_PATH respecte exclusivementPrerequis.
+	# - => Gain de perf du fait de DPOM au lieu de PDOM.
+	# À VÉRIF: réordo des guili_ppath selon parcours horizontal $prerequis
+	# À FAIRE: prerequis: gueuler si appelé avant destiner
+	# À VÉRIF: $INSTALL_MOI à pondre dans un fichier pour ne pas avoir à rappeler prerequis (.pc?), particulièrement si mode binaire. Normalement c'est bon (.guili.prerequis), mais cela couvre-t-il tous les usages de prereqs -r et autre introspection des prérequis, particulièrement si l'appelant utilise une très vieille $MODERNITE?
+	# À VÉRIF: itineraireBis à appeler en obtenirEtAllerDans, ou dans modifs (car obtenir a besoin de curl)?
+	# À VÉRIF: PKG_CONFIG_PATH est bien remis à 0 (pas d'/usr/local)
+	# À VÉRIF: ne perd-on pas l'include du compilo C++ dans l'affaire?
+	elif command -v Delicieux > /dev/null 2>&1 ; then MODERNITE=4
 	# 3: meilleurCompilo appelé uniquement au moment de prerequis() (l'environnement n'est pas pollué par le "premier choix" automatique de compilo si le logiciel en choisit un autre).
-	if command -v Delicat > /dev/null 2>&1 ; then MODERNITE=3
+	elif command -v Delicat > /dev/null 2>&1 ; then MODERNITE=3
 	# 2: exclusivementPrerequis: le logiciel sait déclarer tous ses prérequis plutôt que de reposer sur une détection (contraignant, mais maîtrisé et reproductible).
 	elif command -v DelieS > /dev/null 2>&1 ; then MODERNITE=2
 	fi
