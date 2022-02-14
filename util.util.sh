@@ -241,6 +241,19 @@ chemins()
 	[ "x$1" = x--sans-c-cxx ] && optionsPreChemin="$1" && shift || true
 	local i=$#
 	local racine
+	case "$1" in
+		+=) # Ordre naturel, on ajoute à la fin.
+			shift
+			for racine in "$@"
+			do
+				# Si le chemin y est déjà, inutile de répéter.
+				case ":$guili_ppath" in
+					*:$racine:*) continue ;;
+				esac
+				guili_ppath="$guili_ppath$racine:"
+			done
+			;;
+		*)
 	# Si on appelle chemins /usr/local /usr sur un $PATH qui contient déjà /bin, on voudra finir avec /usr/local/bin:/usr/bin:/bin.
 	# Une petite gymnastique est donc requise pour les introduire dans le bon ordre.
 	while [ $i -gt 0 ]
