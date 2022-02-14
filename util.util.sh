@@ -87,10 +87,15 @@ couleur()
 rouge() { couleur 31 "$@" ; }
 jaune() { couleur 33 "$@" ; }
 vert() { couleur 32 "$@" ; }
+vertc() { couleur 92 "$@" ; }
 gris() { couleur 90 "$@" ; }
 bleu() { couleur 34 "$@" ; }
+bleuc() { couleur 94 "$@" ; }
+ciel() { couleur 96 "$@" ; }
 cyan() { couleur 36 "$@" ; }
 magenta() { couleur 35 "$@" ; }
+orange() { couleur 91 "$@" ; }
+rose() { couleur 95 "$@" ; }
 
 # Exécute une commande, après l'avoir affichée façon set -x (ce dernier point seulement s'il s'agit d'un vrai binaire, et non pas une fonction shell encapsulante).
 affSiBinaire()
