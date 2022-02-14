@@ -123,7 +123,10 @@ _prerequis()
 	done
 	unset IFS
 	# On modifie l'environnement pour lui ajouter tout ce qu'il faut pour la compilation (-L, -I, etc.), en allant chercher récursivement dans les prérequis de nos prérequis.
-	if [ $MODERNITE -ge 2 ] # … Uniquement sur les GuiLI modernes. À terme on forcera tout le monde à passer par là.
+	if [ $MODERNITE -ge 4 ]
+	then
+		_cheminsPrerequis4
+	elif [ $MODERNITE -ge 2 ] # … Uniquement sur les GuiLI modernes. À terme on forcera tout le monde à passer par là.
 	then
 	# À FAIRE: l'ordre n'est sans doute pas bon (<prérequis 1>:<pr 1 du pr 1>:<pr 2>); il vaudrait mieux sans doute d'abord lister tous les prérequis directs, puis tous ceux de niveau 1, etc. (<pr 1>:<pr 2>:<pr 1 du pr 1>).
 	# Afin de ne pas polluer les guili_*path (devant contenir uniquement les prérequis directs), on les déclare locales pour contenir les prérequis des prérequis.
@@ -145,6 +148,17 @@ _prerequis()
 	else
 	_cheminsExportes
 	fi
+}
+
+# Ajoute à $guili_ppath les chemins des prérequis (version 4: pour les GuiLI conformes à cette $MODERNITE).
+_cheminsPrerequis4()
+{
+	local chemins cheminsRecursifs
+	chemins="`guili_prerequis_path`" # Où sont nos prérequis?
+	cheminsRecursifs="`IFS=: ; tifs prereqs -u -d $chemins`" # Où sont les prérequis de nos prérequis?
+	IFS=: ; tifs chemins += $cheminsRecursifs # Eh bien on les prend et on les ajoute tous à l'environnement (-L, -I, etc.), histoire que la compile se passe bien.
+	
+	modifs="_cheminsExportes $modifs"
 }
 
 # Prérequiert un logiciel, en tenant compte de ce que la variable $PRE déclare comme déjà présent.

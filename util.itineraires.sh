@@ -66,6 +66,8 @@ _itineraireBis()
 		if [ -e "$racine/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 			guili_acpath="$guili_acpath$racine/share/aclocal:"
 		fi
+		
+		[ $MODERNITE -lt 4 ] || postParamsCompil "$racine"
 	done
 }
 

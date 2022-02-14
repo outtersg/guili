@@ -267,13 +267,15 @@ chemins()
 		
 		guili_ppath="$racine:$guili_ppath" # p comme prérequis, ou préfixes.
 		
-		# À FAIRE: ce truc-là ne pourrait-il pas aller dans itineraireBis?
+		# En $MODERNITE >= 4, le preParamsCompil est déporté vers itineraireBis (pour éviter que ses export bavent sur les prérequis).
 		# Pour le moment il ne fonctionne qu'en préfixage, donc non, mais à voir.
 		# D'autant que son bout de code pour éviter les duplications devrait être inutile du fait du "Déjà en tête de chemin" plus haut.
 		# /!\ Peut-être à glisser *avant* la vérification d'unicité qui ne conserve que le premier: sur du -L / -I etc., n'est-ce pas le *dernier* qu'il faut conserver? Que prend en compte le compilo?
-		preParamsCompil "$racine"
+		[ $MODERNITE -ge 4 ] || preParamsCompil "$racine"
 	done
-	[ oui = "$rc_local" ] || _cheminsExportes
+			;;
+	esac
+	[ $MODERNITE -ge 4 -o oui = "$rc_local" ] || _cheminsExportes
 }
 
 _pverso()
