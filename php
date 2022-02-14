@@ -21,7 +21,7 @@
 
 set -e
 
-Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delicat ; s="`dirname "$s"`" ; Delicat ; SCRIPTS="$s" ; } ; SCRIPTS
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 . "$SCRIPTS/util.guili.curl.sh"
 
@@ -31,7 +31,7 @@ OPTIONS_CONF=
 
 ajouterModif cve201911043
 # pkgconfig au moins pour libxml en PHP 8.
-v 4.4.7 && prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+ossl10 zlib iconv mysql postgresql+ossl10 libxml openssl < 1.1 libssh+ossl10" && ajouterModif readlineNcurses lcplusplus pginfossl || true
+v 4.4.7 && prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl libssh+osslxx" && ajouterModif readlineNcurses lcplusplus pginfossl || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -85,7 +85,7 @@ v 5.6.25 || true
 v 5.6.39 || true
 v 5.6.40 || true
 v 5.6.40.1 || true
-v 7.0.2 && prerequis="cpp11() \\ $prerequis" && remplacerPrerequis "icu >= 60" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
+v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 || true
@@ -100,7 +100,7 @@ v 7.2.17 || true
 v 7.2.29 || true
 v 7.2.31 || true
 v 7.2.34 || true
-v 7.3.1 && prerequis="$prerequis libzip+ossl10" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
+v 7.3.1 && prerequis="$prerequis libzip+osslxx" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
 v 7.3.4 || true
 v 7.3.9 || true
 v 7.3.10 || true
@@ -142,11 +142,6 @@ v 8.0.14 || true
 v 8.0.15 || true
 v 8.1.1 || true
 v 8.1.2 || true
-
-if pge $version 7.2 # Ou plus tôt que ça?
-then
-	prerequis="`echo "$prerequis" | sed -e "s/ossl10/ossl11/g"`"
-fi
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
@@ -482,6 +477,8 @@ then
 fi
 
 [ -z "$versionDev" ] || prerequis="bison \\ $prerequis"
+
+prerequisOpenssl
 
 destiner
 
