@@ -67,5 +67,5 @@ prerequisOpenssl()
 		fi
 	fi
 	argOptions="`options "$argOptions-openssl-ossl"`" # Les +openssl ou +ossl disparaissent au profit du +ossl1x.
-	prerequis="`echo " $prerequis " | sed -e "s#+osslxx#+$osslxx#"`"
+	prerequis="`echo " $prerequis " | sed -e "s#+osslxx#+$osslxx#g"`"
 }
