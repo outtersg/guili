@@ -21,12 +21,12 @@
 
 set -e
 
-Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delicat ; s="`dirname "$s"`" ; Delicat ; SCRIPTS="$s" ; } ; SCRIPTS
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-prerequis="make \\ libcxx()"
+prerequis="langcxx() make \\"
 v 3.4
 v 3.6
 # Crétin, il ne trouve même pas son fichier.
@@ -34,11 +34,12 @@ v 3.6
 v 4.4
 # Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
 #v 4.4.1
-v 50.1.2 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
-v 52.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
-v 55.1 && modifs="moinsIPointAvantILocal toutLeMondeVeutTruncate ldlproot" || true
-v 59.1 && modifs="$modifs types16" || true
-v 62.1 && prerequis="cxx17() make \\" || true
+v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
+v 52.1 || true
+v 55.1 && modifs="$modifs ldlproot" || true
+# À partir de la 58: char16_t => C++11; cf. PHP qui nous utilise.
+v 59.1 && prerequis="langcxx(11) make \\" && modifs="$modifs types16" || true
+v 62.1 && prerequis="langcxx(17) make \\" || true
 v 63.1 || true
 v 69.1 || true
 
