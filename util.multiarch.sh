@@ -236,5 +236,6 @@ multiarchConfigurer()
 	esac
 	export CFLAGS="$attr $multiarch_arch $CFLAGS"
 	export CXXFLAGS="$attr $multiarch_arch $CXXFLAGS"
+	export OBJCFLAGS="$attr $multiarch_arch $OBJCFLAGS" # Pour Objective C, typiquement glib.
 	export LDFLAGS="$attr $multiarch_arch $LDFLAGS"
 }
