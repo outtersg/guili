@@ -48,11 +48,14 @@ v 12.6 || true
 v 12.7 || true
 v 12.8 || true
 v 12.9 || true
+v 12.10 || true
 v 13.2 || true
 v 13.3 || true
 v 13.4 || true
 v 13.5 || true
+v 13.6 || true
 v 14.1 || true
+v 14.2 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
