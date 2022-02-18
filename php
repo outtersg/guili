@@ -126,6 +126,7 @@ v 7.4.24 || true
 v 7.4.25 || true
 v 7.4.26 || true
 v 7.4.27 || true
+v 7.4.28 || true
 # Pour compiler la master:
 #v 7.5 && prerequis="re2c \\ $prerequis oniguruma" && OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-zts --enable-debug" || true
 v 8.0.1 && prerequis="$prerequis oniguruma" || true
@@ -140,8 +141,10 @@ v 8.0.12 || true
 v 8.0.13 || true
 v 8.0.14 || true
 v 8.0.15 || true
+v 8.0.16 || true
 v 8.1.1 || true
 v 8.1.2 || true
+v 8.1.3 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
