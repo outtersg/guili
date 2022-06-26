@@ -29,23 +29,23 @@ diff -ruw sqlite3.c sqlite3.c
 --- sqlite3.c
 +++ sqlite3.c
 @@ -165133,6 +165133,9 @@
- #ifdef SQLITE_ENABLE_FTS5
- SQLITE_PRIVATE int sqlite3Fts5Init(sqlite3*);
- #endif
+ ** Forward declarations of external module initializer functions
+ ** for modules that need them.
+ */
 +#ifdef SQLITE_ENABLE_PCRE
 +int sqlite3PcreInit(sqlite3 *db);
 +#endif
- #ifdef SQLITE_ENABLE_JSON1
- SQLITE_PRIVATE int sqlite3Json1Init(sqlite3*);
+ #ifdef SQLITE_ENABLE_FTS1
+ SQLITE_PRIVATE int sqlite3Fts1Init(sqlite3*);
  #endif
 @@ -165169,6 +165172,10 @@
- #ifdef SQLITE_ENABLE_JSON1
-   sqlite3Json1Init,
+ #if defined(SQLITE_ENABLE_ICU) || defined(SQLITE_ENABLE_ICU_COLLATIONS)
+   sqlite3IcuInit,
  #endif
 +#ifdef SQLITE_ENABLE_PCRE
 +  /* PCRE comes after ICU, so that its regexp function is preferred */
 +  sqlite3PcreInit,
 +#endif
- #ifdef SQLITE_ENABLE_STMTVTAB
-   sqlite3StmtVtabInit,
+ #ifdef SQLITE_ENABLE_RTREE
+   sqlite3RtreeInit,
  #endif
