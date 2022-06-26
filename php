@@ -145,11 +145,15 @@ v 8.0.15 || true
 v 8.0.16 || true
 v 8.0.17 || true
 v 8.0.18 || true
+v 8.0.19 || true
+v 8.0.20 || true
 v 8.1.1 || true
 v 8.1.2 || true
 v 8.1.3 || true
 v 8.1.4 || true
 v 8.1.5 || true
+v 8.1.6 || true
+v 8.1.7 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
