@@ -36,6 +36,7 @@ v 3.22.0 && v_annee=2018 || true
 v 3.29.0 && v_annee=2019 || true
 v 3.35.5 && v_annee=2021 && vautomake=">= 1.15 < 1.16" || true
 v 3.36.0 || true
+v 3.39.0 && v_annee=2022 && vautomake=">= 1.16" || true
 
 option intarray && modifs="$modifs intarray" || true
 
@@ -47,7 +48,9 @@ pcre()
 {
 	options="$options --enable-pcre"
 	patch -p0 < "$SCRIPTS/sqlite_pcre.patch"
-	pg 3.36 $version || patch -p0 < "$SCRIPTS/sqlite_pcre.3.36.patch"
+	if pge $version 3.39 ; then patch -p0 < "$SCRIPTS/sqlite_pcre.3.39.patch"
+	elif pge $version 3.36 ; then patch -p0 < "$SCRIPTS/sqlite_pcre.3.36.patch"
+	fi
 	local pcre_c="$HOME/src/projets/sqlite3-pcre/pcre.c"
 	[ -f "$pcre_c" ] || pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
 	cat "$pcre_c" >> sqlite3.c
