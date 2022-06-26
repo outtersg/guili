@@ -35,6 +35,8 @@ v 2021.10.06 && versionComplete="$version.ae8a1c03.git" || true
 
 archive="http://git.altlinux.org/people/at/packages/?p=sqlite3-pcre.git;a=blob_plain;f=pcre.c;h=$rev"
 archive_git="https://github.com/outtersg/sqlite3-pcre.git"
+archive_git_locale="$HOME/src/projets/sqlite3-pcre"
+[ -d "$archive_git_locale" ] && archive_git="$archive_git_locale" || true
 
 prerequis
 

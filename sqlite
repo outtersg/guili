@@ -48,7 +48,8 @@ pcre()
 	options="$options --enable-pcre"
 	patch -p0 < "$SCRIPTS/sqlite_pcre.patch"
 	pg 3.36 $version || patch -p0 < "$SCRIPTS/sqlite_pcre.3.36.patch"
-	local pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
+	local pcre_c="$HOME/src/projets/sqlite3-pcre/pcre.c"
+	[ -f "$pcre_c" ] || pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
 	cat "$pcre_c" >> sqlite3.c
 	
 	autoconf # Notre .patch modifie configure.ac.
