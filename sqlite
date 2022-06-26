@@ -144,3 +144,7 @@ else
 fi
 
 sutiliser
+
+# Pour éviter qu'un select plante un insert:
+# https://dba.stackexchange.com/questions/47919/how-do-i-specify-a-timeout-in-sqlite3-from-the-command-line
+jaune "Pensez à commencer vos sessions par un .timeout 1000"
