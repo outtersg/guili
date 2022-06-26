@@ -85,7 +85,8 @@ v 5.6.25 || true
 v 5.6.39 || true
 v 5.6.40 || true
 v 5.6.40.1 || true
-v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
+# icu < 70 car en 70, l'UBool operator== de brkiter.h devient un bool operator== (le premier étant un unsigned char, et clang refusant de faire la conversion => la version interne à PHP est incompatible).
+v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60 < 70" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 || true
@@ -100,7 +101,7 @@ v 7.2.17 || true
 v 7.2.29 || true
 v 7.2.31 || true
 v 7.2.34 || true
-v 7.3.1 && prerequis="$prerequis libzip+osslxx" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
+v 7.3.1 && remplacerPrerequis "icu >= 60" && prerequis="$prerequis libzip+osslxx" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
 v 7.3.4 || true
 v 7.3.9 || true
 v 7.3.10 || true
