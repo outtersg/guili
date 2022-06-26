@@ -123,6 +123,16 @@ else
 	make
 fi
 
+# Pour tester que mon regexp PCRE (qui accepte les options directement dans l'expression, façon /expr/i pour l'indifférent à la casse)
+# prend bien le pas à la fois sur celui ICU, et sur celui codé en dur dans sqlite3 CLI:
+# Le bidule suivant (lancé dans le dossier de compilation) doit renvoyer deux fois (une PHP, une CLI):
+#   ABC
+#   abc
+#   ABC
+# Si seulement ABC: on est sur l'implémentation ICU ou intégrée CLI
+# Si erreur: pas de regexp
+# ( export PATH=".:$PATH" LD_LIBRARY_PATH=`pwd`/.libs:$LD_LIBRARY_PATH ; r0="create table t (t text)" ; r1="insert into t values ('ABC')" ; r2="insert into t values ('abc')" ; r3="select * from t where t regexp '/B/i'" ; r4="select * from t where t regexp 'B'" ; php -r '$bdd = new PDO("sqlite::memory:"); foreach(["'"$r0"'","'"$r1"'","'"$r2"'","'"$r3"'","'"$r4"'"] as $i => $r) { $r = $bdd->query($r); if($i >= 3) print_r($r->fetchAll()); }' ; sqlite3 :memory: "$r0; $r1; $r2; $r3; $r4;" )
+
 echo Installation… >&2
 if pge $version 3.6.24 && ! pge $version 3.7
 then
