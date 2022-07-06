@@ -29,6 +29,7 @@ v 2.40.128 || true
 v 2.48.4 && prerequis="ocaml >= 4 < 4.04 make \\" && modifs="espaces sansVersionMac" || true
 v 2.51.2 && prerequis="ocaml >= 4 make \\" || true
 v 2.51.4 || true
+v 2.52.1 && prerequis="ocaml >= 4.08 make \\" || true
 
 # Modifications
 
