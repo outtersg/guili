@@ -22,7 +22,7 @@ versionCompiloChemin()
 {
 	case "$1" in
 		clang) clang --version | sed -e '1!d' -e 's/^\(.* \)*clang version //' -e 's/ .*//' ;;
-		gcc) gcc --version | sed -e '1!d' -e 's/^gcc (GCC) //' -e 's/ .*//' ;;
+		gcc) gcc --version | sed -e '1!d' -e 's/^gcc ([^)]*) //' -e 's/ .*//' ;;
 	esac
 }
 
