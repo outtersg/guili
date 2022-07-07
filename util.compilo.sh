@@ -765,6 +765,35 @@ BEGIN{ n = 0; }
 '
 }
 
+#- Linux -----------------------------------------------------------------------
+
+latomic64()
+{
+	# Problème:
+        #   https://github.com/root-project/root/pull/4561
+	#   https://stackoverflow.com/questions/69280932/atomic-linking-in-raspbian-bullseye-11-error
+	# Implémentation:
+	#   https://stackoverflow.com/questions/69281559/cmake-library-order-in-cmake-required-libraries-to-test-a-minimal-program-while
+	
+	cat > $TMP/$$/1.cxx <<TERMINE
+#include <atomic>
+#include <stdint.h>
+int main()
+{
+	std::atomic<int64_t> x;
+	x.store(1);
+	x--;
+	return x.load();
+}
+TERMINE
+	if compilable_cxx $TMP/$$/1.cxx ; then return ; fi
+	if compilable_cxx $TMP/$$/1.cxx -latomic
+	then
+		export LDFLAGS="$LDFLAGS -latomic"
+	fi
+	# Sinon tant pis, on ne sait pas faire, laissons aller, peut-être qu'à la vraie compil' ça passera par miracle.
+}
+
 #- Initialisation --------------------------------------------------------------
 
 compilo_sep="`printf '\003'`"
