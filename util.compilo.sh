@@ -564,12 +564,36 @@ compilable()
 	[ -z "$reponse" -o "x$reponse" = "x`$oeuf`" ]
 }
 
+compilable_c()
+{
+	compilable _compiler_c "$@"
+}
+
+_compiler_c()
+{
+	local optionsCompilo=
+	[ -n "$lier" ] || optionsCompilo=-c
+	$CC $optionsCompilo $CPPFLAGS $CFLAGS $LDFLAGS -o $TMP/$$/a.out "$@"
+}
+
 compilo_test_cc()
 {
 	# Le minimum viable: une biblio classique.
 	# COPIE: util.multiarch.sh
 	{ echo '#include <stdio.h>' ; echo 'int main(int argc, char ** argv) { fprintf(stdout, "oui\\n"); return 0; }' ; } > $TMP/$$/1.c
 	$CC $CPPFLAGS $CFLAGS $LDFLAGS -o $TMP/$$/a.out $TMP/$$/1.c 2> /dev/null && [ oui = "`$TMP/$$/a.out`" ] || return 1
+}
+
+compilable_cxx()
+{
+	compilable _compiler_cxx "$@"
+}
+
+_compiler_cxx()
+{
+	local optionsCompilo=
+	[ -n "$lier" ] || optionsCompilo=-c
+	$CXX $optionsCompilo $CPPFLAGS $CXXFLAGS $LDFLAGS -o $TMP/$$/a.out "$@"
 }
 
 compilo_test_cxx()
