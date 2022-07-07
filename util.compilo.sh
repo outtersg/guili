@@ -527,6 +527,43 @@ compilo_tester()
 	)
 }
 
+# Teste qu'un programme simple compile et s'exécute.
+# Utilisation: compilercxx [-c|-l|-r <réponse>] <compilo> <paramètres compil>...
+#   -c
+#     Compilation seule.
+#   -l
+#     Compilation et édition de liens seuls.
+#   -r <réponse>
+#     Si précisé, il est attendu que le programme termine sans erreur et donne cette réponse.
+#   <compilo>
+#     Compilateur à invoquer.
+#     N.B.: un compilateur commençant par _ peut être déclaré AVANT les options -c / -l / -r.
+#           S'il ne commence pas par _, les -xxx trouvés après sont paramètres du compilo et non de compilable().
+# Sans -c, -l, ni -r, le programme résultant est lancé et doit s'exécuter sans erreur.
+# Le compilateur doit générer un exécutable $TMP/$$/a.out
+compilable()
+{
+	local reponse= executer=oui lier=oui compilo= oeuf=$TMP/$$/a.out
+	[ "x$1" != x-c ] || { executer= ; shift ; }
+	[ "x$1" != x-r ] || { reponse="$2" ; shift ; shift ; }
+	while true
+	do
+		case "$1" in
+			-c) executer= ; lier= ;;
+			-l) executer= ;;
+			-r) reponse="$2" ; shift ;;
+			_*) [ -z "$compilo" ] || break ; compilo="$1" ;;
+			*) break ;;
+		esac
+		shift
+	done
+	
+	rm -f $oeuf
+	$compilo "$@" 2> /dev/null || return
+	[ -n "$executer" ] || return 0
+	[ -z "$reponse" -o "x$reponse" = "x`$oeuf`" ]
+}
+
 compilo_test_cc()
 {
 	# Le minimum viable: une biblio classique.
