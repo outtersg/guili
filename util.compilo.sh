@@ -581,7 +581,7 @@ compilo_test_cc()
 	# Le minimum viable: une biblio classique.
 	# COPIE: util.multiarch.sh
 	{ echo '#include <stdio.h>' ; echo 'int main(int argc, char ** argv) { fprintf(stdout, "oui\\n"); return 0; }' ; } > $TMP/$$/1.c
-	$CC $CPPFLAGS $CFLAGS $LDFLAGS -o $TMP/$$/a.out $TMP/$$/1.c 2> /dev/null && [ oui = "`$TMP/$$/a.out`" ] || return 1
+	compilable_c -r oui $TMP/$$/1.c
 }
 
 compilable_cxx()
@@ -600,7 +600,7 @@ compilo_test_cxx()
 {
 	# Le minimum viable: une biblio classique.
 	{ echo '#include <iostream>' ; echo 'int main(int argc, char ** argv) { std::cout << "oui\\n"; return 0; }' ; } > $TMP/$$/1.cxx
-	$CXX $CPPFLAGS $CXXFLAGS $LDFLAGS -o $TMP/$$/a.out $TMP/$$/1.cxx 2> /dev/null && [ oui = "`$TMP/$$/a.out`" ] || return 1
+	compilable_cxx -r oui $TMP/$$/1.cxx
 }
 
 #--- GCC ---
