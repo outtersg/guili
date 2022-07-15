@@ -54,6 +54,7 @@ v 7.65.3 || true
 v 7.77.0 || true
 v 7.78.0 || true
 v 7.80.0 || true
+v 7.84.0 && v_nghttp2=">= 1.12" || true
 
 # OpenSSL:
 # - s'il ne préexiste pas, on ne force pas: on est peut-être sur un système qui a besoin de cURL pour installer OpenSSL.
@@ -77,10 +78,22 @@ fi
 opSiPasPas idn libidn # libidn par défaut (sauf si explicitement exclue).
 optionSi ldap/openldap || true
 option ldap || OPTIONS_CONF="$OPTIONS_CONF --disable-ldap" # On doit désactiver explicitement, sans quoi sur certains Linux un peu trop bien dotés, le configure détecte le libldap.so système, s'y lie, et avec elle à la libssl.so système, qui embarque un RAND_egd, poussant le configure à déclarer un peu plus tard un HAVE_RAND_EGD alors qu'en fait l'OpenSSL auquel on se liera en définitive, en version 1.1, ne définit plus RAND_egd.
+if [ -n "$v_nghttp2" ] && opSiPasPas http2 "nghttp2 $v_nghttp2"
+then
+	modifs="$modifs moinsLnghttp2"
+fi
 
 prerequisOpenssl
 
 # Modifications
+
+moinsLnghttp2()
+{
+	# Ils ont pensé à rajouter le -l quand on passe par pkgconfig, mais pas dans leur mode manuel :-(
+	filtrer configure sed -e '/CURL_LIBRARY_PATH.*DIR_H2/a\
+LIBS="$LIBS -lnghttp2"
+'
+}
 
 sslcertfile()
 {
