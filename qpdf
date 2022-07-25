@@ -27,11 +27,25 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 prerequis="langcxx(14) make perl \\ zlib libjpeg openssl"
-v 10.6.3 || true
+v 10.6.3 && modifs="pasbash" || true
 
 archive="https://github.com/qpdf/qpdf/archive/refs/tags/release-qpdf-$version.tar.gz"
 
 # Modifications
+
+pasbash()
+{
+	# On se passe fort bien de bash. Pourquoi l'avoir codé en dur?
+	
+	for f in build-scripts/*
+	do
+		grep -q '!/bin/bash' < "$f" && filtrer "$f" sed -e "s#!/bin/bash#!/bin/sh#" || true
+	done
+	for f in make/libtool.mk
+	do
+		grep -q '=/bin/bash' < "$f" && filtrer "$f" sed -e "s#=/bin/bash#=/bin/sh#" || true
+	done
+}
 
 # Variables
 
