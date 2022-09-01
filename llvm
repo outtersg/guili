@@ -71,6 +71,13 @@ lieur()
 
 lieur
 
+case `basename "$0"` in
+	clang)
+		argOptions="`options "$argOptions=libcxx"`"
+		option libcxx || true
+		;;
+esac
+
 archive()
 {
 	local l="$1" v="$version"
@@ -281,8 +288,11 @@ modulesClang()
 	pge $version 9 || moduleClang=cfe
 	integrer tools/clang          $moduleClang
 integrer projects/compiler-rt compiler-rt
+	if option libcxx
+	then
 integrer projects/libcxx      libcxx
 ! pge $version 3.5 || integrer projects/libcxxabi libcxxabi
+	fi
 # lldb doit être compilé à part, car il requiert libc++ qui elle-même ne peut être compilé qu'après le compilo.
 # Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
 	if option lldb ; then integrer tools/lldb lldb ; fi
