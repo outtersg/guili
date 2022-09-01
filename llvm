@@ -50,6 +50,9 @@ v 6.0.1 && prerequis="python >= 3 cmake \\" || true
 v 7.0.1 || true
 v 7.1.0 || true
 v 8.0.1 || true
+v 9.0.1 && modifs="$modifs sansChar8T" || true
+v 10.0.1 || true
+v 11.1.0 || true
 v 12.0.0 || true
 v 12.0.1 || true
 v 13.0.0 || true
@@ -100,6 +103,52 @@ pge $version 3.5 || suffixe=gz
 archive="`archive llvm`"
 
 # Modifs.
+
+trouverBiblio()
+{
+	local d s chem="$LD_LIBRARY_PATH:/usr/lib64:/usr/lib" # On code en dur ces chemins, que tous les compilos intègrent même si les GuiLI, stricts, l'ont exclus.
+	IFS=:
+	for d in $chem
+	do
+		for s in .so .dylib
+		do
+			[ -e "$d/$1$s" ] && echo "$d/$1$s" && break || true
+		done
+	done
+	unset IFS
+}
+
+sansChar8T()
+{
+	# https://github.com/llvm/llvm-project/issues/42070
+	# https://github.com/llvm/llvm-project/issues/43094
+	# libc++abi s'attend à pouvoir exporter des symboles char8_t (introduction récente de C++), suivant un mécanisme assez complexe (libc++abi exporte les symboles de libc++?);
+	# sauf que quand il se compile la première fois, libc++ n'est pas encore compilée, et donc il repose sur la libc++ système… qui est trop vieille pour contenir du char8_t!
+	# Pour pallier on effectue donc plusieurs compils (d'abord libc++abi sans char8_t liée à la libc++ système, puis on recompile le tout avec le clang++ tout juste compilé et oh miracle les symboles apparaissent!)
+	
+	# Détection de ce qui est disponible.
+	# echo "int main(int argc, char ** argv) { char8_t c = 0; return 0; }" > /tmp/1.cpp ; compilable_cxx -c /tmp/1.cpp
+	# Mais apparemment ne marche pas: même sur un clang++ qui marchait ça ne donne rien.
+	# Le plus fiable reste d'aller egreper l'expression sur nm -o libc++abi.so/.dylib.
+	local libcxxabi="`trouverBiblio libc++abi`"
+	if [ -z "$libcxxabi" ] || egrep -q '_ZT[IS]P?K?Du' < "$libcxxabi" ; then return ; fi
+	
+	# On tente du similaire à https://askcodez.com/comment-construire-libcxx-et-libcxxabi-par-clang-sur-centos-7.html
+	
+	gris "La libc++abi de départ ne connaît pas char8_t. Première passe en mode dégradé, puis on recompilera." >&2
+	
+	cp projects/libcxxabi/lib/itanium-base.exp projects/libcxxabi/lib/itanium-base-v2.exp
+	filtrer projects/libcxxabi/lib/itanium-base.exp egrep -v '_ZT[IS]P?K?Du'
+	
+	modifsPostCompil="$modifsPostCompil _sansChar8T"
+	_sansChar8T()
+	{
+		cp ../projects/libcxxabi/lib/itanium-base-v2.exp ../projects/libcxxabi/lib/itanium-base.exp
+		touch ../projects/libcxxabi/src/*.cpp
+		grep -rl /bin/clang projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
+		make -j4
+	}
+}
 
 # (utilisée avec multiarch())
 # Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction des archis supportées par le ld système; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un nouveau llvm + clang.
@@ -337,6 +386,8 @@ fi # manuel
 
 echo Compilation… >&2
 make -j 4 #|| make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 )
+
+for modif in true $modifsPostCompil ; do $modif ; done
 
 echo Installation… >&2
 sudo make install
