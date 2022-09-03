@@ -29,6 +29,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
 # Chemin de compilation pour un Mac OS X 10.6 (clang 3.5svn): gcc 4.9.2, clang 3.6 sans lldb (et libcxx et libcxxabi sont ignorées) #, clang 3.6.
 # Chemin de compilation pour un Mac OS X 10.8 (clang 3.5svn): gcc 4.9.4, clang 3.4.2, clang 3.5.2, clang 3.7.1, clang 3.9.1.
+# Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction de ce qu'il trouve; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un llvm + clang. Cf. multiarchLibCxx().
+# Chemin de compilation pour un Mac OS X 10.12: sudo mkdir /usr/local/clangs && sudo mv /usr/local/clang-* /usr/local/clangs/ && ./clang '< 5' # On vire tous nos compilos i386 + x86_64: dénichant un SDK iOS, il essaye de se compiler pour, avec en particulier l'archi amd64, non supportée par la libc++.dylib de notre première mouture clang maison.
+# Chemin de compilation pour un Mac OS X 10.13.6: ./clang "< 12" (cf. _9vers12()) && ./clang # Après avoir commenté le multiarch, en attendant d'avoir résolu "Sur les systèmes multi"
 # Attention, quand on a déjà un llvm-3.9.1 d'installé, et qu'on essaie de compiler un llvm+clang 3.9.1, pour je ne sais quelle raison, seul le llvm se compile, argh.
 
 constr=configure
@@ -77,6 +80,23 @@ v 21.1.8 || true
 v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit" || true
 
 modifs="$modifsDyn $modifs"
+
+_9vers12()
+{
+	false
+	
+	# Compiler un 12 ou 13 depuis un Apple clang 9.0.0, sur Mac 10.13.6 (9 à 11 passent)::
+	#  Building CXX object projects/libcxxabi/src/CMakeFiles/cxxabi_static.dir/cxa_aux_runtime.cpp.o
+	#  error: too many arguments to function call, expected 1, have 2
+	#  return __builtin_operator_new
+	# https://groups.google.com/g/llvm-dev/c/aVxyVnDWP3U/m/2MedkfdZBQAJ
+	#   Parlent d'un compilo de départ >= 7(or il indique 9): mauvaise détection de la libc++ 9, ou bien Apple 9.0.0 == clang 6?
+	# https://codesti.com/issue/jupyter-xeus/xeus-cling/412
+	# https://github.com/jupyter-xeus/xeus-cling/issues/412
+	#   Dit que c'est le --std=c++17 qui merde, le --std=c++14 passe
+	# On retente de compiler une "< 12".
+	# Passe mieux.
+}
 
 lieur()
 {
