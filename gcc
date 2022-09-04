@@ -67,8 +67,21 @@ sansCore()
 
 usrInclude()
 {
+	# On tente de faire les choses proprement (SDK Apple plutôt qu'/usr/include codé en dur), même si Apple propose un paquet de compatibilité qui fait grosso modo ce que fait notre préco de dernier recours (créer /usr/include comme lien symbolique).
+	# https://andreasfertig.blog/2021/02/clang-and-gcc-on-macos-catalina-finding-the-include-paths/ (parle de Iain Sandoe, cf. le suivant):
+	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=79885
+	# Intéressant: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=37036 (lié depuis la précédente) parle de "zig, a cc driver"
+	# https://andrewkelley.me/post/zig-cc-powerful-drop-in-replacement-gcc-clang.html explique zig, ce qu'il apporte à clang, à quoi servent compiler-rt, libc, etc., et parle de qemu.
 	if ! [ -d /usr/include ]
 	then
+		local d
+		# COPIE: util.compilo.sh
+		for d in \
+			/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk
+		do
+			# --with-native-system-header-dir ou --with-build-sysroot ?
+			[ -d "$d/usr/include" ] && OPTIONS_CONF="$OPTIONS_CONF --with-sysroot=$d" && return || true
+		done
 		echo "# /usr/include n'existe pas. Sous Mac OS X, tentez un truc du genre: sudo ln -s /Developer/SDKs/MacOSX10.6.sdk/usr/include /usr/include" >&2
 		exit 1
 	fi
