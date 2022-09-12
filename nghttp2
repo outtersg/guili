@@ -35,6 +35,7 @@ archive="https://github.com/nghttp2/nghttp2/releases/download/v$version/nghttp2-
 
 sedcontrib()
 {
+	[ `uname` = FreeBSD ] || return 0
 	# Petit souci: le $< n'est pas interprété par le make FreeBSD (plus exactement: "it is not defined in explicit rules", bref une règle sans % laisse son $< vide).
 	filtrer contrib/Makefile.in sed -e '/\$(edit) \$</s/\$</< $>/'
 }
