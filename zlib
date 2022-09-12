@@ -26,6 +26,7 @@ Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" 
 
 v 1.2.8 && prerequis="" && modifs="multiarch fPIC" || true
 v 1.2.11 || true
+v 1.2.12 || true
 
 # Modifications
 
