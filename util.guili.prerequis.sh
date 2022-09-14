@@ -82,6 +82,11 @@ _prerequis()
 		echo "#p:$prerequis"
 		exit 0
 	fi
+	# Repêchage des modifs d'environnement (déterminées dans le prologue inclus par util.sh, potentiellement écrasées par la liste des versions du fichier GuiLI).
+	case " $modifs " in
+		*" $GUILI_MODIFS_ENV "*) true ;; # Pas la peine de les remettre si $modifs les contient déjà.
+		*) modifs="$GUILI_MODIFS_ENV $modifs" ;;
+	esac
 	# exclusivementPrerequis devrait systématiquement être appelé, pour s'assurer que l'environnement ne pointe que vers les prérequis explicites, et n'embarque pas des dépendances implicites. Cependant, le rattrapage pour migrer tout le monde est monumental, donc nous nous contentons d'une alerte.
 	[ 2 -gt $MODERNITE ] || modifs="exclusivementPrerequis $modifs"
 	case "$modifs" in
