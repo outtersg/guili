@@ -384,6 +384,16 @@ varsCc()
 	esac
 }
 
+langCEtCompagnie()
+{
+	case `uname` in
+		Darwin)
+			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
+			envCompiloMac
+			;;
+	esac
+}
+
 langc()
 {
 	# À FAIRE:
@@ -396,12 +406,7 @@ langc()
 		*) compiloSysVersion "$@" ;;
 	esac
 	
-	case `uname` in
-		Darwin)
-			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
-			envCompiloMac
-			;;
-	esac
+	langCEtCompagnie
 }
 
 # Pour compatibilité.
@@ -415,6 +420,8 @@ langcxx()
 		""|11|14|17) cxx$1 + ;; # Avec un + car en $MODERNITE 5, nous sommes appelés en direct, et non plus en second choix après une passe en + qui elle aura eu le loisir de fouiller tous les compilos disponibles.
 		*) fatal "# Je ne sais pas gérer langcxx($*)" ;;
 	esac
+	
+	langCEtCompagnie
 }
 
 cxx17()
