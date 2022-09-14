@@ -215,7 +215,7 @@ compilo_cheminLibcxx()
 compilo_cheminLibcxxClang()
 {
 	local ajout="-cxx-isystem $cheminBienVoulu/$suffixe -cxx-isystem /usr/include"
-	modifs="$modifs _compilo_cheminLibcxxClang"
+	compilo_modif _compilo_cheminLibcxxClang
 	# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit pas être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
 	case "$logiciel" in
 		gcc)
@@ -527,6 +527,13 @@ compilo_tester()
 	)
 }
 
+# Ajoute une modification à la pile de modifs à jouer avant de compiler.
+compilo_modif()
+{
+	modifs="$modifs $*" # Celle-ci est la standard, sauf que, à disposition du script appelant, elle risque d'être réinitialisée entre maintenant (le prologue) et la compil.
+	GUILI_MODIFS_ENV="$GUILI_MODIFS_ENV $*" # Celle-ci persiste.
+}
+
 # Teste qu'un programme simple compile et s'exécute.
 # Utilisation: compilercxx [-c|-l|-r <réponse>] <compilo> <paramètres compil>...
 #   -c
@@ -690,7 +697,7 @@ compilo_mac_sdk_min()
 	[ -n "$compilo_sdk_min" ] || return 1
 	
 	gris "Compilation Mac avec MACOSX_DEPLOYMENT_TARGET=$compilo_sdk_min" >&2
-	modifs="$modifs _compilo_mac_sdk_min"
+	compilo_modif _compilo_mac_sdk_min
 }
 
 _compilo_mac_sdk_min()
@@ -702,7 +709,7 @@ compilo_mac_sdk_xcrun()
 {
 	compilo_sdk_root="`xcrun --show-sdk-path`"
 	gris "Compilation Mac avec SDKROOT=$compilo_sdk_root" >&2
-	modifs="$modifs _compilo_mac_sdk_xcrun"
+	compilo_modif _compilo_mac_sdk_xcrun
 }
 
 _compilo_mac_sdk_xcrun()
