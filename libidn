@@ -36,7 +36,7 @@ v 2.2.0 || true
 
 lv="$logiciel"
 pge $version 2 && lv="${lv}2" || true
-archive="http://mirror.ibcp.fr/pub/gnu/libidn/$lv-$version.tar.gz"
+archive="https://mirror.ibcp.fr/pub/gnu/libidn/$lv-$version.tar.gz"
 
 prerequis
 
