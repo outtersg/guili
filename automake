@@ -31,7 +31,7 @@ v 1.13.4 || true
 v 1.15 || true
 v 1.16.1 || true
 
-archive=http://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz
+archive=https://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz
 
 prerequis
 
