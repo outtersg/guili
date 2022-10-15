@@ -37,10 +37,10 @@ v 6.2.38 && retirerModif atomicce || true
 v 18.1.32 || true
 
 archive="ftp://sleepycat1.inetu.net/releases/$logiciel-$version.tar.gz"
-archive="http://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
-archive="http://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
-archive="http://download.oracle.com/berkeley-db/db-$version.tar.gz"
-archive="http://download.oracle.com/otn/berkeley-db/db-$version.tar.gz"
+archive="https://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
+archive="https://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
+archive="https://download.oracle.com/berkeley-db/db-$version.tar.gz"
+archive="https://download.oracle.com/otn/berkeley-db/db-$version.tar.gz"
 
 atomicce()
 {
