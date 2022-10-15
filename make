@@ -42,7 +42,7 @@ globInterface()
 
 # Variables
 
-archive="http://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
+archive="https://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz"
 archive_git="https://git.savannah.gnu.org/git/make.git"
 
 destiner
