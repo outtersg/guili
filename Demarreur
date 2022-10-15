@@ -1,0 +1,14 @@
+#!/bin/sh
+
+commande() { command -v "$1" > /dev/null ; }
+
+# Les indispensables pour les GuiLI eux-mêmes.
+# Sans ces outils, il est possible qu'il faille y aller manuellement (déposer les sources qu'on ne saura pas encore télécharger, etc.).
+
+commande bzip2 || ./bzip2
+commande 7za || ./7zip
+commande patch || ./patch
+
+# ./openssl en fonction de la version présente.
+# ./curl idem
+# ./openssh selon l'util.local.sh qui pourrait avoir besoin d'aller chercher les paquets binaires en scp.
