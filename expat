@@ -32,9 +32,8 @@ v 2.2.8 || true
 
 destiner
 
-archive="http://ovh.dl.sourceforge.net/sourceforge/expat/$logiciel-$version.tar.gz"
-archive="http://freefr.dl.sourceforge.net/project/expat/expat/$version/expat-$version.tar.gz"
-pge $version 2.1.1 && archive="http://freefr.dl.sourceforge.net/project/expat/expat/$version/expat-$version.tar.bz2" || true
+version_=`echo $version | tr . _`
+archive="https://github.com/libexpat/libexpat/releases/download/R_$version_/expat-$version.tar.gz"
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
