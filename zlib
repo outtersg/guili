@@ -38,7 +38,7 @@ fPIC()
 
 # Variables
 
-archive="http://zlib.net/zlib-$version.tar.gz"
+archive="https://zlib.net/zlib-$version.tar.gz"
 
 destiner
 
