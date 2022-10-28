@@ -47,6 +47,8 @@ v 8.1.804 || true
 v 8.2.3455 && modifs="$modifs char_from_string" && modifs_corr="corr82" || true
 v 8.2.5111 || true
 v 8.2.5172 || true
+v 9.0.790 && modifs="$modifs write_info_struct" && modifs_corr="corr90" || true
+v 9.0.818 || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
@@ -65,6 +67,23 @@ retirerModif char_from_string
 fi
 
 # Modifications.
+
+write_info_struct()
+{
+	# https://github.com/vim/vim/commit/72c8e3c070b30f82bc0d203a62c168e43a13e99b
+	# https://github.com/vim/vim/commit/fb0cf2357e0c85bbfd9f9178705ad8d77b6b3b4e J'arrive 16 h après que Bram a reçu des cours de git pour comprendre pourquoi son correctif n'est pas passé.
+	filtrer src/bufwrite.c sed -e 's/write_info->/write_info./g'
+}
+
+corr90()
+{
+	# 9.0.0206 en doublons de fichiers.
+	virerDuDiff 9.0.0206 src/drawscreen.c
+	virerDuDiff 9.0.0206 src/mouse.c
+	virerDuDiff 9.0.0206 src/terminal.c
+	# 9.0.0363 retombe sur une problématique de caractères zarb autour de la rustine (tests d'édition en jeux de caractères orientaux), bloquant mon patch BSD ou GNU.
+	# J'abandonne. Basculons sur l'archive git comme proposé au-dessus de archive=…
+}
 
 corr82()
 {
