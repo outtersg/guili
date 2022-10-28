@@ -116,6 +116,11 @@ corr()
 		tar czf "$mem" "$v_maj".*
 	fi
 	
+	for modif in $modifs_corr true
+	do
+		$modif
+	done
+	
 	while [ $i -lt $n ]
 	do
 		i=`expr $i + 1`
