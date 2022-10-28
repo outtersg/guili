@@ -49,7 +49,18 @@ v 8.2.3455 && modifs="$modifs char_from_string" && modifs_corr="corr82" || true
 option python3 && prerequis="$prerequis python >= 3" || true
 
 v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
+v_min="`echo "$version" | sed -e 's/.*\.//'`"
+pge "$version" 8.0 && formateur=4.4d || formateur=3.3d
+v_min0="`printf %0$formateur $v_min`"
 archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
+if true
+then
+# La constitution par rustinage officiel montre ses limites, cf. 4206 un peu plus loin.
+# https://www.mail-archive.com/vim_use@googlegroups.com/msg58822.html
+archive=https://github.com/vim/vim/archive/refs/tags/v$v_maj.$v_min0.tar.gz
+retirerModif corr
+retirerModif char_from_string
+fi
 
 # Modifications.
 
@@ -130,8 +141,6 @@ corr()
 	else
 		demarrage="`echo "$demarrage" | sed -e 's/^[.0]*//'`"
 	fi
-	
-	pge "$version" 8.0 && formateur=4.4d || formateur=3.3d
 	
 	if [ -f "$mem" ] && tar xzf "$mem"
 	then
