@@ -44,7 +44,7 @@ v 8.1.608 && demarrage="" || true
 v 8.1.804 || true
 #v 8.1.805 || true # digraph.c:16:2: error: unterminated conditional directive: #if defined(FEAT_DIGRAPHS) || defined(PROTO)
 #v 8.1.1176 || true # Toujours pas corrigé
-v 8.2.3455 && modifs="$modifs char_from_string" || true
+v 8.2.3455 && modifs="$modifs char_from_string" && modifs_corr="corr82" || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
@@ -52,6 +52,30 @@ v_maj="`echo "$version" | sed -e 's/\.[^.]*$//'`"
 archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
 
 # Modifications.
+
+corr82()
+{
+	# Les rustines fournies par Bram ont quelques curiosités gênantes. Que ni BSD patch ni GNU patch ne semblent parvenir à surmonter.
+	filtrer 8.2.0010 sed -e 's/Ã¡/á/g'
+	filtrer 8.2.0122 sed -e 's#READMEdir/##g'
+	for f in 8.2.0617 8.2.0620 8.2.0627
+	do
+		filtrer "$f" iconv -f utf-8 -t cp1252
+	done
+	printf '%s\n%s\n%s\n' '--- vide' '+++ vide' '@@ -0,0 +0,0 @@' > 8.2.0628
+	# Le 8.2.0661 essaie de vider un fichier contenant des Ctrl-@ (caractère nul), et BSD patch n'aime pas, mais alors pas du tout…
+	for f in 8.2.0661
+	do
+		#filtrer "$f" awk 'bientot&&/^\*\*\* /{sub(/\*+ /,"@@ -");sub(/ \*+/," +0,0 @@");bientot=0}/^--- src\/testdir\/test_eval.ok/{bientot=1}{print}'
+		filtrer "$f" sed -e '/^--- src\/testdir\/test_eval.ok/,/^--- 0 ----/d'
+	done
+	# Le 8.2.0798 contient deux fois le même fichier :-(
+	virerDuDiff 8.2.0798 src/libvterm/t/harness.c
+	# Les rsrc BeOS, ouh là.
+	virerDuDiff 8.2.0849 src/os_beos.rsrc
+	# Bon là j'abandonne au 931.
+	# On doit aller jusqu'au 4206 où e_expression_too_recursive_str est définie (et la compil plante s'il ne passe pas, car elle est utilisée ailleurs, grrr…).
+}
 
 virerDuDiff()
 {
