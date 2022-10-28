@@ -45,6 +45,8 @@ v 8.1.804 || true
 #v 8.1.805 || true # digraph.c:16:2: error: unterminated conditional directive: #if defined(FEAT_DIGRAPHS) || defined(PROTO)
 #v 8.1.1176 || true # Toujours pas corrigé
 v 8.2.3455 && modifs="$modifs char_from_string" && modifs_corr="corr82" || true
+v 8.2.5111 || true
+v 8.2.5172 || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
