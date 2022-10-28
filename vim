@@ -155,7 +155,7 @@ corr()
 	while [ $i -lt $n ]
 	do
 		i=`expr $i + 1`
-		patch -f -p0 < "$v_maj.`printf "%$formateur" $i`" || true # Un peu de rustines indigestes Windows.
+		patch -f -p0 < "$v_maj.`printf "%$formateur" $i`" || true # Un peu de rustines indigestes Windows, on contourne en ignorant les erreurs. Problème: à partir de la 8.2.4206, la définition d'e_expression_too_recursive_str, indispensable à la compil', ne passe pas. Il faudrait donc imposer que patch tourne sans erreur, pour n'oublier aucune morceau, notre true est un pis-aller qui a servi mais nous met maintenant dans le mur.
 	done
 }
 
