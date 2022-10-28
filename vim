@@ -53,6 +53,13 @@ archive=http://ftp.vim.org/pub/vim/unix/$logiciel-$v_maj$demarrage.tar.bz2
 
 # Modifications.
 
+virerDuDiff()
+{
+	local rustine="$1" f="$2"
+	f="`echo "$f" | tr / .`" # Les / ne sont guère appréciés si le chemin sert dans une /regex/
+	filtrer $rustine awk 'etape&&/^\*\*\* [^0-9]/{++etape}!etape&&/^\*\*\* .*'"$f"'/{etape=1}etape!=1{print}'
+}
+
 char_from_string()
 {
 	# Fonction définie deux fois (vim9execute.c et eval.c).
