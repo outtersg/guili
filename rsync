@@ -37,7 +37,7 @@ v 3.0.9 || true
 v 3.1.1 || true
 v 3.1.2 && modifs="mtime_udf" || true
 v 3.1.3 || true
-v 3.2.3 && prerequis="$prerequis xxhash lz4 zstd" || true
+v 3.2.3 && prerequis="$prerequis xxhash lz4 zstd openssl" || true # md4 et md5 sont piochés dans openssl maintenant.
 
 # Modifications
 
@@ -144,6 +144,8 @@ TERMINE
 
 archive=https://download.samba.org/pub/rsync/src/rsync-$version.tar.gz
 case "$version" in 2.*) archive=http://www.opensource.apple.com/darwinsource/tarballs/other/$logiciel-$version_apple.tar.gz ;; esac
+
+prerequisOpenssl
 
 prerequis
 
