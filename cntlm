@@ -28,8 +28,38 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="make \\"
 v 0.92.3 && modifs="freebsd" || true
+v 0.93.99.2022.10.14 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && modifs="fbsd2 prefixe" || true
 
 # Modifications
+
+prefixe()
+{
+	for f in Makefile*
+	do
+		filtrer "$f" sed -e "s#^PREFIX *:=#PREFIX := $dest#"
+	done
+}
+
+fbsd2()
+{
+	[ `uname` = FreeBSD ] || return 0
+	filtrer Makefile sed -e 's/ -Wno-unused-but-set-variable//g'
+	filtrer Makefile sed -e 's/install -D/install/g'
+	# Sur les nouveaux FreeBSD, il n'y a carrément plus de gcc.
+	[ -e Makefile.clang ] || cp Makefile Makefile.clang
+	filtrer Makefile.clang sed -e '/OBJS=/s/^	*//' -e 's/gcc/clang/g'
+	filtrer configure sed -e '/^CCS=/s/="/="clang /'
+	
+	filtrer utils.h sed -e '/if defined(__FreeBSD__)/a\
+#include <sys/socket.h>
+'
+	filtrer pac.c sed -e '/pac\.h/{
+a\
+#include <netinet/in.h>
+a\
+#include <sys/socket.h>
+}'
+}
 
 # Adaptations au vieux GCC de FreeBSD.
 freebsd()
@@ -46,6 +76,7 @@ freebsd()
 # Variables
 
 archive="http://freefr.dl.sourceforge.net/project/cntlm/cntlm/cntlm%20$version/cntlm-$version.tar.gz"
+archive_git="https://github.com/versat/cntlm.git"
 
 destiner
 
@@ -57,7 +88,11 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+if pg 0.93.99 $version
+then
+	OPTIONS_CONF=--prefix="$dest"
+fi
+./configure $OPTIONS_CONF
 
 echo Compilation… >&2
 make
