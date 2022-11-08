@@ -29,8 +29,15 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis="make \\"
 v 0.92.3 && modifs="freebsd" || true
 v 0.93.99.2022.10.14 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && modifs="fbsd2 prefixe" || true
+v 0.93.99.2022.10.15 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && modifs="$modifs conclo" || true
 
 # Modifications
+
+conclo()
+{
+	local rustine="`obtenir https://github.com/outtersg/cntlm/commit/5c0a907762863c6e9c9686e3f8c9d4b4493414b2.diff`"
+	patch -p1 < "$rustine"
+}
 
 prefixe()
 {
