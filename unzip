@@ -33,7 +33,9 @@ v 6.0 && modifs="" && prerequis="" || true
 # Variables
 
 vtassee="`echo "$version" | tr -d .`"
+vmaj="`echo "$version" | cut -d . -f 1`"
 archive="ftp://ftp.info-zip.org/pub/infozip/src/unzip$vtassee.tgz"
+archive="https://netcologne.dl.sourceforge.net/project/infozip/UnZip%20$vmaj.x%20%28latest%29/UnZip%20$version/unzip$vtassee.tar.gz"
 
 destiner
 
