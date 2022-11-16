@@ -21,23 +21,21 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=glew
-
-v 1.5.7 && modifs="pre32 dyld105 bsdAveugle" || true
+prerequis="make \\"
+v 1.5.7 && modifs="bsdAveugle" || true
 v 1.6.0 || true
-v 1.12.0 && prerequis="mesa" || true
-v 1.13.0 && prerequis="mesa" || true
-v 2.0.0 && prerequis="mesa" && modifs="pre32 dyld105 bsdAveugle2 glewnoglu" || true
+v 1.12.0 && prerequis="$prerequis mesa" || true # En fait mesa+osmesa, mais osmesa y est compilé par défaut dans les GuiLI.
+v 1.13.0 || true
+v 2.0.0 && modifs="bsdAveugle2 glewnoglu" || true
+
+destiner
 
 prerequis
 
-dest="$INSTALLS/$logiciel-$version"
 archive="http://freefr.dl.sourceforge.net/project/$logiciel/$logiciel/$version/$logiciel-$version.tgz"
-
-[ -d "$dest" ] && exit 0
 
 glewnoglu()
 {
@@ -61,7 +59,7 @@ dyld105()
 bsdAveugle2()
 {
 	filtrer config/Makefile.freebsd sed -e 's#-L/usr/X11R6/lib##g' -e 's#-lX11##g' -e 's#-lGL#-lOSMesa#g' -e 's#-I/usr/X11R6/include##g'
-	echo "CFLAGS.EXTRA += -DGLEW_OSMESA $CFLAGS" >> config/Makefile.freebsd
+	echo "CFLAGS.EXTRA += -DGLEW_OSMESA $CPPFLAGS $CFLAGS" >> config/Makefile.freebsd
 	echo "LDFLAGS.EXTRA += $LDFLAGS" >> config/Makefile.freebsd
 }
 
@@ -98,6 +96,4 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 echo Installation… >&2
 sudo make GLEW_DEST="$dest" install
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
