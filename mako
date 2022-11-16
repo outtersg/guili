@@ -21,13 +21,12 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=mako
 
 # Historique des versions gérées
 
+prerequis="python"
 v 1.0.1 && modifs="ssl" || true
 
 # Modifications
@@ -46,10 +45,9 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="https://pypi.python.org/packages/source/M/Mako/Mako-$version.tar.gz"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -62,6 +60,11 @@ echo Compilation… >&2
 python ./setup.py build
 
 echo Installation… >&2
-sudo python ./setup.py install
+dest0="`pwd`/dest"
+rm -Rf "$dest0"
+pyextinit "$dest0"
+sudokupy python ./setup.py install --prefix="$dest0"
 
-rm -Rf $TMP/$$
+sudoku mkdir -p "$dest"
+sudoku cp -Rp "$dest0/." "$dest/."
+sutiliser - "$PYEXT"
