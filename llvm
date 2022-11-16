@@ -396,4 +396,7 @@ sudo make install
 
 # Pas de compil' libc++: en versions avant cmake, le Makefile de libcxx laisse penser qu'il va s'installer comme un cochon dans /usr/lib; et en cmake (3.9.1, par exemple), elle a été compilée en même temps que clang.
 
+# À FAIRE: si nous sommes clang, nous pouvons aussi créer un alias (lien symbolique) llvm+clang-x.y.z -> clang-x.y.z,
+# car nous en sommes un surensemble et les logiciels cherchant llvm devraient pouvoir nous trouver (ex.: mesa).
+
 sutiliser
