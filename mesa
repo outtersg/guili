@@ -128,7 +128,7 @@ i\
 # Variables
 
 archive="ftp://ftp.freedesktop.org/pub/mesa/$version/mesa-$version.tar.xz"
-archive="http://mesa.freedesktop.org/archive/mesa-$version.tar.xz"
+archive="https://gitlab.freedesktop.org/mesa/mesa/-/archive/mesa-$version/mesa-mesa-$version.tar.bz2"
 
 destiner
 
