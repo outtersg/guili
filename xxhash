@@ -27,7 +27,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 prerequis="make \\"
-v 0.8.0 || true # Dernière version avant "remove epoll syscall wrappers", cf. https://gitlab.kitware.com/cmake/cmake/-/issues/19086
+v 0.8.0 && modifs="pkgconf_lib" || true # Dernière version avant "remove epoll syscall wrappers", cf. https://gitlab.kitware.com/cmake/cmake/-/issues/19086
 v 0.8.1 || true
 
 # Modifications
