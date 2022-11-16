@@ -29,8 +29,69 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
 v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie log2" || true
 v 18.3.5 && modifs="choixSortie elf_nhdr" || true
+v 22.2.3 && prerequis="$prerequis glslang expat zstd libdrm" && modifs="$modifs sansIntel sansRtti wsiBsd" || true
+
+# Bien que llvm fasse en théorie partie des prérequis, sur les machines sur lesquelles j'ai compilé un clang-13 et où reste encore un vieux llvm-7,
+# il ne faut SURTOUT PAS ajouter llvm aux prérequis, sans quoi c'est le 7 qui sera embarqué (et qui plantera, cf. https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/15724).
+# Il faudrait donc que clang sache s'installer avec pour alias llvm+clang-13.0.0
+# En attendant, sur nos machines FreeBSD, étant donné que clang est le compilo choisi par défaut, il est embarqué; resterait à le faire proprement sous Linux.
+
+if pge $version 20 # Version exacte à retrouver.
+then
+	parmeson=1
+	prerequis="python meson ninja mako pkgconfig \\ $prerequis"
+fi
 
 # Modifications
+
+wsiBsd()
+{
+	# https://cgit.freebsd.org/ports/commit/?id=23e4dce35c4a5666968d40a38ef569a210a7bede Super intéressant: toutes les bidouilles pour compiler sous FreeBSD.
+	# https://lists.freebsd.org/pipermail/freebsd-x11/2020-April/025698.html
+	# https://gitlab.freedesktop.org/mesa/mesa/-/issues/6653 Indique que c'est depuis la 22.2.
+	
+	patch -p0 <<TERMINE
+--- src/vulkan/wsi/wsi_common_drm.c.orig	22.1-branchpoint-2850-gcbcdcc412c9
++++ src/vulkan/wsi/wsi_common_drm.c
+@@ -33,13 +33,20 @@
+ #include "drm-uapi/drm_fourcc.h"
+ 
+ #include <errno.h>
+-#include <linux/dma-buf.h>
+-#include <linux/sync_file.h>
+ #include <time.h>
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <xf86drm.h>
++
++#if __has_include(<linux/dma-buf.h>)
++#include <linux/dma-buf.h>
++#else
++#define DMA_BUF_SYNC_READ      (1 << 0)
++#define DMA_BUF_SYNC_WRITE     (2 << 0)
++#define DMA_BUF_SYNC_RW        (DMA_BUF_SYNC_READ | DMA_BUF_SYNC_WRITE)
++#define DMA_BUF_BASE		'b'
++#endif
+ 
+ struct dma_buf_export_sync_file_wsi {
+ __u32 flags;
+TERMINE
+}
+
+sansRtti()
+{
+	# Il nous le demande explicitement quand notre llvm GuiLI est livré sans RTTI.
+	optionsConf="$optionsConf --no-cpp_rtti"
+}
+
+sansIntel()
+{
+	# gallium-drivers est par défaut en auto, incluant plein de pilotes dont des radeon (r300, r600, etc.), nouveau, et i915 pour ma machine en x86_64.
+	# Mais plus tard, pour savoir quelles variantes de libdrm utiliser, on se fie à ce qui a été collé dans gallium-drivers.
+	# Or mon libdrm a bien voulu se compiler avec les radeon, nouveau, etc., mais pas intel.
+	filtrer meson.build sed -e "/^ *\\['intel'/d" -e "s/, 'i915'//g"
+}
 
 elf_nhdr()
 {
@@ -53,7 +114,26 @@ choixSortie()
 		if pge $version 17 ; then
 			optionsConf="$optionsConf --disable-gbm"
 		fi
+		if pge $version 20
+		then
+			optionsConf="--enable-osmesa --enable-glx=no --with-platforms="
+		fi
 	fi
+}
+
+ocmeson()
+{
+	for o in "$@"
+	do
+		case "$o" in
+			--enable-*=no) echo "$o" | sed -e 's/--enable-/-D/' -e 's/=no$/=disabled/' ;;
+			--enable-*) echo "$o" | sed -e 's/--enable-/-D/' -e 's/$/=true/' ;;
+			--disable-*) echo "$o" | sed -e 's/--disable-/-D/' -e 's/$/=disabled/' ;;
+			--with-*) echo "$o" | sed -e 's/--with-/-D/' ;;
+			--no-*) echo "$o" | sed -e 's/--no-/-D/' -e 's/$/=false/' ;;
+			*) echo "$o" ;;
+		esac
+	done
 }
 
 log2()
@@ -140,11 +220,26 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ -n "$parmeson" ]
+then
+	mkdir -p build
+	optionsConf="`ocmeson $optionsConf`"
+	meson setup build --buildtype=release --prefix="$dest" $optionsConf
+	cd build
+	make=ninja
+else
 ./configure --prefix="$dest" $optionsConf
+	make=make
+fi
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
+if [ -n "$parmeson" ]
+then
+	sudokupy $make install
+else
 sudo make install
+fi
 sutiliser
