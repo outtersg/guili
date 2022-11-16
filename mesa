@@ -160,7 +160,7 @@ void bah()
 }
 TERMINE
 	$CXX $CFLAGS -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null || log2declaree=non
-	[ $log2declaree = oui ] || ( $CXX $CFLAGS -DTEST_EMBARQUEE=1 -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null && nm -o $TMP/$$/testl.o | grep -q bah && ! nm -o $TMP/$$/testl.o | grep -q log2 ) || log2embarquee=non # Si ça compile, et que le fichier objet ne contient pas de référence U (unresolved) à log2, c'est que le compilo embarque une implémentation et la reverse dans les .o.
+	[ $log2declaree = oui ] || ( $CXX $CFLAGS -DTEST_EMBARQUEE=1 -c -o $TMP/$$/testl.o $TMP/$$/testl.c 2> /dev/null && nm -o $TMP/$$/testl.o | grep -q bah && nm -o $TMP/$$/testl.o | ! grep -q log2 ) || log2embarquee=non # Si ça compile, et que le fichier objet ne contient pas de référence U (unresolved) à log2, c'est que le compilo embarque une implémentation et la reverse dans les .o.
 	
 	if [ $log2declaree = non ]
 	then
