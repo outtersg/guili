@@ -31,6 +31,7 @@ v 0.51.1 || true
 v 0.52.1 || true
 v 0.53.1 && modifs="pkgConfLib" || true
 v 0.59.1 || true
+v 0.64.0 || true
 
 # Modifications
 
