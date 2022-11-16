@@ -29,10 +29,16 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 0.50.0 && prerequis="python >= 3.5" || true
 v 0.51.1 || true
 v 0.52.1 || true
-v 0.53.1 || true
+v 0.53.1 && modifs="pkgConfLib" || true
 v 0.59.1 || true
 
 # Modifications
+
+pkgConfLib()
+{
+	# Depuis https://github.com/mesonbuild/meson/commit/aba8792b6657e3aa380586764a8b3ec567895a28,
+	pkgconf_lib mesonbuild/modules/pkgconfig.py
+}
 
 # Variables
 
