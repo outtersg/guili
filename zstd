@@ -30,6 +30,8 @@ prerequis="make \\"
 v 1.5.0 && modifs="pkgConfLib" || true
 v 1.5.2 || true
 
+optionSi lz4
+
 # Modifications
 
 pkgConfLib()
