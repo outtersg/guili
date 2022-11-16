@@ -79,3 +79,18 @@ pkgconf_lignes()
 		shift
 	done
 }
+
+pkgconf_lib()
+{
+	local f
+	[ -n "$1" ] || set -- Makefile
+	
+	# Certains logiciels poussent les fichiers pkgconfig vers libdata/pkgconfig plutôt que lib/pkgconfig sous FreeBSD.
+	# Ce qui est vrai pour le système (/usr/local/libdata/pkgconfig), mais pas pour GuiLI.
+	
+	for f in "$@"
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e s/libdata/lib/g
+	done
+}
