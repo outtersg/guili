@@ -21,25 +21,25 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=glu
+# pkgconfig nécessaire pour qu'il détecte libOSmesa (contenant le symbole glBegin), sinon il cherche bêtement dans une libgl qui n'existe pas.
+v 9.0.0 && prerequis="libtool autoconf automake m4 pkgconfig \\ mesa" && modifs="" || true
 
-v 9.0.0 && prerequis="mesa" && modifs="" || true
+destiner
 
 prerequis
 
-dest="$INSTALLS/$logiciel-$version"
 archive="ftp://ftp.freedesktop.org/pub/mesa/glu/glu-$version.tar.bz2"
-
-[ -d "$dest" ] && exit 0
+archive="https://gitlab.freedesktop.org/mesa/glu/-/archive/glu-$version/glu-glu-$version.tar.gz"
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif "$@" ; done
+[ -f configure ] || ./autogen.sh # Voir aussi meson, cf. mesa qui y est passé.
 ./configure --prefix="$dest" --enable-osmesa
 
 echo Compilation… >&2
@@ -48,6 +48,4 @@ make
 echo Installation… >&2
 sudo make install
 
-sutiliser "$logiciel-$version"
-
-rm -Rf "$TMP/$$"
+sutiliser
