@@ -26,6 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # pkgconfig nécessaire pour qu'il détecte libOSmesa (contenant le symbole glBegin), sinon il cherche bêtement dans une libgl qui n'existe pas.
 v 9.0.0 && prerequis="libtool autoconf automake m4 pkgconfig \\ mesa" && modifs="" || true
+v 9.0.2 || true
 
 destiner
 
