@@ -36,6 +36,7 @@ destiner
 prerequis
 
 archive="http://freefr.dl.sourceforge.net/project/$logiciel/$logiciel/$version/$logiciel-$version.tgz"
+archive="https://github.com/nigels-com/glew/releases/download/glew-$version/glew-$version.tgz"
 
 glewnoglu()
 {
