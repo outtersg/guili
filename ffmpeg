@@ -26,7 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-prerequis="pkgconfig nasm \\"
+prerequis="pkgconfig make nasm \\"
 
 version=2005-10-14
 modifs=panther
@@ -41,7 +41,7 @@ OPTIONS_CONF="--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enabl
 v 0.7-rc1 && modifs= && OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --disable-yasm"
 v 1.0 && modifs= && OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --enable-libopus" && inclure yasm && inclure opus
 v 1.0.1 && prerequis="$prerequis lame" OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --enable-libopus --enable-libmp3lame"
-v 2.5 && modifs="monCc" prerequis="pkgconfig nasm \\ opus lame >= 3.98.3" || true
+v 2.5 && modifs="monCc" prerequis="pkgconfig make nasm \\ opus lame >= 3.98.3" || true
 v 2.5.2 || true
 v 3.2.2 || true
 v 3.3.2 || true
