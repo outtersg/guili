@@ -35,10 +35,12 @@ v 2.8.0.2019.11.05 && versionComplete="$version.354625c5a229111ecb68457c4238aa6b
 
 strndupBsd()
 {
+	touch -r xmalloc.h /tmp/h
 	# https://bugs.freebsd.org/bugzilla/attachment.cgi?id=176956&action=edit
 	filtrer xmalloc.h sed -e '/ifdef HAVE_STRNDUP/a\
 char *strndup(const char*, size_t);
 '
+	touch -r /tmp/h xmalloc.h
 }
 
 monCc()
