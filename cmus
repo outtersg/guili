@@ -25,7 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 prerequis="pkgconfig make \\ ncurses iconv ffmpeg mad ogg opus opusfile" # pkgconfig pour ffmpeg et opus; ncurses GNU pour le support des caractères multi-octets.
-v 2.5.0 && modifs="fpic monCc strndupBsd" || true
+v 2.5.0 && modifs="cppflags fpic monCc strndupBsd" || true
 v 2.5.1 || true
 v 2.7.1 || true
 v 2.8.0.2019.01.16 && versionComplete="$version.c39b5662a10a463427b54bb6c1e2714db59a65d9.git" || true
@@ -35,6 +35,11 @@ v 2.9.1 || true
 v 2.10.0 || true
 
 # Modifications
+
+cppflags()
+{
+	filtrer scripts/checks.sh sed -e 's#\$CFLAGS#& $CPPFLAGS#g'
+}
 
 strndupBsd()
 {
