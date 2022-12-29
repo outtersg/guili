@@ -37,6 +37,8 @@ v 3.29.0 && v_annee=2019 || true
 v 3.35.5 && v_annee=2021 && vautomake=">= 1.15 < 1.16" || true
 v 3.36.0 || true
 v 3.39.0 && v_annee=2022 && vautomake=">= 1.16" || true
+v 3.39.4 || true
+v 3.40.1 || true
 
 option intarray && modifs="$modifs intarray" || true
 
