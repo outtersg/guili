@@ -94,7 +94,7 @@ pge $version 3.7 && archive="https://www.sqlite.org/$v_annee/sqlite-autoconf-$ve
 
 if optionSi pcre
 then
-	prerequis="autoconf automake $vautomake m4 \\ $prerequis" # La modification du configure.ac déclenche une regénération du reste.
+	prerequis="autoconf automake $vautomake m4 libtool \\ $prerequis" # La modification du configure.ac déclenche une regénération du reste.
 	modifs="$modifs pcre"
 fi
 
