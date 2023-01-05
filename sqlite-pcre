@@ -26,10 +26,48 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
+# Pour tester le module dont on dispose: sqlite3 /tmp/1.sqlite3 ".load …/sqlite-pcre" "select 'a' regexp '['":
+#     intégré	Error: stepping, unclosed '['
+#       PCRE1	Error: stepping, [a: missing terminating ] for character class (offset 2)
+#       PCRE2	Error: stepping, [a: missing terminating ] for character class (offset 2)
+#   hyperscan	Error: stepping, [a: Unterminated character class starting at index 0.
+# Temps d'exéc (recherche d'un gros | de 400 items (= 4 Ko d'expression) sur une base de 70 Mo:
+#     intégré	55 mn
+#       PCRE1	1'20"
+#       PCRE2	4'20"
+#   hyperscan	23 mn
+
 prerequis="sqlite pcre"
 v 2007.01.20 && versionComplete="$version.4229ecc3.git" || true
 v 2007.01.20.1 && versionComplete="$version.bc988508.git" || true
 v 2021.10.06 && versionComplete="$version.ae8a1c03.git" || true
+
+# À FAIRE: normaliser en une option +pcre1, +pcre2, ou +hyperscan.
+if option hyperscan
+then
+	virerPrerequis pcre
+	prerequis="$prerequis hyperscan"
+fi
+
+configurer()
+{
+	if option hyperscan
+	then
+		CPPFLAGS="$CPPFLAGS -DWITH_HYPERSCAN=1"
+		CFLAGS="$CFLAGS -fPIC"
+		biblios=-lhs
+		echo "Biblio regex: [32mHyperscan[0m"
+	elif pge $version_pcre 10
+	then
+		biblios=-lpcre2-8
+		CPPFLAGS="$CPPFLAGS -DWITH_PCRE2=1"
+		echo "Biblio regex: [32mPCRE[36m2[0m"
+	else
+		biblios=-lpcre
+		CPPFLAGS="$CPPFLAGS -DWITH_PCRE1=1"
+		echo "Biblio regex: [32mPCRE[36m1[0m"
+	fi
+}
 
 # Variables
 
@@ -49,9 +87,10 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+configurer
 
 echo Compilation… >&2
-$CC -fPIC -shared -o sqlite-pcre.so $CPPFLAGS pcre.c $LDFLAGS -lpcre -lsqlite3
+$CC -fPIC -shared -o sqlite-pcre.so $CPPFLAGS $CFLAGS pcre.c $LDFLAGS $biblios -lsqlite3
 
 echo Installation… >&2
 sudoku mkdir -p "$dest/lib"
