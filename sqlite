@@ -55,6 +55,7 @@ pcre()
 	fi
 	local pcre_c="$HOME/src/projets/sqlite3-pcre/pcre.c"
 	[ -f "$pcre_c" ] || pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
+	if option hyperscan ; then echo "#define WITH_HYPERSCAN 1" >> sqlite3.c ; fi
 	cat "$pcre_c" >> sqlite3.c
 	
 	autoconf # Notre .patch modifie configure.ac.
@@ -92,7 +93,7 @@ pge "$version" 3.6.24 && archive="https://www.sqlite.org/sqlite-amalgamation-$ve
 version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
 pge $version 3.7 && archive="https://www.sqlite.org/$v_annee/sqlite-autoconf-$version0.tar.gz"
 
-if optionSi pcre
+if option hyperscan || optionSi pcre
 then
 	prerequis="autoconf automake $vautomake m4 libtool \\ $prerequis" # La modification du configure.ac déclenche une regénération du reste.
 	modifs="$modifs pcre"
