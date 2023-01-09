@@ -39,7 +39,7 @@ v 6.8.3.3 || true
 v 6.8.7.3 && modifs= || true
 v 6.8.8.1 || true
 # N.B.: peut utiliser rsvg pour traiter le SVG.
-v 6.9.0.2 || true
+v 6.9.0.2 && prerequis="$prerequis librsvg" || true
 v 6.9.0.4 || true
 v 7.0.2.7 || true
 v 7.0.3.4 || true
@@ -61,6 +61,8 @@ optionSi libzip || true
 optionSi xz || true # Pour l'option LZMA ImageMagick.
 optionSi graphviz || true
 optionSi lcms || true
+
+opSiPasPas svg || virerPrerequis librsvg
 
 version_min="`echo "$version" | sed -e 's/\.\([^.]*\)$/-\1/'`"
 archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_min.tar.bz2
