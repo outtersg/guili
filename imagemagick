@@ -21,13 +21,12 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-prerequis="libjpeg libtiff libpng freetype" 
+prerequis="pkgconfig \\ libjpeg libtiff libpng freetype fontconfig cairo pango zlib"
 
 logiciel_maj=ImageMagick
-logiciel="`echo $logiciel_maj | tr '[A-Z]' '[a-z]'`"
 
 v 6.2.4.4 || true
 v 6.2.5.5 || true
@@ -36,11 +35,11 @@ v 6.6.7.7 || true
 v 6.7.3.0 || true
 v 6.7.5.6 && modifs=putainDeLibJPEGDeMacOSX || true
 v 6.8.3.3 || true
-v 6.8.7.3 && modifs= && prerequis="$prerequis cairo pango" || true
+v 6.8.7.3 && modifs= || true
 v 6.8.8.1 || true
 # N.B.: peut utiliser rsvg pour traiter le SVG.
 v 6.9.0.2 || true
-v 6.9.0.4 && prerequis="libjpegturbo libtiff+jpegturbo libpng freetype cairo pango zlib" || true
+v 6.9.0.4 || true
 v 7.0.2.7 || true
 v 7.0.3.4 || true
 v 7.0.6.1 || true
@@ -48,16 +47,28 @@ v 7.0.7.11 || true
 v 7.0.8.59 || true
 v 7.1.0.57 || true
 
-prerequis
+if versions libjpegturbo | grep -q .
+then
+	prerequis="`echo "$prerequis" | sed -e 's/libjpeg /libjpegturbo /' -e 's/libtiff /libtiff+jpegturbo /'`"
+fi
+optionSi libxml || true
+optionSi zstd || true
+#optionSi zip || true
+#optionSi 7z || true
+optionSi libzip || true
+optionSi xz || true # Pour l'option LZMA ImageMagick.
+optionSi graphviz || true
+optionSi lcms || true
 
 version_min="`echo "$version" | sed -e 's/\.\([^.]*\)$/-\1/'`"
-dest="$INSTALLS/$logiciel-$version"
 archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_min.tar.bz2
 archive=http://mirror.checkdomain.de/imagemagick/$logiciel_maj-$version_min.tar.bz2
 
-[ -d "$dest" ] && exit 0
+destiner
 
-obtenirEtAllerDans "$archive"
+prerequis
+
+obtenirEtAllerDansVersion
 
 for modif in true $modifs ; do $modif ; done
 
@@ -69,6 +80,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
