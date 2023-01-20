@@ -31,7 +31,8 @@ OPTIONS_CONF=
 
 ajouterModif cve201911043
 # pkgconfig au moins pour libxml en PHP 8.
-v 4.4.7 && prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl libssh+osslxx" && ajouterModif readlineNcurses lcplusplus pginfossl || true
+prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl libssh+osslxx sqlite"
+v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -177,12 +178,6 @@ fi
 if ! optionSi mysql commande mysql
 then
 	OPTIONS_CONF="$OPTIONS_CONF --without-mysql --without-pdo-mysql"
-fi
-
-# Si SQLite est présent en GuiLI, on l'utilise: il est sans doute plus moderne (cf. sqlite-pcre).
-if versions sqlite | grep -q .
-then
-	prerequis="$prerequis sqlite"
 fi
 
 # Sur de très vieilles machines, PHP 7, qui utilise du sed -E, va se vautrer. Dans ce cas, on demande un sed 4.2.2, qui a l'avantage de gérer le -E mais aussi de compiler sur ces vieilles bécanes.
