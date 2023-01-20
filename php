@@ -165,6 +165,7 @@ v 8.1.7 || true
 v 8.1.10 || true
 v 8.1.11 || true
 v 8.1.12 || true
+v 8.1.14 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
@@ -260,6 +261,14 @@ a\
 
 pgsqlSetNoticeCallback()
 {
+	local vphp
+	for vphp in 8.1.14
+	do
+		pge $version $vphp || continue
+		patch -p0 -l < "$SCRIPTS/php.pgsqlSetNoticeCallback.$vphp.patch"
+		return
+	done
+	
 	local suffixe= adaptation=cat
 	case $version in
 		8.0.*)
