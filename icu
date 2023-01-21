@@ -43,6 +43,7 @@ v 62.1 && prerequis="langcxx(17) make \\" || true
 v 63.1 || true
 v 69.1 || true
 v 70.1 || true
+v 72.1 || true
 
 versiong="`echo "$version" | tr . _`"
 versiont="`echo "$version" | tr . -`"
