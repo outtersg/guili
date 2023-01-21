@@ -34,7 +34,7 @@ v 3.6
 v 4.4
 # Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
 #v 4.4.1
-v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate" || true
+v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees" || true
 v 52.1 || true
 v 55.1 && modifs="$modifs ldlproot" || true
 # À partir de la 58: char16_t => C++11; cf. PHP qui nous utilise.
@@ -51,6 +51,15 @@ pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version
 pg 68 $version || archive=https://github.com/unicode-org/icu/releases/download/release-$versiont/icu4c-$versiong-src.tgz
 
 # Modifications
+
+pasDonnees()
+{
+	# https://stackoverflow.com/questions/17687336/icu-49-built-on-a-debian-system-fails-to-load-libicudata-so
+	# ldd ne sait pas charger libicudata quand elle ne contient que de la donnée et 0 code,
+	# donc idem pour un binaire (genre php): "error while loading shared libraries: libicudata.so.70: cannot open shared object file: No such file or directory",
+	# sur un Raspberry Pi 3 en tout cas.
+	filtrer source/config/mh-linux sed -e '/^LDFLAGSICUDT/s/^/#/'
+}
 
 types16()
 {
