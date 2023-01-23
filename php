@@ -155,6 +155,7 @@ v 8.0.20 || true
 v 8.0.23 || true
 v 8.0.24 || true
 v 8.0.25 || true
+v 8.0.27 || true
 v 8.1.1 || true
 v 8.1.2 || true
 v 8.1.3 || true
@@ -165,6 +166,7 @@ v 8.1.7 || true
 v 8.1.10 || true
 v 8.1.11 || true
 v 8.1.12 || true
+v 8.1.14 || true
 v 8.1.14 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
