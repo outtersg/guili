@@ -32,7 +32,7 @@ OPTIONS_CONF=
 ajouterModif cve201911043
 # pkgconfig au moins pour libxml en PHP 8.
 prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl libssh+osslxx sqlite"
-v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl || true
+v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl fileinfoSobre || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -221,6 +221,12 @@ args_reduc_u()
 flagsUniques
 
 # Modifs
+
+fileinfoSobre()
+{
+	# https://bugs.php.net/bug.php?id=65106
+	filtrer ext/fileinfo/data_file.c sed -e 's#^0x#"\\x#' -e 's#, 0x#\\x#g' -e 's#, *$#"#' -e 's#{ *$##' -e 's#}##' -e 's#, *;#";#'
+}
 
 cve201911043()
 {
@@ -553,6 +559,7 @@ true || \
 	make -j4 && TEST_PHP_EXECUTABLE=`pwd`/sapi/cli/php ./sapi/cli/php run-tests.php ext/pdo_pgsql/tests
 }
 # --with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
+# --enable-fileinfo=shared pour éviter de pénaliser de 7 Mo de mémoire chaque lancement de PHP, pour une fonction quasi inutilisée (et cf. https://bugs.php.net/bug.php?id=65106 2023-01-23 05:15 UTC); cf. https://bugs.php.net/bug.php?id=73046
 ./configure --prefix="$dest" \
 	--with-zlib \
 	--with-iconv \
@@ -562,6 +569,7 @@ true || \
 	--with-ncurses \
 	--with-readline \
 	--with-curl \
+	--enable-fileinfo=shared \
 	--enable-sqlite-utf8 \
 	--enable-shared \
 	--enable-mbstring \
