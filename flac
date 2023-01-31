@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 prerequis="iconv"
 v 1.3.0 || true
 v 1.3.2 || true
+v 1.4.2 || true
 
 # Modifications
 
