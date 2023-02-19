@@ -26,14 +26,28 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
+modifs="toutenlib"
 v 0.50.0 && prerequis="python >= 3.5" || true
 v 0.51.1 || true
 v 0.52.1 || true
-v 0.53.1 && modifs="pkgConfLib" || true
+v 0.53.1 && modifs="$modifs pkgConfLib" || true
 v 0.59.1 || true
 v 0.64.0 || true
 
 # Modifications
+
+toutenlib()
+{
+	# https://github.com/mesonbuild/meson/issues/5925
+	# Meson installe ses lib (dont pkgconfig) sous lib/arm-trucmuche plutôt que juste lib => pkgconfig introuvable => glib introuvable (par exemple, quand on installe glib par meson).
+	for f in mesonbuild/utils/universal.py mesonbuild/mesonlib.py
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e "/^def default_libdir()/a\\
+    return 'lib'
+"
+	done
+}
 
 pkgConfLib()
 {
