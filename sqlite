@@ -24,6 +24,7 @@ set -e
 
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.opt.pcre.sh"
 
 prerequis="zlib ncurses readline"
 v 3.0.7 || true
@@ -62,7 +63,13 @@ pcre()
 	fi
 	local pcre_c="$HOME/src/projets/sqlite3-pcre/pcre.c"
 	[ -f "$pcre_c" ] || pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
-	if option hyperscan ; then echo "#define WITH_HYPERSCAN 1" >> sqlite3.c ; fi
+	local with=
+	case "$argOptions-" in
+		*+pcre2[-+]*) with="PCRE2" ;;
+		*+pcre1[-+]*) with="PCRE1" ;;
+		*+hyperscan[-+]*) with="HYPERSCAN" ;;
+	esac
+	[ -z "$with" ] || echo "#define WITH_$with 1" >> sqlite3.c
 	cat "$pcre_c" >> sqlite3.c
 	
 	autoconf # Notre .patch modifie configure.ac.
@@ -100,7 +107,9 @@ pge "$version" 3.6.24 && archive="https://www.sqlite.org/sqlite-amalgamation-$ve
 version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
 pge $version 3.7 && archive="https://www.sqlite.org/$v_annee/sqlite-autoconf-$version0.tar.gz"
 
-if option hyperscan || optionSi pcre
+prerequisPcre pcre1 pcre2
+
+if option hyperscan || option pcre1 || option pcre2 || optionSi pcre
 then
 	prerequis="autoconf automake $vautomake m4 libtool \\ $prerequis" # La modification du configure.ac déclenche une regénération du reste.
 	modifs="$modifs pcre"

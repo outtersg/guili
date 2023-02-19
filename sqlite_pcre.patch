@@ -1,7 +1,7 @@
 diff -ruw configure.ac configure.ac
 --- configure.ac
 +++ configure.ac
-@@ -218,6 +218,23 @@
+@@ -218,6 +218,35 @@
  fi
  #-----------------------------------------------------------------------
  
@@ -13,10 +13,22 @@ diff -ruw configure.ac configure.ac
 +  [with_pcre=$enableval],
 +  [with_pcre=auto])
 +AS_IF([ test x"$enable_pcre" != xno ],[
++  AC_CHECK_HEADERS([pcre2.h],[
++    sLIBS=$LIBS
++    AC_SEARCH_LIBS([pcre2_compile_8],[pcre2-8],[
++      BUILD_CFLAGS="$BUILD_CFLAGS -DSQLITE_ENABLE_PCRE"
++      with_pcre=PCRE2
++      enable_pcre=done
++    ],[])
++  ],[],[#define PCRE2_CODE_UNIT_WIDTH 8])
++  AS_IF([test x"$enable_pcre" != xdone ],[
 +  AC_CHECK_HEADERS([pcre.h],[
 +    sLIBS=$LIBS
 +    AC_SEARCH_LIBS([pcre_compile],[pcre],[
 +      BUILD_CFLAGS="$BUILD_CFLAGS -DSQLITE_ENABLE_PCRE"
++      with_pcre=PCRE1
++      enable_pcre=done
++      ],[])
 +    ],[])
 +  ])
 +])
