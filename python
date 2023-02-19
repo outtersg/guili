@@ -416,6 +416,7 @@ confOptims
 
 for option in $optionsModules ; do option "$option" || true ; done # Assurons destiner() que nous prenons en charge ces options (qui entreront dans le nom du dossier $dest), même si on ne les exploite qu'un peu plus loin.
 
+! mac ||
 similisys # Sur Mac en tout cas, scproxy (accès au paramétrage système) se lie à CoreQuelqueChose qui attaque une sqlite et un iconv bien précis.
 
 destiner
