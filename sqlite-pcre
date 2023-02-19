@@ -85,6 +85,7 @@ destiner
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
+if [ -d "$archive_git_locale" ] ; then cd "$archive_git_locale" ; fi
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
