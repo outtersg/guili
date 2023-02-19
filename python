@@ -50,6 +50,9 @@ v 3.6.2 || true
 v 3.7.4 || true
 v 3.9.5 || true
 v 3.9.7 || true
+v 3.9.16 || true
+v 3.10.10 || true
+v 3.11.2 || true
 
 # Modifications
 
