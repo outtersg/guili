@@ -48,6 +48,7 @@ v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoin
 v 2.60.6 || true
 v 2.63.3 || true
 v 2.71.0 || true
+v 2.75.3 && remplacerPrerequis "pcre >= 10" || true
 
 archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
