@@ -70,7 +70,7 @@ obtenirEtAllerDansVersion
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
-echo Coompilation… >&2
+echo Compilation… >&2
 chmod a+x setup.py
 ./setup.py build
 
