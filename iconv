@@ -90,4 +90,6 @@ echo Installation… >&2
 sudo make install
 # Le .la, c'est bien gentil, mais ça ne vaut pas un .so qui pointe vers le .so.x.x.
 ( cd "$dest/lib" && for i in lib*.so.* ; do lib="`echo "$i" | sed -e 's/\.so\..*/.so/'`" ; [ -e "$lib" ] || sudo ln -s "$i" "$lib" ; done )
+pkgconfer iconv
+
 sutiliser
