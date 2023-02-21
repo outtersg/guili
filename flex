@@ -60,6 +60,7 @@ reallocarray()
 
 archive="http://cznic.dl.sourceforge.net/project/flex/flex-$version.tar.bz2"
 archive="https://github.com/westes/flex/releases/download/v$version/flex-$version.tar.gz"
+archive_git=https://github.com/westes/flex.git
 
 destiner
 
