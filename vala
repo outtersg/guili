@@ -26,7 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-prerequis="make pkgconfig \\ glib"
+prerequis="make pkgconfig \\ glib flex < 2.6.4.1 bison"
 v 0.56.4 && remplacerPrerequis "glib >= 2.48" || true
 
 # Modifications
