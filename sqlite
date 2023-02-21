@@ -46,6 +46,13 @@ option snapshot && modifs="$modifs snapshot" || true
 
 # Modifications
 
+avecNotif()
+{
+	filtrer sqlite3.c sed -e '1i\
+#define SQLITE_ENABLE_UNLOCK_NOTIFY 1
+'
+}
+
 pcre()
 {
 	options="$options --enable-pcre"
@@ -97,6 +104,11 @@ if option hyperscan || optionSi pcre
 then
 	prerequis="autoconf automake $vautomake m4 libtool \\ $prerequis" # La modification du configure.ac déclenche une regénération du reste.
 	modifs="$modifs pcre"
+fi
+
+if option notif
+then
+	modifs="$modifs avecNotif"
 fi
 
 destiner
