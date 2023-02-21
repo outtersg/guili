@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 v 2.5.39 && prerequis="make m4 \\" && modifs="" || true
 v 2.6.3 || true
 v 2.6.4 && modifs="reallocarray" || true
+v 2.6.4.20230115 && versionComplete="$version.cf66c9e.git" && prerequis="$prerequis gettext" || true
 
 # En autoreconf, flex a besoin d'un flex qui n'a pas besoin d'un flex (bref d'un flex non autoreconf).
 [ "$versionComplete" = "$version" ] || prerequis="autoconf automake m4 libtool bison flex < $version \\ $prerequis"
