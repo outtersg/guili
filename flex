@@ -30,7 +30,24 @@ v 2.5.39 && prerequis="make m4 \\" && modifs="" || true
 v 2.6.3 || true
 v 2.6.4 && modifs="reallocarray" || true
 
+# En autoreconf, flex a besoin d'un flex qui n'a pas besoin d'un flex (bref d'un flex non autoreconf).
+[ "$versionComplete" = "$version" ] || prerequis="autoconf automake m4 libtool bison flex < $version \\ $prerequis"
+[ "$versionComplete" = "$version" ] || modifs="$modifs sansDoc"
+
 # Modifications
+
+sansDoc()
+{
+	# On ne va pas installer un makeinfo pour la doc, eh oh.
+	rm -Rf doc
+	for f in Makefile Makefile.am Makefile.in
+	do
+		[ -f "$f" ] || continue
+		# On n'en veut ni dans les sous-dossiers à explorer, ni dans les données à installer.
+		filtrer "$f" sed -e '/doc \\/d' -e '/:/s/ install-dist_docDATA//'
+	done
+	filtrer configure.ac sed -e '/doc\/Makefile/d'
+}
 
 reallocarray()
 {
@@ -54,6 +71,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+[ -f configure ] || ./autogen.sh
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
