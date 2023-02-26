@@ -68,6 +68,14 @@ analyserParametres()
 	[ ! -z "$domaines" ] || auSecours
 }
 
+creerBase()
+{
+	[ -f "$comptes/routage.sqlite3" ] || sqlite3 "$comptes/routage.sqlite3" "create table histo (q timestamp, de text, a text, parmi int)"
+}
+
+# À FAIRE: SQLite
+# /!\ La version actuelle (https://www.exim.org/exim-html-current/doc/html/spec_html/ch-file_and_database_lookups.html#SECTsqlite) précise que la syntaxe de la 4.93 (https://www.exim.org/exim-html-4.93/doc/html/spec_html/ch-file_and_database_lookups.html#SECTsqlite) ne marche plus, le nom de BdD étant considéré empreint et donc invalide.
+
 analyserParametres "$@"
 
 # Détection des réseaux locaux dans des jails. On détecte pour le moment une config ezjails classique.
