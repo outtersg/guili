@@ -2,6 +2,11 @@
 absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
 . "$SCRIPTS/util.sh"
 
+# Reproduire:
+# ./eximConfig --spam rspam+paf2 -u mel -d gclo.fr -d outters.eu /home/mel/var/mail /home/mel/var/comptes > /tmp/exim.conf && diff -uw /tmp/exim.conf /tmp/tmp/exim.conf
+# Tester:
+# ./testSmtp
+
 auSecours()
 {
 	moi="`basename "$0"`"
