@@ -31,6 +31,7 @@ v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf" || true
 v 2.40.1 || true
 v 2.44.0 || true
 v 2.44.1 || true
+v 7.1.0 && prerequis="autoconf automake m4 libtool bison python >= 3 \\ $prerequis" || true
 
 # À FAIRE: ne trouve pas gdk, gdk_pixbuf, gtk, pangocairo, webp, gv_php, gv_python3: les passer en optionSi?
 
@@ -77,6 +78,7 @@ gnu89()
 
 archive="http://www.graphviz.org/pub/graphviz/stable/SOURCES/graphviz-$version.tar.gz"
 archive="https://www2.graphviz.org/Packages/stable/portable_source/graphviz-$version.tar.gz"
+archive="https://gitlab.com/graphviz/graphviz/-/archive/$version/graphviz-$version.tar.gz"
 
 if opSiPasPas pdf poppler+glib
 then
@@ -93,6 +95,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+[ -f configure ] || ./autogen.sh
 ./configure --prefix="$dest" --enable-perl=no --enable-python=no --without-x
 
 echo Compilation… >&2
