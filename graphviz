@@ -31,7 +31,12 @@ v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf" || true
 v 2.40.1 || true
 v 2.44.0 || true
 v 2.44.1 || true
-# À FAIRE: ne trouve pas fontconfig, gd, gdk, gdk_pixbuf, gtk, pangocairo, poppler, rsvg, webp, gv_php, gv_python3: les passer en optionSi?
+
+# À FAIRE: ne trouve pas gdk, gdk_pixbuf, gtk, pangocairo, webp, gv_php, gv_python3: les passer en optionSi?
+
+optionSi rsvg || true
+optionSi gd || true
+optionSi fontconfig || true
 
 # Modifications
 
