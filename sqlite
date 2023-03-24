@@ -40,6 +40,7 @@ v 3.36.0 || true
 v 3.39.0 && v_annee=2022 && vautomake=">= 1.16" || true
 v 3.39.4 || true
 v 3.40.1 || true
+v 3.41.2 && v_annee=2023 || true
 
 option intarray && modifs="$modifs intarray" || true
 
