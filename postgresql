@@ -51,6 +51,8 @@ v 12.9 || true
 v 12.10 || true
 v 12.11 || true
 v 12.12 || true
+v 12.13 || true
+v 12.14 || true
 v 13.2 || true
 v 13.3 || true
 v 13.4 || true
@@ -58,11 +60,17 @@ v 13.5 || true
 v 13.6 || true
 v 13.7 || true
 v 13.8 || true
+v 13.9 || true
+v 13.10 || true
 # Cherche à charger un sys/signalfd.h inexistant sur un vieux RedHat.
 v 14.1 || true
 v 14.2 || true
 v 14.3 || true
 v 14.5 || true
+v 14.6 || true
+v 14.7 || true
+v 15.1 || true
+v 15.2 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
