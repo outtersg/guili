@@ -52,7 +52,7 @@ sansCompat()
 
 # Variables
 
-archive="https://archive.mozilla.org/pub/opus/opusfile-$version.tar.gz"
+archive=http://downloads.xiph.org/releases/opus/$logiciel-$version.tar.gz
 
 destiner
 
