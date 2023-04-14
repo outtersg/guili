@@ -27,7 +27,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 prerequis="make \\"
-v 1.0.1 && modifs="multiarch dyld105" || true
+v 1.0.1 && modifs="multiarch" || true
 v 1.0.2 || true
 v 1.1 || true
 v 1.1.4 || true
