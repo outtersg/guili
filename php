@@ -171,7 +171,7 @@ v 8.1.14 || true
 v 8.1.16 || true
 v 8.1.17 || true
 v 8.1.19 || true
-v 8.2.1 || true
+v 8.2.1 && modifs="$modifs atomicconst" || true
 v 8.2.3 || true
 v 8.2.4 || true
 v 8.2.6 || true
@@ -227,6 +227,13 @@ args_reduc_u()
 flagsUniques
 
 # Modifs
+
+atomicconst()
+{
+	# https://github.com/php/php-src/issues/8881
+	# Normalement tous les compilos C11 ont été corrigés (https://gitlab.isc.org/isc-projects/bind9/-/issues/3370)
+	filtrer Zend/zend_atomic.h sed -e '/__c11_atomic_load(&obj->value/s/obj->/((zend_atomic_bool *)obj)->/'
+}
 
 fileinfoSobre()
 {
