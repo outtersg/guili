@@ -591,7 +591,7 @@ true || \
 	--enable-sysvshm \
 	--with-gettext \
 	--with-openssl \
-	--enable-zip \
+	--with-zip \
 	--enable-sockets \
 	$OPTIONS_CONF
 
