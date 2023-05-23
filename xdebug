@@ -77,7 +77,7 @@ archive="http://www.xdebug.org/files/xdebug-$version.tgz"
 # Désormais seuls sont proposés:
 # - d'utiliser le client intégré à l'IDE
 # - ou de télécharger dbgpClient, un binaire sans source, réécrit vraisemblablement en Go, et dont le contenu fait référence à l'inexistante URL https://github.com/derickr/dbgp-tools
-pge $version 3 || opSiPasPas debugclient
+pge $version 3 || argOptions="`options "$argOptions=debutclient"`"
 
 # Rien À Installer: si on n'a rien à caler dans $INSTALLS/xdebug-x.y.z, on peut se contenter de se greffer à $INSTALLS/php-m.n.o
 # En ce cas un : préfixant la destination indique que l'on renonce à notre dossier d'install.
