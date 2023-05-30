@@ -28,6 +28,7 @@ SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; c
 
 prerequis=perl
 v 11.23 || true
+v 12.62 || true
 
 # Modifications
 
