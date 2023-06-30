@@ -284,26 +284,6 @@ _pverso()
 	echo "$*" | sed -e 's/^:*/:/' -e 's/:*$//' -e 's/::*/:/g' -e "s#:# $option #g"
 }
 
-_cheminsExportes()
-{
-	itineraireBis # Mise à jour des $guili_*path.
-	
-	local guili_acflags="`_pverso -I "$guili_acpath"`"
-	ACLOCAL="`echo "$guili_env_ACLOCAL" | sed -e 's/^ *$/aclocal/' -e "s#aclocal#aclocal$guili_acflags#"`"
-	export \
-		PATH="$guili__xpath$guili_xpath$guili_env_PATH" \
-		LD_LIBRARY_PATH="$guili_lpath$guili_env_LD_LIBRARY_PATH" \
-		CMAKE_LIBRARY_PATH="$guili_lpath$guili_env_CMAKE_LIBRARY_PATH" \
-		LDFLAGS="$guili_lflags $guili_env_LDFLAGS" \
-		CPPFLAGS="$guili_cppflags $guili_env_CPPFLAGS" \
-		CFLAGS="$guili_cflags $guili_env_CFLAGS" \
-		CXXFLAGS="$guili_cxxflags $guili_env_CXXFLAGS" \
-		CMAKE_INCLUDE_PATH="$guili_ipath$guili_env_CMAKE_INCLUDE_PATH" \
-		PKG_CONFIG_PATH="$guili_pcpath$guili_env_PKG_CONFIG_PATH" \
-		ACLOCAL \
-		ACLOCAL_PATH="$guili_acpath$guili_env_ACLOCAL_PATH"
-}
-
 _rc_export()
 {
 	[ -z "$rc_local" ] || return 0
