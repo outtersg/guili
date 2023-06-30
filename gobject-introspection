@@ -25,10 +25,42 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 v 1.31.22 && prerequis="pkgconfig \\ glib libffi" && modifs="foutuMerdierMac" || true
-v 1.76.1 && prerequis="python >= 3 meson ninja pkgconfig cmake \\ glib >= 2.76.0 libffi" || true
+v 1.76.1 && prerequis="python >= 3 meson ninja pkgconfig cmake \\ glib >= 2.76.0 libffi" && modifs="$modifs tEsPasToutSeul" || true
 
 vmin="`echo "$version" | cut -d . -f 1-2`"
 archive="https://download.gnome.org/sources/$logiciel/$vmin/$logiciel-$version.tar.xz"
+
+tEsPasToutSeul()
+{
+	return 0 # Cf. la conclusion sur XDG_DATA_DIRS.
+	
+	# Énorme! En 20 ans, c'est la première fois que je vois un logiciel qui au lieu d'aller chercher dans un $MACHIN_PATH,
+	# code en dur *un seul* dossier dans lequel aller chercher ses .gir.
+	# Donc au début tout se passe bien parce que gobject-introspection y prégénère les fichiers pour les biblios gobject qu'il trouve déjà installées,
+	# par contre le jour où une nouvelle biblio (ex.: gdk-pixbuf), voyant gobject-introspection, décide de générer son .gir,
+	# elle le fait dans son propre ~/local/logiciel-version/share/gir-1.0 que ne voient pas les outils gir, obnubilés par leur ~/local/gobject-introspection-version/share/gir-1.0!
+	# … Et évidemment tout en dur, sans possibilité de surcharger par une variable d'environnement.
+	
+	# Pour trifouiller le meson.build:
+	# Afin qu'il installe les .gir prégénérés dans $INSTALLS/$logiciel-$version, mais cherche dans $INSTALLS,
+	# il faut bien distinguer les variables servant à la construction (et l'install), de celles qui seront exploitées à l'exécution.
+	# gir/meson.build montre que l'install_dir est défini à girdir (défini dans le meson.build racine), donc girdir doit être préservée.
+	# par contre le GIR_DIR = girdir doit être modifié, GIR_DIR étant ensuite codé en dur dans les exécutables.
+	filtrer meson.build sed \
+		-e "/gir-1.0/s#gir_dir_pc_prefix#'$INSTALLS/share'#" \
+		-e "/GIR_DIR/s#girdir#'$INSTALLS/share/gir-1.0'#"
+	
+	# … Sauf que ce gros con introduit une fumeuse intelligence qui dit "je commence par chercher dans ../share/gir-1.0, et seulement si je ne trouve pas je bascule sur mon GIR_DIR codé en dur" (cf. bin/g-ir-*, "Try using relative paths first so that the installation prefix is relocatable").
+	# Donc si on le laisse installer un gir-1.0 il va le dénicher, et ne pas utiliser notre machin codé en dur.
+	# Si c'est le cas on est recoincés (on doit lui faire installer directement dans $INSTALLS, tant pis), en écrasant girdir:
+	#   -e "/gir-1.0/s#gir_dir_prefix#'$INSTALLS/share'#"
+	# à la place du GIR_DIR
+	# Ex. dans la compil de librsvg:
+	#   Couldn't find include 'GdkPixbuf-2.0.gir' (search path: '['.', '/home/gui/local/gobject-introspection+cairo-1.76.1/share', 'gir-1.0', '/usr/local/share/gir-1.0', '/usr/share/gir-1.0', '/home/gui/local/gobject-introspection+cairo-1.76.1/share/gir-1.0', '/usr/share/gir-1.0']')
+	# Sa notion de path étant définie dans lib/gobject-introspection/giscanner/utils.py:get_system_data_dirs()
+	# Oh miracle on déniche une variable d'env XDG_DATA_DIRS!
+	# Appelée indirectement par lib/gobject-introspection/giscanner/transformer.py:_get_gi_data_dirs() qui appelle la précédente.
+}
 
 foutuMerdierMac()
 {
