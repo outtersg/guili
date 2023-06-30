@@ -25,6 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 v 1.31.22 && prerequis="pkgconfig \\ glib libffi" && modifs="foutuMerdierMac" || true
+v 1.76.1 && prerequis="python >= 3 meson ninja pkgconfig cmake \\ glib >= 2.76.0 libffi" || true
 
 vmin="`echo "$version" | cut -d . -f 1-2`"
 archive="https://download.gnome.org/sources/$logiciel/$vmin/$logiciel-$version.tar.xz"
@@ -53,12 +54,26 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ -f meson.build ]
+then
+	mkdir -p build
+	meson setup build --buildtype=release --prefix="$dest"
+	cd build
+	make=ninja
+else
 ./configure --prefix="$dest" --disable-Bsymbolic
+	make=make
+fi
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
+if [ -f ../meson.build ]
+then
+	sudokupy $make install
+else
 sudo make install
+fi
 
 sutiliser
