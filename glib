@@ -50,6 +50,7 @@ v 2.60.6 || true
 v 2.63.3 || true
 v 2.71.0 || true
 v 2.75.3 && remplacerPrerequis "pcre >= 10" || true
+v 2.76.3 || true
 
 archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
 pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
@@ -63,7 +64,11 @@ environ()
 	
 	[ `uname` = FreeBSD ] || return 0
 	
-	filtrer gio/fam/meson.build sed -e "s#'-Wl,-no-undefined' *,*##g"
+	for f in gio/fam/meson.build
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e "s#'-Wl,-no-undefined' *,*##g"
+	done
 	optionsMeson="$optionsMeson -Db_lundef=false"
 }
 
