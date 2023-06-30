@@ -153,6 +153,7 @@ _prerequis()
 		guili_cxxflags="$guili_cxxflags" \
 		guili_cxxflags="$guili_cxxflags" \
 		guili_pcpath="$guili_pcpath" \
+		guili_xdgpath="$guili_xdgpath" \
 		guili_acpath="$guili_acpath" \
 		chemins cheminsRecursifs
 	chemins="`guili_prerequis_path`" # Où sont nos prérequis?

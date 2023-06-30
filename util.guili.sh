@@ -142,6 +142,7 @@ exclusivementPrerequis()
 			LD_LIBRARY_PATH "$INSTALLS/lib64" \
 			PKG_CONFIG_PATH "$INSTALLS/lib/pkgconfig" \
 			PKG_CONFIG_PATH "$INSTALLS/lib64/pkgconfig" \
+			XDG_DATA_DIRS "$INSTALLS/share" \
 			CMAKE_INCLUDE_PATH "$INSTALLS/include"
 	export DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH"
 	export CMAKE_LIBRARY_PATH="$LD_LIBRARY_PATH"
