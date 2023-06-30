@@ -274,6 +274,7 @@ archive=ftp://ftp.remotesensing.org/pub/$logiciel/tiff-$version.tar.gz
 archive="ftp://download.osgeo.org/libtiff/tiff-$version.tar.gz"
 archive="https://download.osgeo.org/libtiff/tiff-$version.tar.gz"
 archive="https://gitlab.com/libtiff/libtiff/-/archive/Release-v`echo "$version" | tr . -`/libtiff-Release-v`echo "$version" | tr . -`.tar.bz2"
+archive="https://download.osgeo.org/libtiff/tiff-$version.tar.xz" # Depuis la 4.4.
 archive_cvs=cvs://cvsanon:@cvs.maptools.org:/cvs/maptools/cvsroot:libtiff
 
 destiner
