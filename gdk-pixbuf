@@ -25,6 +25,20 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 . "$SCRIPTS/util.sh"
 
 v 2.26.5 && prerequis="python pkgconfig \\ glib libtiff libjpeg libpng" && modifs="putainDeLibJPEGDeMacOSX" || true
+v 2.42.10 && prerequis="python meson ninja pkgconfig \\ glib libtiff libjpeg libpng shared-mime-info gobject-introspection" && modifs="$modifs sansTests" || true
+
+# Modifications
+
+sansTests()
+{
+	# failed to load "/mnt/bdd/tmp/gdk-pixbuf-2.42.10/tests/icc-profile.png": Couldn?t recognize the image file format for file ?/mnt/bdd/tmp/gdk-pixbuf-2.42.10/tests/icc-profile.png?
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=234784
+	# Est-ce mon install de shared-mime-info? Est-ce mon gdk-pixbuf qui a un support incomplet de PNG?
+	
+	filtrer meson.build grep -v "subdir('tests')"
+}
+
+# Variables
 
 archive="http://ftp.acc.umu.se/pub/gnome/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
 
@@ -34,16 +48,32 @@ prerequis
 
 obtenirEtAllerDansVersion
 
+[ ! -f meson.build ] || parmeson=1
+
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ -n "$parmeson" ]
+then
+	mkdir -p build
+	meson setup build --buildtype=release --prefix="$dest" -Dman=false
+	cd build
+	make=ninja
+else
 ./configure --prefix="$dest"
+	make=make
+fi
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
+if [ -n "$parmeson" ]
+then
+	sudokupy $make install
+else
 sudo make install
+fi
 
 sutiliser
