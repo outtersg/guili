@@ -29,10 +29,9 @@ OPTIONS_CONF=
 
 # Historique des versions gérées
 
-ajouterModif cve201911043
 # pkgconfig au moins pour libxml en PHP 8.
 prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl libssh+osslxx sqlite"
-v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl fileinfoSobre || true
+v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl doubleYytext || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -62,7 +61,7 @@ v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
 v 5.2.17 && remplacerPrerequis "mysql < 5.5.20" "libxml < 2.8" || true
-v 5.3.13 && retirerModif libpng14 && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql libxml || true
+v 5.3.13 && ajouterModif fileinfoSobre && retirerModif libpng14 doubleYytext && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql libxml || true
 v 5.3.19 || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
@@ -90,7 +89,7 @@ v 5.6.40.1 || true
 v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60 < 70" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
-v 7.1.13 || true
+v 7.1.13 && ajouterModif cve201911043 || true
 v 7.1.14 || true
 v 7.2.1 || true
 v 7.2.3 || true
@@ -232,6 +231,16 @@ args_reduc_u()
 flagsUniques
 
 # Modifs
+
+doubleYytext()
+{
+	# https://bugs.php.net/bug.php?id=44462
+	local f
+	for f in Zend/zend_*.c
+	do
+		filtrer "$f" sed -e '/^char.*yytext/s#^#//#'
+	done
+}
 
 atomicconst()
 {
