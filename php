@@ -30,7 +30,8 @@ OPTIONS_CONF=
 # Historique des versions gérées
 
 # pkgconfig au moins pour libxml en PHP 8.
-prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl libssh+osslxx sqlite"
+# openssl < 1.1: apparemment la 5.2 connaît déjà la 1.1, mais ça doit être dans nos dépendances que ça coince (genre on se lie à un PostgreSQL ne connaissant lui-même qu'OpenSSL 1.0).
+prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl < 1.1 libssh+osslxx sqlite"
 v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl doubleYytext || true
 v 5.0.3
 v 5.0.4
@@ -89,7 +90,7 @@ v 5.6.40.1 || true
 v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60 < 70" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
-v 7.1.13 && ajouterModif cve201911043 || true
+v 7.1.13 && ajouterModif cve201911043 && remplacerPrerequis openssl || true
 v 7.1.14 || true
 v 7.2.1 || true
 v 7.2.3 || true
