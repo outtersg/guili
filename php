@@ -61,11 +61,11 @@ v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
 v 5.2.17 && remplacerPrerequis "mysql < 5.5.20" "libxml < 2.8" || true
-v 5.3.13 && ajouterModif fileinfoSobre && retirerModif libpng14 doubleYytext && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql libxml || true
+v 5.3.13 && ajouterModif fileinfoSobre zendNsNameEspace && retirerModif libpng14 doubleYytext && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql libxml || true
 v 5.3.19 || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
-v 5.4.5 && retirerModif libpng14 || true
+v 5.4.5 && retirerModif libpng14 zendNsNameEspace || true
 v 5.4.10 || true
 v 5.4.11 && remplacerPrerequis "icu >= 50 < 56" "libjpegturbo < 2" && virerPrerequis libjpeg || true
 v 5.4.33 || true
@@ -231,6 +231,13 @@ args_reduc_u()
 flagsUniques
 
 # Modifs
+
+zendNsNameEspace()
+{
+	# PHP 5.3 vient avec une définition qui donne un "C++11 requires a space between literal and identifier".
+	
+	filtrer Zend/zend_API.h sed -e '/#define ZEND_NS_NAME/s/"\\\\"/ & /'
+}
 
 doubleYytext()
 {
