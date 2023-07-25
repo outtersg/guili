@@ -485,7 +485,7 @@ case "$version" in
 esac
 archive="http://de.php.net/distributions/$logiciel-$v_archive.tar.bz2"
 archive="http://de2.php.net/distributions/$logiciel-$v_archive.tar.bz2"
-pge $v_archive 5.3.27 || archive="http://museum.php.net/php`echo $v_archive | cut -d -f 1`/php-$v_archive.tar.bz2"
+pge $v_archive 5.3.27 || archive="http://museum.php.net/php`echo $v_archive | cut -d . -f 1`/php-$v_archive.tar.bz2"
 
 if false
 then
