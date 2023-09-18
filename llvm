@@ -185,7 +185,7 @@ sansChar8T()
 	{
 		cp ../projects/libcxxabi/lib/itanium-base-v2.exp ../projects/libcxxabi/lib/itanium-base.exp
 		touch ../projects/libcxxabi/src/*.cpp
-		grep -rl /bin/clang projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
+		grep -rl /bin/clang projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-+_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
 		make -j4
 	}
 }
