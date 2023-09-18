@@ -214,17 +214,21 @@ compilo_cheminLibcxx()
 
 compilo_cheminLibcxxClang()
 {
-	local ajout="-cxx-isystem $cheminBienVoulu/$suffixe -cxx-isystem /usr/include"
-	compilo_modif _compilo_cheminLibcxxClang
-	# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit pas être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
+	LIBCXX_INCLUDES="$cheminBienVoulu/$suffixe"
+	local ajout="-cxx-isystem $LIBCXX_INCLUDES -cxx-isystem /usr/include" varamod=CXXFLAGS
 	case "$logiciel" in
-		gcc)
-			COMPILO_AJOUTS="CXX$compilo_sep $ajout$compilo_sep$COMPILO_AJOUTS"
-			return 0
-			;;
+		# clang, dans sa libc++, possède un stddef.h qui fait grosso modo du #ifndef MOI #define MOI #include_next <stddef.h>.
+		# Si clang est compilé par un autre clang, le #define MOI du premier va empêcher le second d'appeler à son tour #include_next.
+		# En conséquence, le <stddef.h> système ne sera jamais appelé, résultant en du "size_t not defined".
+		# On le considère adapté à la compilation sur ses propres prédécesseurs => pas besoin de modif.
+		clang|llvm) return 0 ;;
+		# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
+		gcc) varamod=CXX ;;
 	esac
 	
-	COMPILO_AJOUTS="CXXFLAGS$compilo_sep$ajout $compilo_sep$COMPILO_AJOUTS"
+	compilo_modif _compilo_cheminLibcxxClang
+	
+	COMPILO_AJOUTS="$varamod$compilo_sep$ajout$compilo_sep$COMPILO_AJOUTS"
 }
 
 _compilo_cheminLibcxxClang()

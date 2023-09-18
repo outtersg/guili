@@ -39,7 +39,9 @@ v 3.6.0 && modifs="macMath strtoll stdcppPasTropEnDur sansOcaml sansCodecvt path
 v 3.6.2 || true
 v 3.7.1 && modifs="macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7 \\" || true
 # cmake: pour un clang 5.0.2, cmake 3.13.1 nous pète en "do not use OLD behavior, puis core dumped". Le 3.5 passe.
-v 3.9.1 && modifsDyn="macMath macLibtool unwind laisserCxxISystem" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10 \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
+# Humph, quelques années plus tard rebelote, mais le 3.5 pète aussi (sur une autre alerte, ĉ quoi /usr/local/lib/libexecinfo.so masque celui d'/usr/lib, mais le principe est le même: sur alerte, core dump).
+# Il semble que ça soit surtout le "je désinstalle le clang récent auquel cmake s'est lié, pour recompiler un vieux clang" qui joue: en recompilant un cmake avec le clang système, ça passe.
+v 3.9.1 && modifsDyn="macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake < 3.10 \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
@@ -50,7 +52,7 @@ v 6.0.1 && prerequis="python >= 3 cmake \\" || true
 v 7.0.1 || true
 v 7.1.0 || true
 v 8.0.1 || true
-v 9.0.1 && modifs="$modifs sansChar8T" || true
+v 9.0.1 && modifs="$modifs sansChar8T quandMemeCxxISystem" || true
 v 10.0.1 || true
 v 11.1.0 || true
 v 12.0.0 || true
@@ -118,6 +120,29 @@ trouverBiblio()
 	unset IFS
 }
 
+quandMemeCxxISystem()
+{
+	# Dans compilo_cheminLibcxxClang(), on a exclu clang du -cxx-isystem, censé ne pas servir à grand-chose
+	# puisque 1. clang est compilé avec le précédent clang censé savoir fouiller dans ses propres en-têtes
+	# et 2. on se dit que ça ne sert pas à grand-chose, si celui en train d'être compilé (mettons un 9) fait un #include_next, le #ifndef _STDTRUC_INCLUDED_ du 8 après le #define _STDTRUC_INCLUDED_ du 9 fera que rien du .h du 8 ne sera de toute façon exploité.
+	# … Mais en vrai certains fichiers ne compilent pas ainsi (la stdlib d'/usr/include est trop ancienne).
+	# Pour eux on doit donc restaurer le -cxx-isystem
+	# (mais pas pour tout le monde: les couches basses (LLVM) se vautrent à 10% de la compil si elles ont du -cxx-isystem, tandis que notre clangFormat est aux 87%)
+	
+	modifsPostConf="$modifsPostConf _quandMemeCxxISystem"
+	_quandMemeCxxISystem()
+	{
+		for f in \
+			tools/clang/lib/Format/CMakeFiles/obj.clangFormat.dir/flags.make \
+			tools/clang/tools/libclang/CMakeFiles/libclang.dir/flags.make \
+			tools/clang/utils/TableGen/CMakeFiles/obj.clang-tblgen.dir/flags.make \
+			tools/llvm-profdata/CMakeFiles/llvm-profdata.dir/flags.make
+		do
+			filtrer "$f" sed -e "s#-std=c++#-cxx-isystem $LIBCXX_INCLUDES -cxx-isystem /usr/include &#"
+		done
+	}
+}
+
 sansChar8T()
 {
 	# https://github.com/llvm/llvm-project/issues/42070
@@ -157,16 +182,6 @@ multiarchConfigurer()
 	case "$multiarch_arch" in
 		i386) OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_BUILD_32_BITS=ON" ;; # Pas besoin de LLVM_BUILD_32_BITS=ON pour les binaires, seule libc++ nous intéresse.
 	esac
-}
-
-laisserCxxISystem()
-{
-	# clang, dans sa libc++, possède un stddef.h qui fait grosso modo du #ifndef MOI #define MOI #include_next <stddef.h>.
-	# Si clang est compilé par un clang même version, le #define MOI du premier va empêcher le second d'appeler à son tour #include_next.
-	# En conséquence, le <stddef.h> système ne sera jamais appelé, résultant en du "size_t not defined".
-	export \
-		CPPFLAGS="`echo "$CPPFLAGS" | sed -e 's#-cxx-isystem [^ ]*##g'`" \
-		CXXFLAGS="`echo "$CXXFLAGS" | sed -e 's#-cxx-isystem [^ ]*##g'`"
 }
 
 emmintrim()
@@ -383,6 +398,8 @@ $configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
 fi
 
 fi # manuel
+
+for modif in true $modifsPostConf ; do $modif ; done
 
 echo Compilation… >&2
 make -j 4 #|| make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 )
