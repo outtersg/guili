@@ -118,7 +118,7 @@ nomArchive()
 # Téléchargege $1 et va dans le dossier obtenu en décompressant.
 obtenirEtAllerDans()
 {
-	for i in liste dec archive dossier fichier ; do local $i ; done 2> /dev/null
+	local liste dec archive dossier fichier
 	
 	cd "$TMP"
 	echo Obtention et décompression… >&2
