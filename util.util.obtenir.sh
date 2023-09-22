@@ -47,6 +47,29 @@ telech()
 
 #- Décompression ---------------------------------------------------------------
 
+initDecompresseur()
+{
+	local decomp format="$1" archive="$2"
+	eval mem="\$GUILI_TAR_$format"
+	case "$mem" in
+		"")
+			tar tJf "$archive" > /dev/null 2>&1 && mem=1 || mem=0
+			# On en fait bénéficier les prérequis qui se poseraient la même question.
+			# Bon en vrai ça ne marche pas vraiment, car nous ne sommes invoqués qu'à la première décompression d'un .xz, qui se passe après appel des prérequis.
+			# On pourrait, entre destiner et prerequis, si archive est en *.xz, invoquer initDecompresseursXz.
+			export GUILI_TAR_$format=$mem
+			;;
+	esac
+	case "$mem" in
+		1) dec="tar xJf" ; liste="tar tJf" ;;
+		*)
+			case "$format" in
+				xz) dec="de7z" ; liste="liste7z" ;;
+			esac
+			;;
+	esac
+}
+
 de7z()
 {
 	7za x -bd -y "$@" | sed -e '/^Extracting /!d' -e 's///' > "$TMP/$$/de7z.liste"
@@ -115,7 +138,8 @@ obtenirEtAllerDans()
 		*.tar) dec="tar xf" ; liste="tar tf" ;;
 		*.tar.bz2) dec="tar xjf" ; liste="tar tjf" ;;
 		*.zip) dec="dezipe" ; liste="listeZip" ;;
-		*.7z|*.xz) dec="de7z" ; liste="liste7z" ;;
+		*.xz) initDecompresseur xz "$archive" ;;
+		*.7z) dec="de7z" ; liste="liste7z" ;;
 	esac
 	(
 		if ! $liste "$archive"
