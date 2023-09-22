@@ -158,7 +158,7 @@ obtenirEtAllerDans()
 			cd "`cat "$TMP/$$/listeArchive"`"
 			;;
 		*) # Si le machin se décompresse en plusieurs répertoires, on va s'en créer un pour contenir le tout.
-		dossier=`mktemp -d "$TMP/XXXXXX"`
+			dossier="`mktemp -d "$TMP/temp.guili.$logiciel-$version.XXXXXX"`"
 		cd "$dossier"
 		$dec "$archive"
 			;;
