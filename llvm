@@ -103,6 +103,7 @@ pge $version 3.5 || suffixe=gz
 }
 
 archive="`archive llvm`"
+case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
 
@@ -375,8 +376,18 @@ else
 
 pg 3.9.1 $version || multiarch
 
+# Sur la 14, les extensions CMake sont livrées à côté du source. obtenirEtAllerDans() ne rentre donc pas dans le source, mais se place à côté des deux.
+# (et à partir de la 15 on revient à juste un src dans l'archive (les cmake communs deviennent un projet à part))
+src() { [ -d "$1"-*.src ] || { echo . ; return ; } ; echo "$1"-*.src ; }
+
 obtenirEtAllerDansVersion
+cd "`src llvm`"
 case "$constr" in
+	runtimes)
+		projects=.
+		tools=.
+		racineLlvm=llvm
+		;;
 	*)
 		projects=projects
 		tools=tools
@@ -389,7 +400,7 @@ integrer()
 	ici="`pwd`"
 	( obtenirEtAllerDans "`archive "$2"`" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
 }
-if [ "`basename "$0"`" = clang ] ; then
+if [ "`basename "$0"`" = clang -a $constr != runtimes ] ; then
 modulesClang()
 {
 	local moduleClang=clang
@@ -419,6 +430,31 @@ echo Configuration… >&2
 #pge $version 3.5 && OPTIONS_CONF="$OPTIONS_CONF --enable-libcpp" && CXX="clang -stdlib=libc++" && export CXX || true
 false && pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
 case $constr in
+	runtimes)
+		mkdir -p build
+		cd build
+		option dyn && OPTIONS_CMAKE="$OPTIONS_CMAKE -DBUILD_SHARED_LIBS=ON" || true
+		case "$0" in
+			*clang)
+				OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=clang"
+				if option libcxx
+				then
+					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi" # À FAIRE: libunwind; compiler-rt aussi? [https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477]
+				fi
+				;;
+		esac
+		cmake \
+			-DCMAKE_INSTALL_PREFIX="$dest/" \
+			-DLLVM_BUILD_LLVM_DYLIB=ON \
+			-DCMAKE_C_FLAGS="$CPPFLAGS $CFLAGS" \
+			-DCMAKE_CXX_FLAGS="$CPPFLAGS $CXXFLAGS" \
+			-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
+			-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
+			-DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
+			-DCMAKE_BUILD_TYPE=$livrable \
+			$OPTIONS_CMAKE \
+			../llvm
+		;;
 	*)
 if pge $version 3.9
 then
