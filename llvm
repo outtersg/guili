@@ -31,6 +31,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Chemin de compilation pour un Mac OS X 10.8 (clang 3.5svn): gcc 4.9.4, clang 3.4.2, clang 3.5.2, clang 3.7.1, clang 3.9.1.
 # Attention, quand on a déjà un llvm-3.9.1 d'installé, et qu'on essaie de compiler un llvm+clang 3.9.1, pour je ne sais quelle raison, seul le llvm se compile, argh.
 
+constr=configure
 v 3.3 || true
 v 3.4.2 && modifs="pasTropOptim macMath stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
 v 3.5.0 && modifs="$modifs strtoll" || true # A un petit problème avec strtoll.
@@ -39,7 +40,7 @@ v 3.6.0 && modifs="$modifs sansCodecvt pathMax ocloexec gccframework complicatio
 v 3.6.2 || true
 v 3.7.1 && modifs="pasTropOptim macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7 \\" || true
 # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
-v 3.9.1 && modifsDyn="pasTropOptim macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true
+v 3.9.1 && constr=cmake && modifsDyn="pasTropOptim macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
@@ -197,15 +198,15 @@ sansChar8T()
 	
 	gris "La libc++abi de départ ne connaît pas char8_t. Première passe en mode dégradé, puis on recompilera." >&2
 	
-	cp projects/libcxxabi/lib/itanium-base.exp projects/libcxxabi/lib/itanium-base-v2.exp
-	filtrer projects/libcxxabi/lib/itanium-base.exp egrep -v '_ZT[IS]P?K?Du'
+	cp $projects/libcxxabi/lib/itanium-base.exp $projects/libcxxabi/lib/itanium-base-v2.exp
+	filtrer $projects/libcxxabi/lib/itanium-base.exp egrep -v '_ZT[IS]P?K?Du'
 	
 	modifsPostCompil="$modifsPostCompil _sansChar8T"
 	_sansChar8T()
 	{
-		cp ../projects/libcxxabi/lib/itanium-base-v2.exp ../projects/libcxxabi/lib/itanium-base.exp
-		touch ../projects/libcxxabi/src/*.cpp
-		grep -rl /bin/clang projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-+_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
+		cp ../$projects/libcxxabi/lib/itanium-base-v2.exp ../$projects/libcxxabi/lib/itanium-base.exp
+		touch ../$projects/libcxxabi/src/*.cpp
+		grep -rl /bin/clang $projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-+_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
 		make -j4
 	}
 }
@@ -233,7 +234,7 @@ unwind()
 {
 	# En compil LLVM seul, pas besoin.
 	
-	[ -d projects/libcxxabi/src ] || return 0
+	[ -d $projects/libcxxabi/src ] || return 0
 	
 	# Si le système n'a pas d'unwind.h (ex.: FreeBSD 10.2), il nous faut au moins une déclaration générique pour qu'il compile.
 	# http://lists.llvm.org/pipermail/llvm-dev/2015-November/092336.html
@@ -247,7 +248,7 @@ unwind()
 	echo '#include <unwind.h>' > /tmp/1.c
 	$CC -c -o /tmp/1.o /tmp/1.c && return 0 || echo "unwind.h introuvable, récupération d'un unwind.h générique" >&2
 	
-	cp tools/clang/lib/Headers/unwind.h projects/libcxxabi/src/
+	cp $tools/clang/lib/Headers/unwind.h $projects/libcxxabi/src/
 	# S'agit-il bien de http://download.savannah.nongnu.org/releases/libunwind/ comme indiqué dans la précédente URL "which unwind"?
 }
 
@@ -375,6 +376,13 @@ else
 pg 3.9.1 $version || multiarch
 
 obtenirEtAllerDansVersion
+case "$constr" in
+	*)
+		projects=projects
+		tools=tools
+		racineLlvm=.
+		;;
+esac
 
 integrer()
 {
@@ -410,6 +418,8 @@ echo Configuration… >&2
 # Souci sous FreeBSD 8: en créant un clang via gcc, le clang généré est incapable de créer un nouveau clang (>= 3.5) car il est fait appel à <cmath>; et pour celui-ci, soit on utilise les en-têtes clang (mais alors ils déclarent std::log2 comme un appel à log2, qui est déclarée en #if 0 dans le math.h de FreeBSD 8), soit on prend ceux de GCC (qui utilisent un __builtin_log2, embarqué par GCC, mais les include comportent des directives non reconnues de clang). Le clang généré arrive par contre à se lier à la libstdc++, si l'on avait les bons .h on pourrait faire quelque chose (un .c compilé en clang -o 1 -lstdc++ 1.c est capable d'utiliser coshl pourvu qu'on la lui ait définie en haut, sans inclusion).
 #pge $version 3.5 && OPTIONS_CONF="$OPTIONS_CONF --enable-libcpp" && CXX="clang -stdlib=libc++" && export CXX || true
 false && pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
+case $constr in
+	*)
 if pge $version 3.9
 then
 	mkdir -p build
@@ -433,6 +443,8 @@ configure="./configure"
 pge $version 3.7 && mkdir -p bouild && cd bouild && configure="../configure" || true
 $configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
 fi
+	;;
+esac
 
 fi # manuel
 
