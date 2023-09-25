@@ -52,7 +52,7 @@ v 7.1.0 || true
 v 8.0.1 || true
 v 9.0.1 && modifs="$modifs sansChar8T quandMemeCxxISystem" || true
 v 10.0.1 || true
-v 11.1.0 || true
+v 11.1.0 && modifs="$modifs maxAlign" || true
 v 12.0.0 || true
 v 12.0.1 || true
 v 13.0.0 || true
@@ -104,6 +104,27 @@ pge $version 3.5 || suffixe=gz
 archive="`archive llvm`"
 
 # Modifs.
+
+maxAlign()
+{
+	option libcxx || return 0
+	
+	# À partir de la 11, max_align_t n'est plus définie dans libcxx, qui repose intégralement sur la définition C système.
+	# La partie C (clang) a son propre __stddef_max_align_t.h interne, mais libc++ le contourne soigneusement pour taper directement /usr/include.
+	# Sauf que ce max_align_t n'a été défini sous FreeBSD qu'en 10.4:
+	# - https://www.freebsd.org/releases/10.4R/relnotes/
+	# - https://svnweb.freebsd.org/base?view=revision&revision=309258
+	# - https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=210890
+	# - https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=193594
+	# Donc un FreeBSD antérieur avec une libc++ postérieure perd les pédales.
+	# Or les versions suivantes de C++ en ont besoin inconditionnellement (ex. en C++17: https://man.freebsd.org/cgi/man.cgi?query=gcc10&apropos=0&sektion=0&manpath=FreeBSD+12.2-RELEASE+and+Ports&arch=default&format=html)
+	# Cf. aussi using_if_exists dans https://www.mail-archive.com/search?l=bug-gnulib@gnu.org&q=subject:%22no%5C-c%5C%2B%5C%2B%22&o=newest&f=1 (qui dit que 12 et 13 étaient d'une façon)
+	# et https://reviews.llvm.org/D131425?id=476753
+	for f in $projects/libcxx/include/cstddef $projects/libcxx/include/stddef.h
+	do
+		filtrer "$f" awk '{print}/#include.*stddef.h/{print"#ifndef __GCC_MAX_ALIGN_T";system("cat '"$tools"'/clang/lib/Headers/__stddef_max_align_t.h");print"#endif"}'
+	done
+}
 
 pasTropOptim()
 {
