@@ -154,15 +154,22 @@ obtenirEtAllerDans()
 			return 1
 			;;
 		1) # Si l'archive se décompresse en un seul répertoire racine, on prend ce dernier comme conteneur.
-			$dec "$archive"
+			$dec "$archive" `_obtenirEtAllerDansVersion_sauf`
 			cd "`cat "$TMP/$$/listeArchive"`"
 			;;
 		*) # Si le machin se décompresse en plusieurs répertoires, on va s'en créer un pour contenir le tout.
 			dossier="`mktemp -d "$TMP/temp.guili.$logiciel-$version.XXXXXX"`"
 		cd "$dossier"
-		$dec "$archive"
+			$dec "$archive" `_obtenirEtAllerDansVersion_sauf`
 			;;
 	esac
+}
+
+_obtenirEtAllerDansVersion_sauf()
+{
+	local p
+	case "$obtenirSauf" in ?*) for p in $obtenirSauf ; do print " --exclude $p" ; done ;; esac
+	# À FAIRE: seulement si le décompresseur le supporte, évidemment.
 }
 
 obtenirEtAllerDansGit()
