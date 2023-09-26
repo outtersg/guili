@@ -21,7 +21,7 @@
 
 set -e
 
-Delicat() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delicat ; s="`dirname "$s"`" ; Delicat ; SCRIPTS="$s" ; } ; SCRIPTS
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 . "$SCRIPTS/libuv.util.sh"
@@ -35,7 +35,7 @@ v 2.8.6 && modifs=putainDeLibJPEGDeMacOSX || true
 v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
 v 2.8.12 && modifs="etToiAlors havefchdir" || true
 v 3.5.2 && modifs="etToiAlors speMac macGcc macOpenssl" || true
-v 3.13.1 && prerequis="cxx11()" || true
+v 3.13.1 && prerequis="langcxx(11) \\" || true
 v 3.13.5 || true
 if eventfd # À partir de là cmake repose sur une libuv qui ne compile pas sur les "vieux" systèmes.
 then
@@ -139,9 +139,9 @@ prerequisOpenssl
 # Tous ces prérequis sont des prérequis de construction. À l'exécution, nos utilisateurs veulent simplement utiliser un cmake, et ne pas devoir dépendre de toutes les bibliothèques auxquelles lui est lié (exemple criant: un bidule nécessitant un OpenSSL < 1.1, se construisant avec cmake, n'a surtout pas envie que ce dernier lui impose son OpenSSL 1.1 "de compilation").
 prerequis="$prerequis \\"
 
-prerequis
-
 destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
