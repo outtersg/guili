@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="pkgconfig \\ libxml expat zlib bzip2 lz4 zstd" # /!\ Ce couillon réclame en Requires.private iconv libssl libcrypto (dans son libarchive.pc).
 v 3.6.2 || true
+v 3.7.2 || true
 
 # Modifications
 
