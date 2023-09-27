@@ -96,7 +96,7 @@ pousserBinaireVersSilo()
 		tar czf "$INSTALL_MEM/$archive.temp" . && mv "$INSTALL_MEM/$archive.temp" "$INSTALL_MEM/$archive"
 		export PATH="$INSTALLS/bin:$PATH" LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
 		$INSTALL_SILO_POUSSER "$INSTALL_MEM/$archive" "$triplet" || true
-	)
+	) < /dev/null 2> /dev/null >&2 &
 }
 
 #- Implémentation: SSH ---------------------------------------------------------
