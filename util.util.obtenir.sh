@@ -168,7 +168,7 @@ obtenirEtAllerDans()
 _obtenirEtAllerDansVersion_sauf()
 {
 	local p
-	case "$obtenirSauf" in ?*) for p in $obtenirSauf ; do print " --exclude $p" ; done ;; esac
+	case "$obtenirSauf" in ?*) for p in $obtenirSauf ; do printf %s " --exclude $p" ; done ;; esac
 	# À FAIRE: seulement si le décompresseur le supporte, évidemment.
 }
 
