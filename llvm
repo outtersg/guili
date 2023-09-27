@@ -523,6 +523,12 @@ case $constr in
 					# - soit l'inscrire en dur comme on peut dans notre clang++ compilé
 					#   Cf. la partie biblios de stdcppPasTropEnDur().
 					#   => voie choisie, attention à bien maintenir stdcppPasTropEnDur()!
+					
+					# On utilise une numérotation de biblio différente de celle préconisée:
+					# Sur nos systèmes (FreeBSD 10), qui sont du libc++ + libcxxrt en guise d'ABI, /usr/lib/libc++.so.1 est cette "vieille" libc++ liée à libcxxrt, à laquelle TOUS les logiciels C++ compilés se sont liés en même temps qu'à libcxxrt.so.1. Si l'on remplace libc++.so.1 par la nôtre, ces logiciels explosent, car notre "nouvelle" libc++ repose sur des fonctionnalités de libc++abi que n'a pas libcxxrt; à commencer par cmake, qui pète non pas après l'installation, mais dans la compilation même, puisque le make général réinvoque un cmake.
+					# On commence donc notre numérotation à 2.
+					# /!\ La biblio demande alors une recompil de tous les logiciels, puisque les symboles changent: _ZNKSt3__14__fs10filesystem4path10__filenameEv devient _ZNKSt3__24__fs10filesystem4path10__filenameEv, etc. (pour prendre l'exemple d'un symbole défini dans libc++abi.so.1 mais pas dans libcxxrt.so.1).
+					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_LIBRARY_VERSION=2.0 -DLIBCXX_ABI_VERSION=2"
 				fi
 				;;
 		esac
