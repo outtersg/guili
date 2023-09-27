@@ -58,7 +58,7 @@ v 12.0.0 || true
 v 12.0.1 || true
 v 13.0.0 || true
 v 13.0.1 || true
-v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks" || true
+v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 
 lieur()
 {
@@ -107,6 +107,29 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+bibliosTriplet()
+{
+	# À partir de la 14, libc++abi installe ses biblios non dans lib, mais dans lib/<triplet>, sans lien symbolique.
+	# Résultat, tout programme qui se compile en -lc++ plante à l'exécution, ne trouvant pas libc++abi dont dépend libc++.
+	# https://discourse.llvm.org/t/is-it-possible-to-disable-the-triple-that-llvm-15-added-to-the-libc-abi-library-path/68704
+	
+	for f in $racineLlvm/CMakeLists.txt $racineLlvm/runtimes/CMakeLists.txt
+	do
+		# Parfois ils passent par une LLVM_ENABLE_PER_TARGET_RUNTIME_DIR_default, parfois en codant en dur un ON.
+		# On gère les deux.
+		filtrer "$f" sed \
+			-e '/LLVM_ENABLE_PER_TARGET_RUNTIME_DIR.*ON/s/ON/OFF/g'
+	done
+	
+	# La version suivante serait la version modifsPostInstall:
+	true ||
+	(
+		triplet="`$dest/bin/llvm-config --host-target`"
+		cd "$dest/lib" && [ -d "$triplet" ] || exit 0
+		ln -s "$triplet"/* ./
+	)
+}
 
 maxAlign()
 {
@@ -509,6 +532,7 @@ echo Installation… >&2
 sudo make install
 # Certains utilisateurs de llvm (ex.: rust) ont besoin d'avoir accès aux outils intermédiaires de llvm.
 [ -e bin/FileCheck ] && sudo cp bin/FileCheck "$dest/bin/" || true
+for modif in true $modifsPostInstall ; do $modif ; done
 
 # Pas de compil' libc++: en versions avant cmake, le Makefile de libcxx laisse penser qu'il va s'installer comme un cochon dans /usr/lib; et en cmake (3.9.1, par exemple), elle a été compilée en même temps que clang.
 
