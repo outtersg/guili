@@ -38,9 +38,9 @@ v 3.5.0 && modifs="$modifs strtoll" || true # A un petit problème avec strtoll.
 v 3.5.2 || true
 v 3.6.0 && modifs="$modifs sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig \\ " || true
 v 3.6.2 || true
-v 3.7.1 && modifs="pasTropOptim macMath ocloexec alignementBiblios" && prerequis="make python >= 2.7 \\" || true
+v 3.7.1 && modifs="pasTropOptim macMath stdcppPasTropEnDur ocloexec alignementBiblios" && prerequis="make python >= 2.7 \\" || true
 # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
-v 3.9.1 && constr=cmake && modifsDyn="pasTropOptim macMath macLibtool unwind" && modifs="$modifsDyn llvmStrnlen" && prerequis="cmake \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true
+v 3.9.1 && constr=cmake && modifsDyn="pasTropOptim macMath macLibtool unwind" && modifs="$modifsDyn stdcppPasTropEnDur llvmStrnlen" && prerequis="cmake \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
@@ -58,7 +58,7 @@ v 12.0.0 || true
 v 12.0.1 || true
 v 13.0.0 || true
 v 13.0.1 || true
-v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
+v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 
 lieur()
 {
@@ -315,7 +315,34 @@ extern "C" { long long strtoll(const char * nptr, char ** endptr, int base); uns
 stdcppPasTropEnDur()
 {
 	# clang code en dur les chemins dans lesquels il cherche ses include système pour lib(std)c++ (cf. lib/Driver/ToolChains.cpp).
-	[ -e ./tools/clang/lib/Driver/ToolChains.cpp ] || return 0 # Pour un llvm sans clang, ce fichier n'existe pas.
+	
+	# >= 14
+	# Chacun fait à sa sauce, cf. InitHeaderSearch.cpp:AddDefaultIncludePaths() (qui centralisait): "This code path is going away."
+	# Donc on va regarder les clang/lib/Driver/ToolChains/*.cpp:
+	# - Gnu.cpp a bien un AddIncludePath(getDriver().Dir + "/../include") (sauf si getTriple().isAndroid())
+	#   À FAIRE: Euh, mais il lui manque c++/v1, non?
+	# - Darwin.cpp a aussi un llvm::sys::path::append(InstallBin, "..", "include", "c++", "v1");
+	# - reste juste FreeBSD.cpp qui code en dur un getDriver().SysRoot, "/usr/include/c++/v1"
+	if [ -e $tools/clang/lib/Driver/ToolChains/FreeBSD.cpp ]
+	then
+		# À FAIRE: getDriver().getInstalledDir() ou bien $dest?
+		filtrer $tools/clang/lib/Driver/ToolChains/FreeBSD.cpp awk '
+# On remplace l /usr/include/c++/v1 par le nôtre, plutôt que de nous y accoler: le jeu des include_next déteste avoir deux c++/v1.
+/usr.include.c...v[0-9]/{sub(/[^,]*SysRoot.*;/, "std::string(getDriver().getInstalledDir()) + \"/../include/c++/v1\");")}
+{print}
+'
+	fi
+	
+	# À FAIRE: faire le pont entre les deux (le bloc du dessus et du dessous).
+	# Au-dessus, on se cale sur le …/bin/../include/c++/v1 (permet de déplacer le dossier d'install).
+	# En dessous,
+	#   d'une part on code en dur un /usr/local/include/c++/v1 depuis le SYSROOT pour les FreeBSD (ou les GuiLI mais en ayant codé en dur l'$INSTALLS),
+	#   d'un autre côté on a une version relative en …/lib/../include/c++/vx mais uniquement pour gcc
+	# Il faudrait combiner le meilleur des deux pour savoir s'adapter à toutes les situations (FreeBSD dans leur jus, gcc, GuiLI).
+	
+	# < 14 (voire avant?)
+	if [ -e $tools/clang/lib/Driver/ToolChains.cpp ]
+	then
 	patch -p0 <<TERMINE
 --- ./tools/clang/lib/Driver/ToolChains.cpp	2014-12-15 19:36:49.000000000 +0100
 +++ ./tools/clang/lib/Driver/ToolChains.cpp	2014-12-15 19:49:40.000000000 +0100
@@ -344,6 +371,7 @@ stdcppPasTropEnDur()
                       getDriver().SysRoot + "/usr/include/c++/4.2");
      addSystemInclude(DriverArgs, CC1Args,
 TERMINE
+	fi
 }
 
 sansCodecvt()
