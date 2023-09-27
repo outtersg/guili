@@ -445,6 +445,7 @@ pg 3.9.1 $version || multiarch
 # (et à partir de la 15 on revient à juste un src dans l'archive (les cmake communs deviennent un projet à part))
 src() { [ -d "$1"-*.src ] || { echo . ; return ; } ; echo "$1"-*.src ; }
 
+obtenirSauf=test
 obtenirEtAllerDansVersion
 cd "`src llvm`"
 case "$constr" in
