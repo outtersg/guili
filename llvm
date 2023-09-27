@@ -330,6 +330,15 @@ stdcppPasTropEnDur()
 # On remplace l /usr/include/c++/v1 par le nôtre, plutôt que de nous y accoler: le jeu des include_next déteste avoir deux c++/v1.
 /usr.include.c...v[0-9]/{sub(/[^,]*SysRoot.*;/, "std::string(getDriver().getInstalledDir()) + \"/../include/c++/v1\");")}
 {print}
+# Notre lib s insère avant celle codée en dur dans le constructeur.
+/FreeBSD::FreeBSD/{constr=1}
+constr&&/{/{constr="";print "getFilePaths().push_back(std::string(getDriver().getInstalledDir()) + \"/../lib\");"}
+# Et notre libc++ ne sait pas marcher sans sa libc++abi.
+/"-lc\+\+"/{print"CmdArgs.push_back(\"-lc++abi\");"}
+'
+		filtrer $tools/clang/lib/Driver/ToolChain.cpp awk '
+{print}
+/"-lc\+\+"/{print"CmdArgs.push_back(\"-lc++abi\");"}
 '
 	fi
 	
@@ -506,6 +515,14 @@ case $constr in
 				if option libcxx
 				then
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi" # À FAIRE: libunwind; compiler-rt aussi? [https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477]
+					OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_DEFAULT_CXX_STDLIB=libc++"
+					# Bon c'est pas gagné: si on veut que nos programmes se lient à notre libc++abi (et que tout marche comme voulu), on doit forcer:
+					# - soit revenir à du -cxx-isystem (ce que faisait notre quandMemeCxxISystem() pour la compil de clang, et compilo_cheminLibcxxClang() pour les autres):
+					#     -cxx-isystem $INSTALLS/include/c++/v1 -cxx-isystem $INSTALLS/include -cxx-isystem /usr/include -L$INSTALLS/lib
+					#   Cf. libcxx/docs/UsingLibcxx.rst qui y ajoute -Wl,-rpath,$INSTALLS/lib pour que ce chemin soit inscrit dans l'exécutable comme lieu à fouiller à défaut de $LD_LIBRARY_PATH.
+					# - soit l'inscrire en dur comme on peut dans notre clang++ compilé
+					#   Cf. la partie biblios de stdcppPasTropEnDur().
+					#   => voie choisie, attention à bien maintenir stdcppPasTropEnDur()!
 				fi
 				;;
 		esac
