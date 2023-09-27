@@ -505,10 +505,16 @@ echo Configuration… >&2
 #pge $version 3.5 && OPTIONS_CONF="$OPTIONS_CONF --enable-libcpp" && CXX="clang -stdlib=libc++" && export CXX || true
 false && pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
 case $constr in
-	runtimes)
+	cmake|runtimes)
 		mkdir -p build
 		cd build
+		# -DBUILD_SHARED_LIBS=ON: bof, ça triple le temps d'exécution par rapport au clang système (sur un petit .cxx: g++ 11 0,5 s; /usr/bin/clang++ 0,6 s; clang++ divers sans -O3 1,6 à 2 s; clang++ 13 avec -O3 0,7 s).
+		# https://reviews.llvm.org/D61804
 		option dyn && OPTIONS_CMAKE="$OPTIONS_CMAKE -DBUILD_SHARED_LIBS=ON" || true
+		case $constr in
+			cmake) racineCompil=.. ;;
+			runtimes)
+				racineCompil=../llvm
 		case "$0" in
 			*clang)
 				OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=clang"
@@ -532,6 +538,8 @@ case $constr in
 				fi
 				;;
 		esac
+			;;
+		esac
 		cmake \
 			-DCMAKE_INSTALL_PREFIX="$dest/" \
 			-DLLVM_BUILD_LLVM_DYLIB=ON \
@@ -542,32 +550,12 @@ case $constr in
 			-DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
 			-DCMAKE_BUILD_TYPE=$livrable \
 			$OPTIONS_CMAKE \
-			../llvm
+			$racineCompil
 		;;
-	*)
-if pge $version 3.9
-then
-	mkdir -p build
-	cd build
-	# -DBUILD_SHARED_LIBS=ON: bof, ça triple le temps d'exécution par rapport au clang système (sur un petit .cxx: g++ 11 0,5 s; /usr/bin/clang++ 0,6 s; clang++ divers sans -O3 1,6 à 2 s; clang++ 13 avec -O3 0,7 s).
-	# https://reviews.llvm.org/D61804
-	option dyn && OPTIONS_CMAKE="$OPTIONS_CMAKE -DBUILD_SHARED_LIBS=ON" || true
-	cmake \
-		-DCMAKE_INSTALL_PREFIX="$dest/" \
-		-DLLVM_BUILD_LLVM_DYLIB=ON \
-		-DCMAKE_C_FLAGS="$CPPFLAGS $CFLAGS" \
-		-DCMAKE_CXX_FLAGS="$CPPFLAGS $CXXFLAGS" \
-		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
-		-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
-		-DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
-		-DCMAKE_BUILD_TYPE=$livrable \
-		$OPTIONS_CMAKE \
-		..
-else
+	configure)
 configure="./configure"
 pge $version 3.7 && mkdir -p bouild && cd bouild && configure="../configure" || true
 $configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
-fi
 	;;
 esac
 
