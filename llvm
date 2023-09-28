@@ -431,6 +431,39 @@ complications()
 	#filtrer tools/lldb/source/Host/macosx/Host.mm sed -e 's/_handler (source, ^{/_handler_f (source, [](dispatch_source_t source){/'
 }
 
+# Version de la biblio libc++,
+# à choisir en fonction de pas mal de paramètres
+# surtout si on lui greffe une libc++abi sur des systèmes habitués à une libc++ + libcxxrt
+vblibcxx()
+{
+	# On utilise une numérotation de biblio différente de celle préconisée:
+	# Sur nos systèmes (FreeBSD 10), qui sont du libc++ + libcxxrt en guise d'ABI, /usr/lib/libc++.so.1 est cette "vieille" libc++ liée à libcxxrt, à laquelle TOUS les logiciels C++ compilés se sont liés en même temps qu'à libcxxrt.so.1. Si l'on remplace libc++.so.1 par la nôtre, ces logiciels explosent, car notre "nouvelle" libc++ repose sur des fonctionnalités de libc++abi que n'a pas libcxxrt; à commencer par cmake, qui pète non pas après l'installation, mais dans la compilation même, puisque le make général réinvoque un cmake.
+	# On commence donc notre numérotation à 2.
+	# À FAIRE: rendre ça conditionnel, seulement si on tourne sur un système ayant une libc++.so.1 lié à une libcxxrt. Par exemple un FreeBSD récent sera sans doute déjà accoutumé à du libc++ + libc++abi, pas la peine de monter en version.
+	case `uname` in
+		Linux) true ;;
+		# Par précaution tout le reste est considéré à risque.
+		*) babi="cohabitCxxrt $babi" ;;
+	esac
+	
+	# Gestion des BABI (Breaks of ABI):
+	# Pour chaque changement qui fait qu'une libc++.so ne peut pas remplacer la précédente de façon transparente, on incrémente la version de biblio pour les distinguer.
+	# Normalement ça devrait être géré par le projet LLVM mais il y a des ratés…
+	# Liste des BABI:
+	# - cohabitCxxrt
+	#   Cf. gros commentaire plus haut.
+	
+	# À FAIRE: partir de la version indiquée comme défaut dans les fichiers livrés.
+	local v=1 b
+	for b in $babi ; do v=$((v+1)) ; done
+	
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_LIBRARY_VERSION=$v.0"
+	# /!\ Jouer sur LIBCXX_ABI_VERSION n'est peut-être pas une bonne idée.
+	#     La biblio demande alors une recompil de tous les logiciels, puisque les symboles changent: _ZNKSt3__14__fs10filesystem4path10__filenameEv devient _ZNKSt3__24__fs10filesystem4path10__filenameEv, etc. (pour prendre l'exemple d'un symbole défini dans libc++abi.so.1 mais pas dans libcxxrt.so.1).
+	#     À voir: le gain (d'éviter les incompatibilités en créant deux versions des mêmes symboles, ce qui permet "par mégarde" d'embarquer conjointement une libc++.so.1 et une libc++.so.2) en vaut-il la chandelle?
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_ABI_VERSION=$v"
+}
+
 option dyn || true
 
 destiner
@@ -529,12 +562,8 @@ case $constr in
 					# - soit l'inscrire en dur comme on peut dans notre clang++ compilé
 					#   Cf. la partie biblios de stdcppPasTropEnDur().
 					#   => voie choisie, attention à bien maintenir stdcppPasTropEnDur()!
-					
-					# On utilise une numérotation de biblio différente de celle préconisée:
-					# Sur nos systèmes (FreeBSD 10), qui sont du libc++ + libcxxrt en guise d'ABI, /usr/lib/libc++.so.1 est cette "vieille" libc++ liée à libcxxrt, à laquelle TOUS les logiciels C++ compilés se sont liés en même temps qu'à libcxxrt.so.1. Si l'on remplace libc++.so.1 par la nôtre, ces logiciels explosent, car notre "nouvelle" libc++ repose sur des fonctionnalités de libc++abi que n'a pas libcxxrt; à commencer par cmake, qui pète non pas après l'installation, mais dans la compilation même, puisque le make général réinvoque un cmake.
-					# On commence donc notre numérotation à 2.
-					# /!\ La biblio demande alors une recompil de tous les logiciels, puisque les symboles changent: _ZNKSt3__14__fs10filesystem4path10__filenameEv devient _ZNKSt3__24__fs10filesystem4path10__filenameEv, etc. (pour prendre l'exemple d'un symbole défini dans libc++abi.so.1 mais pas dans libcxxrt.so.1).
-					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_LIBRARY_VERSION=2.0 -DLIBCXX_ABI_VERSION=2"
+							
+							vblibcxx
 				fi
 				;;
 		esac
