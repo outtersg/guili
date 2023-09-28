@@ -60,6 +60,7 @@ v 13.0.0 || true
 v 13.0.1 || true
 v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 v 15.0.7 && modifs="$modifs cxxabiSansHesitation cxxToutEnUn" || true
+v 16.0.6 || true
 
 lieur()
 {
