@@ -61,6 +61,7 @@ v 13.0.1 || true
 v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 v 15.0.7 && modifs="$modifs cxxabiSansHesitation cxxToutEnUn" || true
 v 16.0.6 || true
+v 17.0.1 && babi="$babi grow_by" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 
 lieur()
 {
@@ -525,6 +526,12 @@ vblibcxx()
 	# Liste des BABI:
 	# - cohabitCxxrt
 	#   Cf. gros commentaire plus haut.
+	# - grow_by
+	#   En 17, __grow_by est remplacée par __grow_by_without_replace.
+	#   En conséquence les logiciels compilés avec une libc++ 16 cherchent un __grow_by et ne le trouvent plus (notamment clang++17 lui-même)
+	#   Changement apparu dans https://reviews.llvm.org/D148693; philnik dit que "The inline version should always be emitted" (donc qu'on ne devrait pas trouver de symbole __grow_by dans le généré), mais peut-être n'était-on pas encore en always inline en 16 (grâce à laquelle notre clang++17 a été compilé).
+	#   Une autre explication serait que les .h font tout pour que __grow_by reste privée, mais avec une exception pour clang lui-même (ce qui expliquerait son apparition dans les symboles U de clang++).
+	#   Ou alors que __grow_by n'était actif qu'en mode expérimental, n'est normalement pas utilisé (sauf si on l'active explicitement à nos risques et périls)… mais que cohabitCxxrt aurait déclenché son activation (en déclarant un LIBCXX_ABI_VERSION=2, signe du mode expérimental).
 	
 	# À FAIRE: partir de la version indiquée comme défaut dans les fichiers livrés.
 	local v=1 b
