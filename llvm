@@ -59,6 +59,7 @@ v 12.0.1 || true
 v 13.0.0 || true
 v 13.0.1 || true
 v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modifs sansBenchmarks bibliosTriplet" || true
+v 15.0.7 && modifs="$modifs cxxabiSansHesitation cxxToutEnUn" || true
 
 lieur()
 {
@@ -108,6 +109,48 @@ case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/
 
 # Modifs.
 
+cxxToutEnUn()
+{
+	# La libc++ compilée de pair avec une libc++abi (par ex. la 15 chez moi) n'incorpore par les logic_error,
+	# tandis qu'une libc++ compilée avec libcxxrt les inclut (la 14 chez moi), sans doute par polyfill de libcxxrt.
+	# Les .a sont formels (mais les .so suivent le même modèle, simplement ils n'ont pas le détail des .o):
+	#                                [14 ou 15]/libc++abi.a:stdlib_stdexcept.cpp.o: 0000000000000000 T _ZNKSt11logic_error4whatEv
+	#                                  /usr/lib/libc++.a:stdexcept.o:               00000000000001f0 T _ZNKSt11logic_error4whatEv
+	#   /home/gui/local/clang+libcxx-14.0.6/lib/libc++.a:future.cpp.o:                               U _ZNKSt11logic_error4whatEv
+	#   /home/gui/local/clang+libcxx-14.0.6/lib/libc++.a:optional.cpp.o:                             U _ZNKSt11logic_error4whatEv
+	#   /home/gui/local/clang+libcxx-14.0.6/lib/libc++.a:stdexcept.cpp.o:           0000000000000000 T _ZNKSt11logic_error4whatEv
+	#   /home/gui/local/clang+libcxx-15.0.7/lib/libc++.a:future.cpp.o:                               U _ZNKSt11logic_error4whatEv
+	#   /home/gui/local/clang+libcxx-15.0.7/lib/libc++.a:optional.cpp.o:                             U _ZNKSt11logic_error4whatEv
+	# Donc la 14 comme la 15 ont embarqué les logic_error dans leur libc++abi, mais *en plus* la 14 l'a copiée dans sa libc++, se prémunissant contre une libcxxrt trop légère.
+	# Il en résulte que les programmes qui se lient à libc++ sans lien explicite à libc++abi plantent,
+	# ce qui est malheureusement le cas du clang tout juste compilé (tandis que clang++ lui se lie à libc++abi).
+	# Deux possibilités:
+	# - lier libc++abi.so.1 depuis libc++.so.2.0
+	#   - par outil externe: patchelf --add-needed libc++abi.so.1 libc++.so.2.0 # https://stackoverflow.com/a/4241174
+	#   - depuis la compil llvm?
+	# - embarquer tout libc++abi dans libc++, rendant ainsi libc++ autonome.
+	#   Ainsi un "vieux" programme lié à la libc++.so.1 + libcxxrt.so.1 aura sa libc++.so.1 + dépedances résolue (et sa libcxxrt.so.1 inutilisée, sauf par exemple pour CXXRT_1.0; le seul risque étant les alertes "symbole défini à la fois dans libc++.so.1 et libcxxrt.so.1).
+	#   Et un nouveau programme ne se liera qu'à libc++.so.1.
+	# On part sur la seconde option (car intégrée à llvm).
+	
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_STATICALLY_LINK_ABI_IN_SHARED_LIBRARY=ON"
+	
+	# Mais ourgh, en 16 en tout cas, au moment du Linking CXX shared library /mnt/bdd/tmp/llvm-project-llvmorg-16.0.6/build/lib/libc++.so, pétage car "/home/gui/local/bin/ld : ne peut trouver -llibcxx-abi-shared-objects"
+	# Aucun fichier n'existe sous ce nom.
+	# D'après libcxx/cmake/Modules/HandleLibCXXABI.cmake, c'est censé être un alias vers cxxabi_shared_objects mais uniquement "if (TARGET cxxabi_shared_objects)"
+	# Dans la compil on a bien d'abord "Built target cxxabi_shared_objects" puis "Consolidate compiler generated dependencies of target cxx_shared" et "Linking CXX shared library …/build/lib/libc++.so"
+	# Mais ensuite boum.
+	# Bon en tout cas leur -llibcxx-abi-shared-objects est catastrophique: en collant -lc++abi, à défaut d'embarquer les .o constituant libc++abi.a, il se lie à la .so tout juste compilée:
+	# c'est équivalent à ce que nous fait patchelf, adjugé!
+	# (ça devient alors étrangement semblable à la ligne du dessous, du if (!LIBCXX_STATICALLY_LINK_ABI_IN_SHARED_LIBRARY), mais bon)
+	filtrer $projects/libcxx/src/CMakeLists.txt sed -e 's#libcxx-abi-shared-objects#c++abi#g'
+	
+	# Mais ça ne suffit pas: il nous faut tout de même stdcppPasTropEnDur() qui ajoute -lc++abi à chaque -lc++,
+	# car notamment GNU ld sort en "erreur lors de l'ajout de symboles : DSO manquant dans la ligne de commande":
+	# il ne suffit pas de lier libc++ à libc++abi dans libc++.so, GNU ld *veut* qu'on mentionne le -lc++abi sur la ligne.
+	# Tout repose donc sur la propension du pilote à invoquer ld avec les paramètres complets.
+}
+
 bibliosTriplet()
 {
 	# À partir de la 14, libc++abi installe ses biblios non dans lib, mais dans lib/<triplet>, sans lien symbolique.
@@ -129,6 +172,35 @@ bibliosTriplet()
 		cd "$dest/lib" && [ -d "$triplet" ] || exit 0
 		ln -s "$triplet"/* ./
 	)
+}
+
+cxxabiSansHesitation()
+{
+	# À FAIRE: le faire en fonction de la biblio ABI choisie pour compiler ce compilo (et sa libc++).
+	# Ici on a codé en dur l'inclusion de cette modif à partir de la 15, car on suppose notre 14 compilé encore avec une libc++ + libcxxrt. C'est fragile.
+	
+	# Une 15.0.7 compilée par une 14.0.6 finit avec un lib/<triplet>/libc++.so contenant:
+	# INPUT(libc++.so.1 -l)
+	# non fonctionnel ("-/home/gui/local/bin/ld : ne peut trouver l", c'est ClangLinkerWrapper.cpp" qui le dit)
+	# tandis que la 14.0.6 (elle-même compilée par une 13.0.1, en constr non runtimes) contient:
+	# INPUT(libc++.so.1 -lcxxrt)
+	# On trouve une /lib/libcxxrt.so, d'après la doc [https://clang.llvm.org/docs/Toolchain.html#c-abi-library] il s'agit d'une implémentation tierce (utilisée comme on le constate par les clang++ première génération).
+	# Si on tente de l'utiliser dans notre clang++ 15, ça pète, car notre libc++ a été compilée avec une libc++abi bien plus moderne, donc on se tape une vingtaine de "référence indéfinie vers « vtable for std::logic_error »" ou consortes.
+	# En remettant un -lc++abi, hop, ça passe.
+	# Où est le problème à la source?
+	# libcxx/src/CMakeLists.txt fait un:
+	#   set(linker_script "INPUT($<TARGET_SONAME_FILE_NAME:cxx_shared> ${link_libraries})")
+	# lui-même alimenté par un imported_libname ?? output_name, rempli par:
+	#   set(imported_libname "$<TARGET_PROPERTY:libcxx-abi-shared,IMPORTED_LIBNAME>")
+	#   set(output_name "$<TARGET_PROPERTY:libcxx-abi-shared,OUTPUT_NAME>")
+	# Or CMake ne gère pas…
+	#   https://discourse.llvm.org/t/15-0-0-rc1-has-been-tagged/64174/7
+	#   https://gitlab.kitware.com/cmake/cmake/-/issues/21045 (toujours pas résolu 1 an après).
+	# A priori c'est surtout un souci d'œuf et de poule, puisque même en remplaçant l'IF par ${output_name} ou $<TARGET_PROPERTY:libcxx-abi-shared,OUTPUT_NAME> on finit en -l
+	# (libcxx-abi-shared, défini dans libcxx/cmake/Modules/HandleLibCXXABI.cmake, ne semble pas encore là quand il est utilisé; pourtant notre plantage intervient juste après le [100%] Built target cxx_shared, lui-m̂ après [ 89%] Built target cxxabi_shared).
+	# Mais nous on sait qu'on veut la version qu'on vient de compiler, donc on fait sauter l'IF et on code tout en dur:
+	filtrer $projects/libcxx/src/CMakeLists.txt sed \
+		-e 's#\$<IF:\$<BOOL:\${imported_libname}>,\${imported_libname},\${output_name}>#c++abi#'
 }
 
 maxAlign()
