@@ -33,6 +33,10 @@ v 1.23.0 || true # Dernière version avant "remove epoll syscall wrappers", cf. 
 if eventfd
 then
 v 1.38.0 || true
+v 1.44.2 || true
+# /!\ Ne compile plus sur un FreeBSD 10 (manque recvmmsg et sendmmsg)
+v 1.45.0 || true
+v 1.46.0 || true
 fi
 
 # Modifications
