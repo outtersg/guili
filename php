@@ -405,7 +405,7 @@ readlineNcurses()
 		"/lib64/libterminfo.5."* \
 		"(impossible de trouver libterminfo)"
 	do
-		"$cc" -o testTerminfo testTerminfo.c $LDFLAGS $essai 2> /dev/null >&2 && break
+		"$cc" -o testTerminfo testTerminfo.c $LDFLAGS $essai 2> /dev/null >&2 && break || continue
 	done
 	filtrer configure sed -e "s#-lreadline#-lreadline $essai#g"
 		
