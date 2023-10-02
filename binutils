@@ -30,6 +30,7 @@ esac
 
 # Historique des versions gérées
 
+# Une GNUmakerie avec un $(SED) -e s/NN/32/g < $< > $@ qui laisse apparemment bsdmake sans voix ($< rendu comme vide).
 prerequis="make \\"
 v 2.24 && modifs="sbrk" || true
 v 2.27 || true
