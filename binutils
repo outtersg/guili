@@ -37,11 +37,22 @@ v 2.28.1 || true
 v 2.30 || true
 v 2.31.1 && modifs="$modifs max0" || true
 v 2.34 && modifs="$modifs sansdoc" || true
+v 2.36.1 && modifs="$modifs iostr" || true # max0 encore utile?
 v 2.37 && retirerModif max0 || true
+v 2.41 && retirerModif sansdoc || true
 
 prerequis
 
 # Modifications
+
+iostr()
+{
+	# http://patches-tcwg.linaro.org/patch/45493/
+	for f in binutils/objcopy.c
+	do
+		filtrer "$f" sed -e 's#[a-z]*->iostream#(FILE *)&#g'
+	done
+}
 
 sansdoc()
 {
@@ -53,7 +64,9 @@ sansdoc()
 max0()
 {
 	# https://bugzilla.redhat.com/show_bug.cgi?id=1599521
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=237068
 	# Rencontrée par exemple en compilant hummus sur une FreeBSD 11.2: la libaesgm générée donne lieu à un "libaesgm.so: _end: invalid version 21 (max 0)".
+	# À voir aussi https://sourceware.org/git/?p=binutils-gdb.git;a=patch;h=7a815dd566f3dd32435ac73aa0a0cc948d525e06 pour comment détecter les biblios qui ont été générées par ce ld pourri.
 	
 	patch -p1 < "`obtenir https://src.fedoraproject.org/rpms/binutils/raw/57a0cd302817a0fff7d529dc8aa7282eef480fad/f/binutils-do-not-provide-shared-section-symbols.patch`"
 }
