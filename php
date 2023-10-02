@@ -370,7 +370,19 @@ lcplusplus()
 		case "$CXX" in
 			clang++*)
 				echo '#include <iostream> @ int main() { std::cout << "Salut" << std::endl; return 0; }' | tr @ '\012' > /tmp/1.cxx
-				$CXX -o /tmp/1 /tmp/1.cxx -lc++ && filtrer configure sed -e 's#-lstdc++#-lc++#g'
+				# Pour tester le mode de fonctionnement exact de PHP, on ne tente pas la compilation en une passe (.cxx -> exécutable),
+				# car clang invoqué en tant que clang++ sait qu'il doit ajouter son -lc++ (et -lc++abi s'il est GuiLI).
+				# Or la compil PHP utilise clang++ à la compil (d'ext/intl, seule partie en C++), mais clang à l'édition de liens finale.
+				local lcxx
+				for lcxx in "" "-lc++" "-lc++ -lc++abi" "-lstdc++"
+				do
+					$CXX -c -o /tmp/1.o /tmp/1.cxx && $CC -o /tmp/1 /tmp/1.o $lcxx && break
+				done
+				case "$lcxx" in
+					""|-lstdc++) true ;;
+					*) filtrer configure sed -e "s#-lstdc++#$lcxx#g" ;;
+				esac
+				echo "Édition de liens C++: [36m$lcxx[0m"
 				;;
 		esac
 	fi
