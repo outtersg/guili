@@ -224,6 +224,14 @@ compilo_cheminLibcxxClang()
 		clang|llvm) return 0 ;;
 		# Pour la compilation d'un compilo différent de nous, d'une, la libc++ ne doit être passée qu'à la passe 0 (compilation de la première itération du compilo compilé par notre compilo local), le compilo résultant ne devant pas reposer sur la libc++ d'un "adversaire"; de deux pour la passer il ne faut pas reposer sur des variables génériques telles que CXXFLAGS, qui vont être transmises à toutes les étapes, mais une variable dont l'usage sera explicitement limité à la compilation initiale. On prend CXX, en supposant qu'aux étapes suivantes il sera surchargé par le g++ intermédiaire.
 		gcc) varamod=CXX ;;
+		*)
+			# N'est plus nécessaire à partir de je ne sais quelle version, où le compilo généré définit bien en dur son propre chemin.
+			# De plus à partir de la 14, __config (correctement vu du chemin défini ici) inclut un __config_site lui dans un dossier de type triplet, qu'on n'inclut pas => plantage
+			# À FAIRE: rendre ce return 0 conditionnel à la version de clang (ou à la façon dont on l'a compilé?).
+			return 0
+			# À FAIRE: gérer le cas où, bien que clang++ (14 et suivants par GuiLI) inscrive les chemins qu'il faut dans les binaires qu'il produit,
+			#          lui-même peut s'être lié à une ancienne version de la libc++ qu'il s'agit de retrouver. Cf. dans clang lui-m̂ (avec le rpath).
+			;;
 	esac
 	
 	compilo_modif _compilo_cheminLibcxxClang
