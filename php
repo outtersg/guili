@@ -666,6 +666,10 @@ display_errors = Off
 date.timezone = Europe/Paris
 magic_quotes_gpc = 0
 TERMINE
+	
+	# Du fait de --enable-fileinfo=shared
+	echo "extension = fileinfo"
+	
 if pge $version 5.5 ; then
 		echo 'zend_extension = "opcache.so"'
 else
