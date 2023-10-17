@@ -616,7 +616,7 @@ true || \
 	--with-zlib \
 	--with-iconv \
 	--enable-exif \
-	--with-gd \
+	`pge $version 8 && printf %s --enable || printf %s --with`-gd \
 	--with-jpeg-dir \
 	--with-ncurses \
 	--with-readline \
