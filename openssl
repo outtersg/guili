@@ -138,8 +138,17 @@ configManuel()
 
 # Variables
 
+case $version in
+	0.*|1.*)
 v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c="";n=$4;while(n>25){n-=25;c=c"z"}if(n)c=c""substr(t,n,1);print $1"."$2"."$3""c}'`"
 v_maj="`echo "$v_alpha" | tr -d 'a-z'`"
+		;;
+	*)
+		v_alpha=$version
+		v_maj() { unset IFS ; v_maj=$1.$2 ; }
+		IFS=. ; v_maj
+		;;
+esac
 archive=http://www.openssl.org/source/$logiciel-$v_alpha.tar.gz
 # Difficile maintenant de trouver la source sur un serveur HTTP non 'S'.
 archive=http://artfiles.org/openssl.org/source/$logiciel-$v_alpha.tar.gz
