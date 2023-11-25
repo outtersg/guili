@@ -30,6 +30,7 @@ v 0.8.6 && modifs="$modifs inclusions_ao" || true
 v 1.0.0 || true
 v 1.1.0 || true
 v 1.2.0 || true
+v 1.2.2 || true
 
 inclusions_ao()
 {
