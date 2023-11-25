@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-prerequis="autoconf automake m4 libtool pkgconfig \\"
+prerequis="autoconf automake m4 libtool pkgconfig opus \\"
 modifs="autoc"
 v 0.2.1 || true
 
