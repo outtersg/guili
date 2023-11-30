@@ -37,6 +37,8 @@ archive=http://heanet.dl.sourceforge.net/project/ghostscript/GPL%20Ghostscript/$
 archive=http://downloads.ghostscript.com/public/ghostscript-$version.tar.gz
 archive="https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs`echo "$version" | tr -d .`/ghostscript-$version.tar.gz"
 
+optionSi zstd
+
 # Modifications
 
 moinsL()
