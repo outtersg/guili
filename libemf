@@ -28,8 +28,22 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="langcxx()"
 v 1.0.7 && modifs="structsPropres bind2nd" || true
+v 1.0.13 && modifs="$modifs bswap32"|| true
 
 # Modifications
+
+bswap32()
+{
+	case `uname` in
+		FreeBSD)
+			filtrer libemf/libemf.cpp awk '
+/byteswap\.h/{ print "#ifdef __FreeBSD__"; print "#include <sys/endian.h>"; print "#else"; print; print "#endif"; next; }
+/bswap_32/{ print "#ifdef __FreeBSD__"; bs = $0; sub(/bswap_/, "bswap", bs); print bs; print "#else"; print; print "#endif"; next; }
+{print}
+'
+			;;
+	esac
+}
 
 bind2nd()
 {
@@ -47,7 +61,9 @@ structsPropres()
 
 # Variables
 
-archive="http://netcologne.dl.sourceforge.net/project/libemf/libemf/$version/libEMF-$version.tar.gz"
+farchive=libemf
+pge $version 1.0.8 || farchive=libEMF
+archive="http://netcologne.dl.sourceforge.net/project/libemf/libemf/$version/$farchive-$version.tar.gz"
 
 destiner
 
