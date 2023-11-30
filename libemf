@@ -27,9 +27,16 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 prerequis="langcxx()"
-v 1.0.7 && modifs="structsPropres" || true
+v 1.0.7 && modifs="structsPropres bind2nd" || true
 
 # Modifications
+
+bind2nd()
+{
+	# https://stackoverflow.com/a/32739105
+	filtrer libemf/libemf.cpp sed -e 's/bind2nd\([^(]*(*[^(]*([^()]*)[^,]*,\)/bind\1 std::placeholders::_1,/g'
+	filtrer libemf/libemf.cpp sed -e 's/mem_fun/mem_fn/g'
+}
 
 structsPropres()
 {
