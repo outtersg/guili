@@ -34,6 +34,7 @@ prerequis
 
 archive=http://cznic.dl.sourceforge.net/project/pstoedit/pstoedit/$version/pstoedit-$version.tar.gz
 archive=https://iweb.dl.sourceforge.net/project/pstoedit/pstoedit/$version/pstoedit-$version.tar.gz
+archive=https://netcologne.dl.sourceforge.net/project/pstoedit/pstoedit/$version/pstoedit-$version.tar.gz
 
 # Modifications
 
