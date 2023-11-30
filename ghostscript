@@ -21,15 +21,15 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-v 8.51 && modifs="moinsL bibliosInternes" && prerequis="libpng libtiff+jpeg8 >= 4 libjpeg < 9" || true
+v 8.51 && modifs="moinsL bibliosInternes" && prerequis="make \\ libpng libtiff+jpeg8 >= 4 libjpeg < 9" || true
 v 9.10 || true
 v 9.15 || true
-v 9.23 && prerequis="libpng libtiff+jpeg9 >= 4 libjpeg >= 9" || true
+v 9.23 && prerequis="make \\ libpng libtiff+jpeg9 >= 4 libjpeg >= 9" || true
 v 9.52 || true
 
 archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/$logiciel-$version.tar.bz2
