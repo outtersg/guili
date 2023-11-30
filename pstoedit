@@ -26,8 +26,8 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 3.40 && prerequis="libemf ghostscript" || true
-v 3.62 && modifs="sansLdl" || true
+v 3.40 && prerequis="libemf ghostscript" && modifs="sansLibstdcxx" || true
+v 3.62 && modifs="sansLibstdcxx sansLdl" || true
 v 3.75 || true
 
 prerequis
@@ -40,6 +40,12 @@ archive=https://iweb.dl.sourceforge.net/project/pstoedit/pstoedit/$version/pstoe
 sansLdl()
 {
 	ldlOptionnel src/Makefile.in
+}
+
+sansLibstdcxx()
+{
+	# A-t-on vraiment besoin de -lstdc++ juste pour le main (surtout sur les systèmes à base de clang++ + libc++)?
+	filtrer configure sed -e "s/-lstdc++//g"
 }
 
 # Boulot
