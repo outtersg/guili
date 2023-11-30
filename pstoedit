@@ -29,6 +29,8 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 3.40 && prerequis="libemf ghostscript" && modifs="sansLibstdcxx" || true
 v 3.62 && modifs="sansLibstdcxx sansLdl" || true
 v 3.75 || true
+v 3.78 || true
+v 4.00 || true
 
 prerequis
 
