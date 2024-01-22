@@ -64,6 +64,20 @@ prerequisOpenssl()
 			argOptions="`options "$argOptions+ossl$vmajlocal" | tr -d ' '`"
 			osslxx=ossl$vmajlocal
 			prerequis="`echo " $prerequis " | sed -e "s# openssl # openssl $vlocal #"`"
+			# Consommons les options explicitant un numéro de version: si on est arrivés ici c'est qu'on répond bien à cette option.
+			case "$argOptions" in
+				*+ossl[1-9]*|*+openssl[1-9]*)
+					local o
+					for o in $argOptions
+					do
+						case "$o" in
+							+ossl[1-9]*|+openssl[1-9]*)
+								option "`echo "$o" | tr -d +`"
+								;;
+						esac
+					done
+					;;
+			esac
 		fi
 	fi
 	argOptions="`options "$argOptions-openssl-ossl"`" # Les +openssl ou +ossl disparaissent au profit du +ossl1x.
