@@ -83,6 +83,7 @@ v 15.2 || true
 v 15.3 || true
 v 15.4 || true
 v 15.5 && remplacerPrerequis "python >= 3" || true
+v 16.1 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
