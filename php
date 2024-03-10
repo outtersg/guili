@@ -195,6 +195,10 @@ v 8.3.3 || true
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
 
+# Si un PHP fonctionnel est déniché, on s'en servira pour de l'autogénération.
+ANCIEN_PHP="`command -v php`"
+[ -z "$ANCIEN_PHP" ] || $ANCIEN_PHP --version | grep -q Zend || ANCIEN_PHP=
+
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
 if optionSi postgresql sh -c 'psql --version 2> /dev/null | grep -q PostgreSQL'
 then
@@ -271,7 +275,18 @@ atomicconst()
 fileinfoSobre()
 {
 	# https://bugs.php.net/bug.php?id=65106
+	if [ -n "$ANCIEN_PHP" ]
+	then
+	(
+		cd ext/fileinfo &&
+		cp "$SCRIPTS/php.data_file_to_mgc.c" ./ &&
+		$CC -o /tmp/data_file_to_mgc php.data_file_to_mgc.c &&
+		/tmp/data_file_to_mgc &&
+		$ANCIEN_PHP "$SCRIPTS/php.create_data_file.php" magic.mgc > data_file.c
+	)
+	else
 	filtrer ext/fileinfo/data_file.c sed -e 's#^0x#"\\x#' -e 's#, 0x#\\x#g' -e 's#, *$#"#' -e 's#{ *$##' -e 's#}##' -e 's#, *;#";#'
+	fi
 }
 
 cve201911043()
