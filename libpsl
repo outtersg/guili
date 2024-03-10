@@ -27,6 +27,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 v 0.17.0 && prerequis="python >= 3 \\ libidn >= 2 libunistring" || true
+v 0.21.5 || true
 
 # Modifications
 
