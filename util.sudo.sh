@@ -33,6 +33,7 @@ suer()
 		echo "$argsColles" | grep -q "`printf %s "$sep"`" && continue || true
 		su $argsSu -c \
 		'
+			set -e
 			commande="`SCRIPTS="'"$SCRIPTS"'" ; . "'"$INSTALL_SCRIPTS"'/util.util.sh" ; echo '"$commande"' | xdecode`"
 			IFS="`printf '"'$sep'"'`"
 			$commande
