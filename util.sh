@@ -251,7 +251,7 @@ etendreVarMake()
 
 chut()
 {
-	"$@" > "$TMP/$$/temp" 2>&1 || cat "$TMP/$$/temp"
+	"$@" > "$TMP/$$/temp" 2>&1 || { r=$? ; cat "$TMP/$$/temp" ; return $? ; }
 }
 
 ajouterAvec()
