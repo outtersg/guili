@@ -35,6 +35,7 @@ v 5.4.4 || true
 # Variables
 
 archive=https://tukaani.org/xz/xz-$version.tar.gz
+archive=https://github.com/tukaani-project/xz/releases/download/v$version/xz-$version.tar.gz
 
 prerequis
 
