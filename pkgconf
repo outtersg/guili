@@ -35,6 +35,13 @@ v 1.6.0 || true
 
 archive="https://github.com/pkgconf/pkgconf/archive/pkgconf-$version.tar.gz"
 
+if option strict
+then
+	rech=
+else
+	rech="$INSTALLS/lib/pkgconfig:/usr/lib/pkgconfig"
+fi
+
 # Autre point d'entrée si demandé: on émule pkg-config.
 if option ig
 then
@@ -52,7 +59,7 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 [ -f configure ] || ./autogen.sh
-./configure --prefix="$dest"
+./configure --prefix="$dest" --with-pkg-config-dir="$rech"
 
 echo Compilation… >&2
 make
