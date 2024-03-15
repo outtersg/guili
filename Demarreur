@@ -10,6 +10,7 @@ commande() { command -v "$1" > /dev/null ; }
 commande bzip2 || ./bzip2
 commande 7za || ./7zip
 commande patch || ./patch
+./pkgconf +ig +strict # Nombre de GuiLI requièrent pkgconfig: on installe pkgconf à sa place, en mode strict.
 
 # ./openssl en fonction de la version présente.
 # ./curl idem
