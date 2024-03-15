@@ -74,6 +74,28 @@ eval "version=\"\$version_`echo "$logiciel" | cut -c 2-`\"" # On prend pour num�
 
 destiner
 
+_patronTemp()
+{
+	case `uname` in
+		FreeBSD) opts="-P \$pidfile" ; vars="$vars var/run" ;;
+		*) opts= ;;
+	esac
+	case "$vars" in ?*)
+		mkdir "$desttemp"
+		serveur_patronVars "$desttemp" $vars
+		optionsServeur="$optionsServeur -d0 $desttemp"
+	esac
+}
+
+_pousserPatronTemp()
+{
+	local dest0="$1" dest="$2"
+	
+	# Copie.
+	sudoku sh -c "mkdir -p \"$dest\" && ( cd \"$dest0\" && tar cf - . ) | ( cd \"$dest\" && tar xf - )"
+	serveur_chownVars
+}
+
 if ! id "$compte" > /dev/null 2>&1
 then
 
@@ -83,10 +105,17 @@ creeCompte -s /bin/sh $compte
 fi
 
 echo "Auto-démarrage…" >&2
-case `uname` in
-	FreeBSD) opts="-P \$pidfile" ;;
-	*) opts= ;;
-esac
-serveur -u "$compte" demon cntlm$suffixe "$destcntlm/bin/cntlm -c $config $opts"
+creerAmorceur()
+{
+	local desttemp="$TMP/$$/dest" vars opts optionsServeur
+	
+	_patronTemp "$desttemp"
+	_pousserPatronTemp "$desttemp" "$dest"
+	
+	# Amorçage.
+	
+	serveur -u "$compte" $optionsServeur demon cntlm$suffixe "$destcntlm/bin/cntlm -c $config $opts"
+}
+creerAmorceur "$@"
 
 sutiliser -
