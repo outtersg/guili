@@ -414,6 +414,10 @@ confOptims()
 	case "$CC" in
 		clang) commande llvm-profdata || return 0 ; export LLVM_PROFDATA="`command -v llvm-profdata`" ;;
 	esac
+	# Sur les petites machines, les optims poussent la mémoire à bout: on abandonne.
+	case `uname` in
+		FreeBSD) case $((`sysctl -n hw.usermem` >= 1024 * 1024 * 1024)) in 0) return 0 ;; esac
+	esac
 ( pg 3.5.3 $version && pge $version 3 ) || pg 2.7.13 $version || OPTIONS_CONF="$OPTIONS_CONF --enable-optimizations" # Quadruplement du temps de compil pour 20% de gain à l'exécution.
 }
 confOptims
