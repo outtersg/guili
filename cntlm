@@ -31,6 +31,7 @@ v 0.92.3 && modifs="freebsd troncatureSilencieuse" || true
 v 0.93.99.2022.10.14 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && modifs="fbsd2 prefixe troncatureSilencieuse" || true
 v 0.93.99.2022.10.15 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && modifs="$modifs conclo" || true
 v 0.93.99.2023.03.30 && versionComplete="$version.149d916b84ab1d6cbc3c1b003da33e485edaccad.git" && retirerModif conclo || true
+v 0.93.99.2024.03.12 && versionComplete="$version.20df10e51e41dc00db7327314b9eee7932cef89f.git" || true
 
 # Modifications
 
