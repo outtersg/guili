@@ -42,6 +42,9 @@ prerequis
 
 obtenirEtAllerDansVersion
 
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
 echo Configuration… >&2
 ./configure --prefix="$dest"
 
