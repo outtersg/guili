@@ -39,10 +39,8 @@ telech()
 	[ -n "$l" ] || l="$u"
 	commande=curl
 	[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
-	(
-		export PATH="$INSTALLS/bin:$PATH" LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
+	avecOutilsGuili \
 	affSiBinaire $commande -L -k -s "$u"
-	)
 }
 
 #- Décompression ---------------------------------------------------------------
@@ -141,6 +139,7 @@ obtenirEtAllerDans()
 		*.xz) initDecompresseur xz "$archive" ;;
 		*.7z) dec="de7z" ; liste="liste7z" ;;
 	esac
+	avecOutilsGuili -f "$liste" "$dec" # Des fois que le compte compileur n'ait pas $INSTALLS dans son $PATH, nous on va en avoir besoin.
 	(
 		if ! $liste "$archive"
 		then
@@ -193,6 +192,7 @@ obtenirEtAllerDansGit()
 				urlGit="`echo "$archive_git" | sed -e 's/@[^@]*//'`"
 				;;
 		esac
+		avecOutilsGuili -f git
 		GIT_SSL_NO_VERIFY=true git clone $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
 		[ -z "$v" ] || ( v2="`echo "$v" | sed -e 's/.*[.-]//g'`" ; git checkout "$v2" )
@@ -233,7 +233,10 @@ obtenirEtAllerDansDarcs()
 		archive_locale_oeadd="$INSTALL_MEM/${endroit_oeadd}.tar.bz2"
 		[ -f "$archive_locale_oeadd" ] && tar xjf "$archive_locale_oeadd" && cd "$endroit_oeadd" && return 0
 	fi
+	(
+		avecOutilsGuili
 	echo "$options_oeadd--lazy$zero$archive_oeadd$zero$endroit_oeadd" | tr -d '\012' | tr "$zero" '\000' | LANG=C LC_ALL=C xargs -0 darcs get
+	)
 	[ -z "$patch_oeadd" ] || tar cjf "$archive_locale_oeadd" "$endroit_oeadd"
 	cd $endroit_oeadd
 }
