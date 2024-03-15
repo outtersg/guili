@@ -278,6 +278,8 @@ obtenirEtAllerDansVersion()
 	esac
 }
 
+#- Outillage -------------------------------------------------------------------
+
 # Les logiciels dont l'obtenirEtAllerDansVersion ne donne pas lieu à compilation (ex.: sources en un langage de script qui s'installe par simple dépôt) peuvent surcharger cette fonction en guili_sansBinaire() { true ; }
 guili_sansBinaire()
 {
@@ -288,4 +290,36 @@ guili_sansBinaire()
 		jaune "(attention, le binaire devra avoir exactement même version et mêmes options que sus-mentionné. Si le serveur de compil' prend la liberté d'ajouter une option +jantesalu, forcez-le à la désactiver via un +-jantesalu)" >&2
 		exit 1
 	fi
+}
+
+# Se débrouille pour faire passer en priorité les outils compilés GuiLI.
+# Trois modes:
+# - sans paramètre: pourrit l'environnement pour trouver les binaires.
+# - en -f "x -option" y: définit des fonctions de remplacement pour x et y
+# - avec une ligne de commande: l'exécute dans l'environnement adapté
+avecOutilsGuili()
+{
+	case "$1" in
+		"")
+			export PATH="$INSTALLS/bin:$PATH" LD_LIBRARY_PATH="$INSTALLS/lib64:$INSTALLS/lib:$LD_LIBRARY_PATH"
+			;;
+		-f)
+			shift
+			local comm fonc
+			for comm in "$@"
+			do
+				case "$comm" in "") continue ;; esac
+				for fonc in $comm
+				do
+					case "`command -v "$fonc" 2> /dev/null || true`" in "$INSTALLS/bin/$fonc") continue ;; esac
+					[ -x "$INSTALLS/bin/$fonc" ] || continue
+					eval "$fonc"'() { avecOutilsGuili "'"$INSTALLS/bin/$fonc"'" "$@" ; }'
+					break
+				done
+			done
+			;;
+		*)
+			( avecOutilsGuili ; "$@" )
+			;;
+	esac
 }
