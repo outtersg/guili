@@ -34,10 +34,11 @@ suer()
 		su $argsSu -c \
 		'
 			set -e
+			exec >&8
 			commande="`SCRIPTS="'"$SCRIPTS"'" ; . "'"$INSTALL_SCRIPTS"'/util.util.sh" ; echo '"$commande"' | xdecode`"
 			IFS="`printf '"'$sep'"'`"
 			$commande
-		'
+		' 8>&1 > /dev/null
 		return $?
 	done
 	echo "# Impossible de trouver un séparateur shell qui ne soit pas utilisé par la commande: $*" >&2
