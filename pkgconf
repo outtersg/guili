@@ -35,6 +35,12 @@ v 1.6.0 || true
 
 archive="https://github.com/pkgconf/pkgconf/archive/pkgconf-$version.tar.gz"
 
+# Autre point d'entrée si demandé: on émule pkg-config.
+if option ig
+then
+	guili_alias="$guili_alias:pkgconfig$argOptions-$version"
+fi
+
 destiner
 
 prerequis
@@ -53,5 +59,10 @@ make
 
 echo Installation… >&2
 sudo make install
+if option ig
+then
+	sudoku rm -f "$INSTALLS/bin/pkg-config"
+	sudoku ln -s pkgconf "$dest/bin/pkg-config"
+fi
 
 sutiliser
