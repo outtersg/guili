@@ -35,6 +35,7 @@ archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
 archive=https://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
 archive=https://mirror.ibcp.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
+archive=https://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz
 
 destiner
 

@@ -60,6 +60,7 @@ libcStatique()
 }
 
 archive=https://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
+archive=https://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.bz2
 
 destiner
 
