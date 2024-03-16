@@ -142,7 +142,7 @@ then
 		params="`echo "$params" | cut -c 2-`"
 		(
 			IFS="$sep"
-			http_proxy=$proxy affSiBinaire fetch $params
+			http_proxy=$proxy HTTP_PROXY=$proxy affSiBinaire fetch $params
 		)
 	}
 	curlwget()
