@@ -76,14 +76,13 @@ destiner
 
 _patronTemp()
 {
+	mkdir "$desttemp"
 	case `uname` in
 		FreeBSD) opts="-P \$pidfile" ; vars="$vars var/run" ;;
 		*) opts= ;;
 	esac
 	case "$vars" in ?*)
-		mkdir "$desttemp"
 		serveur_patronVars "$desttemp" $vars
-		optionsServeur="$optionsServeur -d0 $desttemp"
 	esac
 }
 
@@ -111,6 +110,7 @@ creerAmorceur()
 	
 	_patronTemp "$desttemp"
 	_pousserPatronTemp "$desttemp" "$dest"
+	case "$desttemp/*" in */tmp/*) rm -Rf "$desttemp" ;; esac
 	
 	# Amorçage.
 	
