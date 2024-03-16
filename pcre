@@ -40,6 +40,7 @@ v 8.45 || true
 # /!\ Sur de grosses regex (4000 caractères = un gros | sur 400 expressions, cherché sur une base SQLite de 70 Mo) les perfs sont pourries (4x plus lent qu'une PCRE1).
 v 10.37 || true
 v 10.42 || true
+v 10.43 || true
 
 if option cxx
 then
