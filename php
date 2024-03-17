@@ -196,7 +196,7 @@ v 8.3.3 || true
 aliasVersion 'x'
 
 # Si un PHP fonctionnel est déniché, on s'en servira pour de l'autogénération.
-ANCIEN_PHP="`command -v php`"
+ANCIEN_PHP="`command -v php || true`"
 [ -z "$ANCIEN_PHP" ] || $ANCIEN_PHP --version | grep -q Zend || ANCIEN_PHP=
 
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
