@@ -32,6 +32,7 @@ v 4.4 || true
 v 4.5 || true
 v 4.6 || true
 v 4.7 || true
+v 4.9 || true
 
 # Modifications
 
