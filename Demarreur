@@ -8,7 +8,7 @@ commande() { command -v "$1" > /dev/null ; }
 # Sans ces outils, il est possible qu'il faille y aller manuellement (déposer les sources qu'on ne saura pas encore télécharger, etc.).
 
 commande bzip2 || ./bzip2
-commande 7za || ./7zip
+#commande 7za || ./7zip
 commande patch || ./patch
 ./pkgconf +ig +strict # Nombre de GuiLI requièrent pkgconfig: on installe pkgconf à sa place, en mode strict.
 
