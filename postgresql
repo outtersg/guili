@@ -93,6 +93,12 @@ v 16.2 || true
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
 
+if pge $version 16
+then
+	# À FAIRE: inclure icu en optionSi sur les versions précédentes (rajouter le --with-icu)
+	prerequis="pkgconfig \\ $prerequis icu"
+fi
+
 prerequisMake()
 {
 	# A besoin d'un make GNU.
