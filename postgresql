@@ -24,13 +24,13 @@ set -e
 Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 8.0.1 && modifs="detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python < 3 \\ ncurses readline zlib openssl < 1.1" || true
+v 8.0.1 && modifs="detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python+osslxx < 3 \\ ncurses readline zlib openssl < 1.1" || true
 v 8.0.3 || true
-v 9.1.2 && modifs="bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" && remplacerPrerequis python || true
+v 9.1.2 && modifs="bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" && remplacerPrerequis python+osslxx && prerequis="$prerequis gettext iconv" || true # gettext et iconv biblios de python3 (-lintl à la compil). # À FAIRE: comment détecter dynamiquement ces dépendances, sans surenchère pour les prérequis de python que celui-ci a embarqués statiquement? Certes en théorie mieux vaut trop que pas assez, en laissant l'édition de liens prendre ce qui l'intéresse, mais bon la pollution dans le .guili.prerequis, bof.
 v 9.2.1 && modifs="detectionPerl detectionReadline" && contribs="$contribs hstore" || true
 v 9.2.9 || true
 v 9.2.18 || true
-v 9.5.3 && remplacerPrerequis openssl || true # OpenSSL désormais sans filtre de version.
+v 9.5.3 && remplacerPrerequis "openssl < 1.2" || true
 v 9.6.1 && modifs="detectionPerl detectionReadline pathZic" || true
 v 9.6.5 || true
 v 9.6.6 || true
@@ -57,7 +57,7 @@ v 12.15 || true
 v 12.16 || true
 v 12.17 || true
 v 12.18 || true
-v 13.2 || true
+v 13.2 && remplacerPrerequis "openssl < 4" || true # Support d'OpenSSL 3 reporté sur les 12.9 et 11.14, mais bon calons-nous sur une version majeure.
 v 13.3 || true
 v 13.4 || true
 v 13.5 || true
@@ -85,8 +85,8 @@ v 15.1 || true
 v 15.2 || true
 v 15.3 || true
 v 15.4 || true
-v 15.5 && remplacerPrerequis "python >= 3" || true
-v 15.6 || true
+v 15.5 && remplacerPrerequis "python+osslxx >= 3" || true
+v 15.6 || true
 v 16.1 || true
 v 16.2 || true
 
