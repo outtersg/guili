@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 6.0.1 && prerequis="openssl zlib" && modifs="pasfortiche" || true
+v 6.0.1 && prerequis="openssl < 3 zlib" && modifs="pasfortiche" || true
 v 7.8.1 || true
 v 7.9.1 || true
 v 8.0.1 || true
