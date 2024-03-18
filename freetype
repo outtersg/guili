@@ -80,6 +80,7 @@ moireHb()
 	sutiliser()
 	{
 		preutiliser
+		[ "x$1" = x- ] || guili_postcompil
 		guili_deps_pondre
 		diag + "`bn "$dest"`"
 	}
