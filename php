@@ -286,7 +286,7 @@ fileinfoSobre()
 		cp "$SCRIPTS/php.data_file_to_mgc.c" ./ &&
 		$CC -o /tmp/data_file_to_mgc php.data_file_to_mgc.c &&
 		/tmp/data_file_to_mgc &&
-		$ANCIEN_PHP "$SCRIPTS/php.create_data_file.php" magic.mgc > data_file.c
+		LD_LIBRARY_PATH=$INSTALLS/lib:$LD_LIBRARY_PATH $ANCIEN_PHP "$SCRIPTS/php.create_data_file.php" magic.mgc > data_file.c
 	)
 	else
 	filtrer ext/fileinfo/data_file.c sed -e 's#^0x#"\\x#' -e 's#, 0x#\\x#g' -e 's#, *$#"#' -e 's#{ *$##' -e 's#}##' -e 's#, *;#";#'
