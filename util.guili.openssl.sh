@@ -68,7 +68,7 @@ prerequisOpenssl()
 			case "$argOptions" in
 				*+ossl[1-9]*|*+openssl[1-9]*)
 					local o
-					for o in $argOptions
+					for o in `printf %s $argOptions | sed -e 's/[-+]/ &/g'`
 					do
 						case "$o" in
 							+ossl[1-9]*|+openssl[1-9]*)
