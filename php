@@ -87,10 +87,11 @@ v 5.6.39 || true
 v 5.6.40 || true
 v 5.6.40.1 || true
 # icu < 70 car en 70, l'UBool operator== de brkiter.h devient un bool operator== (le premier étant un unsigned char, et clang refusant de faire la conversion => la version interne à PHP est incompatible).
+# On peut voir d'ailleurs dans les codepointiterator_internal.h des versions 8 qu'ils l'ont aiguillé d'un #if U_ICU_VERSION_MAJOR_NUM >= 70
 v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60 < 70" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
-v 7.1.13 && ajouterModif cve201911043 && remplacerPrerequis openssl || true
+v 7.1.13 && ajouterModif cve201911043 confclosedir && remplacerPrerequis "openssl < 3" || true
 v 7.1.14 || true
 v 7.2.1 || true
 v 7.2.3 || true
@@ -102,7 +103,7 @@ v 7.2.17 || true
 v 7.2.29 || true
 v 7.2.31 || true
 v 7.2.34 || true
-v 7.3.1 && remplacerPrerequis "icu >= 60" && prerequis="$prerequis libzip+osslxx" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
+v 7.3.1 && prerequis="$prerequis libzip+osslxx" || true # "Notre" libzip requise parce que pour --enable-zip maintenant PHP cherche libzip.pc au lieu de se contenter du .so comme au bon vieux temps; or nombre de distribs ne livrent pas par défaut le .pc.
 v 7.3.4 || true
 v 7.3.9 || true
 v 7.3.10 || true
@@ -118,7 +119,7 @@ v 7.3.30 || true
 v 7.3.31 || true
 v 7.3.32 || true
 v 7.3.33 || true
-v 7.4.16 && prerequis="$prerequis oniguruma" || true
+v 7.4.16 && prerequis="$prerequis oniguruma" && remplacerPrerequis "icu >= 60" && remplacerPrerequis "openssl < 4" && retirerModif confclosedir || true
 v 7.4.19 || true
 v 7.4.20 || true
 v 7.4.21 || true
@@ -290,6 +291,19 @@ fileinfoSobre()
 	else
 	filtrer ext/fileinfo/data_file.c sed -e 's#^0x#"\\x#' -e 's#, 0x#\\x#g' -e 's#, *$#"#' -e 's#{ *$##' -e 's#}##' -e 's#, *;#";#'
 	fi
+}
+
+confclosedir()
+{
+	# Entre les versions 7.1 et 7.3 incluses, le configure croyant bien faire a ajouté à son test de readdir_r un close symétrique à l'opendir.
+	# Problème: l'opération symétrique à opendir est closedir, pas close.
+	# En conséquence, le programme testé sortait en erreur, laissant le configure croire que readdir_r n'était pas exploitable (alors que l'erreur était sur la suite).
+	
+	local f
+	for f in acinclude.m4 aclocal.m4 configure
+	do
+		filtrer "$f" sed -e 's#close(dir)#closedir(dir)#'
+	done
 }
 
 cve201911043()
