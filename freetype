@@ -77,7 +77,12 @@ moireHb()
 	moire -i hb "$@" --sans-hb
 	# À l'intérieur du moiré (Freetype itération 0), sutiliser() est surchargée pour ne rien faire.
 	# Cependant l'Harfbuzz (itération 1) aura besoin de nos dépendances pour les inclure aux siennes. Il nous faut donc au moins le guili_deps_pondre.
-	sutiliser() { preutiliser ; guili_deps_pondre ; diag + "`bn "$dest"`" ; }
+	sutiliser()
+	{
+		preutiliser
+		guili_deps_pondre
+		diag + "`bn "$dest"`"
+	}
 	# Idem si on est en simple visite de vérification: signalons que nous sommes installés.
 	sortieSansReinstall() { diag + "`bn "$dest"`" ; }
 }
