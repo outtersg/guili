@@ -390,6 +390,7 @@ serveurFreebsd()
 			parametres="`echo "$commande" | sed -e 's/^[^ 	]*[ 	]*//'`"
 			;;
 	esac
+	serveur_patronVars "$desttemp" "`dirname "$fpid"`"
 	
 	mkdir -p "$desttemp/etc/rc.d"
 	cat > "$desttemp/etc/rc.d/$nom" <<TERMINE
@@ -561,6 +562,7 @@ serveurLinux()
 			true
 			;;
 	esac
+	serveur_patronVars "$desttemp" "`dirname "$fpid"`"
 	
 	mkdir -p "$desttemp/etc/init.d"
 	cat > "$desttemp/etc/init.d/$nom" <<TERMINE
