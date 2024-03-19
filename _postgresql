@@ -118,7 +118,9 @@ fi
 
 echo "Auto-démarrage…" >&2
 cd "$TMP" ; rm -Rf "$TMP/$$" # Sans cette ligne, le sudo … postgresql start se lance depuis $TMP/$$, qui sera effacé par menage() en sortie du présent script, donnant un "postmaster: find_my_exec: could not locate my own executable path". Curieusement, si place la présente ligne APRÈS le serveur -u (et donc le start), ça passe quand même, mais ça semble être un effet de chance inexplicable de l'ordonnancement, sur lequel il vaut mieux ne pas trop compter.
-serveur -u "$compte" simple postgresql$suffixe -e LD_LIBRARY_PATH "$destpostgresql/bin/postmaster -D $bdd"
+embrayage=postgres
+pge $version_postgresql 8.2 || embrayage=postmaster # Maintenu comme alias de postgres, puis complètement disparu en version 16.
+serveur -u "$compte" simple postgresql$suffixe -e LD_LIBRARY_PATH "$destpostgresql/bin/$embrayage -D $bdd"
 
 # Note: plusieurs instances de PostgreSQL à la fois sous FreeBSD (8):
 # PostgreSQL consomme en mémoire partagée ce qu'on lui donne (par défaut, 24 Mo) + de la mémoire pour tout le reste (dont les connexion; par défaut 100, qui doivent bouffer dans les 3 Mo au total) = 30 Mo de mémoire partagée par défaut pour une instance.
