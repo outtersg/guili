@@ -28,7 +28,7 @@ logiciel=ruby
 
 # Historique des versions gérées
 
-v 2.2.3 && prerequis="git pkgconfig \\" || true
+v 2.2.3 && prerequis="git pkgconfig \\" && modifs=qsort || true
 v 2.2.8 || true
 v 2.3.6 || true
 v 2.4.3 || true
@@ -40,6 +40,13 @@ v_maj="`echo "$version" | cut -d . -f 1-2`"
 archive="https://cache.ruby-lang.org/pub/ruby/$v_maj/ruby-$version.tar.gz"
 
 # Modifications
+
+qsort()
+{
+	# https://bugs.ruby-lang.org/issues/20151
+	# Depuis FreeBSD 14, ils se sont alignés sur GNU, et donc ont à la fois du HAVE_GNU_QSORT_R et du __FreeBSD__
+	filtrer util.c sed -E -e '/#if defined HAVE_BSD_QSORT_R|#elif defined HAVE_QSORT_S/s/$/ \&\& !defined HAVE_GNU_QSORT_R/'
+}
 
 # En avant!
 
