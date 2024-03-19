@@ -33,6 +33,8 @@ v 2.2.8 || true
 v 2.3.6 || true
 v 2.4.3 || true
 v 2.5.1 || true
+v 2.7.5 || true
+v 3.1.1 || true
 
 # Variables
 
