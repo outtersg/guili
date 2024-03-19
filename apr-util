@@ -36,6 +36,7 @@ v 1.3.12 && prerequis="apr expat" # Sinon apr installe l'expat embarquée, qui n
 v 1.5.1 && prerequis="apr >= 1.4.6 expat" || true
 v 1.5.4 && prerequis="apr >= 1.5 expat" || true
 v 1.6.1 && prerequis="apr >= 1.6 expat" || true
+v 1.6.3 || true
 
 # Modifications
 
