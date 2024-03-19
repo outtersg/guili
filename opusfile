@@ -27,7 +27,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 # openssl pour libopusurl.
-v 0.7 && prerequis="pkgconfig \\ opus libogg openssl" && modifs="sansCompat" || true
+v 0.7 && prerequis="pkgconfig curl zlib \\ opus libogg openssl" && modifs="sansCompat" || true
 v 0.9 || true
 v 0.11 || true
 v 0.12 || true
@@ -40,9 +40,16 @@ sansCompat()
 	# On essaie donc de placer une libcompat recompilée dans le chemin, pour que le lien final se fasse sur elle plutôt que sur la biblio système.
 	
 	[ `uname` = FreeBSD ] || return 0
+	
+	local fbsd url
 	fbsd="`uname -r | cut -d - -f 1`.0"
-	sfbsd="https://svnweb.freebsd.org/base/release/$fbsd"
-	curl -k -o ftime.c "$sfbsd/lib/libcompat/4.1/ftime.c?view=co"
+	if pge $fbsd 13
+	then
+		url="https://cgit.freebsd.org/src/plain/lib/libcompat/4.1/ftime.c?h=stable/`printf $fbsd | cut -d . -f 1`"
+	else
+		url="https://svnweb.freebsd.org/base/release/$fbsd/lib/libcompat/4.1/ftime.c?view=co"
+	fi
+	curl -k -o ftime.c "$url"
 	cc -c -o ftime.o ftime.c -fPIC
 	ar cr libcompat.a ftime.o
 	
