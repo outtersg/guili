@@ -28,13 +28,16 @@ logiciel=ruby
 
 # Historique des versions gérées
 
-v 2.2.3 && prerequis="git pkgconfig \\" && modifs=qsort || true
+v 2.2.3 && prerequis="git pkgconfig \\ openssl < 3" && modifs=qsort || true
 v 2.2.8 || true
 v 2.3.6 || true
 v 2.4.3 || true
 v 2.5.1 || true
 v 2.7.5 || true
-v 3.1.1 || true
+v 3.1.1 && remplacerPrerequis "openssl < 4" || true
+
+optionSi ossl/openssl || virerPrerequis openssl
+optionSi readline
 
 # Variables
 
@@ -54,6 +57,7 @@ qsort()
 
 destiner
 
+prerequisOpenssl
 prerequis
 
 obtenirEtAllerDansVersion
