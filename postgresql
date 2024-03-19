@@ -168,7 +168,7 @@ echo Configuration… >&2
 ./configure --prefix="$dest" --enable-thread-safety --with-python --with-openssl $OPTIONS_CONF
 
 echo Compilation… >&2
-make
+make -j4
 sed < contrib/start-scripts/freebsd > share.init.postgresql -e "/^prefix=/s#=.*#=$INSTALLS#"
 chmod a+x share.init.postgresql
 
