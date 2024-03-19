@@ -38,8 +38,7 @@ i486()
 
 # Variables
 
-archive=http://ovh.dl.sourceforge.net/sourceforge/$logiciel/lib$logiciel-$v_archive
-archive="https://kent.dl.sourceforge.net/project/mad/libmad/$v_archive/libmad-$v_archive.tar.gz"
+archive="https://netcologne.dl.sourceforge.net/project/mad/libmad/$v_archive/libmad-$v_archive.tar.gz"
 
 destiner
 
