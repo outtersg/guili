@@ -32,6 +32,7 @@ v 3.42.1 || true
 v 3.52.1 && v_nspr="4.25" || true
 v 3.53 && modifs="$modifs Iutil" || true
 v 3.70 && prerequis="perl \\ $prerequis" && v_nspr=4.32 || true
+v 3.99 && v_nspr=4.35 || true
 
 prerequis="make \\ $prerequis zlib nspr $v_nspr"
 
