@@ -21,30 +21,31 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 logiciel=ruby
 
 # Historique des versions gérées
 
-v 2.2.3 && modifs="" || true
+v 2.2.3 && prerequis="git pkgconfig \\" || true
 v 2.2.8 || true
 v 2.3.6 || true
 v 2.4.3 || true
 v 2.5.1 || true
 
-prerequis
-
-# Modifications
-
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 v_maj="`echo "$version" | cut -d . -f 1-2`"
 archive="https://cache.ruby-lang.org/pub/ruby/$v_maj/ruby-$version.tar.gz"
 
-[ -d "$dest" ] && exit 0
+# Modifications
+
+# En avant!
+
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -59,6 +60,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+sutiliser
