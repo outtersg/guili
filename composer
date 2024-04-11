@@ -44,6 +44,8 @@ v 2.3.10 || true
 v 2.4.4 || true
 v 2.5.8 || true
 
+argOptions="`options "$argOptions=prudent"`" ; option prudent || true # Par défaut on se montre prudents.
+
 # Modifications
 
 # Variables
@@ -59,7 +61,12 @@ mkdir $TMP/$$/local
 cd $TMP/$$/local
 mkdir bin
 cp "`obtenir "$archive" composer-$version.phar`" bin/composer
-chmod a+x bin/composer
+if option prudent
+then
+	mv bin/composer bin/composer.bin
+	cp "$SCRIPTS/composer.prudent" bin/composer
+fi
+chmod a+x bin/composer*
 
 echo Installation… >&2
 sudo mkdir "$dest"

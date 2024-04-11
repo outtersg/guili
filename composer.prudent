@@ -1,0 +1,98 @@
+#!/bin/sh
+# Copyright (c) 2021,2024 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Lance composer en virant au préalable les liens symboliques vers des versions de dév, de peur que composer les écrase bêtement par la version téléchargée.
+
+set -e
+
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
+
+COMPOSER="$SCRIPTS/composer.bin"
+
+[ -x "$COMPOSER" ] || { echo "[31m# $COMPOSER n'est pas exécutable.[0m" >&2 ; exit 1 ; }
+
+# COPIE: src/scripts/shrc:compup()
+
+tourner()
+{
+	ICI="$PWD"
+	LIENS=
+
+	while [ ! -d vendor -o ! -f composer.json ]
+	do
+		cd ..
+		[ "$PWD" != / ] || { echo "# composer.json et vendor introuvables dans $ICI." >&2 ; return 1 ; }
+	done
+
+	LIENS="`liens`"
+	trap menage INT
+	trap menage TERM
+	boucler casser $LIENS
+	
+	( cd "$ICI" && $COMPOSER "$@" )
+	
+	menage
+}
+
+liens()
+{
+	find vendor -maxdepth 2 -type l | while read f
+	do
+		# À FAIRE: d'autres systèmes que BSD.
+		cible="$f:`stat -f %Y "$f"`"
+		case "$cible" in *" "*) echo "# $f contient des espaces. Je quitte." >&2 ; exit 2 ;; esac
+		printf "%s " "$cible"
+	done
+}
+
+boucler()
+{
+	local c="$1" ; shift
+	IFS=:
+	for lien in "$@" ; do tifs $c $lien ; done
+}
+
+tifs() { unset IFS ; "$@" ; }
+
+casser()
+{
+	echo "[36mPréservation de $1 → $2[0m" >&2
+	rm "$1"
+}
+
+restaurer()
+{
+	echo "[36mRestauration de $1 → $2[0m" >&2
+	find "$1" -maxdepth 2 \( -name _darcs -o -name .git \) | while read f
+	do
+		echo "# Trouvé $f; c'est louche, je sors." >&2
+		exit 2
+	done
+	rm -Rf "$1"
+	ln -s "$2" "$1"
+}
+
+menage()
+{
+	boucler restaurer $LIENS
+}
+
+tourner "$@"
