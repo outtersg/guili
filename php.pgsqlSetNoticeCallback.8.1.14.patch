@@ -16,7 +16,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginf
  
  #define arginfo_class_PDO_PGSql_Ext_pgsqlGetPid arginfo_class_PDO_PGSql_Ext_pgsqlLOBCreate
  
-+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_PDO_PGSql_Ext_pgsqlSetNoticeCallback, 0, 1, _IS_BOOL, 0)
++ZEND_BEGIN_ARG_WITH_TENTATIVE_RETURN_TYPE_INFO_EX(arginfo_class_PDO_PGSql_Ext_pgsqlSetNoticeCallback, 0, 1, _IS_BOOL, 0)
 +	ZEND_ARG_TYPE_INFO(0, callback, IS_CALLABLE, 1)
 +ZEND_END_ARG_INFO()
 +
