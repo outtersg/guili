@@ -74,7 +74,7 @@ v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfaul
 v 5.4.39 || true
 v 5.4.41 || true
 v 5.4.45 || true
-v 5.4.45.1 || true
+v 5.4.45.1 || true # Qq modifs faites sur un BSD avec un clang++ 17 qui gueulait: 1. un fichier pète sur les register: le recomp en -std=c++11; 2. readdir_r pète: définir à 1 le HAVE_ dans le config.h; 3. cooie_seeker pète: transformer ds toutes les déclarations off_t en fpos_t *, puis le passer en *
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
@@ -180,6 +180,7 @@ v 8.1.22 || true
 v 8.1.24 || true
 v 8.1.25 || true
 v 8.1.27 || true
+v 8.1.28 || true
 v 8.2.1 && modifs="$modifs atomicconst" || true
 v 8.2.3 || true
 v 8.2.4 || true
@@ -192,9 +193,13 @@ v 8.2.12 || true
 v 8.2.15 || true
 v 8.2.16 || true
 v 8.2.17 || true
+v 8.2.18 || true
+v 8.2.19 || true
 v 8.3.2 || true
 v 8.3.3 || true
 v 8.3.4 || true
+v 8.3.6 || true
+v 8.3.7 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
@@ -557,7 +562,7 @@ case "$version" in
 esac
 archive="http://de.php.net/distributions/$logiciel-$v_archive.tar.bz2"
 archive="http://de2.php.net/distributions/$logiciel-$v_archive.tar.bz2"
-pge $v_archive 5.3.27 || archive="http://museum.php.net/php`echo $v_archive | cut -d . -f 1`/php-$v_archive.tar.bz2"
+pge $v_archive 8.0.14 || archive="http://museum.php.net/php`echo $v_archive | cut -d . -f 1`/php-$v_archive.tar.bz2"
 
 if false
 then
@@ -646,6 +651,7 @@ true || \
 	export PKG_CONFIG_PATH="$HOME/local/lib/pkgconfig" CPPFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib"
 	./configure --with-pdo-pgsql=$HOME/local --with-libxml=$HOME/local --with-iconv=$HOME/local
 	# Faire sauter le if unable to infer tagged configuration et son contenu
+	# Modifier aussi ext/pdo_pgsql/tests/common.phpt ext/pdo_pgsql/tests/config.inc (user=gui password=)
 	make -j4 && TEST_PHP_EXECUTABLE=`pwd`/sapi/cli/php ./sapi/cli/php run-tests.php ext/pdo_pgsql/tests
 }
 # --with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
