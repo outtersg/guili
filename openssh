@@ -35,7 +35,10 @@ v 8.1.1 || true
 # https://www.openssh.com/legacy.html
 v 8.2.1 || true
 v 8.4.1 || true
-v 8.6.1 || true
+# /!\ CVE-2024-6387 touche la 8.5.1 et les suivantes, jusqu'à correction en 9.8.1
+#     https://it.slashdot.org/story/24/07/02/2341237/over-14-million-servers-may-be-vulnerable-to-opensshs-regresshion-rce-flaw
+#v 8.6.1 || true
+v 9.8.1 || true
 
 # Modifications
 
