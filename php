@@ -181,6 +181,7 @@ v 8.1.24 || true
 v 8.1.25 || true
 v 8.1.27 || true
 v 8.1.28 || true
+v 8.1.29 || true
 v 8.2.1 && modifs="$modifs atomicconst" || true
 v 8.2.3 || true
 v 8.2.4 || true
@@ -195,11 +196,13 @@ v 8.2.16 || true
 v 8.2.17 || true
 v 8.2.18 || true
 v 8.2.19 || true
+v 8.2.21 || true
 v 8.3.2 || true
 v 8.3.3 || true
 v 8.3.4 || true
 v 8.3.6 || true
 v 8.3.7 || true
+v 8.3.9 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
