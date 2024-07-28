@@ -31,6 +31,7 @@ v 1.8.3 && modifs="pkgconf_lib" || true
 v 1.9.2 || true
 v 1.9.3 || true
 v 1.9.4 || true
+v 1.10.0 || true # Première multifil.
 
 # Modifications
 
