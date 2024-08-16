@@ -214,7 +214,10 @@ ANCIEN_PHP="`command -v php || true`"
 # Si certains logiciels sont déjà installés, on laisse le configure PHP les détecter, mais on s'assure auparavant que ce sera notre version qu'il détectera, en l'ajoutant aux prérequis.
 if optionSi postgresql sh -c 'psql --version 2> /dev/null | grep -q PostgreSQL'
 then
-	OPTIONS_CONF="$OPTIONS_CONF --with-pgsql --with-pdo-pgsql"
+	case "$prerequis" in *postgresql) prerequis="$prerequis+osslxx" ;; esac
+	# Le configure n'exploite pas le $PATH, mais va chercher pg_config dans des chemins codés en dur à moins d'avoir forcé en --with-…=$chemin.
+	cheminPostgresql() { OPTIONS_CONF="$OPTIONS_CONF --with-pgsql=$destpostgresql --with-pdo-pgsql=$destpostgresql" ; }
+	modifs="$modifs cheminPostgresql"
 fi
 
 if ! optionSi mysql commande mysql
