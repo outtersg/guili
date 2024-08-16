@@ -88,12 +88,12 @@ v 5.6.40 || true
 v 5.6.40.1 || true
 # icu < 70 car en 70, l'UBool operator== de brkiter.h devient un bool operator== (le premier étant un unsigned char, et clang refusant de faire la conversion => la version interne à PHP est incompatible).
 # On peut voir d'ailleurs dans les codepointiterator_internal.h des versions 8 qu'ils l'ont aiguillé d'un #if U_ICU_VERSION_MAJOR_NUM >= 70
-v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis "icu >= 60 < 70" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
+v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 && ajouterModif cve201911043 confclosedir && remplacerPrerequis "openssl < 3" || true
 v 7.1.14 || true
-v 7.2.1 || true
+v 7.2.1 && remplacerPrerequis "icu >= 60 < 70" || true
 v 7.2.3 || true
 v 7.2.4 || true
 v 7.2.10 || true
