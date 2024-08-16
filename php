@@ -31,7 +31,7 @@ OPTIONS_CONF=
 
 # pkgconfig au moins pour libxml en PHP 8.
 # openssl < 1.1: apparemment la 5.2 connaît déjà la 1.1, mais ça doit être dans nos dépendances que ça coince (genre on se lie à un PostgreSQL ne connaissant lui-même qu'OpenSSL 1.0).
-prerequis="pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl < 1.1 libssh+osslxx sqlite"
+prerequis="langc() langcxx() pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl < 1.1 libssh+osslxx sqlite"
 v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl doubleYytext || true
 v 5.0.3
 v 5.0.4
