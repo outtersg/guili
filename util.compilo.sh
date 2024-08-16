@@ -458,7 +458,8 @@ cxx11()
 
 cxx()
 {
-	# On repose sur le compiloSysVersion appelé en standard.
+	# Similaire au compiloSysVersion par défaut.
+	compiloSysVersion -i "$@" clang gcc
 	libcxx
 }
 
