@@ -427,9 +427,11 @@ meilleurCompiloInstalle() { meilleurCompilo "$@" ; }
 
 langcxx()
 {
+	local v_cxx="$v_langcxx"
+	case "$1" in ?*) v_cxx="$1" ;; esac
 	# À FAIRE: pour le moment on s'ajoute encore à COMPILO_AJOUTS (au lieu d'un COMPILO_cxx_AJOUTS).
-	case "$1" in
-		""|11|14|17) cxx$1 + ;; # Avec un + car en $MODERNITE 5, nous sommes appelés en direct, et non plus en second choix après une passe en + qui elle aura eu le loisir de fouiller tous les compilos disponibles.
+	case "$v_cxx" in
+		""|11|14|17) cxx$v_cxx + ;; # Avec un + car en $MODERNITE 5, nous sommes appelés en direct, et non plus en second choix après une passe en + qui elle aura eu le loisir de fouiller tous les compilos disponibles.
 		*) fatal "# Je ne sais pas gérer langcxx($*)" ;;
 	esac
 	
