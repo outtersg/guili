@@ -59,9 +59,9 @@ v 12.0.1 || true
 v 13.0.0 || true
 v 13.0.1 || true
 v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modifs sansBenchmarks bibliosTriplet" || true
-v 15.0.7 && modifs="$modifs cxxabiSansHesitation cxxToutEnUn" || true
+v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
 v 16.0.6 || true
-v 17.0.1 && babi="$babi grow_by" && prerequis="python >= 3 cmake >= 3.20 \\" || true
+v 17.0.1 && babi="$babi grow_by" && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 
 lieur()
 {
@@ -110,6 +110,58 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+shaxxx()
+{
+	# compiler-rt exploite les fonctions sha224, sha256, sha384, sha512). Mais toutes ne sont psa définies sur tous les systèmes.
+	# Notamment sha224 qui n'apparaît qu'à partir de FreeBSD 12.
+	local f
+	for f in \
+		compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_freebsd.cpp \
+		compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_freebsd.h \
+		compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc \
+		compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
+	do
+		[ -f "$f" ] || continue
+		if [ ! -f /usr/include/sha224.h ]
+		then
+			filtrer "$f" sed \
+				-e '/[sS][hH][aA].*224/d' \
+				-e '/PROC_ASLR_STATUS/{
+i\
+#ifndef PROC_ASLR_STATUS
+i\
+#define PROC_ASLR_STATUS 14
+i\
+#endif
+}' \
+				-e '/PROC_ASLR_ACTIVE/{
+i\
+#ifndef PROC_ASLR_ACTIVE
+i\
+#define PROC_ASLR_ACTIVE 0x80000000
+i\
+#endif
+}'
+		fi
+	done
+}
+
+tailleintsanitizer()
+{
+	# Le sanitizer redéfinit des structures équivalentes à celles système.
+	# Souci: il n'est adapté qu'à FreeBSD 12, nous on veut pouvoir compiler pour du 11 voire 10.
+	# Or l'alignement des données n'est pas le même, ce que fort heureusement nous signale un assert(sizeof(__sanitizer_dirent) <= sizeof(dirent))
+	# À FAIRE: aller choper plus finement dans /usr/include/sys/dirent.h
+	#          techniquement du #if __FreeBSD_version < 1200000 devrait faire l'affaire
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_freebsd.h awk \
+		'/^struct __sanitizer_dirent/{dedans=1}
+		#dedans{gsub(/unsigned int/, "u32");gsub(/unsigned short/, "u16")} # Ah non ce n était pas ça finalement.
+		dedans&&/d_namlen/{gsub(/u16/,"u8")}
+		dedans&&/d_pad/{next}
+		/^}/{dedans=0}
+		{print}'
+}
 
 cxxToutEnUn()
 {
@@ -618,6 +670,7 @@ integrer projects/libcxx      libcxx
 # Pose problème sur Mac en 3.6 tant que l'on n'a pas un premier clang (utilise des trucs absolument tordus).
 	if option lldb ; then integrer tools/lldb lldb ; fi
 	if option lld ; then integrer tools/lld lld ; fi
+	# À FAIRE: integrer libunwind? C'est un projet LLVM?
 }
 modulesClang
 fi
@@ -647,8 +700,11 @@ case $constr in
 				OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=clang"
 				if option libcxx
 				then
-					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi" # À FAIRE: libunwind; compiler-rt aussi? [https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477]
+							# compiler-rt: https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477 + sans ça pas de libclang_rt.profile-x86_64.a indispensable au -fprofile-instr-generate qui permet (par ex. à Python) de se générer avec les stats de perfs.
+							OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi;compiler-rt" # À FAIRE: libunwind
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_DEFAULT_CXX_STDLIB=libc++"
+							#OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_CXX_ABI=libcxxabi"
+							
 					# Bon c'est pas gagné: si on veut que nos programmes se lient à notre libc++abi (et que tout marche comme voulu), on doit forcer:
 					# - soit revenir à du -cxx-isystem (ce que faisait notre quandMemeCxxISystem() pour la compil de clang, et compilo_cheminLibcxxClang() pour les autres):
 					#     -cxx-isystem $INSTALLS/include/c++/v1 -cxx-isystem $INSTALLS/include -cxx-isystem /usr/include -L$INSTALLS/lib
