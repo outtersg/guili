@@ -62,6 +62,8 @@ v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modi
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
 v 16.0.6 || true
 v 17.0.1 && babi="$babi grow_by" && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
+v 17.0.3 || true
+v 17.0.6 || true
 
 lieur()
 {
