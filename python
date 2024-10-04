@@ -427,6 +427,8 @@ pge $version 3 && OPTIONS_CONF="$OPTIONS_CONF --with-system-ffi" || true
 confOptims()
 {
 	case "$CC" in
+		# /!\ Il faut non seulement le binaire llvm-profdata, mais aussi que llvm/clang ait été compilé avec compiler-rt.
+		# À FAIRE: le vérifier?
 		clang) commande llvm-profdata || return 0 ; export LLVM_PROFDATA="`command -v llvm-profdata`" ;;
 	esac
 	# Sur les petites machines, les optims poussent la mémoire à bout: on abandonne.
