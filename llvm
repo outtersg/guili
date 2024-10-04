@@ -585,8 +585,21 @@ esac
 
 integrer()
 {
+	local dest="$1" module="$2" src="`basename "$1"`" lien=
+	case "$module" in "") module="$src" ;; esac
+	case $constr in runtimes) lien="$dest" ; dest="$src" ;; esac
+	
 	ici="`pwd`"
-	( obtenirEtAllerDans "`archive "$2"`" && rm -Rf "$ici/$1" && mv "`pwd`" "$ici/$1" )
+	# Pour que toutes nos modifs (habituées à travailler sur projects/xxx plutôt que xxx) fonctionnent encore, on crée un lien symbolique projects/xxx -> ../xxx:
+	[ -z "$lien" -o -L "$lien" ] || { mkdir -p "`dirname "$lien"`" ; ln -s "$ici/$dest" "$lien" ; }
+	
+	(
+		obtenirEtAllerDans "`archive "$module"`" || exit 1
+		src="/`src "$src"`" ; case "$src" in /.) src= ;; esac
+		rm -Rf "$ici/$dest"
+		mv "`pwd`$src" "$ici/$dest"
+		# Pour la 14, cf. commentaire de src().
+	)
 }
 if [ "`basename "$0"`" = clang -a $constr != runtimes ] ; then
 modulesClang()
