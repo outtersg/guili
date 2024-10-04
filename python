@@ -45,7 +45,7 @@ v 2.7.14 || true
 v 2.7.15 || true
 v 2.7.16 || true
 # À FAIRE: sur mon FreeBSD 10.2, failed to compile bsddb readline: pour le second, prérequérir readline et ncurses ferait-il l'affaire?
-v 3.4.3 && modifs="incdirbourrin testsLocalhost" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
+v 3.4.3 && modifs="incdirbourrin testsLocalhost shellaligans" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
 v 3.7.4 || true
 v 3.7.6 || true
@@ -164,6 +164,21 @@ cur_target=10.8
 incdir()
 {
 	filtrer setup.py sed -e "/inc_dirs = /s#\$# + ['$INSTALLS/include']#"
+}
+
+shellaligans()
+{
+	# Qu'est-ce que c'est que cette blague d'utiliser du $(shell pwd) (ou realpath, ou test) un peu partout?
+	# Sur BSDmake c'est de la merde ça plante tout: la commande n'étant pas reconnue renvoie du vide (mais sans planter???), transformant des d="$(shell pwd)/dossier" en d=/dossier et forcément quand il s'agit d'écrire dedans, à moins d'être root… (mais bien sûr tout le monde installe son python en root?)
+	# Au départ pas trop grave (jusque dans les 3.9 n'était utilisé qu'à un endroit en compil croisée),
+	# mais désormais utilisée pour absolutiser par un $(shell pwd) le dossier de ponte des stats de profilage.
+	local f
+	for f in configure.ac configure
+	do
+		filtrer "$f" sed \
+			-e 's/\\\$(shell \([^)]*\))/\`\1\`/g' \
+			-e 's/\$(shell \([^)]*\))/`\1`/g'
+	done
 }
 
 incdirfinal()
