@@ -182,7 +182,7 @@ v 8.1.25 || true
 v 8.1.27 || true
 v 8.1.28 || true
 v 8.1.29 || true
-v 8.2.1 && modifs="$modifs atomicconst" || true
+v 8.2.1 && modifs="$modifs atomicconst pglazyfetch" || true
 v 8.2.3 || true
 v 8.2.4 || true
 v 8.2.6 || true
@@ -289,6 +289,19 @@ atomicconst()
 	# https://github.com/php/php-src/issues/8881
 	# Normalement tous les compilos C11 ont été corrigés (https://gitlab.isc.org/isc-projects/bind9/-/issues/3370)
 	filtrer Zend/zend_atomic.h sed -e '/__c11_atomic_load(&obj->value/s/obj->/((zend_atomic_bool *)obj)->/'
+}
+
+pglazyfetch()
+{
+	# https://github.com/php/php-src/pull/15750
+	# On part de a730319fd531eab6d843b08f8d67abfe278e66d4 qui était la dernière version compatible 8.4 avant rebase pour la 8.5.
+	local vphp
+	for vphp in 8.4 8.2
+	do
+		pge $version $vphp || continue
+		break
+	done
+	patch -p0 < "$SCRIPTS/php.pglazyfetch.$vphp.patch"
 }
 
 fileinfoSobre()
