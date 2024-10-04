@@ -604,6 +604,7 @@ integrer()
 if [ "`basename "$0"`" = clang -a $constr != runtimes ] ; then
 modulesClang()
 {
+	pg 15 $version || integrer cmake
 	local moduleClang=clang
 	pge $version 9 || moduleClang=cfe
 	integrer tools/clang          $moduleClang
