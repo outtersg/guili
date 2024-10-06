@@ -41,7 +41,7 @@ diff -ruw ext/pdo_pgsql/pgsql_driver_arginfo.h ext/pdo_pgsql/pgsql_driver_arginf
 diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 --- ext/pdo_pgsql/pgsql_driver.c	2015-09-01 22:09:37.000000000 +0200
 +++ ext/pdo_pgsql/pgsql_driver.c	2019-10-01 05:18:31.085807000 +0200
-@@ -103,7 +103,23 @@
+@@ -103,7 +103,24 @@
  
  static void _pdo_pgsql_notice(pdo_dbh_t *dbh, const char *message) /* {{{ */
  {
@@ -60,7 +60,8 @@ diff -ruw ext/pdo_pgsql/pgsql_driver.c ext/pdo_pgsql/pgsql_driver.c
 +		}
 +		zval_ptr_dtor(&zarg);
 +		if (ret == FAILURE) {
-+			pdo_raise_impl_error(dbh, NULL, "HY000", "could not call user-supplied function");
++			// On ne fait rien. En PHP < 8.4 on a déjà vu des ménages de fin de session déclencher un rollback (pourquoi?) déclenchant une notice "no transaction in progress" déclenchant une exception car a priori la fonction PHP était déjà désallouée.
++			//pdo_raise_impl_error(dbh, NULL, "HY000", "could not call user-supplied function");
 +		}
 +	}
  }
