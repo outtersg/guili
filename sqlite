@@ -42,6 +42,7 @@ v 3.39.4 || true
 v 3.40.1 || true
 v 3.41.2 && v_annee=2023 || true
 v 3.42.0 || true
+v 3.46.1 && v_annee=2024 || true
 
 option intarray && modifs="$modifs intarray" || true
 
@@ -59,10 +60,19 @@ avecNotif()
 pcre()
 {
 	options="$options --enable-pcre"
-	patch -p0 < "$SCRIPTS/sqlite_pcre.patch"
-	if pge $version 3.39 ; then patch -p0 < "$SCRIPTS/sqlite_pcre.3.39.patch"
-	elif pge $version 3.36 ; then patch -p0 < "$SCRIPTS/sqlite_pcre.3.36.patch"
-	fi
+	local vr
+	for vr in 3.41 3
+	do
+		pge $version $vr || continue
+		patch -p0 < "$SCRIPTS/sqlite_pcre_a.$vr.patch"
+		break
+	done
+	for vr in 3.44 3.39 3.36
+	do
+		pge $version $vr || continue
+		patch -p0 < "$SCRIPTS/sqlite_pcre.$vr.patch"
+		break
+	done
 	local pcre_c="$HOME/src/projets/sqlite3-pcre/pcre.c"
 	[ -f "$pcre_c" ] || pcre_c="`obtenir https://raw.githubusercontent.com/outtersg/sqlite3-pcre/master/pcre.c`"
 	local with=
