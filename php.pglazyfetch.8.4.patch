@@ -220,9 +220,9 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  		}
 +
 +		S->is_prepared = false;
-+		if (H->running_stmt == S) {
-+			H->running_stmt = NULL;
  		}
++	if (H->running_stmt == S) {
++		H->running_stmt = NULL;
 +	}
 +}
 +
@@ -239,7 +239,7 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  		efree(S->stmt_name);
  		S->stmt_name = NULL;
  	}
-@@ -142,14 +182,20 @@ static int pgsql_stmt_execute(pdo_stmt_t *stmt)
+@@ -142,14 +182,19 @@ static int pgsql_stmt_execute(pdo_stmt_t *stmt)
  	pdo_pgsql_stmt *S = (pdo_pgsql_stmt*)stmt->driver_data;
  	pdo_pgsql_db_handle *H = S->H;
  	ExecStatusType status;
@@ -257,7 +257,6 @@ index 8f3dd5237b5..53e7c08f1e0 100644
 +	 * (maybe it will change with pipeline mode in libpq 14?) */
 +	if (H->running_stmt && H->running_stmt->is_unbuffered) {
 +		pgsql_stmt_finish(H->running_stmt, FIN_CLOSE);
-+		H->running_stmt = NULL;
  	}
 +	/* ensure that we free any previous unfetched results */
 +	pgsql_stmt_finish(S, 0);
