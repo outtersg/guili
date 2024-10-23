@@ -601,6 +601,16 @@ else
 option apc || true
 option xdebug || true
 
+if option test
+then
+	modifs="$modifs modetest"
+	modetest()
+	{
+		CFLAGS="`echo "$CFLAGS" | sed -e 's/-O3//g'` -g"
+		CXXFLAGS="`echo "$CXXFLAGS" | sed -e 's/-O3//g'` -g"
+	}
+fi
+
 pousserPersonnalisations()
 {
 	local dest0="$1" dest="$2"
@@ -708,6 +718,8 @@ fi
 
 echo Compilation… >&2
 make -j 4
+
+if option test ; then echo "[33mCompilation disponible dans `pwd`[0m" >&2 ; TMP=/tmp/toto ; mkdir -p $TMP ; cd $TMP ; exit 0 ; fi
 
 echo Installation… >&2
 sudo make install
