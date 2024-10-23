@@ -202,7 +202,7 @@ index 8f3dd5237b5..169fa49af4e 100644
 +
 +		S->is_prepared = false;
  		}
-+	if (H->running_stmt == S) {
++	if (H->running_stmt == S && (fin_mode & (FIN_CLOSE|FIN_ABORT))) {
 +		H->running_stmt = NULL;
 +	}
 +}
@@ -360,7 +360,7 @@ index 8f3dd5237b5..169fa49af4e 100644
  		if (S->current_row < stmt->row_count) {
  			S->current_row++;
  			return 1;
-@@ -560,12 +677,28 @@
+@@ -560,12 +677,29 @@
  	return 1;
  }
  
@@ -384,6 +384,7 @@ index 8f3dd5237b5..169fa49af4e 100644
 +
 +	if (H->cached_table_name) {
 +		efree(H->cached_table_name);
++		H->cached_table_name = NULL;
 +		H->cached_table_oid = InvalidOid;
 +	}
 +
@@ -395,7 +396,7 @@ index 8f3dd5237b5..169fa49af4e 100644
  	}
  
 +	H->cached_table_oid = oid;
-+	H->cached_table_name =
++	H->cached_table_name = estrdup(table_name);
  	table_name = estrdup(table_name);
  
  	PQclear(tmp_res);

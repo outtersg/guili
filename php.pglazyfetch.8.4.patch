@@ -221,7 +221,7 @@ index 8f3dd5237b5..53e7c08f1e0 100644
 +
 +		S->is_prepared = false;
  		}
-+	if (H->running_stmt == S) {
++	if (H->running_stmt == S && (fin_mode & (FIN_CLOSE|FIN_ABORT))) {
 +		H->running_stmt = NULL;
 +	}
 +}
@@ -379,7 +379,7 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  		if (S->current_row < stmt->row_count) {
  			S->current_row++;
  			return 1;
-@@ -585,12 +702,28 @@ static int pgsql_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pd
+@@ -585,12 +702,29 @@ static int pgsql_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pd
  	return 1;
  }
  
@@ -403,6 +403,7 @@ index 8f3dd5237b5..53e7c08f1e0 100644
 +
 +	if (H->cached_table_name) {
 +		efree(H->cached_table_name);
++		H->cached_table_name = NULL;
 +		H->cached_table_oid = InvalidOid;
 +	}
 +
@@ -414,7 +415,7 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  	}
  
 +	H->cached_table_oid = oid;
-+	H->cached_table_name =
++	H->cached_table_name = estrdup(table_name);
  	table_name = estrdup(table_name);
  
  	PQclear(tmp_res);
