@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="autoconf automake \\"
 v 2019.01.18 && versionComplete="$v.f440dcb3c341d22428898952c343ad9fa6e9e7f5.git" || true
+v 2023.05.08 && versionComplete="$v.d8f91af976c97a6006a5bd1ad7149380c39ba454.git" || true
 
 # Modifications
 
