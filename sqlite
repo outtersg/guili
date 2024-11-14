@@ -120,7 +120,7 @@ pge "$version" 3.6.24 && archive="https://www.sqlite.org/sqlite-amalgamation-$ve
 version0="`echo "$version.0" | tr . '\012' | sed -e '2,$s/^/00/' -e '2,$s/.*\(..\)$/\1/' -e '5,63d' | tr -d '\012'`"
 pge $version 3.7 && archive="https://www.sqlite.org/$v_annee/sqlite-autoconf-$version0.tar.gz"
 
-prerequisPcre pcre1 pcre2
+prerequisPcre pcre2 pcre1
 
 if option hyperscan || option pcre1 || option pcre2 || optionSi pcre
 then
