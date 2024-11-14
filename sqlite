@@ -43,6 +43,7 @@ v 3.40.1 || true
 v 3.41.2 && v_annee=2023 || true
 v 3.42.0 || true
 v 3.46.1 && v_annee=2024 || true
+v 3.47.0 || true
 
 option intarray && modifs="$modifs intarray" || true
 
@@ -67,7 +68,7 @@ pcre()
 		patch -p0 < "$SCRIPTS/sqlite_pcre_a.$vr.patch"
 		break
 	done
-	for vr in 3.44 3.39 3.36
+	for vr in 3.47 3.44 3.39 3.36
 	do
 		pge $version $vr || continue
 		patch -p0 < "$SCRIPTS/sqlite_pcre.$vr.patch"
