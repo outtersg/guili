@@ -297,7 +297,11 @@ atomicconst()
 {
 	# https://github.com/php/php-src/issues/8881
 	# Normalement tous les compilos C11 ont été corrigés (https://gitlab.isc.org/isc-projects/bind9/-/issues/3370)
-	filtrer Zend/zend_atomic.h sed -e '/__c11_atomic_load(&obj->value/s/obj->/((zend_atomic_bool *)obj)->/'
+	filtrer Zend/zend_atomic.h awk '
+/zend_atomic.*\(const/{tyty=$0;sub(/.*[(]const */,"",tyty);sub(/[^a-z_].*/,"",tyty)}
+/__c11_atomic_load\(&obj->value/{sub(/obj->/, "(("tyty" *)obj)->")}
+{print}
+'
 }
 
 pglazyfetch()
