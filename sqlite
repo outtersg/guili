@@ -44,6 +44,7 @@ v 3.41.2 && v_annee=2023 || true
 v 3.42.0 || true
 v 3.46.1 && v_annee=2024 || true
 v 3.47.0 || true
+v 3.47.2 || true
 
 option intarray && modifs="$modifs intarray" || true
 
