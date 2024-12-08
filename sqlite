@@ -85,7 +85,9 @@ pcre()
 	[ -z "$with" ] || echo "#define WITH_$with 1" >> sqlite3.c
 	cat "$pcre_c" >> sqlite3.c
 	
-	autoconf # Notre .patch modifie configure.ac.
+	# Notre .patch modifie configure.ac, on autoconf donc.
+	# Et comme notre version de libtool n'est pas forcément la même que celle utilisée par les mainteneurs SQLite, on re --force --install (https://stackoverflow.com/a/3205400/1346819).
+	autoreconf --force --install
 }
 
 snapshot()
