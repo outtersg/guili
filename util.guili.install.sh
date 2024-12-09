@@ -567,7 +567,7 @@ debiner()
 			mv "\$b" "\$b2"
 			cat > "\$b" <<FINI
 #!/bin/sh
-LD_LIBRARY_PATH="\\\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="\\\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
 "\$b2" "\\\$@"
 FINI
 			chmod a+x "\$b"
