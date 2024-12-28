@@ -59,6 +59,15 @@ compat12()
 '
 }
 
+apng()
+{
+	local rustine="`obtenir "https://altushost-swe.dl.sourceforge.net/project/libpng-apng/libpng16/$version/libpng-$version-apng.patch.gz?viasf=1"`"
+	gunzip < "$rustine" | patch -p1
+}
+
+argOptions="`options "$argOptions=apng"`" # APNG est intégré d'office, si non non désiré. Notons que la libpng empaquetée pour FreeBSD est celle-ci (donc si on remplace par une sans, boum, plus de FIrefox par exemple).
+if option apng ; then modifs="$modifs apng" ; fi
+
 destiner
 
 prerequis
