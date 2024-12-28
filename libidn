@@ -26,12 +26,23 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 1.26 && prerequis="iconv" || true
+v 1.26 && prerequis="iconv" && modifs="avecVersionScript" || true
 v 1.29 || true
 v 2.2.0 || true
 v 2.3.7 || true
 
 # Modifications
+
+avecVersionScript()
+{
+	# Le configure détecte la capacité à exploiter l'option -Wl,--version-script=contest.map,
+	# mais avec un contenu pourri (référençant un symbole non défini dans le .c).
+	# Alors peut-être que GNU ld laisse passer, mais FreeBSD ld non.
+	# En conséquent ça lui plante la compile, ce qui laisse croire au configure que ça ne sert à rien de coller l'option, ce qui génère une biblio non versionnée, ce qui plante tout le système puisque le curl installé par paquets a besoin d'une libpsl qui a besoin de certains symboles versionnés de libidn.
+	# https://people.freebsd.org/~deischen/symver/library_versioning.txt
+	# https://maskray.me/blog/2020-11-26-all-about-symbol-versioning
+	filtrer configure sed -e 's/global: sym/global: */'
+}
 
 # Variables
 
