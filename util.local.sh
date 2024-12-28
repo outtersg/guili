@@ -16,4 +16,5 @@
 # $INSTALL_SILO
 #   Entrepôt à versions précompilées (les installations tenteront de consulter le silo voir si une version compilée existe; dans la négative, ils compileront puis pousseront vers le silo, à l'intetion des prochains qui tenteront l'installation).
 
-[ -n "$INSTALLS" ] || INSTALLS="/usr/local"
+[ -n "$INSTALLS" ] || INSTALLS="$HOME/local"
+export SANSSU=1
