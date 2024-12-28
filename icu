@@ -45,6 +45,7 @@ v 69.1 || true
 v 70.1 || true
 v 72.1 || true
 v 73.2 || true
+v 76.1 || true
 
 versiong="`echo "$version" | tr . _`"
 versiont="`echo "$version" | tr . -`"
