@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 5.16.3 || true
+v 5.16.3 && modifs="modifiable moiJeSais sansGdbm" || true
 v 5.18.0 || true # Attention, ne permet pas à OpenSSL 1.0.1e de finir son install (http://osdir.com/ml/blfs-support/2013-06/msg00136.html).
 v 5.24.0 && prerequis="db" || true
 v 5.26.1 || true
@@ -35,6 +35,24 @@ v 5.30.0 || true
 v 5.30.1 || true
 
 # Modifications
+
+sansGdbm()
+{
+	# Sur un FreeBSD mélant pkg et GuiLI, il peut trouver certaines biblios dans /usr/local/lib qu'il ne retrouvera plus au moment de compiler (avec un LD_LIBRARY_PATH cette fois restreint).
+	filtrer Configure sed -e '/wanted/s/ gdbm//g'
+}
+
+moiJeSais()
+{
+	filtrer Configure sed \
+		-e "s#^ccflags='#&$CFLAGS#" \
+		-e "s#^ldflags='#&$LDLAGS#"
+}
+
+modifiable()
+{
+	chmod u+w Configure
+}
 
 # Variables
 
