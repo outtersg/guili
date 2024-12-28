@@ -49,6 +49,7 @@ v 8.2.5111 || true
 v 8.2.5172 || true
 v 9.0.790 && modifs="$modifs write_info_struct" && modifs_corr="corr90" || true
 v 9.0.818 || true
+v 9.1.967 || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
