@@ -24,7 +24,7 @@ set -e
 Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 8.0.1 && modifs="detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python+osslxx < 3 \\ ncurses readline zlib openssl < 1.1" || true
+v 8.0.1 && modifs="detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python+osslxx < 3 bison \\ ncurses readline zlib openssl < 1.1" || true
 v 8.0.3 || true
 v 9.1.2 && modifs="bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" && remplacerPrerequis python+osslxx && prerequis="$prerequis gettext iconv" || true # gettext et iconv biblios de python3 (-lintl à la compil). # À FAIRE: comment détecter dynamiquement ces dépendances, sans surenchère pour les prérequis de python que celui-ci a embarqués statiquement? Certes en théorie mieux vaut trop que pas assez, en laissant l'édition de liens prendre ce qui l'intéresse, mais bon la pollution dans le .guili.prerequis, bof.
 v 9.2.1 && modifs="detectionPerl detectionReadline" && contribs="$contribs hstore" || true
