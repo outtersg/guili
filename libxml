@@ -36,8 +36,21 @@ v 2.9.7 || true
 v 2.9.9 || true
 v 2.9.10 || true
 v 2.9.12 || true
+v 2.9.14 || true
+v 2.10.4 || true
+v 2.11.6 || true
+v 2.12.9 || true
+v 2.13.5 || true
 
+if pge $version 2.10
+then
+archive=https://gitlab.gnome.org/GNOME/libxml2/-/archive/v$version/libxml2-v$version.tar.gz
+v_maj="`echo "$version" | cut -d . -f 1-2`"
+archive=https://download.gnome.org/sources/libxml2/$v_maj/libxml2-$version.tar.xz
+prerequis="pkgconfig \\ $prerequis"
+else
 archive=http://xmlsoft.org/sources/libxml2-$version.tar.gz
+fi
 
 forcagePython()
 {
