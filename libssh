@@ -30,6 +30,7 @@ v 1.4.2 && prerequis="openssl zlib" && modifs="multiarch" || true
 v 1.4.3 || true
 v 1.7.0 || true
 v 1.8.0 || true
+v 1.11.1 || true
 
 prerequisOpenssl
 
