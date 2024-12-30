@@ -439,6 +439,8 @@ confOptims()
 	esac
 ( pg 3.5.3 $version && pge $version 3 ) || pg 2.7.13 $version || OPTIONS_CONF="$OPTIONS_CONF --enable-optimizations" # Quadruplement du temps de compil pour 20% de gain à l'exécution.
 }
+# Option o0: pour https://github.com/llvm/llvm-project/issues/59139 /!\ Le fait de passer par une option fait que la version non optimisée passera devant celle optimisée (puisqu'ordre fondé sur le nombre d'options).
+option o0 ||
 confOptims
 
 for option in $optionsModules ; do option "$option" || true ; done # Assurons destiner() que nous prenons en charge ces options (qui entreront dans le nom du dossier $dest), même si on ne les exploite qu'un peu plus loin.
