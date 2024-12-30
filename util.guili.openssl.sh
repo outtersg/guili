@@ -20,6 +20,7 @@
 
 prerequisOpenssl()
 {
+	# À FAIRE: dans les prerequis sans +osslxx, repérer ceux qui contiennent un prerequisOpenssl et leur ajouter alors un +osslxx.
 	case "$argOptions" in
 		# Au moins une option OpenSSL positive: on va pouvoir passer à la suite (qui gérera l'aiguillage).
 		*+ossl*|*+openssl*) true ;;
@@ -44,17 +45,21 @@ prerequisOpenssl()
 			;;
 	esac
 	
-	local osslxx=ossl11
+	local osslxx mami ma mi
 	
-	if option ossl10
+	ma_et_mi() { ma=$1 ; mi=$2 ; }
+	for mami in "1 0" "1 1" "3 0" "3 1" "3 2" "3 3" "3 4"
+	do
+		ma_et_mi $mami
+		if option ossl$ma$mi
+		then
+			osslxx=ossl$ma$mi
+			prerequis="`echo " $prerequis " | sed -e "s# openssl # openssl >= $ma.$mi < $ma.$((mi+1)) #"`"
+			break
+		fi
+	done
+	if [ -z "$osslxx" ]
 	then
-		osslxx=ossl10
-		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl >= 1.0 < 1.1 #'`"
-	elif option ossl11
-	then
-		osslxx=ossl11
-		prerequis="`echo " $prerequis " | sed -e 's# openssl # openssl >= 1.1 < 1.2 #'`"
-	else
 		local filtre="`decoupePrerequis "$prerequis" | grep '^openssl[+ ]'`"
 		[ -n "$filtre" ] || filtre="openssl"
 		local vlocal="`versions "$filtre" | tail -1 | sed -e 's/.*-//'`"
