@@ -48,7 +48,8 @@ v 3.21.1 || true
 v 3.21.3 || true
 v 3.22.1 || true
 v 3.27.6 || true
-v 3.31.2 || true
+v 3.31.2 && v_openssl=">= 3.2" || true
+v 3.31.3 || true
 fi
 
 # Modifications
@@ -133,7 +134,7 @@ archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
 # CMake a une fâcheuse tendance à détecter les logiciels présents ainsi, et à en conclure qu'il doit se compiler avec; malheureusement, sur certaines distributions Linux, le binaire peut être présent sans les inclusions (livrées dans un paquet optionnel en "-dev"): dans cette situation, le configure de CMake va vouloir lier au logiciel tierce, et va échouer ne trouvant pas les inclusions.
 # Pour ces détections de logiciels tierces, on préfère alors prendre les devants en imposant (via prerequis) que ce soit la version GuiLI qui soit utilisée: GuiLI installe toujours conjointement binaires et inclusions.
 
-! commande openssl || prerequis="$prerequis openssl"
+! commande openssl || prerequis="$prerequis openssl $v_openssl"
 prerequisOpenssl
 # La ligne suivante ne servirait que si, parmi les versions de cmake dont le libuv embarqué ne tourne pas sur certaines plates-formes (obsolètes), certaines pouvaient tourner avec un libuv externe (plus ancien que l'embarquée, mais tournant sur la plate-forme). Or il n'en existe pas: cmake repose étroitement sur des fonctionnalités de sa libuv embarquée, il est donc impossible de le compiler avec une libuv plus ancienne.
 #pge 3.13.5 $version || prerequisLibuv # Pour la 3.13.5 et en-dessous, la libuv intégrée est bonne, on s'en satisfait. Au dessus, il va falloir basculer vers une libuv externe.
