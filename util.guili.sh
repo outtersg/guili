@@ -82,7 +82,7 @@ argVersionSauf()
 # Il est suggéré de fonctionner de cette façon (déclarer le maximum de prérequis, et trouilloter ensuite si telle ou telle condition n'est finalement pas remplie sur la plate-forme, ou si le logiciel n'est pas demandé par une option explicite), car ainsi pour chaque version du logiciel (fonctions v()) on peut définir dans quelle version le prérequis devra être inclus au cas où il reste en lice.
 virerPrerequis()
 {
-	local aVirer="`echo "$*" | sed -e 's/[+]/\\\\+/g' -e 's/ /|/g'`"
+	local aVirer="`echo "$*" | sed -e 's/[+]/\\\\+/g' -e 's/()/\\\\([^)]*\\\\)/g' -e 's/ /|/g'`"
 	prerequis="`echo " $prerequis " | sed -E -e 's/ /  /g' -e "s# ($aVirer)([ <=>0-9.]+)* # #g"`"
 }
 
