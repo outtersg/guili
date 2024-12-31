@@ -82,7 +82,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure -prefix "$dest"
+./configure $OPTIONS_CONF -prefix "$dest"
 
 echo Compilation… >&2
 make world
