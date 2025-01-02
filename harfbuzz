@@ -39,6 +39,10 @@ v 4.4.1 || true
 v 5.3.1 || true
 v 7.3.0 || true
 v 8.3.1 || true
+v 8.5.0 || true
+# À partir de la 9 on passe sur du cmake.
+#v 9.0.0 || true
+#v 10.1.0 || true
 
 # Modifications
 
