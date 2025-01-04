@@ -31,7 +31,7 @@ OPTIONS_CONF=
 
 # pkgconfig au moins pour libxml en PHP 8.
 # openssl < 1.1: apparemment la 5.2 connaît déjà la 1.1, mais ça doit être dans nos dépendances que ça coince (genre on se lie à un PostgreSQL ne connaissant lui-même qu'OpenSSL 1.0).
-prerequis="langc() langcxx() pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx zlib iconv mysql postgresql+osslxx libxml openssl < 1.1 libssh+osslxx sqlite"
+prerequis="langc() langcxx() pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx < 8 zlib iconv mysql postgresql+osslxx < 17 libxml openssl < 1.1 libssh+osslxx sqlite"
 v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl doubleYytext || true
 v 5.0.3
 v 5.0.4
@@ -62,7 +62,7 @@ v 5.2.11
 v 5.2.13 && ajouterModif libpng14 && ajouterModif detectionIconvOuLibiconv && ajouterModif mesBibliosDAbord
 v 5.2.15
 v 5.2.17 && remplacerPrerequis "mysql < 5.5.20" "libxml < 2.8" || true
-v 5.3.13 && ajouterModif fileinfoSobre zendNsNameEspace && retirerModif libpng14 doubleYytext && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql libxml || true
+v 5.3.13 && ajouterModif fileinfoSobre zendNsNameEspace && retirerModif libpng14 doubleYytext && modifs="$modifs pgsqlSetNoticeCallback" && remplacerPrerequis mysql "libxml < 2.12" || true
 v 5.3.19 || true
 v 5.3.28 || true
 v 5.3.29 && ajouterModif tcpinfo || true
@@ -119,7 +119,7 @@ v 7.3.30 || true
 v 7.3.31 || true
 v 7.3.32 || true
 v 7.3.33 || true
-v 7.4.16 && prerequis="$prerequis oniguruma" && remplacerPrerequis "icu >= 60" && remplacerPrerequis "openssl < 4" && retirerModif confclosedir || true
+v 7.4.16 && prerequis="$prerequis oniguruma" && remplacerPrerequis "icu >= 60 < 76" && retirerModif confclosedir || true # ICU 76 utilise du C++14; on pourrait donc aussi passer en langcxx(14) en faisant sauter la limitation sur ICU.
 v 7.4.19 || true
 v 7.4.20 || true
 v 7.4.21 || true
@@ -136,7 +136,7 @@ v 7.4.32 || true
 v 7.4.33 || true
 # Pour compiler la master:
 #v 7.5 && prerequis="re2c \\ $prerequis oniguruma" && OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-zts --enable-debug" || true
-v 8.0.1 || true
+v 8.0.1 && remplacerPrerequis "openssl < 4" "curl+osslxx" "postgresql+osslxx" "icu >= 60" libxml || true
 v 8.0.3 || true
 v 8.0.6 || true
 v 8.0.7 || true
@@ -184,7 +184,7 @@ v 8.1.28 || true
 v 8.1.29 || true
 v 8.1.30 || true
 v 8.1.31 || true
-v 8.2.1 && modifs="$modifs atomicconst pglazyfetch" || true
+v 8.2.1 && virerPrerequis "langcxx()" && prerequis="langcxx(17) \\ $prerequis" && modifs="$modifs atomicconst pglazyfetch" || true
 v 8.2.3 || true
 v 8.2.4 || true
 v 8.2.6 || true
@@ -215,10 +215,13 @@ v 8.3.11 || true
 v 8.3.12 || true
 v 8.3.13 || true
 v 8.3.14 || true
-v 8.4.1 && retirerModif pgsqlSetNoticeCallback || true
+v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
+
+prerequis="$prerequis bzip2" # Chez moi car freetype s'est compilé avec.
+OPTIONS_CONF="$OPTIONS_CONF --with-bz2"
 
 # Si un PHP fonctionnel est déniché, on s'en servira pour de l'autogénération.
 ANCIEN_PHP="`command -v php || true`"
@@ -362,7 +365,9 @@ cve201911043()
 icucxx11()
 {
 	# ICU à partir de la 58 utilise du char16_t, qui n'existe qu'en C++11, pas implicite.
-	export CXXFLAGS="$CXXFLAGS -std=c++11"
+	# Par contre finalement on ne code pas en dur le -std=c++, laissant le langcxx(nn) régler les choses: dans les versions futures le nn sera différent de 11.
+	#export CXXFLAGS="$CXXFLAGS -std=c++11"
+	true
 }
 
 truefalse()
