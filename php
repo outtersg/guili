@@ -479,6 +479,7 @@ readlineNcurses()
 	# readline repose sur la présence des fonctions de terminfo… mais se garde bien d'aller la chercher (trop d'endroits possibles?).
 	# Du coup si l'on veut se lier à readline il nous faut trouver avec quoi d'autre nous lier pour que ça fonctionne.
 	# À FAIRE: faire un coup de prérequis ncurses si une première passe ne l'a pas trouvé.
+	# À FAIRE: cf. tinfoliee dans readline: pourrait-on faire sauter ce readlineNcurses?
 	cc="$CC"
 	[ ! -z "$cc" ] || cc=cc
 	echo 'extern int tgetent(char *bp, const char *name); int main(int argc, char ** argv) { tgetent("coucou", "coucou"); }' > testTerminfo.c

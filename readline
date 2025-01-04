@@ -21,6 +21,7 @@
 
 set -e
 
+# Passage en Delirant: attention au lien avec une biblio terminfo?
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
@@ -62,10 +63,51 @@ darwin89aussi()
 	filtrer support/shobj-conf sed -e 's/darwin7/darwin[789]/' -e 's/darwin8/darwin[89]/'
 }
 
+tinfoliee()
+{
+	# Sur certains systèmes, la readline "standard" (ex.: celle des ports sous FreeBSD) est liée à la biblio de terminfo (ncursesw, tinfow, etc.).
+	# Si on installe "notre" readline sans ce lien, on casse tous les logiciels qui, reposant sur ce 2-en-1, sont liés à readline sans lien explicite à la biblio terminfo (ex.: fontforge sous FreeBSD).
+	# On peut le voir (outre via ldd qui montre les biblios liées) en cherchant un symbole terminfo (ex.: UP) dans readline: par readelf -s il apparaît UND(efined), montrant qu'il en aura de toute façon besoin, mais par elfdump -a (qui lui suit les biblios indiquées par ldd) il apparaîtra tantôt en STT_OBJECT (si liée), tantôt en STT_NOTYPE (si c'est au programme appelant de lier explicitement à readline ET une biblio de terminfo à son choix).
+	# "ncurses replace tinfo" sur Google montre que 2 versions de readline existent, celle embarquant tinfo et celle sans:
+	# Ex.: https://github.com/mawww/kakoune/issues/2554 ou https://github.com/nzbget/nzbget/issues/188 ou https://forums.gentoo.org/viewtopic-t-1100154-start-0.html
+	# À FAIRE: vérifier qu'avec cette modif on peut se passer de readlineNcurses dans php.
+	
+	local f avec=
+	case "$argOptions+" in
+		*+terminc[-+]*) avec=1 ;;
+		*+termsep[-+]*) avec= ;;
+		*)
+			for f in /lib/libreadline.so /usr/lib/libreadline.so /usr/local/lib/libreadline.so
+			do
+				[ -e "$f" ] || continue
+				ldd "$f" 2> /dev/null | grep -q 'libtinfo\|libncurses' || continue
+				avec=1
+				break
+			done
+			case "$avec" in
+				"") argOptions="$argOptions=termsep" ;;
+				*) argOptions="$argOptions=terminc" ;;
+			esac
+			;;
+	esac
+
+	printf "[32mreadline [36m"
+	case "$avec" in
+		"") printf "indépendante de terminfo[0m (à lier depuis les appelants)" ;;
+		1)
+			printf "sera liée à terminfo"
+			OPTIONS_CONF="$OPTIONS_CONF --with-shared-termcap-library"
+			;;
+	esac
+	echo "[0m"
+}
+
 rustine="`echo "$version" | cut -s -d . -f 3`"
 mineure="`echo "$version" | cut -d . -f 1-2`"
 
 archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$mineure.tar.gz"
+
+tinfoliee
 
 prerequis
 
