@@ -657,7 +657,30 @@ compilo_test_cxx()
 	compilable_cxx -r oui $TMP/$$/1.cxx
 }
 
-#--- GCC ---
+#--- Env d'exéc ---
+
+target()
+{
+	# Nos premières versions (rustc) publiaient leurs variables: on garde pour compat.
+	[ "$1" = "-g" ] && shift || local systeme proc marchand cible
+	
+	systeme=`uname -s | tr A-Z a-z`
+	proc=`uname -m`
+	case $systeme in
+		darwin) marchand=apple ;; # À FAIRE: regarder si ce n'est pas là qu'il faudrait indiquer macos ou ios (pour les inclusions conditionnelles de libc/mod.rs, par exemple).
+		linux) marchand=linux ; systeme=gnu ;;
+		freebsd) marchand=unknown ;;
+		*) marchand=$systeme ;;
+	esac
+	case $proc in
+		amd64) proc=x86_64 ;;
+	esac
+	cible="$proc-$marchand-$systeme`uname -r | cut -d - -f 1`"
+
+	echo "$cible"
+}
+
+#--- Linux ---
 
 pasfortiche()
 {
