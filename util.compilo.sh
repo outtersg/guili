@@ -214,6 +214,7 @@ compilo_cheminLibcxx()
 
 compilo_cheminLibcxxClang()
 {
+	# /!\ La définition de variable globale ci-dessous est utilisée par quandMemeCxxISystem() dans clang/llvm.
 	LIBCXX_INCLUDES="$cheminBienVoulu/$suffixe"
 	local ajout="-cxx-isystem $LIBCXX_INCLUDES -cxx-isystem /usr/include" varamod=CXXFLAGS
 	case "$logiciel" in
@@ -531,22 +532,46 @@ libcxxgcc()
 # Utilisation: compilo_tester <environnementeur> <test>...
 compilo_tester()
 {
+	local environnementeur="$1"
+	shift
+	compilo_test -i "$environnementeur" --et "$@"
+}
+
+# Un mini-configure qui fait une configuration d'environnement puis lance des tests.
+# Utilisation: compilo_test [-i <fonc init env>] (<commande test> <param1 test> ...|--et <fonc test 1> <fonc test 2> ...)
+compilo_test()
+{
 	# Un sous-shell pour isoler.
 	(
+		while [ $# -gt 0 ]
+		do
+			case "$1" in
+				-i)
+					shift
 		# On lance la méthode (qui cherche des trucs et modifie l'environnement).
 		$1 || exit 1
+					;;
+				--et) mode=plusieurs ;;
+				*) break ;;
+			esac
 		shift
+		done
 		# Quelques modifications d'environnement demandées par la détection de compilo.
 		for m in true $modifs
 		do
 			case "$m" in _compilo_*) $m ;; esac
 		done
+		case "$mode" in
+			plusieurs)
 		# Et on teste!
 		for test in "$@"
 		do
 			$test || exit 1
 		done
-	)
+				;;
+			"") "$@" || exit 1 ;;
+		esac
+	) || return 1
 }
 
 # Ajoute une modification à la pile de modifs à jouer avant de compiler.
