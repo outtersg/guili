@@ -28,6 +28,9 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 7.10.2 && prerequis="make \\ gcc binutils libffi iconv gettext ncurses" && modifs="compiloGcc" || true
 v 8.2.2 && modifs="compiloGcc unused" || true
+v 8.10.7 && prerequis="make patchelf \\ ncurses" && modifs="libncurses" || true
+v 9.0.2 || true # Et après plus rien pour FreeBSD?
+# D'après les ports il existe une 9.2.8 et une 9.4.8, une 9.6.6. Mais ont-elles été publiées?
 
 # On s'installe sous le même chemin qu'un GHC compilé.
 #guili_alias="$guili_alias:ghc-$version"
@@ -35,6 +38,38 @@ v 8.2.2 && modifs="compiloGcc unused" || true
 logiciel=ghc
 
 # Modifications
+
+# À FAIRE: ncurses GuiLI si pas disponible système.
+# À FAIRE: sous FreeBSD, libncursesw.so.8 ou .9 est en réalité une .6 (le port s'amuse à incrémenter le num, pourquoi? Changement d'ABI?).
+
+libncurses()
+{
+	# À FAIRE: rendre ncurses et patchelf optionnels, par ex. en nous relançant en moiré si nous échouons avec le seul système.
+	local d radical bonne
+	grep -rl libncursesw */*/build */*/*/build | while read f
+	do
+		ldd "$f" | grep libncursesw | while read biblio reste
+		do
+			case "$reste" in *"not found"*)
+				echo "Embêté par $f avec une référence à $biblio"
+				radical="`echo "$biblio" | sed -e 's/[.0-9]*$//'`"
+				if [ -z "$bonne" ]
+				then
+					for d in $INSTALLS/lib /usr/local/lib /usr/lib
+					do
+						bonne="`cd "$d" && ls $radical.* | sort -r -n -t . -k 3 | head -1`"
+						[ -z "$bonne" ] || break
+						echo "Trouvé $d/$bonne à la place"
+						break
+					done
+					[ -n "$bonne" ] || exit 1
+				fi
+				echo "Remplacement $biblio -> $bonne"
+				patchelf --replace-needed "$biblio" "$bonne" "$f"
+			esac
+		done
+	done
+}
 
 compiloGcc()
 {
@@ -46,12 +81,16 @@ compiloGcc()
 case `uname` in
 	FreeBSD)
 		vos="`uname -r | sed -e 's/-.*//'`"
-		if pge $version 8 && pge $vos 11
+		if pge $version 8.5
 		then
-			archive="https://downloads.haskell.org/~ghc/$version/ghc-$version-x86_64-portbld11-freebsd.tar.xz"
+			marchand=unknown
+		elif pge $version 8 && pge $vos 11
+		then
+			marchand=portbld11
 		else
-			archive="https://downloads.haskell.org/~ghc/$version/ghc-$version-x86_64-portbld-freebsd.tar.xz"
+			marchand=portbld
 		fi
+		archive="https://downloads.haskell.org/~ghc/$version/ghc-$version-x86_64-$marchand-freebsd.tar.xz"
 		;;
 	Darwin)
 		archive="https://downloads.haskell.org/~ghc/$version/ghc-$version-x86_64-apple-darwin.tar.xz"
