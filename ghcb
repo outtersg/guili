@@ -21,15 +21,18 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=ghc # On s'installe sous le même chemin qu'un GHC compilé.
 
 # Historique des versions gérées
 
-v 7.10.2 && prerequis="gcc binutils libffi iconv gettext" && modifs="compiloGcc" || true
+v 7.10.2 && prerequis="make \\ gcc binutils libffi iconv gettext ncurses" && modifs="compiloGcc" || true
 v 8.2.2 && modifs="compiloGcc unused" || true
+
+# On s'installe sous le même chemin qu'un GHC compilé.
+#guili_alias="$guili_alias:ghc-$version"
+# En fait non on prend carrément le nom ghc, sans quoi ce dernier ne pourra nous écraser:
+logiciel=ghc
 
 # Modifications
 
