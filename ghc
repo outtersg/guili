@@ -51,6 +51,21 @@ v 8.0.2 || true
 v 8.2.2 || true
 v 8.4.3 && modifs="$modifs sansDtrace" || true
 v 8.6.1 && retirerModif sansDtrace || true
+v 8.6.5 || true
+v 9.0.2 && prerequis="" && retirerModif compiloGcc && modifs="$modifs doubleMasque" || true
+v 9.2.2 && retirerModif doubleMasque || true
+v 9.2.8 || true
+#v 9.4.8 || true
+#v 9.6.6 || true
+
+doubleMasque()
+{
+	# OSThreads.c a une section #if defined(HAVE_SCHED_GETAFFINITY) cpu_set_t mask;, ainsi qu'une #if defined(freebsd_HOST_OS) cpuset_t mask;
+	# FreeBSD 14.1 cochant les deux cases, a une belle redéfinition de mask.
+	# Correction facile récupérée de la master sur github.
+	
+	filtrer rts/posix/OSThreads.c sed -e '/if defined(freebsd_HOST_OS)$/s#$# \&\& !defined(HAVE_SCHED_GETAFFINITY)#'
+}
 
 sansDtrace()
 {
@@ -448,11 +463,12 @@ in
 		;;
 esac
 
-versiondest="$version"
+vorig="$version"
 case "$1" in
-	-d) versiondest="$2" ; shift ; shift ;;
+	-d) version="$2" ; shift ; shift ;;
 esac
-dest="$INSTALLS/$logiciel-$versiondest"
+destiner
+version="$vorig"
 [ "x$1" = xdemarre -o "x$1" = xdemarrant ] && dest=$dest-brut # Notre démarreur n'inclut pas les biblios supplémentaires.
 
 #[ -d "$dest" -a -z "$DDEMARRANT" ] && exit 0
@@ -667,9 +683,9 @@ sub mini_mangle_asm { &mangle_asm(@_); }
 	( cd ghc/utils/ugen && flex -olex.c lex.l )
 	filtrer ghc/utils/ugen/yyerror.c grep -v yylineno
 	chmod u+w configure
-	filtrer configure sed -e "/cpp.*> conftest.pl/s#'.*'#'if(/conftest.c/) { s@conftest.c@@ ; s@-v@@ ; print \"\$_\" }'#" # Problème dans leur détection du cpp utilisé: ne marche pas avec gcc 3 (ils s'attendent à trouver la commande cpp, gcc3 préfère un cc1 -E).
-	# De même, l'option -traditional est passée directement à cpp; or celui-
-	# ci attend en fait un -traditional-cpp, et ça, c'est gcc qui le sait, pas
+	filtrer configure sed -e "/cpp.*> conftest.pl/s#'.*'#'if(/conftest.c/) { s@conftest.c@@ ; s@-v@@ ; print \"\$_\" }'#" # ProblÃ¨me dans leur dÃ©tection du cpp utilisÃ©: ne marche pas avec gcc 3 (ils s'attendent Ã  trouver la commande cpp, gcc3 prÃ©fÃ¨re un cc1 -E).
+	# De mÃªme, l'option -traditional est passÃ©e directement Ã  cpp; or celui-
+	# ci attend en fait un -traditional-cpp, et Ã§a, c'est gcc qui le sait, pas
 	# nous.
 	filtrer configure sed -e '/gcc -v -E conftest.c/h' -e '/RAWCPP=/s/ -traditional//' -e '/RAWCPP=/{
 x
@@ -914,7 +930,12 @@ then
 		startup
 	fi
 else
+	if pge $version 9
+	then
+		./configure --prefix="$dest" GHC="`command -v ghc`"
+	else
 	./configure --prefix="$dest" --with-ghc=$GHC $OPTIONS_CONF
+	fi
 fi
 
 echo Compilation… >&2
