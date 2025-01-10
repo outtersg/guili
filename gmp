@@ -33,6 +33,7 @@ v 5.1.1 || true
 v 5.1.3 || true
 v 6.0.0.1 && modifs="meilleurCompiloInstalle" || true
 v 6.1.2 || true
+v 6.3.0 || true
 
 # Modifications.
 
