@@ -34,6 +34,7 @@ v 2.7 || true
 v 2.8 || true
 v 3.2.1 || true
 v 3.3.1 || true
+v 3.5.1 || true
 
 prerequis
 
