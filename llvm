@@ -64,6 +64,9 @@ v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && modifs="$modifs atomicutmx" ||
 v 17.0.1 && babi="$babi grow_by" && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
+v 18.1.8 || true
+v 19.1.5 || true
+v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 
 lieur()
 {
@@ -489,13 +492,15 @@ stdcppPasTropEnDur()
 	if [ -e $tools/clang/lib/Driver/ToolChains/FreeBSD.cpp ]
 	then
 		# À FAIRE: getDriver().getInstalledDir() ou bien $dest?
+		local siegePilote=Dir
+		pge $version 19 || siegePilote="getInstalledDir()" # Classique avant la 19. En 19 tous les "push_back(getInstalledDir()); if(getInstalledDir() != Dir) push_back(Dir);" sont devenus simplement "push_back(Dir);".
 		filtrer $tools/clang/lib/Driver/ToolChains/FreeBSD.cpp awk '
 # On remplace l /usr/include/c++/v1 par le nôtre, plutôt que de nous y accoler: le jeu des include_next déteste avoir deux c++/v1.
-/usr.include.c...v[0-9]/{sub(/[^,]*SysRoot.*;/, "std::string(getDriver().getInstalledDir()) + \"/../include/c++/v1\");")}
+/usr.include.c...v[0-9]/{sub(/[^,]*SysRoot.*;/, "std::string(getDriver().'"$siegePilote"') + \"/../include/c++/v1\");")}
 {print}
 # Notre lib s insère avant celle codée en dur dans le constructeur.
 /FreeBSD::FreeBSD/{constr=1}
-constr&&/{/{constr="";print "getFilePaths().push_back(std::string(getDriver().getInstalledDir()) + \"/../lib\");"}
+constr&&/{/{constr="";print "getFilePaths().push_back(std::string(getDriver().'"$siegePilote"') + \"/../lib\");"}
 # Et notre libc++ ne sait pas marcher sans sa libc++abi.
 /"-lc\+\+"/{print"CmdArgs.push_back(\"-lc++abi\");"}
 '
@@ -650,7 +655,8 @@ manuel=non ; for param in "$@" ; do [ "x$param" = x--manuel ] && manuel=oui ; do
 if [ $manuel = oui ]
 then
 	echo "# VOUS ÊTES DANS UN TERMINAL: À VOUS DE JOUER"\! >&2
-	cd /tmp/llvm-$version.src
+	#cd $TMP/llvm-$version.src
+	cd $TMP/llvm-project-llvmorg-$version/
 	for modif in true $modifsDyn ; do $modif ; done
 	[ -d bouild ] && cd bouild || true
 	[ -d build ] && cd build || true
@@ -747,6 +753,28 @@ case $constr in
 							# compiler-rt: https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477 + sans ça pas de libclang_rt.profile-x86_64.a indispensable au -fprofile-instr-generate qui permet (par ex. à Python) de se générer avec les stats de perfs.
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi"
 					! option rt || OPTIONS_CMAKE="$OPTIONS_CMAKE;compiler-rt"
+					! option rt || pg 18 $version || OPTIONS_CMAKE="$OPTIONS_CMAKE;libunwind" # À partir de https://reviews.llvm.org/D150897 compiler-rt utilise par défaut la libunwind embarquée (plutôt que celle système) et donc a besoin qu'on la rajoute aux projets à compiler.
+					# Bon pas si simple:
+					# Compiler doesn't support generation of unwind tables if exception support is disabled.  Building libunwind DSO with runtime dependency on C++ ABI library is not supported. [/home/gui/tmp/llvm-project-llvmorg-18.1.8/libunwind/src/CMakeLists.txt:102]
+					# Comment on lui colle support de l'exception?
+					# Cf. Google sur clang runtime-rt libunwind exception support
+					# - https://github.com/llvm/llvm-project/issues/29055 laisse entendre que mieux vaut retourner à l'anc. façon de faire?
+					# - https://clang.llvm.org/docs/Toolchain.html montre bien qu'on a d'un côté les ABI de l'autre le reste
+					# https://stackoverflow.com/questions/4080601/not-using-c-exceptions-by-design-in-llvm-clang
+					# https://llvm.org/docs/CMake.html LLVM_ENABLE_EH
+					# Changement en https://reviews.llvm.org/D68855
+					# Mais on se rend cpte que dans notre 18 (qui n'a même pas encore le LIBUNWIND_HAS_NO_EXCEPTIONS_FLAG), est utilisé un CXX_SUPPORTS_FNO_EXCEPTIONS_FLAG qui n'est défini nulle part???
+					# Ah purée le connard en scrutant build/runtimes/runtimes-X86-bins/CMakeFiles/CMakeConfigureLog.yaml (grep -rl) on finit par dénicher un "error: unknown target triple 'X86'"
+					# Ah compris c'est mon BUILD_TARGETS=X86
+					# Et si on compile sans l'option rt:
+					# "LIBCXXABI_USE_LLVM_UNWINDER is set to ON, but libunwind is not specified in LLVM_ENABLE_RUNTIMES."
+					if pge $version 18
+					then
+						if option rt
+						then
+							OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=ON -DLIBCXXABI_ENABLE_EXCEPTIONS=ON"
+						fi
+					fi
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_DEFAULT_CXX_STDLIB=libc++"
 							#OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_CXX_ABI=libcxxabi"
 							
@@ -804,7 +832,9 @@ done
 for modif in true $modifsPostCompil ; do $modif ; done
 
 echo Installation… >&2
-sudo make install
+install=install/strip # Depuis je ne sais quelle version, 3 Go par binaire, ça commence à faire beaucoup. Heureusement l'install' propose un mode bien dégagé autour des oreilles.
+pge $version 18 || install=install
+sudo make $install
 # Certains utilisateurs de llvm (ex.: rust) ont besoin d'avoir accès aux outils intermédiaires de llvm.
 [ -e bin/FileCheck ] && sudo cp bin/FileCheck "$dest/bin/" || true
 for modif in true $modifsPostInstall ; do $modif ; done
