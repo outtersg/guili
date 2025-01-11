@@ -21,21 +21,19 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=cabal
 
 # Historique des versions gérées
 
-v 1.22.3.0 && modifs="detectionALaConDeLd" || true
+v 1.22.3.0 && prerequis="ghc < 9 ncurses \\ zlib" && modifs="detectionALaConDeLd" || true
 v 1.22.5.0 || true
 v 1.22.8.0 || true
 v 1.24.0.0 || true
 v 1.24.0.2 || true
-v 2.4.0.0 && prerequis="iconv gmp" || true
+v 2.4.0.0 && prerequis="ghc < 9 ncurses \\ zlib" && modifs= || true
 
-prerequis
+archive="https://www.haskell.org/cabal/release/cabal-install-$version/cabal-install-$version.tar.gz"
 
 # Modifications
 
@@ -48,10 +46,9 @@ detectionALaConDeLd()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
-archive="https://www.haskell.org/cabal/release/cabal-install-$version/cabal-install-$version.tar.gz"
+destiner
 
-[ -d "$dest" ] && exit 0
+prerequis
 
 if false
 then
@@ -66,14 +63,13 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./bootstrap.sh --no-doc
-fi
-exit 0
 
 echo Compilation… >&2
 make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf $TMP/$$
+fi
+
+sutiliser
