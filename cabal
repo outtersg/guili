@@ -32,8 +32,14 @@ v 1.22.8.0 || true
 v 1.24.0.0 || true
 v 1.24.0.2 || true
 v 2.4.0.0 && prerequis="ghc < 9 ncurses \\ zlib" && modifs= || true
+v 2.4.1.0 || true
+v 3.4.1.0 && prerequis="python ghc ncurses \\ zlib" || true
+v 3.6.3.0 || true
+v 3.8.1.0 || true
+v 3.14.1.1 || true
 
-archive="https://www.haskell.org/cabal/release/cabal-install-$version/cabal-install-$version.tar.gz"
+archive="https://github.com/haskell/cabal/archive/refs/tags/cabal-install-v$version.tar.gz"
+pge $version 2 || archive="https://www.haskell.org/cabal/release/cabal-install-$version/cabal-install-$version.tar.gz"
 
 # Modifications
 
@@ -61,7 +67,28 @@ obtenirEtAllerDansVersion
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
+if pge $version 3
+then
+
+echo Compilation… >&2
+
+commande="./bootstrap/bootstrap.py -d bootstrap/linux-`ghc --version | sed -e 's/.* //'`.json"
+
+# Les échecs étant possibles (grosse compil pouvant se faire buter pour surconso mémoire en ft de la charge système), on s'ouvre une possibilité de rectification manuelle.
+$commande || { echo "Je te colle dans un sh:" ; echo "$commande" ; /bin/sh ; }
+
+# Bon là ils proposent d'utiliser ce cabal minimaliste pour refaire un cabal build, sauf que ça plante, et le minimaliste est parfaitement fonctionnel.
+
+echo Installation… >&2
+
+sudoku mkdir -p "$dest/bin"
+sudoku cp _build/bin/* "$dest/bin/"
+
+else # Version < 3
+
 echo Configuration… >&2
+
+cd cabal-install
 ./bootstrap.sh --no-doc
 
 echo Compilation… >&2
@@ -71,5 +98,8 @@ echo Installation… >&2
 sudo make install
 
 fi
+fi
 
 sutiliser
+
+echo "N'oubliez pas de lancer un cabal update pour télécharger la liste de paquets."
