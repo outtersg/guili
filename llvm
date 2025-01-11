@@ -85,8 +85,9 @@ lieur
 
 case `basename "$0"` in
 	clang)
-		argOptions="`options "$argOptions=libcxx"`"
+		argOptions="`options "$argOptions=libcxx=rt"`"
 		option libcxx || true
+		option rt || true
 		;;
 esac
 
@@ -632,7 +633,14 @@ vblibcxx()
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_ABI_VERSION=$v"
 }
 
+# Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
 option dyn || true
+case $constr in
+	runtimes)
+		! option lldb || PROJETS="$PROJETS,lldb"
+		! option lld || PROJETS="$PROJETS,lld"
+		;;
+esac
 
 destiner
 
@@ -696,7 +704,7 @@ modulesClang()
 	local moduleClang=clang
 	pge $version 9 || moduleClang=cfe
 	integrer tools/clang          $moduleClang
-integrer projects/compiler-rt compiler-rt
+	! option rt || integrer projects/compiler-rt compiler-rt
 	if option libcxx
 	then
 integrer projects/libcxx      libcxx
@@ -733,11 +741,12 @@ case $constr in
 				racineCompil=../llvm
 		case "$0" in
 			*clang)
-				OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=clang"
+				PROJETS="$PROJETS,clang"
 				if option libcxx
 				then
 							# compiler-rt: https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477 + sans ça pas de libclang_rt.profile-x86_64.a indispensable au -fprofile-instr-generate qui permet (par ex. à Python) de se générer avec les stats de perfs.
-							OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi;compiler-rt" # À FAIRE: libunwind
+					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi"
+					! option rt || OPTIONS_CMAKE="$OPTIONS_CMAKE;compiler-rt"
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_DEFAULT_CXX_STDLIB=libc++"
 							#OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_CXX_ABI=libcxxabi"
 							
@@ -753,6 +762,9 @@ case $constr in
 				fi
 				;;
 		esac
+				case "$PROJETS" in
+					,*) OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=`printf '%s' "$PROJETS" | cut -d , -f 2-`" ;;
+				esac
 			;;
 		esac
 		cmake \
