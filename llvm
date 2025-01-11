@@ -58,9 +58,9 @@ v 12.0.0 || true
 v 12.0.1 || true
 v 13.0.0 || true
 v 13.0.1 || true
-v 14.0.6 && constr=runtimes && retirerModif quandMemeCxxISystem && modifs="$modifs sansBenchmarks bibliosTriplet" || true
+v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
-v 16.0.6 || true
+v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && modifs="$modifs atomicutmx" || true
 v 17.0.1 && babi="$babi grow_by" && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
@@ -112,6 +112,40 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+atomicutmx()
+{
+	# Sous FreeBSD (10.2 en tout cas), la fonction atomic_cmpset_acq_long utilisée dans atomic.cpp n'est pas définie dans l'utmx.h inclus mais dans atomic.h.
+	if grep -q umtx.h libcxx/src/atomic.cpp && ! grep -q atomic\\.h libcxx/src/atomic.cpp
+	then
+		cat > /tmp/1.c <<TERMINE
+#include <sys/types.h>
+#include <errno.h>
+#if AVEC_ATO
+#include <machine/atomic.h>
+#endif
+#include <sys/umtx.h>
+
+int main(int argc, char ** argv)
+{
+	atomic_cmpset_acq_long(0, 0, 0);
+}
+TERMINE
+		if \
+			! compilo_test $CC -std=c11 -DAVEC_ATO=0 -o /tmp/1 /tmp/1.c && \
+			  compilo_test $CC -std=c11 -DAVEC_ATO=1 -o /tmp/1 /tmp/1.c
+		then
+			echo "umtx.h nécessite atomic.h, on l'ajoute"
+			filtrer libcxx/src/atomic.cpp sed -e '/sys.umtx.h/i\
+#include <machine/atomic.h>
+'
+# A FAIRE: on n'est pas tirés d'affaire. Maintenant à l'install il plante en:
+#          /usr/local/binutils-2.41/bin/ld : /usr/local/clang+libcxx-17.0.6/lib/libc++.so : référence indéfinie vers « _umtx_op(void*, int, unsigned long, void*, void*) »
+#          sauf qu'il a déjà installé une partie et est donc détecté comme clang (donc utilisé si on tente de recompiler n'importe quoi d'autre avec le compilo le + récent détecté)
+#          pourtant un umtx_op est détecté dans /lib/libthr.so et /lib/libpthread.so (mais non nm -o: symboles dézingués), qui est vu par ldd sur /usr/local/clang+libcxx-17.0.6/lib/libc++.so: le symbole y est-il (ms surcharge de lthr par ailleurs?).
+		fi
+	fi
+}
 
 shaxxx()
 {
@@ -324,6 +358,10 @@ sansBenchmarks()
 
 quandMemeCxxISystem()
 {
+	# À FAIRE: une détection plus fine. En fait le critère est "si le compilo utilisé pour compiler notre compilo, a lui-même été compilé avec stdcppPasTropEnDur(), alors pas besoin de quandMemeCxxISystem()".
+	#          on pourrait le détecter en tentant de compiler un .cxx avec un #include <stdlib>, reste à savoir ce qu'il faut comme main() pour déclencher le pétage (et ne pas le déclencher à tort: tester une fonction C++20 si l'on compile un clang 8 est mettre la barre un peu trop haut, sans espoir de résultat).
+	pg 15 $version || return 0
+	
 	# Dans compilo_cheminLibcxxClang(), on a exclu clang du -cxx-isystem, censé ne pas servir à grand-chose
 	# puisque 1. clang est compilé avec le précédent clang censé savoir fouiller dans ses propres en-têtes
 	# et 2. on se dit que ça ne sert pas à grand-chose, si celui en train d'être compilé (mettons un 9) fait un #include_next, le #ifndef _STDTRUC_INCLUDED_ du 8 après le #define _STDTRUC_INCLUDED_ du 9 fera que rien du .h du 8 ne sera de toute façon exploité.
@@ -405,10 +443,6 @@ unwind()
 	# Si le système n'a pas d'unwind.h (ex.: FreeBSD 10.2), il nous faut au moins une déclaration générique pour qu'il compile.
 	# http://lists.llvm.org/pipermail/llvm-dev/2015-November/092336.html
 	# http://clang-developers.42468.n3.nabble.com/libcxxabi-Which-unwind-h-td3230734.html
-	
-	# Si possible on repose sur l'unwind.h système. Et d'ailleurs s'il existe on ne le surcharge surtout pas, sous peine de finir avec des incompatibilités d'#include_next.
-	echo '#include <unwind.h>' > /tmp/1.c
-	$CC -c -o /tmp/1.o /tmp/1.c && return 0 || echo "unwind.h introuvable, récupération d'un unwind.h générique" >&2
 	
 	# Si possible on repose sur l'unwind.h système. Et d'ailleurs s'il existe on ne le surcharge surtout pas, sous peine de finir avec des incompatibilités d'#include_next.
 	echo '#include <unwind.h>' > /tmp/1.c
@@ -730,6 +764,7 @@ case $constr in
 			-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
 			-DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
 			-DCMAKE_BUILD_TYPE=$livrable \
+-DCMAKE_LINKER=/usr/bin/ld \
 			$OPTIONS_CMAKE \
 			$racineCompil
 		;;
