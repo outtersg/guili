@@ -38,6 +38,9 @@ v 3.1.1 || true
 v 3.1.2 && modifs="mtime_udf" || true
 v 3.1.3 || true
 v 3.2.3 && prerequis="$prerequis xxhash lz4 zstd openssl" || true # md4 et md5 sont piochés dans openssl maintenant.
+v 3.2.7 || true
+v 3.3.0 || true
+v 3.4.0 || true
 
 # Modifications
 
