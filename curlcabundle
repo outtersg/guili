@@ -113,6 +113,12 @@ installerAC()
 	# Installation!
 	
 	sudoku -d "$dossierac" cp -R "$dest0/$arbo/." "$dossierac/."
+	
+	# Si c'est du GuiLI, on lance un 'utiliser' de l'install cURL complète, pour que la nouvelle liste (qui y a été déposée, sous /usr/local/curl-x.x.x/share) soit liée depuis l'/usr/local/share.
+	local ouEstCurl="`curl-config --prefix`"
+	case "$ouEstCurl" in "$INSTALLS"/*)
+		sudoku -d "$dossierac" "$SCRIPTS/utiliser" "$ouEstCurl"
+	esac
 }
 
 # Si on est appelés par inclusion, on ne fait rien (notre appelant appellera notre installerAC comme bon lui semble).
