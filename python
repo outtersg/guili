@@ -412,7 +412,8 @@ free(lp);
 
 archive="http://www.python.org/ftp/$logiciel/$version/Python-$version.tar.bz2"
 pge "$version" 2.7.9 && archive="http://www.python.org/ftp/$logiciel/$version/Python-$version.tar.xz" || true
-vm="`echo "$version" | sed -e 's/^\([0-9]*\.[0-9]*\).*$/\1/'`"
+vmami() { unset IFS ; vmaj=$1 ; vm=$1.$2 ; }
+IFS=. ; vmami $version
 
 if false
 then
