@@ -25,6 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 v 1.10.0 || true
+v 1.18.0 || true
 
 archive="http://cairographics.org/releases/$logiciel-$version.tar.gz"
 
