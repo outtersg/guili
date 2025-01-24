@@ -470,23 +470,23 @@ fi
 echo Installation… >&2
 # Notre python n'étant pas encore installé, on surcharge pyp (qui repose sur le python installé).
 ( pyp() { pypo ; } ; proxy "" && sudokupy make install )
-[ -e "$dest/bin/python" ] || sudo ln -s python3 "$dest/bin/python"
+for bin in python pip
+do
+	[ -e "$dest/bin/$bin" -o ! -e "$dest/bin/$bin$vmaj" ] || sudoku ln -s $bin$vmaj "$dest/bin/$bin"
+done
 pythonenboiter
 # http://legacy.python.org/dev/peps/pep-3149/
 # Sur certains systèmes, Python suffixe un peu tout (ex.: include/python3.4m, avec un m pour -with-pymalloc; mais l'include/python3.4 n'existe pas). Pour permettre aux autres logiciels de s'y retrouver, on crée à l'emplacement de référence un lien symbolique vers une de ces versions.
 refsSansSuffixe
 
 echo Biblios standard… >&2
-if ! pge $version 3
-then
 	if pge "$version" 2.7.9
 	then
-	sudokupy "$dest/bin/python" -m ensurepip
+	pge $version 3 || sudokupy "$dest/bin/python" -m ensurepip
 	sudokupy "$dest/bin/pip" install setuptools
 	else
 	curl -O 'https://bootstrap.pypa.io/ez_setup.py'
 	sudokupy "$dest/bin/python" ez_setup.py # ez_setup installe les setuptools avant qu'ils fussent sous pip.
-	fi
 fi
 
 modules="`for option in $optionsModules ; do option "$option" && echo "$option" || true ; done`"
