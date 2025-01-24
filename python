@@ -463,7 +463,7 @@ echo Configuration… >&2
 
 echo Compilation… >&2
 # Certains tests (robot_parser par exemple) montant un client - serveur, il ne faut surtout pas passer par le proxy pour ce genre de choses.
-( proxy "" && make )
+( proxy "" && make -j4 )
 
 fi
 
