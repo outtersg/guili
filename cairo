@@ -33,6 +33,7 @@ v 1.14.8 && prerequis="$prerequis harfbuzz freetype fontconfig" || true # freety
 #v 1.15.2 || true # Lien cassé?
 v 1.16.0 || true
 v 1.17.4 || true
+v 1.18.2 || true
 
 gnu89()
 {
