@@ -480,18 +480,18 @@ if ! pge $version 3
 then
 	if pge "$version" 2.7.9
 	then
-		sudokupy ALL_PROXY="$ALL_PROXY" "$dest/bin/python" -m ensurepip
-		sudokupy ALL_PROXY="$ALL_PROXY" "$dest/bin/pip" install setuptools
+	sudokupy "$dest/bin/python" -m ensurepip
+	sudokupy "$dest/bin/pip" install setuptools
 	else
 	curl -O 'https://bootstrap.pypa.io/ez_setup.py'
-		sudokupy ALL_PROXY="$ALL_PROXY" "$dest/bin/python" ez_setup.py # ez_setup installe les setuptools avant qu'ils fussent sous pip.
+	sudokupy "$dest/bin/python" ez_setup.py # ez_setup installe les setuptools avant qu'ils fussent sous pip.
 	fi
 fi
 
 modules="`for option in $optionsModules ; do option "$option" && echo "$option" || true ; done`"
 if [ -n "$modules" ]
 then
-	sudokupy ALL_PROXY="$ALL_PROXY" "$dest/bin/pip" install $modules
+	sudokupy "$dest/bin/pip" install $modules
 fi
 if option selinux
 then
