@@ -37,7 +37,9 @@ v 3.22.0 && v_annee=2018 || true
 v 3.29.0 && v_annee=2019 || true
 v 3.35.5 && v_annee=2021 && vautomake=">= 1.15 < 1.16" || true
 v 3.36.0 || true
-v 3.39.0 && v_annee=2022 && vautomake=">= 1.16" || true
+v 3.37.2 && v_annee=2022  || true
+v 3.38.5 || true
+v 3.39.0&& vautomake=">= 1.16" || true
 v 3.39.4 || true
 v 3.40.1 || true
 v 3.41.2 && v_annee=2023 || true
@@ -69,7 +71,7 @@ pcre()
 		patch -p0 < "$SCRIPTS/sqlite_pcre_a.$vr.patch"
 		break
 	done
-	for vr in 3.47 3.44 3.39 3.36
+	for vr in 3.47 3.44 3.38 3.36
 	do
 		pge $version $vr || continue
 		patch -p0 < "$SCRIPTS/sqlite_pcre.$vr.patch"
