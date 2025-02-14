@@ -41,6 +41,7 @@ v 3.2.3 && prerequis="$prerequis xxhash lz4 zstd openssl" || true # md4 et md5 s
 v 3.2.7 || true
 v 3.3.0 || true
 v 3.4.0 || true
+v 3.4.1 || true
 
 # Modifications
 
