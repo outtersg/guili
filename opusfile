@@ -43,7 +43,11 @@ sansCompat()
 	
 	local fbsd url
 	fbsd="`uname -r | cut -d - -f 1`.0"
-	if pge $fbsd 13
+	if pge $fbsd 14
+	then
+		# La 14 change d'implémentation, et ne nécessite plus la modif.
+		return
+	elif pge $fbsd 13
 	then
 		url="https://cgit.freebsd.org/src/plain/lib/libcompat/4.1/ftime.c?h=stable/`printf $fbsd | cut -d . -f 1`"
 	else
