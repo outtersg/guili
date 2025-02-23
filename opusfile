@@ -64,6 +64,7 @@ sansCompat()
 # Variables
 
 archive=http://downloads.xiph.org/releases/opus/$logiciel-$version.tar.gz
+archive=https://github.com/xiph/opusfile/releases/download/v$version/opusfile-$version.tar.gz
 
 destiner
 
