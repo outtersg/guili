@@ -28,9 +28,17 @@ modifs="multiarch"
 # Argh, sans pkg-config il ne détecte pas libao (en tout cas pas sa version)!
 # Par contre il détecte alors tout plein d'autres trucs, du genre un curl dont le .h semble avoir un #if sans #endif.
 prerequis="pkgconfig \\ libvorbis iconv curl openssl"
-v 1.1.1 && modifs="$modifs MUTE" || true
+v 1.1.1 && modifs="$modifs MUTE incutf" || true
 v 1.4.0 && retirerModif MUTE || true
 v 1.4.2 || true
+
+incutf()
+{
+	# En C je ne sais plus combien, les déclarations implicites ne passent plus.
+	filtrer ogginfo/codec_skeleton.c sed -e '/#include "private.h"/i\
+#include "utf8.h"
+'
+}
 
 MUTE()
 {
