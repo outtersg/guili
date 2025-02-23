@@ -33,6 +33,7 @@ v 2.8.0.2019.11.05 && versionComplete="$version.354625c5a229111ecb68457c4238aa6b
 v 2.9.0 || true
 v 2.9.1 || true
 v 2.10.0 || true
+v 2.12.0 || true
 
 argOptions="`options $argOptions=aac`"
 if option aac ; then prerequis="$prerequis libfaad mp4" ; fi
