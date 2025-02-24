@@ -30,10 +30,20 @@ v 2.5.39 && prerequis="make m4 \\" && modifs="" || true
 v 2.6.3 || true
 v 2.6.4 && modifs="reallocarray" || true
 v 2.6.4.20230115 && versionComplete="$version.cf66c9e.git" && prerequis="$prerequis gettext" || true
+v 2.6.4.20250114 && versionComplete="$version.051ab9e.git" || true
 
 # En autoreconf, flex a besoin d'un flex qui n'a pas besoin d'un flex (bref d'un flex non autoreconf).
-[ "$versionComplete" = "$version" ] || prerequis="autoconf automake m4 libtool bison flex < $version \\ $prerequis"
-[ "$versionComplete" = "$version" ] || modifs="$modifs sansDoc"
+case "$versionComplete" in
+	$version.*)
+		vante="`echo "$version" | cut -d . -f 1-3`" # Version ANTÉrieure
+		case "$vante" in
+			"$version") vante="flex < $version" ;;
+			*) vante="flex <= $vante" ;;
+		esac
+		prerequis="autoconf automake m4 libtool bison $vante \\ $prerequis"
+		modifs="$modifs sansDoc"
+		;;
+esac
 
 # Modifications
 
