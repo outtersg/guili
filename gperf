@@ -26,10 +26,16 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 3.0.4 && modifs="" || true
+v 3.0.4 && prerequis="langcxx() \\" && modifs="vieuxcxx" || true
 v 3.1 || true
 
 # Modifications
+
+vieuxcxx()
+{
+	# gperf 3.1, sorti en 2017, est toujours la version la plus récente en 2025. Mais à partir de C++17, certaines approximations ne sont plus tolérées.
+	export CXXFLAGS="-std=c++14"
+}
 
 # Variables
 
