@@ -41,6 +41,10 @@ testerVersion()
 				pg "$2" "$versionTestee" || return 1
 				shift
 				;;
+			"<=")
+				pge "$2" "$versionTestee" || return 1
+				shift
+				;;
 			*) # Numéro de version précis.
 				if $plusPetitOuEgal
 				then
