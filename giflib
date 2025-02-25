@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="make \\"
 v 4.1.4 || true
+v 5.2.2 || true
 
 # Modifications
 
@@ -45,7 +46,13 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+if [ -f configure ]
+then
 ./configure --prefix="$dest"
+else
+	filtrer Makefile sed -e "s#^PREFIX *=.*#PREFIX = $dest#"
+	filtrer Makefile sed -e 's#..MAKE. -C doc##' -e 's#install-man##'
+fi
 
 echo Compilation… >&2
 make
