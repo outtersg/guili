@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,24 +21,23 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
-
-logiciel=giflib
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-version=4.1.4
-OPTIONS_CONF=()
+prerequis="make \\"
+v 4.1.4 || true
 
 # Modifications
 
 # Variables
 
-dest="/usr/local/$logiciel-$version"
-archive=http://heanet.dl.sourceforge.net/sourceforge/libungif/$logiciel-$version.tar.bz2
+archive=https://freefr.dl.sourceforge.net/project/giflib/giflib-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -53,6 +52,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf /tmp/$$
+sutiliser
