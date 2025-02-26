@@ -51,6 +51,7 @@ v 2.63.3 || true
 v 2.71.0 || true
 v 2.75.3 && remplacerPrerequis "pcre >= 10" || true
 v 2.76.3 || true
+v 2.78.6 || true
 
 suffixe=xz
 pge $version 2.29 || suffixe=gz
