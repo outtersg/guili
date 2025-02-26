@@ -28,12 +28,16 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # zlib pour certains composants de glib, cf. explication dans ce dernier.
 v 1.0.2 && prerequis="expat zlib glib" || true
+v 1.15.0 && prerequis="meson \\ expat zlib glib" || true
+v 1.16.0 || true
 
 # Modifications
 
 # Variables
 
-archive="http://dbus.freedesktop.org/releases/$logiciel/$logiciel-$version.tar.gz"
+suffixe=xz
+pge $version 1.13.8 || suffixe=gz
+archive="https://dbus.freedesktop.org/releases/dbus/dbus-$version.tar.$suffixe"
 
 destiner
 
@@ -45,12 +49,35 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Compilation… >&2
+# À FAIRE: configurer avec le bus système similaire aux ports FreeBSD (/usr/local/var/run/dbus/system_bus_socket ?
+case "$prerequis" in
+	*meson*)
+		meson setup build -Dprefix="$dest"
+		cd build
+		;;
+	*cmake*)
+		mkdir -p build && cd build
+		cmake -DCMAKE_INSTALL_PREFIX="$dest" ..
+		;;
+	*)
 ./configure --prefix="$dest"
+		;;
+esac
 
 echo Compilation… >&2
+case "$prerequis" in
+	*meson*) meson compile ;;
+	*)
 make
+		;;
+esac
 
 echo Installation… >&2
+case "$prerequis" in
+	*meson*) sudoku meson install ;;
+	*)
 sudo make install
+		;;
+esac
 
 sutiliser
