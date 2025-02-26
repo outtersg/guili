@@ -52,9 +52,9 @@ v 2.71.0 || true
 v 2.75.3 && remplacerPrerequis "pcre >= 10" || true
 v 2.76.3 || true
 
-archive="ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/$logiciel-$version.tar.bz2"
-pge $version 2.12.12 && archive="ftp://ftp.gtk.org/pub/$logiciel/`vmaj $version`/$logiciel-$version.tar.bz2"
-pge $version 2.34.3 && archive="http://ftp.acc.umu.se/pub/GNOME/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
+suffixe=xz
+pge $version 2.29 || suffixe=gz
+archive=https://download.gnome.org/sources/glib/`vmaj $version`/glib-$version.tar.$suffixe
 
 environ()
 {
