@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,26 +21,23 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
-
-inclure expat
-
-logiciel=dbus
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
-version=1.0.2
-OPTIONS_CONF=()
+# zlib pour certains composants de glib, cf. explication dans ce dernier.
+v 1.0.2 && prerequis="expat zlib glib" || true
 
 # Modifications
 
 # Variables
 
 archive="http://dbus.freedesktop.org/releases/$logiciel/$logiciel-$version.tar.gz"
-dest=/usr/local/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -55,6 +52,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser $logiciel-$version
 
-rm -Rf /tmp/$$
+sutiliser
