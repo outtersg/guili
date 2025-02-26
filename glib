@@ -45,7 +45,7 @@ v 2.58.2 || true
 v 2.58.3 || true
 # Meson + Ninja en 2.60.
 # zlib lorsque meson a été compilé avec une zlib dynamique, sans quoi meson charge le paquet Python zquelquechose qui charge binascii qui explose s'il ne trouve pas libz.so.x
-v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && ajouterModif sansXattr environ || true
+v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && modifs="$modifs sansXattr environ pkgzlib" || true
 v 2.60.6 || true
 v 2.63.3 || true
 v 2.71.0 || true
@@ -56,6 +56,17 @@ v 2.78.6 || true
 suffixe=xz
 pge $version 2.29 || suffixe=gz
 archive=https://download.gnome.org/sources/glib/`vmaj $version`/glib-$version.tar.$suffixe
+
+pkgzlib()
+{
+	# Certains des modules de glib exploitent des fonctionnalités de zlib,
+	# mais le .pc généré ne contient pas le chemin qui permette à un pkgconf de les retrouver.
+	# Pour l'heure on est obligé de l'ajouter à la main au PKG_CONFIG_PATH,
+	# c'est-à-dire, dans le cadre des GuiLI, de coller zlib en prérequis de tout logiciel prérequérant glib.
+	# Une autre option serait de virer le prérequis zlib, et le remplacer directement par le -L et le -l nécessaires.
+	# À FAIRE
+	true
+}
 
 environ()
 {
