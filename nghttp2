@@ -30,6 +30,7 @@ prerequis="pkgconfig >= 0.20 \\"
 v 1.48.0 && modifs="sedcontrib" || true
 v 1.56.0 || true
 v 1.64.0 || true
+v 1.65.0 || true
 
 archive="https://github.com/nghttp2/nghttp2/releases/download/v$version/nghttp2-$version.tar.gz"
 
