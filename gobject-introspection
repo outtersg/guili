@@ -34,6 +34,8 @@ v 1.76.1 && prerequis="python >= 3 meson ninja pkgconfig cmake \\ zlib glib >= 2
 v 1.78.1 && remplacerPrerequis "glib >= 2.78 < 2.83" || true
 v 1.79.1 && remplacerPrerequis "glib >= 2.79 < 2.83" || true
 v 1.80.1 && remplacerPrerequis "glib >= 2.80 < 2.83" || true
+v 1.81.4 && remplacerPrerequis "glib >= 2.81 < 2.83" || true
+v 1.82.0 && remplacerPrerequis "glib >= 2.82 < 2.83" || true
 
 vmin="`echo "$version" | cut -d . -f 1-2`"
 archive="https://download.gnome.org/sources/$logiciel/$vmin/$logiciel-$version.tar.xz"
