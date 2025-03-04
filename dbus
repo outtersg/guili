@@ -28,10 +28,65 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # zlib pour certains composants de glib, cf. explication dans ce dernier.
 v 1.0.2 && prerequis="expat zlib glib" || true
-v 1.15.0 && prerequis="meson \\ expat zlib glib" || true
+v 1.15.0 && prerequis="meson pkgconfig \\ expat zlib glib" && modifs="commeToutLeMonde" || true
 v 1.16.0 || true
 
 # Modifications
+
+avecOuSansX11()
+{
+	# Si l'option a été explicitement écartée, on passe.
+	
+	local optionsX="`options "$argOptions=x"`"
+	( argOptions="$optionsX" ; option x ) || return 1
+	
+	# Ensuite, trouvera-t-on un paquet X11?
+	
+	local cheminPkgconf="$PKG_CONFIG_PATH" d
+	for d in /usr/local/libdata/pkgconfig
+	do
+		[ ! -d /usr/local/libdata/pkgconfig ] || cheminPkgconf="$cheminPkgconf:$d"
+	done
+	
+	( PKG_CONFIG_PATH="$cheminPkgconf" pkg-config x11 ) || return 1
+
+	# Configuration complète.
+	
+	argOptions="$optionsX"
+	option x # On consomme notre belle option toute neuve pour éviter qu'il nous signale un oubli d'utilisation.
+	
+	export PKG_CONFIG_PATH="$cheminPkgconf"
+	OPTIONS_CONF="$OPTIONS_CONF x11-autolaunch=enabled"
+	
+	return 0
+}
+avecOuSansX11 || true
+
+commeToutLeMonde()
+{
+	case `uname` in
+		FreeBSD)
+			OPTIONS_CONF="$OPTIONS_CONF session-socket-dir=/tmp system-pid-file=/var/run/dbus/pid system-socket=/var/run/dbus/system_bus_socket"
+			export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/local/libdata/pkgconfig"
+			;;
+	esac
+}
+
+optionsConf()
+{
+	local mode=$1 ; shift
+		case $mode in
+			meson)
+				printf "$OPTIONS_CONF" | sed -e 's/-/_/g' -e 's/ / -D/g'
+				;;
+			cmake)
+				false # À FAIRE
+				;;
+			configure)
+				printf "$OPTIONS_CONF" | sed -e 's/ / --with-/g'
+				;;
+		esac
+}
 
 # Variables
 
@@ -52,15 +107,15 @@ echo Compilation… >&2
 # À FAIRE: configurer avec le bus système similaire aux ports FreeBSD (/usr/local/var/run/dbus/system_bus_socket ?
 case "$prerequis" in
 	*meson*)
-		meson setup build -Dprefix="$dest"
+		meson setup build -Dprefix="$dest" --buildtype release `optionsConf meson`
 		cd build
 		;;
 	*cmake*)
 		mkdir -p build && cd build
-		cmake -DCMAKE_INSTALL_PREFIX="$dest" ..
+		cmake -DCMAKE_INSTALL_PREFIX="$dest" -DCMAKE_BUILD_TYPE=Release `optionsConf cmake` ..
 		;;
 	*)
-./configure --prefix="$dest"
+		./configure --prefix="$dest" `optionsConf configure`
 		;;
 esac
 
@@ -79,5 +134,8 @@ case "$prerequis" in
 sudo make install
 		;;
 esac
+
+sudoku -d /usr/local chown root:messagebus "$dest/libexec/dbus-daemon-launch-helper"
+sudoku -d /usr/local chmod 4750 "$dest/libexec/dbus-daemon-launch-helper"
 
 sutiliser
