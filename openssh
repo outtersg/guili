@@ -26,10 +26,10 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 6.0.1 && prerequis="openssl < 3 zlib" && modifs="pasfortiche" || true
+v 6.0.1 && prerequis="openssl < 1.1 zlib" && modifs="pasfortiche" || true
 v 7.8.1 || true
-v 7.9.1 || true
-v 8.0.1 || true
+v 7.9.1 && remplacerPrerequis "openssl < 1.2" || true
+v 8.0.1 && remplacerPrerequis "openssl < 3.1" || true
 v 8.1.1 || true
 # À partir de là les serveurs en diffie-hellman-group*-exchange-sha1 sont (par défaut) rejetés.
 # https://www.openssh.com/legacy.html
@@ -38,7 +38,7 @@ v 8.4.1 || true
 # /!\ CVE-2024-6387 touche la 8.5.1 et les suivantes, jusqu'à correction en 9.8.1
 #     https://it.slashdot.org/story/24/07/02/2341237/over-14-million-servers-may-be-vulnerable-to-opensshs-regresshion-rce-flaw
 #v 8.6.1 || true
-v 9.8.1 || true
+v 9.8.1 && remplacerPrerequis "openssl < 3.5" || true
 
 # Modifications
 
