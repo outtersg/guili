@@ -39,6 +39,7 @@ v 8.4.1 || true
 #     https://it.slashdot.org/story/24/07/02/2341237/over-14-million-servers-may-be-vulnerable-to-opensshs-regresshion-rce-flaw
 #v 8.6.1 || true
 v 9.8.1 && remplacerPrerequis "openssl < 3.5" || true
+v 9.9.2 || true
 
 # Modifications
 
