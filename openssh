@@ -27,7 +27,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 6.0.1 && prerequis="openssl < 1.1 zlib" && modifs="pasfortiche" || true
-v 7.8.1 || true
+v 7.8.1 && modifs="$modifs sansrelro" || true
 v 7.9.1 && remplacerPrerequis "openssl < 1.2" || true
 v 8.0.1 && remplacerPrerequis "openssl < 3.1" || true
 v 8.1.1 || true
@@ -41,6 +41,12 @@ v 8.4.1 || true
 v 9.8.1 && remplacerPrerequis "openssl < 3.5" || true
 
 # Modifications
+
+sansrelro()
+{
+	# Une option de blindage fout la grouille sur mon FreeBSD 10 + clang 15.
+	filtrer configure sed -e 's/-z,relro/&surtoutpas/'
+}
 
 # Variables
 
