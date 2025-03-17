@@ -45,7 +45,7 @@ v 2.58.2 || true
 v 2.58.3 || true
 # Meson + Ninja en 2.60.
 # zlib lorsque meson a été compilé avec une zlib dynamique, sans quoi meson charge le paquet Python zquelquechose qui charge binascii qui explose s'il ne trouve pas libz.so.x
-v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && modifs="$modifs sansXattr environ pkgzlib" || true
+v 2.60.5 && prerequis="zlib meson ninja \\ $prerequis" && retirerModif pasBesoinDeCarbon && modifs="$modifs sansXattr environ pkgzlib varrun" || true
 v 2.60.6 || true
 v 2.63.3 || true
 v 2.71.0 || true
@@ -117,6 +117,13 @@ sansXattr()
 {
 	echo '#include <attr/xattr.h>' > $TMP/1.c
 	$CC -c -o $TMP/1.o $TMP/1.c 2> /dev/null || optionsConfigure="$optionsConfigure --disable-xattr" optionsMeson="$optionsMeson -Dxattr=false"
+}
+
+varrun()
+{
+	# Sous Meson, le runtimedir est étrangement par défaut à /run, qui n'existe pas.
+	# En fait comme expliqué dans le meson_options, c'est un problème de Meson, qui tarde à intégrer de façon standard un --runtimedir sur lequel tous les projets sont d'accord.
+	optionsMeson="$optionsMeson -Druntime_dir=/var/run"
 }
 
 destiner
