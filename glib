@@ -54,7 +54,6 @@ v 2.76.3 || true
 v 2.78.6 || true
 v 2.79.3 && remplacerPrerequis "gobject-introspection" && modifs="$modifs pippackaging" || true
 v 2.80.5 || true
-# À partir de là il croit possible la compilation du module dtrace, mais pète à la compil (alors que les précédentes disaient "dtrace: false").
 
 suffixe=xz
 pge $version 2.29 || suffixe=gz
@@ -109,8 +108,11 @@ pasBesoinDeCarbon()
 
 sansDtrace()
 {
-	# La 2.40 a du code dtrace, mais sur mon FreeBSD 8.2, ça ne compile pas vraiment.
+	# La 2.40 a du code dtrace, mais que ce soit la 2.40 sur un FreeBSD 8.2, ou la 2.82 sur un FreeBSD 14.1, ça ne compile pas vraiment.
 	optionsConfigure="$optionsConfigure --disable-dtrace"
+	# À partir de la 2.60, on passe sur du Meson, mais il détecte correctement qu'il ne sera pas foutu d'aller au bout.
+	# … Jusqu'à la 2.81 où il s'imagine pouvoir l'activer (et se revautre): on doit donc la forcer non compilée. Donc à partir de là optionsMeson explicite obligatoire.
+	optionsMeson="$optionsMeson -Ddtrace=false"
 }
 
 sansXattr()
