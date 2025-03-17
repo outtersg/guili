@@ -54,6 +54,8 @@ v 2.76.3 || true
 v 2.78.6 || true
 v 2.79.3 && remplacerPrerequis "gobject-introspection" && modifs="$modifs pippackaging" || true
 v 2.80.5 || true
+v 2.81.2 || true
+v 2.82.5 || true
 
 suffixe=xz
 pge $version 2.29 || suffixe=gz
