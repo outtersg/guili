@@ -30,6 +30,7 @@ v 2.1.0 && prerequis="cmake \\ zlib libpng lcms" || true
 v 2.1.2 || true
 v 2.3.0 || true
 v 2.3.1 || true
+v 2.5.3 || true
 
 # Modifications
 
