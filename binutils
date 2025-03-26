@@ -41,6 +41,7 @@ v 2.34 && modifs="$modifs sansdoc" || true
 v 2.36.1 && modifs="$modifs iostr" || true # max0 encore utile?
 v 2.37 && retirerModif max0 || true
 v 2.41 && retirerModif sansdoc || true
+v 2.44 || true
 
 prerequis
 
