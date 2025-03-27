@@ -88,6 +88,9 @@ pkgconf_lib()
 	# Certains logiciels poussent les fichiers pkgconfig vers libdata/pkgconfig plutôt que lib/pkgconfig sous FreeBSD.
 	# Ce qui est vrai pour le système (/usr/local/libdata/pkgconfig), mais pas pour GuiLI.
 	
+	# Finalement de plus en plus de logiciels se calant sur libdata (qui est plus propre: les lib, c'est les lib), il est dépréconisé de le faire.
+	rouge "# Merci de ne plus utiliser pkgConfLib, mais de laisser utiliser libdata/pkgconfig." >&2
+	
 	for f in "$@"
 	do
 		[ -f "$f" ] || continue

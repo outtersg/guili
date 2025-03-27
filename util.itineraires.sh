@@ -37,7 +37,7 @@ itineraireBis()
 _itineraireBis()
 {
 	unset IFS
-	local racine v
+	local racine v d
 	for v in guili_ppath_mono \
 		guili_xpath guili_lpath guili_lpath guili_pcpath guili_xdgpath guili_acpath
 	do
@@ -61,8 +61,10 @@ _itineraireBis()
 		[ ! -e "$racine/lib64" ] || guili_lpath="$guili_lpath$racine/lib64:"
 		guili_ipath="$guili_ipath$racine/include:"
 
-		guili_pcpath="$guili_pcpath$racine/lib/pkgconfig:"
-		[ ! -e "$racine/lib64/pkgconfig" ] || guili_pcpath="$guili_pcpath$racine/lib64/pkgconfig:"
+		for d in libdata lib lib64
+		do
+			[ ! -e "$racine/$d/pkgconfig" ] || guili_pcpath="$guili_pcpath$racine/$d/pkgconfig:"
+		done
 		guili_xdgpath="$guili_xdgpath$racine/share:"
 		if [ -e "$racine/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 			guili_acpath="$guili_acpath$racine/share/aclocal:"

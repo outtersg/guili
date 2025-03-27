@@ -140,6 +140,7 @@ exclusivementPrerequis()
 			PATH "$INSTALLS/sbin" \
 			LD_LIBRARY_PATH "$INSTALLS/lib" \
 			LD_LIBRARY_PATH "$INSTALLS/lib64" \
+			PKG_CONFIG_PATH "$INSTALLS/libdata/pkgconfig" \
 			PKG_CONFIG_PATH "$INSTALLS/lib/pkgconfig" \
 			PKG_CONFIG_PATH "$INSTALLS/lib64/pkgconfig" \
 			XDG_DATA_DIRS "$INSTALLS/share" \
