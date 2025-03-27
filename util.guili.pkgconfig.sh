@@ -97,3 +97,19 @@ pkgconf_lib()
 		filtrer "$f" sed -e s/libdata/lib/g
 	done
 }
+
+# Renvoie la totale des chemins de recherche de .pc, dont les dossiers système
+# (à la différence de $guili_pcpath qui ne renvoie que la partie sous $INSTALLS)
+pkgconf_path()
+{
+	local prems=1 rech_racine rech_dossier
+	for rech_racine in "$INSTALLS" /usr/local /usr
+	do
+		for rech_dossier in libdata lib
+		do
+			case "$prems" in 1) prems=2 ;; *) printf : ;; esac
+			printf %s "$rech_racine/$rech_dossier/pkgconfig"
+		done
+	done
+	# À FAIRE: en fait le début pourrait être récupéré de $guili_pcpath.
+}
