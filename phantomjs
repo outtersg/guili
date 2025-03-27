@@ -80,6 +80,7 @@ x
 dyn()
 {
 	# Sur certains OS / compilo, "QtWebKit cannot be built as a static library on this platform. Check your configuration in qtbase/config.summary."
+	# À FAIRE: libdata/pkgconfig sur FreeBSD?
 	true || filtreAvant 'self.make("\.")' <<TERMINE
 filtrer "`pwd`/src/qt/qtbase/lib/pkgconfig/Qt5WebKitWidgets.pc" sed -e 's/-lQt5WebKitWidgets/-lQt5WebKitWidgets -lQt5PrintSupport/'
 TERMINE
