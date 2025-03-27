@@ -70,7 +70,7 @@ echo >> /tmp/h
 env >> /tmp/h
 set -x
 exec >> /tmp/h 2>&1
-export CMAKE_PREFIX_PATH="`echo "$PKG_CONFIG_PATH" | sed -e 's#/lib/pkgconfig##g'`"
+export CMAKE_PREFIX_PATH="`echo "$PKG_CONFIG_PATH" | sed -e 's#/lib[^/]*/pkgconfig##g'`"
 export PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 "$vraiBinaire" "\$@"
 TERMINE
