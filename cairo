@@ -33,7 +33,7 @@ v 1.14.8 && prerequis="$prerequis harfbuzz freetype fontconfig" || true # freety
 #v 1.15.2 || true # Lien cassé?
 v 1.16.0 || true
 v 1.17.4 || true
-v 1.18.2 || true
+v 1.18.2 && prerequis="meson ninja \\ $prerequis" || true
 
 gnu89()
 {
@@ -69,7 +69,8 @@ destiner
 
 prerequis
 
-archive=https://www.cairographics.org/snapshots/cairo-$version.tar.xz
+archive=https://www.cairographics.org/releases/cairo-$version.tar.xz
+pge $version 1.18 || archive=https://www.cairographics.org/snapshots/cairo-$version.tar.xz
 
 obtenirEtAllerDansVersion
 
@@ -77,11 +78,14 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+case "$prerequis" in
+	*meson*) meson setup build --prefix="$dest" ; make=ninja ; cd build ;;
+	*) ./configure --prefix="$dest" ; make=make ;;
+esac
 
 echo Compilation… >&2
-make -j 4
+$make -j 4
 
 echo Installation… >&2
-sudo make install
+sudoku $make install
 sutiliser
