@@ -30,6 +30,7 @@ v 1.5.4 && prerequis="autoconf automake m4 libtool \\" || true
 v 1.6.0 || true
 v 2.1.1 || true
 v 2.3.0 || true
+v 2.4.3 || true
 
 # Modifications
 
