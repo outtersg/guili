@@ -705,7 +705,7 @@ true || \
 	#autoreconf -i -W all
 	#autoupdate
 	autoconf
-	export PKG_CONFIG_PATH="$HOME/local/lib/pkgconfig" CPPFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib"
+	export PKG_CONFIG_PATH="$HOME/local/libdata/pkgconfig:$HOME/local/lib/pkgconfig" CPPFLAGS="-I$HOME/local/include" LDFLAGS="-L$HOME/local/lib"
 	./configure --with-pdo-pgsql=$HOME/local --with-libxml=$HOME/local --with-iconv=$HOME/local
 	# Faire sauter le if unable to infer tagged configuration et son contenu
 	# Modifier aussi ext/pdo_pgsql/tests/common.phpt ext/pdo_pgsql/tests/config.inc (user=gui password=)
