@@ -59,7 +59,8 @@ __m128i a()
     return _mm_clmulepi64_si128(gros, gros, 0);
 }
 TERMINE
-	if $CC -c -mpclmul -o 1.o 1.c 2> /dev/null
+	# Nous tournons en phase de détection des prérequis, donc sans encore les modifs dont celle qui aura déterminé le $CC le plus adapté. Pour nous mettre dans les même conditions de compil que post-modifs, nous devons donc manuellement invoquer comme configurateur d'environnement le compiloSysVersion() habituel.
+	if compilo_test -i compiloSysVersion _compiler_c -c -mpclmul /tmp/1.c
 	then
 		return 0
 	fi
