@@ -51,7 +51,7 @@ avecPkgconfig()
 			/enable_pc_files=/ && !ou { ou = 1; }
 			ou == 1 && !niveau {
 				ou = 2;
-				destpc = "'"$dest/lib/pkgconfig"'";
+				destpc = "'"$dest/lib/pkgconfig"'"; # À FAIRE: libdata sous FreeBSD?
 				print "enable_pc_files=yes ; PKG_CONFIG_LIBDIR="destpc" ; echo \"$as_me:"NR": *** forçage fichiers .pc dans "destpc" ***\" >&5 ; echo \"forçage fichiers .pc: OUI MON GARS, dans "destpc"\" >&6";
 			}
 		'
