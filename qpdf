@@ -29,7 +29,8 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis="langcxx(14) make perl \\ zlib libjpeg openssl"
 v 10.6.3 && modifs="pasbash" || true
 
-archive="https://github.com/qpdf/qpdf/archive/refs/tags/release-qpdf-$version.tar.gz"
+archive="https://github.com/qpdf/qpdf/archive/refs/tags/v$version.tar.gz"
+pge $version 11 || archive="https://github.com/qpdf/qpdf/archive/refs/tags/release-qpdf-$version.tar.gz"
 
 # Modifications
 
@@ -43,6 +44,7 @@ pasbash()
 	done
 	for f in make/libtool.mk
 	do
+		[ -f "$f" ] || continue
 		grep -q '=/bin/bash' < "$f" && filtrer "$f" sed -e "s#=/bin/bash#=/bin/sh#" || true
 	done
 }
@@ -63,7 +65,8 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 if pge $version 11
 then
-	cmake -B build
+	cmake -B build -DCMAKE_INSTALL_PREFIX="$dest" \
+		-DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_LIBS=0
 else
 	./configure --prefix="$dest" --disable-crypto-gnutls
 fi
@@ -71,7 +74,7 @@ fi
 echo Compilation… >&2
 if pge $version 11
 then
-	cmake --build build
+	cmake --build build -j4
 else
 	make -j 4
 fi
@@ -79,7 +82,7 @@ fi
 echo Installation… >&2
 if pge $version 11
 then
-	sudoku cmake install
+	sudoku cmake --install build
 else
 	sudoku make install
 fi
