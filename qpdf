@@ -28,11 +28,20 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="langcxx(14) make perl \\ zlib libjpeg openssl"
 v 10.6.3 && modifs="pasbash" || true
+v 11.10.1 && prerequis="cmake \\ $prerequis" && modifs="$modifs tzfreebsd" || true
+v 12.0.0 || true
 
 archive="https://github.com/qpdf/qpdf/archive/refs/tags/v$version.tar.gz"
 pge $version 11 || archive="https://github.com/qpdf/qpdf/archive/refs/tags/release-qpdf-$version.tar.gz"
 
 # Modifications
+
+tzfreebsd()
+{
+	# timezone est détecté à tort comme un entier, alors que c'est un pointeur sur une fonction.
+	
+	filtrer libqpdf/CMakeLists.txt sed -e '/printf.*timezone/s#timezone#& / 60#'
+}
 
 pasbash()
 {
