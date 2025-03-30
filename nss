@@ -26,7 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib" || true
+v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib dbsys monsqlite" || true
 v 3.40.1 && v_nspr="4.20" && modifs="$modifs nonInitialisees putenv le64" || true
 v 3.42.1 || true
 v 3.52.1 && v_nspr="4.25" || true
@@ -35,9 +35,28 @@ v 3.70 && prerequis="perl \\ $prerequis" && v_nspr=4.32 || true
 v 3.99 && v_nspr=4.35 || true
 v 3.109 && v_nspr=4.36 || true
 
-prerequis="make \\ $prerequis zlib nspr $v_nspr"
+prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
 
 # Modifications
+
+monsqlite()
+{
+	# Une très, très, très longue histoire de FreeBSD sur lequel firefox refusait d'afficher les pages HTTPS (c'est-à-dire tout, en 2025), voire les PDF, avec ma NSS d'installée:
+	#   "Vérifiez que le gestionnaire PSM (Personal Security Manager) est installé"
+	# Une première fausse piste me mena vers ma compile: en lançant la compil manuellement (hors GuiLI), jusqu'à plantage, puis terminant en GuiLI, ça passait!
+	# Las, après d'innombrables tentatives, il s'avérait que la différence d'environnement résidait en une compile DBG par défaut, OPT(imisée) sous GuiLI, les deux pondant dans des dossiers différents, mais l'install ne se faisant que depuis l'un d'eux: bref mon install ne copiait que la moitié des biblios, l'autre étant oubliée (donc firefox tapant dans celles d'/usr/local/lib).
+	# En cherchant à circonscrire je finis par réaliser qu'en déplaçant simplement libsoftokn3.so, une install complète (foireuse) redevenait viable.
+	# Une tentative d'appliquer absolument toutes les _rustines_ d'/usr/ports/security/nss (on parle bien de rustines, pas du Makefile) se solda par le même échec.
+	# Plein de fausses pistes plus tard (avec comparaison des ktrace des deux firefox, des strings des biblios, accès à la console navigateur Firefox…), j'en étais à me demander si à cause de FIPS la biblio (qui était adjointe d'un .chk) n'était pas signée faussement.
+	# En essayant de la resigner depuis son dossier d'install, déjà mini bonne nouvelle, shlibsign plantait ("loading softokn3 failed"). Ça allait faciliter le diagnostic (shlibsign, c'est nettement plus rapide à lancer que firefox. Et puis ça ne m'oblige plus à fermer mon navigateur pour retester).
+	# Mais autre nouvelle particulière: en signant n'importe quelle autre biblio, c'était toujours softokn3 qui revenait!
+	# Nous voilà donc avec une chaîne apparemment codée en dur, qui se déniche dans le source de l'utilitaire, juste après un PR_LoadLibrary. PR come NSPR, ça tombe bien, je peux la recompiler.
+	# Et en lui collant un petit printf(dlerror()) juste après le dlopen():
+	# /home/gui/local/lib/libsqlite3.so: version SQLITE_3 required by /home/gui/local/lib/libsoftokn3.so not defined
+	# Misère! J'avais appliqué toutes les rustines des Ports FreeBSD, mais m'étais dit que la SQLite embarquée compilant, il n'était pas dans mes priorités de la remplacer par celle GuiLI (je m'étais simplement consigné une note À FAIRE dans le présent fichier).
+	# Mais donc la SQLite embarquée avait beau compiler, elle n'était utilisée qu'au moment de lire le jeton logiciel, c'est-à-dire trop tard pour être vu comme bloquant.
+	export CFLAGS="$CFLAGS -I$destsqlite/include"
+}
 
 Iutil()
 {
@@ -189,6 +208,51 @@ nonInitialisees()
 	filtrer lib/ssl/ssl3con.c $SEDE -e '/^[ 	]*[_A-Za-z0-9]*[ *	]*(spkiScheme|scheme);/s/;/ = 0;/'
 }
 
+dbsys()
+{
+	# Symptôme rigolo d'une NSS GuiLI sur un FreeBSD 14.1 avec un Firefox installé par pkg:
+	# toute tentative d'accéder à une page HTTPS se solde par une page grise:
+	#   "Vérifiez que le gestionnaire PSM (Personal Security Manager) est installé"
+	# Allons voir ce que font /usr/ports/security/nss.
+	# Parmi la petite dizaine de rustine, patch-sysdb est intrigante, puisqu'elle parle de BdD, pile ce dont un gestionnaire de mots de passe ou AC racine pourrait avoir besoin.
+	# On applique la rustine, on recompile, bingo ça passe! On désapplique, on recompile, ça replante!
+	# On reproduit donc ici l'essence de cette rustine.
+	
+	# … Bon alors en fait non, ça n'est pas du tout ça. Cf. monsqlite sur la réalité.
+	
+	case `uname` in FreeBSD) true ;; *) return 0 ;; esac
+	[ -e /usr/include/db.h ] || return 0
+	
+	grep -rl 'DBMLIB = ' . | while read f ; do filtrer "$f" \
+		sed -e '/^DBMLIB = .*/c\
+DBMLIB = $(NULL)
+'
+	done
+	grep -rl 'DBM_SRCDIR = ' . | while read f ; do filtrer "$f" \
+		sed -e '/^DBM_SRCDIR = .*/c\
+DBM_SRCDIR = $(NULL)
+'
+	done
+	
+	grep -rl '#include "prtypes.h"' lib/certdb | while read f ; do filtrer "$f" \
+		sed -e '/#include "prtypes.h"/c\
+#include <prtypes.h>
+'
+	done
+	grep -rl '#include "mcom_db.h"' lib | while read f ; do filtrer "$f" \
+		sed -e '/#include "mcom_db.h"/{
+c\
+#include <db.h>
+a\
+#include <fcntl.h>
+}'
+	done
+	
+	filtrer lib/softoken/legacydb/config.mk grep -v dbm\\.
+	
+	# À FAIRE?: db en prérequis? Et donc une recherche plutôt dans $INSTALLS/include?
+}
+
 pasGcc()
 {
 	meilleurCompilo
@@ -219,7 +283,7 @@ configure()
 maqueue()
 {
 	CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 \
-	NSS_DISABLE_GTESTS=1 \
+	NSS_DISABLE_GTESTS=1 NSS_USE_SYSTEM_SQLITE=1 \
 	make "$@"
 }
 
