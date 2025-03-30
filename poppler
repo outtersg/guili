@@ -48,6 +48,11 @@ then
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_UNSTABLE_API_ABI_HEADERS=1"
 fi
 
+if ! opSiPasPas qt
+then
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_QT5=OFF"
+fi
+
 # Modifications
 
 chartrait()
