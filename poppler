@@ -39,7 +39,7 @@ v 0.72.0 && modifs="$modifs nssVisible" && prerequis="$prerequis nss curl" || tr
 v 0.75.0 || true
 v 0.84.0 || true
 v 0.89.0 || true
-v 21.09.0 && modifs="$modifs sanssplash incpng incfontconfig" || true
+v 21.09.0 && modifs="$modifs sanssplash incpng incfontconfig chartrait" || true
 
 # Pour LibreOffice, il nous faut les en-têtes internes (Inkscape a le même souci, cf. https://bugs.launchpad.net/inkscape/+bug/254849).
 if option xpdf
@@ -49,6 +49,18 @@ then
 fi
 
 # Modifications
+
+chartrait()
+{
+	# L'obsolétisation forcée des basic_string<autre_chose_que_du_caractère> par clang a laissé sur le carreau pas mal de monde, qui ont mis un peu de temps à se relever. Poppler en fait partie.
+	# https://reviews.llvm.org/D138307
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=281886
+	# https://forums.gentoo.org/viewtopic-p-8847761.html?sid=874740be32930956eefab5d16078417c
+	# https://github.com/pocoproject/poco/issues/4722
+	# https://github.com/joncampbell123/dosbox-x/issues/5259
+	
+	filtrer cpp/poppler-global.h sed -e 's/basic_string<unsigned short>/basic_string<char16_t>/g' # Regardé sur les dernières versions de source de poppler.
+}
 
 incpng()
 {
