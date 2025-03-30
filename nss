@@ -218,7 +218,9 @@ configure()
 
 maqueue()
 {
-	CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 make "$@"
+	CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 \
+	NSS_DISABLE_GTESTS=1 \
+	make "$@"
 }
 
 install()
@@ -266,7 +268,7 @@ configure --prefix="$dest" $OPTIONS_CONF
 echo Compilation… >&2
 #CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make nss_build_all # Si l'on embarque nspr avec.
 #CC=cc CCC=c++ BUILD_OPT=1 USE_64=1 make
-maqueue
+maqueue -j4
 
 echo Installation… >&2
 install
