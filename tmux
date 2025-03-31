@@ -29,9 +29,13 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 1.8 && prerequis="libevent ncurses" && modifs="bonneLibevent bonneNcurses surMac" || true
 v 1.9.1 || true
 v 2.2 || true
+v 2.3 || true
+v 2.4 || true
+v 2.5 || true
 v 2.6 || true # Sait correctement détecter ncursesw.
 v 2.7 || true
 v 2.8 || true
+v 2.9.1 || true
 v 3.2.1 || true
 v 3.3.1 || true
 v 3.5.1 || true
