@@ -43,6 +43,8 @@ prerequis
 # Si on a le malheur de s'installer sur une machine où tourne le Darwin Calendar Server, celui-ci aura installé une libevent 1.4 quand on veut utiliser notre 2.0.
 bonneLibevent()
 {
+	# Ouille en 2025 on a toujours ce truc pourri qui au lieu de forcer une 2.0 par rapport à une 1.4, force maintenant une 2.0 par rapport à une 2.1…
+	return 0
 	# On repère une libevent explicitement 2.0, et on ajoute son lib en tête de LDFLAGS, pour qu'elle soit prise en priorité sur la pourrie de DCS.
 	LDFLAGS="-L$INSTALLS/`ls -l $INSTALLS/lib/libevent-2.0.so | sed -e 's#.*/\(libevent-[0-9.]*/\)#\1#' -e 's#/.*##'`/lib $LDFLAGS"
 	export LDFLAGS
