@@ -36,7 +36,7 @@ v 1.5.2 && retirerModif compat12 || true # Attention, la 1.5 retire des accès d
 v 1.5.6
 v 1.5.13
 v 1.5.17
-v 1.6.12 || true
+v 1.6.12 && modifs="$modifs feenableexcept" || true
 v 1.6.16 || true
 v 1.6.23 || true
 v 1.6.24 || true
@@ -50,6 +50,21 @@ archive="http://switch.dl.sourceforge.net/sourceforge/png-mng/$logiciel-$version
 pge $version 1.2.25 && archive="ftp://ftp.simplesystems.org/pub/libpng/png/src/$logiciel-$version.tar.bz2"
 vmin="`echo "$version" | sed -e 's/\.//' -e 's/\..*//'`"
 archive="http://freefr.dl.sourceforge.net/project/libpng/libpng$vmin/$version/libpng-$version.tar.xz"
+
+feenableexcept()
+{
+	# Le test de feenableexcept dans le configure est bourrin (déclaration, invocation, et malgré l'alerte on croise les doigts pour qu'à l'édition de liens il tombe sur la définition),
+	# alors qu'en compil normale, sous FreeBSD, on ne le retrouve dans /usr/include/fenv.h que sous condition d'avoir __BSD_VISIBLE.
+	# https://sourceware.org/pipermail/newlib/2020/017738.html
+	# Mais on ne doit pas définir __BSD_VISIBLE globalement, sous peine de perdre tout un paquet de fonctionnalités (timer_t par exemple). D'autant que là on n'est que dans les tests.
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	filtrer contrib/libtests/pngvalid.c sed -e '/fenv\.h/{
+i\
+#define __BSD_VISIBLE 1
+a\
+#undef __BSD_VISIBLE
+}'
+}
 
 # Pour être invocable par des trucs qui ne connaissaient que la 1.2.
 compat12()
