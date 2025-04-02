@@ -332,7 +332,7 @@ acl_check_data:
 
 begin routers
 
-+# Si l'\''émetteur est un automate, il a droit à des redirections pour un domaine fictif (ex: de root@bdd à root@bdd). On passe AVANT la résolution dnslookup, qui ne laissera passer (pour redirection subséquente) que si le domaine cible est solvable.
+# Si l'\''émetteur est un automate, il a droit à des redirections pour un domaine fictif (ex: de root@bdd à root@bdd). On passe AVANT la résolution dnslookup, qui ne laissera passer (pour redirection subséquente) que si le domaine cible est solvable.
 redir_depuis_automates:
 	driver = redirect
 	condition = ${if match_ip{$sender_host_address}{+relay_from_hosts}}
