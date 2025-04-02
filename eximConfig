@@ -123,6 +123,8 @@ echo '
 # - regents: comptes Unix habilités à émettre pour le compte d'\''une adrél
 # 
 # primary_hostname: faudrait-il savoir le faire varier en fonction du domaine pour lequel on envoie (afin que le EHLO corresponde?).
+# Il est nécessaire de préciser un primary_hostname resolvable aller-retour (enregistrement PTR).
+primary_hostname = `echo "$domaines" | cut -d : -f 1`
 
 # Il faudrait limiter ceci aux version >= 4.89.
 keep_environment =
@@ -450,7 +452,8 @@ smtp_vers_local:
 remote_smtp:
   driver = smtp
   # https://serverfault.com/a/452706
-  helo_data = ${lc:${if eq{$authenticated_id}{} {$primary_hostname} {mail.${domain:$authenticated_id}}}}
+  # Mais finalement on commente car si notre EHLO n'est pas le Reverse-DNS de notre adresse IP on est marqués pourriel.
+  #helo_data = ${lc:${if eq{$authenticated_id}{} {$primary_hostname} {mail.${domain:$authenticated_id}}}}
   # DKIM
   dkim_domain = ${lc:${if eq{$authenticated_id}{} {$sender_address_domain} {${domain:$authenticated_id}}}}
   dkim_selector = ${if eq{$authenticated_id}{} {simple} {authentifie}}.0
