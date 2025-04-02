@@ -114,12 +114,31 @@ esac
 
 # À FAIRE: log_file_path
 
-# À FAIRE: gérer le cas où l'on a un certif à portée de main. En attendant, on ne peut faire la pub de notre TLS, puisqu'on ne peut y répondre.
-optionsSsl="tls_advertise_hosts ="
 curlcabundle()
 {
 	local racines="$INSTALLS/share/curl-ca-bundle.crt"
 	if [ -e "$racines" ] ; then echo "tls_verify_certificates = $racines" ; fi
+}
+
+serveurSsl()
+{
+	# À FAIRE: en tainted (4.94), il faudra creuser un peu plus pour le tls_sni:
+	# https://lists.exim.org/lurker/message/20220324.053332.c781930f.pl.html
+	
+	# À FAIRE: vérifier l'existence de la clé et du certificat.
+	
+	local domaine0="`echo "$domaines" | cut -d : -f 1`"
+	
+	if [ ! -f "$comptes/mail.$domaine0.key" -o ! -f "$comptes/mail.$domaine0.crt" ]
+	then
+		echo "tls_advertise_hosts ="
+	else
+		cat <<TERMINE
+tls_advertise_hosts = *
+tls_certificate = $comptes/\${if eq {\$tls_in_sni} {} {mail.$domaine0} {\$tls_in_sni}}.cer
+tls_privatekey = $comptes/\${if eq {\$tls_in_sni} {} {mail.$domaine0} {\$tls_in_sni}}.key
+TERMINE
+	fi
 }
 
 echo '
@@ -178,7 +197,7 @@ received_header_text = Received: \
   id $message_exim_id\
   ${if def:received_for {\n\tfor $received_for}}
 
-log_selector = -queue_run -retry_defer +received_recipients +received_sender
+log_selector = -queue_run -retry_defer +received_recipients +received_sender +tls_sni
 
 # Pour ça, compiler avec l'\''option de scan du contenu (WITH_CONTENT_SCAN=yes)
 # av_scanner = clamd:/tmp/clamd
@@ -187,10 +206,7 @@ log_selector = -queue_run -retry_defer +received_recipients +received_sender
 '"$serveurPourriel"'
 # idem: acl_check_data
 
-'"$optionsSsl"'
-# tls_advertise_hosts = *
-# tls_certificate = /etc/ssl/exim.crt
-# tls_privatekey = /etc/ssl/exim.pem
+'"`serveurSsl`"'
 '"`curlcabundle`"'
 
 # daemon_smtp_ports = 25 : 465 : 587
