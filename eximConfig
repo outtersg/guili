@@ -116,6 +116,11 @@ esac
 
 # À FAIRE: gérer le cas où l'on a un certif à portée de main. En attendant, on ne peut faire la pub de notre TLS, puisqu'on ne peut y répondre.
 optionsSsl="tls_advertise_hosts ="
+curlcabundle()
+{
+	local racines="$INSTALLS/share/curl-ca-bundle.crt"
+	if [ -e "$racines" ] ; then echo "tls_verify_certificates = $racines" ; fi
+}
 
 echo '
 # NOTE: rôles
@@ -186,6 +191,7 @@ log_selector = -queue_run -retry_defer +received_recipients +received_sender
 # tls_advertise_hosts = *
 # tls_certificate = /etc/ssl/exim.crt
 # tls_privatekey = /etc/ssl/exim.pem
+'"`curlcabundle`"'
 
 # daemon_smtp_ports = 25 : 465 : 587
 # tls_on_connect_ports = 465
