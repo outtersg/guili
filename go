@@ -28,12 +28,28 @@ logiciel=go
 
 # Historique des versions gérées
 
-v 1.4.3 && modifs="enPrison incertitudes" || true
+v 1.4.3 && modifs="enPrison incertitudes mmap64" && prerequis="openssl < 3" || true
+v 1.4.3.10 || true
 v 1.7.1 && prerequis="go < 1.5" || true
+
+prerequisOpenssl
 
 prerequis
 
 # Modifications
+
+mmap64()
+{
+	# Pour les AMD64, ils ont rajouté un bout de code pour que le mmap n'utilise pas l'option FIXED, bref, ils laissent le système décider de l'alignement de la zone mémoire;
+	# … sauf que derrière ils plantent en gueulant que le pointeur renvoyé est différent de celui demandé.
+	# Donc on fait sauter ce code débile, et on repasse par le code 32 bits qui exigeait du système la zone mémoire à l'endroit précis demandé (sachant qu'ils respectent déjà la contrainte de l'alignement sur 4K, c'est juste que FreeBSD 14, pour encore plus aligner, allait chercher l'alignement plus large sur 256 Mo).
+	local f
+	for f in src/runtime/mem_freebsd.c src/runtime/mem_bsd.go
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e 's/!reserved/0 < 0/' # On retape juste la condition qui fait passer dans le code spécifique 64 bits. On voit même passer un commentaire "Ah ça alors, sur DragonflyBSD, étonnamment le code 64 bits plante, donc lui on lui fait une exception". Ben tiens…
+	done
+}
 
 exfiltrer()
 {
@@ -124,6 +140,10 @@ s/if /if err == nil \&\& len(ifat) > 0 \&\& /
 # Variables
 
 archive="https://go.googlesource.com/go/+archive/go$version.tar.gz"
+# Archives spéciales pour la branche 1.4, cf. https://go.dev/doc/install/source#bootstrapFromSource
+case $version in
+	1.4.3.10) archive=https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz ;;
+esac
 dest=$INSTALLS/$logiciel-$version
 
 [ -d "$dest" ] && exit 0
