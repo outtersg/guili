@@ -54,12 +54,17 @@ v 2.76.3 || true
 v 2.78.6 || true
 v 2.79.3 && remplacerPrerequis "gobject-introspection" && modifs="$modifs pippackaging" || true
 v 2.80.5 || true
-v 2.81.2 || true
+v 2.81.2 && modifs="$modifs piletypee" || true
 v 2.82.5 || true
 
 suffixe=xz
 pge $version 2.29 || suffixe=gz
 archive=https://download.gnome.org/sources/glib/`vmaj $version`/glib-$version.tar.$suffixe
+
+piletypee()
+{
+	filtrer glib/tests/unix.c sed -e '/ss_sp = stack_memory/s/stack_mem/(void *)&/'
+}
 
 pkgzlib()
 {
