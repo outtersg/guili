@@ -46,9 +46,7 @@ toutenlib()
 	for f in mesonbuild/utils/universal.py mesonbuild/mesonlib.py
 	do
 		[ -f "$f" ] || continue
-		filtrer "$f" sed -e "/^def default_libdir()/a\\
-    return 'lib'
-"
+		filtrer "$f" awk '{print}/^def default_libdir\(\)/{print"    return '\''lib'\''"}'
 	done
 }
 
