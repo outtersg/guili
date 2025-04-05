@@ -54,13 +54,13 @@ v 8.0.1 || true
 v 9.0.1 && modifs="$modifs sansChar8T quandMemeCxxISystem" || true
 v 10.0.1 || true
 v 11.1.0 && modifs="$modifs maxAlign" || true
-v 12.0.0 || true
+v 12.0.0 && modifs="$modifs float16" || true
 v 12.0.1 || true
 v 13.0.0 || true
 v 13.0.1 || true
 v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
-v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && modifs="$modifs atomicutmx" || true
+v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx" || true
 v 17.0.1 && babi="$babi grow_by" && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
@@ -151,22 +151,58 @@ TERMINE
 	fi
 }
 
+float16()
+{
+	option rt || return 0
+
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=268196
+	filtrer compiler-rt/lib/builtins/CMakeLists.txt sed \
+		-e '/append_list_if(COMPILER_RT_HAS_FLOAT16/d' \
+		-e '/add_compiler_rt_runtime(clang_rt.builtins/{
+i\
+if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" AND ${arch} STREQUAL "i386"))
+i\
+append_list_if(COMPILER_RT_HAS_FLOAT16 -DCOMPILER_RT_HAS_FLOAT16 BUILTIN_CFLAGS_${arch})
+i\
+endif()
+}'
+	# Et, spécifique à la 15 dans la rustine bugs.freebsd.org ci-dessus, la partie suivante:
+	pg 15 $version || filtrer compiler-rt/lib/builtins/CMakeLists.txt awk '
+		{print}
+		deja>1{next}
+		!deja&&/set.i386_SOURCES/{deja=1}
+		deja&&/^$/{++deja;print"list(REMOVE_ITEM i386_SOURCES truncdfbf2.c truncsfbf2.c)"}'
+}
+
 shaxxx()
 {
 	# compiler-rt exploite les fonctions sha224, sha256, sha384, sha512). Mais toutes ne sont psa définies sur tous les systèmes.
 	# Notamment sha224 qui n'apparaît qu'à partir de FreeBSD 12.
-	local f
+	# FreeBSD 10 n'a même pas les constantes 256, 384 et 512; il a les #include en 256 et 512, et d'autre part les constantes se retrouvent dans openssl/sha.h. Par contre les structures sont bien définies dans les shaxxx.h… mais incompatibles avec celles d'openssl/sha.h, qui lui inclut du 224.
+	# Mais attention, pour le 224, sur un FreeBSD moderne (dont on voudrait s'inspirer), OpenSSL et FreeBSD divergent: OpenSSL le greffe à un SHA256_CTX, tandis que FreeBSD lui dédie un SHA224_CTX.
+	# Bref le plus simple sera de coder en dut (clang.shamoi.h) les constantes sur lesquelles tout le monde s'accorde; et de faire sauter les #include conflictuels (ceux où on pourrait recourir à OpenSSL sauf qu'il est incompatible avec les longueurs définies côté FreeBSD)..
+	
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	
+	local f n napas
+	
+	for n in 224 256 384 512
+	do
+		{ echo "#include <sha$n.h>" ; echo "int main(int argc, char ** argv) { return 0; }" ; } > $TMP/$$/a.c
+		if ! compilo_test $CC -o $TMP/$$/a.out $TMP/$$/a.c 2> /dev/null ; then napas="$n $napas" ; fi
+	done
+	
 	for f in \
 		compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_freebsd.cpp \
 		compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_freebsd.h \
 		compiler-rt/lib/sanitizer_common/sanitizer_common_interceptors.inc \
-		compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp
+		compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp \
+		compiler-rt/lib/profile/InstrProfilingUtil.c
 	do
 		[ -f "$f" ] || continue
-		if [ ! -f /usr/include/sha224.h ]
-		then
-			filtrer "$f" sed \
-				-e '/[sS][hH][aA].*224/d' \
+		filtrer "$f" awk "{print}!deja&&/^SHA2/{deja=1;print\"#include \\\"$SCRIPTS/clang.shamoi.h\\\"\"}"
+		for n in $napas ; do filtrer "$f" sed -e "/[sS][hH][aA].*$n/d" ; done
+		filtrer "$f" sed \
 				-e '/PROC_ASLR_STATUS/{
 i\
 #ifndef PROC_ASLR_STATUS
@@ -182,8 +218,23 @@ i\
 #define PROC_ASLR_ACTIVE 0x80000000
 i\
 #endif
+}' \
+				-e '/PROC_PDEATHSIG_STATUS/{
+i\
+#ifndef PROC_PDEATHSIG_STATUS
+i\
+#define PROC_PDEATHSIG_STATUS 12
+i\
+#endif
+}' \
+				-e '/PROC_PDEATHSIG_CTL/{
+i\
+#ifndef PROC_PDEATHSIG_CTL
+i\
+#define PROC_PDEATHSIG_CTL 11
+i\
+#endif
 }'
-		fi
 	done
 }
 
