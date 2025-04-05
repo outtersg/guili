@@ -135,6 +135,8 @@ varrun()
 	optionsMeson="$optionsMeson -Druntime_dir=/var/run"
 }
 
+option intro || { optionsMeson="$optionsMeson -Dintrospection=disabled" ; virerPrerequis gobject-introspection ; }
+
 destiner
 
 prerequis
