@@ -131,6 +131,7 @@ opSiPasPas()
 		prerequis="$prerequis $p" # S'il y est déjà il sera fusionné au decoupePrerequis; s'il n'y est pas il sera ajouté; et dans tous les cas notre $* permet de lui ajouter des options.
 	else
 		virerPrerequis "$p"
+		return 1
 	fi
 }
 
