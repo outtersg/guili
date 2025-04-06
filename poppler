@@ -139,6 +139,11 @@ pge $version 0.24 || archive="http://poppler.freedesktop.org/poppler-$version.ta
 
 optionSi ft/freetype || true
 optionSi glib || true
+echo "#include <gpgme.h>" > $TMP/$$/1.c
+if ! optionSi gpgme && ! compilo_test -i compiloSysVersion _compiler_c -c -o $TMP/$$/1.o $TMP/$$/1.c 2> /dev/null
+then
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_GPGME=OFF"
+fi
 
 destiner
 
