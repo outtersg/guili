@@ -84,7 +84,7 @@ then
 	OPTIONS_CONF="$OPTIONS_CONF --with-libssh2"
 fi
 
-opSiPasPas idn libidn # libidn par défaut (sauf si explicitement exclue).
+opSiPasPas idn libidn || true # libidn par défaut (sauf si explicitement exclue).
 optionSi ldap/openldap || true
 option ldap || OPTIONS_CONF="$OPTIONS_CONF --disable-ldap" # On doit désactiver explicitement, sans quoi sur certains Linux un peu trop bien dotés, le configure détecte le libldap.so système, s'y lie, et avec elle à la libssl.so système, qui embarque un RAND_egd, poussant le configure à déclarer un peu plus tard un HAVE_RAND_EGD alors qu'en fait l'OpenSSL auquel on se liera en définitive, en version 1.1, ne définit plus RAND_egd.
 if [ -n "$v_nghttp2" ] && opSiPasPas http2 "nghttp2 $v_nghttp2"
