@@ -60,7 +60,7 @@ esac
 # Pour les versions pouvant prendre en compte Harfbuzz, on le prend (sauf si rejeté explicitement évidemment).
 case "$prerequis" in
 	*harfbuzz*)
-opSiPasPas hb harfbuzz
+		opSiPasPas hb harfbuzz || true
 		optionsEtPrerequisIcu # Nous aurons à transmettre les options ICU à harfbuzz.
 		;;
 	*)
