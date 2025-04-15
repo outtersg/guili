@@ -34,7 +34,7 @@ v 3.6
 v 4.4
 # Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
 #v 4.4.1
-v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees" || true
+v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees sansSuffixe" || true
 v 52.1 || true
 v 55.1 && modifs="$modifs ldlproot" || true
 # À partir de la 58: char16_t => C++11; cf. PHP qui nous utilise.
@@ -54,6 +54,12 @@ pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version
 pg 68 $version || archive=https://github.com/unicode-org/icu/releases/download/release-$versiont/icu4c-$versiong-src.tgz
 
 # Modifications
+
+sansSuffixe()
+{
+	# Par défaut tous les symboles des biblios sont suffixés de la version majeure. Très bien pour faire cohabiter une ICU 73 et une 76, sauf que ça n'est pas le mode de fonctionnement des GuiLI (la dernière version installée masque les précédentes, un point c'est tout). Et notamment sous FreeBSD, les Ports fonctionnent sans suffixe, ce qui fait qu'une biblio compilée avec suffixe empêche tous les logiciels compilés par les Ports de trouver leurs symboles (par exemple Firefox).
+	OPTIONS_CONF="$OPTIONS_CONF --disable-renaming"
+}
 
 pasDonnees()
 {
