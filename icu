@@ -146,7 +146,7 @@ echo Configuration… >&2
 cd source
 if pge $version 50
 then
-	./configure --prefix="$dest"
+	./configure --prefix="$dest" $OPTIONS_CONF
 else
 	type=`uname -s`
 	[ $type = Darwin ] && type=MacOSX
