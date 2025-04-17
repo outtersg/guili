@@ -61,7 +61,7 @@ v 13.0.1 || true
 v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
 v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx" || true
-v 17.0.1 && babi="$babi grow_by" && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
+v 17.0.1 && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
 v 18.1.8 || true
@@ -657,13 +657,21 @@ vblibcxx()
 {
 	# On utilise une numérotation de biblio différente de celle préconisée:
 	# Sur nos systèmes (FreeBSD 10), qui sont du libc++ + libcxxrt en guise d'ABI, /usr/lib/libc++.so.1 est cette "vieille" libc++ liée à libcxxrt, à laquelle TOUS les logiciels C++ compilés se sont liés en même temps qu'à libcxxrt.so.1. Si l'on remplace libc++.so.1 par la nôtre, ces logiciels explosent, car notre "nouvelle" libc++ repose sur des fonctionnalités de libc++abi que n'a pas libcxxrt; à commencer par cmake, qui pète non pas après l'installation, mais dans la compilation même, puisque le make général réinvoque un cmake.
-	# On commence donc notre numérotation à 2.
-	# À FAIRE: rendre ça conditionnel, seulement si on tourne sur un système ayant une libc++.so.1 lié à une libcxxrt. Par exemple un FreeBSD récent sera sans doute déjà accoutumé à du libc++ + libc++abi, pas la peine de monter en version.
+	
+	local cheminsys="/usr/bin:/bin"
+	[ "$INSTALLS" = /usr/local ] || cheminsys=/usr/local/bin:$cheminsys
+	local vclangsys="`PATH=$cheminsys ; clang -dumpversion`"
+	[ -n "$vclangsys" ] || return 0 # À FAIRE: vérifier cette assertion (pas de clang = pas de conflit donc on peut rester en ABI v1).
+	
+	# Mettons arbitrairement que c'est à partir des clang 10 que FreeBSD se lie à une libc++.
 	case `uname` in
-		Linux) true ;;
-		# Par précaution tout le reste est considéré à risque.
-		*) babi="cohabitCxxrt $babi" ;;
+		FreeBSD)
+			pge $vclangsys 10 || pg 10 $version || babi="$babi cohabitCxxrt"
+			;;
 	esac
+	pge $vclangsys 17 || pg 17 $version || babi="$babi grow_by"
+	
+	case "$babi" in "") return ;; esac
 	
 	# Gestion des BABI (Breaks of ABI):
 	# Pour chaque changement qui fait qu'une libc++.so ne peut pas remplacer la précédente de façon transparente, on incrémente la version de biblio pour les distinguer.
@@ -687,6 +695,7 @@ vblibcxx()
 	#     La biblio demande alors une recompil de tous les logiciels, puisque les symboles changent: _ZNKSt3__14__fs10filesystem4path10__filenameEv devient _ZNKSt3__24__fs10filesystem4path10__filenameEv, etc. (pour prendre l'exemple d'un symbole défini dans libc++abi.so.1 mais pas dans libcxxrt.so.1).
 	#     À voir: le gain (d'éviter les incompatibilités en créant deux versions des mêmes symboles, ce qui permet "par mégarde" d'embarquer conjointement une libc++.so.1 et une libc++.so.2) en vaut-il la chandelle?
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_ABI_VERSION=$v"
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXXABI_LIBRARY_VERSION=$v.0"
 }
 
 # Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
