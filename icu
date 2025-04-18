@@ -60,6 +60,7 @@ sansSuffixe()
 {
 	# Par défaut tous les symboles des biblios sont suffixés de la version majeure. Très bien pour faire cohabiter une ICU 73 et une 76, sauf que ça n'est pas le mode de fonctionnement des GuiLI (la dernière version installée masque les précédentes, un point c'est tout). Et notamment sous FreeBSD, les Ports fonctionnent sans suffixe, ce qui fait qu'une biblio compilée avec suffixe empêche tous les logiciels compilés par les Ports de trouver leurs symboles (par exemple Firefox).
 	OPTIONS_CONF="$OPTIONS_CONF --disable-renaming"
+	filtrer source/common/unicode/uconfig.h sed -e '/#define U_DISABLE_RENAMING 0/s/0/1/'
 }
 
 pasDonnees()
