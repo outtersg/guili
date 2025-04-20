@@ -56,10 +56,9 @@ then
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_UNSTABLE_API_ABI_HEADERS=1"
 fi
 
-if ! opSiPasPas qt
-then
-	OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_QT5=OFF"
-fi
+optionSi qt || true
+option qt && versions "qt >= 5 < 6" | grep -q . || OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_QT5=OFF"
+option qt && versions "qt >= 6 < 7" | grep -q . || OPTIONS_CMAKE="$OPTIONS_CMAKE -DENABLE_QT6=OFF"
 
 # Modifications
 
