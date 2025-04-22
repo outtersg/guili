@@ -55,6 +55,7 @@ optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || OPTIONS_CO
 # Pour ce qui est du freetype, finalement on ne le prérequiert que s'il est déjà installé dans la version voulue (par exemple itération 0 d'un freetype+hb).
 # Ce après l'optionsEtPrerequisIcu() afin qu'il ait toutes ses options (ICU) d'étiquetées.
 optionSi ft/freetype || true
+optionSi png/libpng || true
 pftv="`decoupePrerequis "$prerequis" | grep ^freetype`"
 if [ -z "$pftv" ] || versions -lp -li "$pftv" | grep -q .
 then
