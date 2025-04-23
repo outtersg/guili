@@ -141,13 +141,15 @@ TERMINE
 			  compilo_test $CC -std=c11 -DAVEC_ATO=1 -o /tmp/1 /tmp/1.c
 		then
 			echo "umtx.h nécessite atomic.h, on l'ajoute"
-			filtrer libcxx/src/atomic.cpp sed -e '/sys.umtx.h/i\
+			filtrer libcxx/src/atomic.cpp sed -e '/sys.umtx.h/{
+i\
+extern "C" {
+i\
 #include <machine/atomic.h>
+a\
+}
+}
 '
-# A FAIRE: on n'est pas tirés d'affaire. Maintenant à l'install il plante en:
-#          /usr/local/binutils-2.41/bin/ld : /usr/local/clang+libcxx-17.0.6/lib/libc++.so : référence indéfinie vers « _umtx_op(void*, int, unsigned long, void*, void*) »
-#          sauf qu'il a déjà installé une partie et est donc détecté comme clang (donc utilisé si on tente de recompiler n'importe quoi d'autre avec le compilo le + récent détecté)
-#          pourtant un umtx_op est détecté dans /lib/libthr.so et /lib/libpthread.so (mais non nm -o: symboles dézingués), qui est vu par ldd sur /usr/local/clang+libcxx-17.0.6/lib/libc++.so: le symbole y est-il (ms surcharge de lthr par ailleurs?).
 		fi
 	fi
 }
