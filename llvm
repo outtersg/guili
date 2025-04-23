@@ -905,4 +905,6 @@ for modif in true $modifsPostInstall ; do $modif ; done
 # À FAIRE: si nous sommes clang, nous pouvons aussi créer un alias (lien symbolique) llvm+clang-x.y.z -> clang-x.y.z,
 # car nous en sommes un surensemble et les logiciels cherchant llvm devraient pouvoir nous trouver (ex.: mesa).
 
+case "$PWD" in */build) cd .. ;; esac # La compil' terminée, on se replace à la racine des sources pour la phase ménage.
+
 sutiliser
