@@ -895,7 +895,7 @@ for modif in true $modifsPostCompil ; do $modif ; done
 echo Installation… >&2
 install=install/strip # Depuis je ne sais quelle version, 3 Go par binaire, ça commence à faire beaucoup. Heureusement l'install' propose un mode bien dégagé autour des oreilles.
 pge $version 18 || install=install
-sudo make $install
+sudoku LD_LIBRARY_PATH="$LD_LIBRARY_PATH" make $install
 # Certains utilisateurs de llvm (ex.: rust) ont besoin d'avoir accès aux outils intermédiaires de llvm.
 [ -e bin/FileCheck ] && sudo cp bin/FileCheck "$dest/bin/" || true
 for modif in true $modifsPostInstall ; do $modif ; done
