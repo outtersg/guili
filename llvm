@@ -697,6 +697,13 @@ vblibcxx()
 	#     À voir: le gain (d'éviter les incompatibilités en créant deux versions des mêmes symboles, ce qui permet "par mégarde" d'embarquer conjointement une libc++.so.1 et une libc++.so.2) en vaut-il la chandelle?
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_ABI_VERSION=$v"
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXXABI_LIBRARY_VERSION=$v.0"
+	
+	_vblibcxx()
+	{
+		filtrer libcxxabi/src/CMakeLists.txt sed -e 's/SOVERSION "1"/SOVERSION "'"$v"'"/' # Sinon on a libc++abi.so.1 → libc++abi.so.3.0
+	}
+	
+	modifs="$modifs _vblibcxx"
 }
 
 # Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
