@@ -60,7 +60,7 @@ v 13.0.0 || true
 v 13.0.1 || true
 v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
-v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx" || true
+v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx problematicCompilerId" || true
 v 17.0.1 && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
@@ -117,6 +117,18 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+problematicCompilerId()
+{
+	# CMAKE_CXX_COMPILER_ID not defined
+	#   https://lists.llvm.org/pipermail/llvm-commits/Week-of-Mon-20220815/1068836.html
+	#   https://github.com/llvm/llvm-project/issues/58073
+	#   https://github.com/llvm/llvm-project/issues/54645#issuecomment-1262719756
+	#   https://stackoverflow.com/questions/20904914/cmake-compiler-is-gnucxx-and-cmake-cxx-compiler-id-are-empty
+	# Une option préconisée est de préciser les LLVM_TARGETS_TO_BUILD (mais sait-on exactement où on veut se limiter? Ne veut-on pas faire de la compil croisée, par exemple pour du wasm, en plus de la machine locale 32 et 64 bits?)
+	# On choisit donc déjà la facilité de laisser tourner avec une chaîne vide (de toute façon à l'heure actuelle ça ne teste que du MSVC).
+	filtrer llvm/cmake/modules/CheckProblematicConfigurations.cmake sed -e 's/if(\(\$[^ ]*\)/if("\1"/'
+}
 
 atomicutmx()
 {
