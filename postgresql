@@ -98,7 +98,7 @@ v 15.5 && remplacerPrerequis "python+osslxx >= 3" || true
 v 15.6 || true
 v 15.7 || true
 v 15.8 || true
-v 16.1 || true
+v 16.1 && modifs="$modifs fdatasync" || true
 v 16.2 || true
 v 16.3 || true
 v 16.4 || true
@@ -152,6 +152,24 @@ detectionPerl()
 pathZic()
 {
 	filtrer src/timezone/Makefile sed -e "/ZIC *:*=/s#=#=PATH=\"$PATH\" LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH\" #"
+}
+
+fdatasync()
+{
+	# Idiotement, un #ifdef HAVE_FDATASYNC a été supprimé pour cesser de soutenir les vieux OS sous PostgreSQL 16. On rétablit.
+	
+	cat > $TMP/$$/1.c <<TERMINE
+#include <unistd.h>
+
+int main(int argc, char ** argv)
+{
+	return fdatasync(0);
+}
+TERMINE
+	if ! compilo_test $CC $TMP/$$/1.c -o $TMP/$$/1.out && compilo_test $CC -Dfdatasync=fsync $TMP/$$/1.c -o $TMP/$$/1.out
+	then
+		export CFLAGS="$CFLAGS -Dfdatasync=fsync"
+	fi
 }
 
 archive=http://ftp.postgresql.org/pub/source/v$version/postgresql-$version.tar.bz2
