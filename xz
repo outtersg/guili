@@ -26,13 +26,24 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 5.2.5 || true
+v 5.2.5 && modifs="cap_rights_right" || true
 v 5.2.12 || true
 v 5.4.4 || true
 v 5.4.6 || true
 #v 5.6.1 || true # Ouch! https://arstechnica.com/security/2024/03/backdoor-found-in-widely-used-linux-utility-breaks-encrypted-ssh-connections/
 
 # Modifications
+
+cap_rights_right()
+{
+	# https://github.com/tukaani-project/xz/security/advisories/GHSA-r92m-m8gj-93w8
+	# Problème de sécurité qui, sur un FreeBSD 10.2, se manifeste par une erreur de compilation.
+	
+	for f in src/xz/sandbox.c src/xzdec/xzdec.c
+	do
+		filtrer $f sed -e s/cap_rights_clear/cap_rights_init/g
+	done
+}
 
 # Variables
 
