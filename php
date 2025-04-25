@@ -207,7 +207,7 @@ v 8.2.25 || true
 v 8.2.26 || true
 v 8.2.27 || true
 v 8.2.28 || true
-v 8.3.2 || true
+v 8.3.2 && modifs="$modifs pdeathsig" || true
 v 8.3.3 || true
 v 8.3.4 || true
 v 8.3.6 || true
@@ -223,7 +223,7 @@ v 8.3.16 || true
 v 8.3.17 || true
 v 8.3.19 || true
 v 8.3.20 || true
-v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre || true
+v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre && modifs="$modifs ki_tracer" || true
 v 8.4.2 || true
 v 8.4.3 || true
 v 8.4.4 || true
@@ -318,6 +318,45 @@ atomicconst()
 /__c11_atomic_load\(&obj->value/{sub(/obj->/, "(("tyty" *)obj)->")}
 {print}
 '
+}
+
+pdeathsig()
+{
+	# C'est bien gentil de mettre un commentaire "on ne s'inquiète pas du retour vu que peu de systèmes implémentent", si l'appel déjà plante.
+	filtrer sapi/cli/php_cli_server.c sed -e '/PROC_PDEATHSIG_CTL/{
+i\
+#ifdef PROC_PDEATHSIG_CTL
+a\
+#endif
+}'
+}
+
+ki_tracer()
+{
+	# PHP 8.4 repose sur des membres de kinfo_proc absents de FreeBSD 10.2.
+	
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	
+	cat > $TMP/$$/1.c <<TERMINE
+#include <sys/types.h>
+#include <sys/user.h>
+
+int main(int argc, char ** argv)
+{
+	struct kinfo_proc i;
+	return i.ki_tracer;
+}
+TERMINE
+	compilo_test $CC $TMP/$$/1.c -o $TMP/$$/1.bin || filtrer ext/opcache/jit/ir/ir_gdb.c sed -e '/if.*ki_tracer/{
+i\
+#ifdef HAVE_KI_TRACER
+a\
+#else
+a\
+if(0){
+a\
+#endif
+}'
 }
 
 pglazyfetch()
