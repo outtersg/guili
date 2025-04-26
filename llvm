@@ -64,7 +64,7 @@ v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs
 v 17.0.1 && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
-v 18.1.8 || true
+v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setname" || true
 v 19.1.5 || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
@@ -117,6 +117,49 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+auxv_optio()
+{
+	# Inclusion d'un .h qui n'existe pas sous FreeBSD 10.2, et qui sous le 14.2 ne comporte qu'une seule fonction elf_aux_info() qui ne semble guère utilisée.
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_linux_libcdep.cpp sed -e '/sys.auxv.h/d'
+}
+
+aslr_optio()
+{
+	[ ! -f /usr/include/sys/procctl.h ] || grep -q ASLR /usr/include/sys/procctl.h ||
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp \
+		sed -E \
+			-e '/sanitizer_platform.h/i\
+#include <stdlib.h>
+' \
+			-e '/PROC_ASLR_FORCE_DISABLE|PROC_ASLR_CTL/{
+i\
+exit(1);/* Macro non définie:
+a\
+*/
+}'
+}
+
+pthread_setname()
+{
+	grep -q pthread_set.\*name /usr/include/pthread.h ||
+	filtrer compiler-rt/lib/fuzzer/FuzzerUtilLinux.cpp \
+		sed -e '/^namespace/i\
+#define pthread_setname_np(x, y) fprintf(stderr, "Renommage de fil en %s\n", y);
+'
+}
+
+getentropy_optio()
+{
+	# FreeBSD 10.2 n'a pas de getentropy, la 14.2 en a un. On place la barre entre les deux en attendant de connaître la version précise qui nous permet de l'utiliser.
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp \
+		sed -e '/define.*SANITIZER_USE_GETENTROPY/{
+i\
+#if __FreeBSD_version >= 1202000
+a\
+#endif
+}'
+}
 
 problematicCompilerId()
 {
