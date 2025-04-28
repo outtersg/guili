@@ -339,3 +339,14 @@ prerequisExecution()
 	dernierParam $prerequis
 	unset IFS
 }
+
+#- Modifs ----------------------------------------------------------------------
+# Et tout ce qui ressemble à une liste de mots.
+
+retirerModif()
+{
+	for modif in "$@"
+	do
+		modifs="`echo " $modifs " | sed -e "s/ $modif / /g" -e 's/  */ /g' -e 's/^ //' -e 's/ $//'`"
+	done
+}
