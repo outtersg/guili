@@ -68,6 +68,7 @@ v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setna
 v 19.1.5 && modifs="$modifs fs_filesystem" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
+v 20.1.3 && modifs="$modifs internal_close_range copy_file_range" || true
 
 lieur()
 {
@@ -167,6 +168,28 @@ fs_filesystem()
 	# MAIS libc++ considère qu'une version d'ABI > 1 est expérimentale, et à ce titre se permet (à partir de la 19) encore d'autres modifs qui obligeraient à un nouveau changement de version.
 	# La 19 n'ayant que cette incompatibilité d'ABI, facilement débrayable, on la débraye pour éviter de multiplier les versions (avoir une libc++.so.x fournie par libc++ 18, et une libc++.so.y par la 19, obligeant à conserver les deux pépères de 3,5 Go chacun pour ne pas péter les logiciels liés à la .x… dont clang 19 lui-même).
 	filtrer libcxx/include/__configuration/abi.h grep -v define\ \*_LIBCPP_ABI_NO_FILESYSTEM_INLINE_NAMESPACE
+}
+
+internal_close_range()
+{
+	# Les vieux FreeBSD n'ont pas le close_range qu'ont les plus récents. Le test de clang 20 est un peu léger, en #if FREEBSD.
+	cat > $TMP/$$/1.c <<TERMINE
+#include <unistd.h>
+int main(int argc, char ** argv) { return close_range(2, 3, 0); }
+TERMINE
+	compilo_test $CC $TMP/$$/1.c -o $TMP/$$/1.bin ||
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp awk '/internal_close_range/{print"#if 0";encore=1}{print}encore&&/^}/{encore=0;print"#endif"}'
+}
+
+copy_file_range()
+{
+	cat > $TMP/$$/1.c <<TERMINE
+#include <sys/types.h>
+#include <unistd.h>
+int main(int argc, char ** argv) { return copy_file_range(0, 0, 0, 0, 0, 0); }
+TERMINE
+	compilo_test $CC $TMP/$$/1.c -o $TMP/$$/1.bin ||
+	filtrer libcxx/src/filesystem/operations.cpp grep -v 'define _LIBCPP_FILESYSTEM_USE_COPY_FILE_RANGE'
 }
 
 problematicCompilerId()
