@@ -345,8 +345,15 @@ prerequisExecution()
 
 retirerModif()
 {
-	for modif in "$@"
+	local modif res avirer=" $* "
+	for modif in $modifs
 	do
-		modifs="`echo " $modifs " | sed -e "s/ $modif / /g" -e 's/  */ /g' -e 's/^ //' -e 's/ $//'`"
+		case "$avirer" in *" $modif "*) continue ;; esac
+
+		case "$res" in
+			"") res="$modif" ;;
+			*) res="$res $modif" ;;
+		esac
 	done
+	modifs="$res"
 }
