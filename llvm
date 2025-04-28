@@ -65,7 +65,7 @@ v 17.0.1 && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake 
 v 17.0.3 || true
 v 17.0.6 || true
 v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setname" || true
-v 19.1.5 || true
+v 19.1.5 && modifs="$modifs fs_filesystem" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
 
@@ -159,6 +159,14 @@ i\
 a\
 #endif
 }'
+}
+
+fs_filesystem()
+{
+	# Serpent qui se mord la queue: en fonction de sas d'incompatibilité franchis dans les versions antérieures, on est partis sur une version d'ABI / API > 1 (cf. vblibcxx()).
+	# MAIS libc++ considère qu'une version d'ABI > 1 est expérimentale, et à ce titre se permet (à partir de la 19) encore d'autres modifs qui obligeraient à un nouveau changement de version.
+	# La 19 n'ayant que cette incompatibilité d'ABI, facilement débrayable, on la débraye pour éviter de multiplier les versions (avoir une libc++.so.x fournie par libc++ 18, et une libc++.so.y par la 19, obligeant à conserver les deux pépères de 3,5 Go chacun pour ne pas péter les logiciels liés à la .x… dont clang 19 lui-même).
+	filtrer libcxx/include/__configuration/abi.h grep -v define\ \*_LIBCPP_ABI_NO_FILESYSTEM_INLINE_NAMESPACE
 }
 
 problematicCompilerId()
@@ -728,6 +736,7 @@ vblibcxx()
 			;;
 	esac
 	pge $vclangsys 17 || pg 17 $version || babi="$babi grow_by"
+	#pge $vclangsys 19 || pg 19 $version || babi="$babi fs_filesystem" # Finalement géré comme une modif, cf. fs_filesystem().
 	
 	case "$babi" in "") return ;; esac
 	
@@ -743,6 +752,9 @@ vblibcxx()
 	#   Changement apparu dans https://reviews.llvm.org/D148693; philnik dit que "The inline version should always be emitted" (donc qu'on ne devrait pas trouver de symbole __grow_by dans le généré), mais peut-être n'était-on pas encore en always inline en 16 (grâce à laquelle notre clang++17 a été compilé).
 	#   Une autre explication serait que les .h font tout pour que __grow_by reste privée, mais avec une exception pour clang lui-même (ce qui expliquerait son apparition dans les symboles U de clang++).
 	#   Ou alors que __grow_by n'était actif qu'en mode expérimental, n'est normalement pas utilisé (sauf si on l'active explicitement à nos risques et périls)… mais que cohabitCxxrt aurait déclenché son activation (en déclarant un LIBCXX_ABI_VERSION=2, signe du mode expérimental).
+	# - fs_filesystem
+	#   Jusqu'à la 18, les fonctions filesystem étaient sous fs::filesystem::path (path pour l'exemple).
+	#   À partir de la 19 _si on a déjà incrémenté notre version_ (ce que libc++ considère comme un feu vert aux expérimentations), filesystem rentre dans la boucle, on n'a plus que filesystem::path
 	
 	# À FAIRE: partir de la version indiquée comme défaut dans les fichiers livrés.
 	local v=1 b
