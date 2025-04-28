@@ -345,9 +345,16 @@ prerequisExecution()
 
 retirerModif()
 {
-	local modif res avirer=" $* "
-	for modif in $modifs
+	local modif res avirer var=modifs
+	
+	case "$1" in -v) var=$2 ; shift ; shift ;; esac
+	avirer=" $* "
+	eval "set -- \$$var"
+	
+	while [ $# -gt 0 ]
 	do
+		modif="$1" ; shift
+		
 		case "$avirer" in *" $modif "*) continue ;; esac
 
 		case "$res" in
@@ -355,5 +362,6 @@ retirerModif()
 			*) res="$res $modif" ;;
 		esac
 	done
-	modifs="$res"
+	eval $var='"$res"'
+	# À FAIRE: signaler les modifs à retirer non retirées car inexistantes.
 }
