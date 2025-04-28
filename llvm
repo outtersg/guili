@@ -740,7 +740,7 @@ vblibcxx()
 	
 	case "$babi" in "") return ;; esac
 	
-	# Gestion des BABI (Breaks of ABI):
+	# Gestion des BABI (Breaks of ABI) / PAPI (Pet d'API):
 	# Pour chaque changement qui fait qu'une libc++.so ne peut pas remplacer la précédente de façon transparente, on incrémente la version de biblio pour les distinguer.
 	# Normalement ça devrait être géré par le projet LLVM mais il y a des ratés…
 	# Liste des BABI:
