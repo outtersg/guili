@@ -143,6 +143,9 @@ prerequisOpenssl
 # Tous ces prérequis sont des prérequis de construction. À l'exécution, nos utilisateurs veulent simplement utiliser un cmake, et ne pas devoir dépendre de toutes les bibliothèques auxquelles lui est lié (exemple criant: un bidule nécessitant un OpenSSL < 1.1, se construisant avec cmake, n'a surtout pas envie que ce dernier lui impose son OpenSSL 1.1 "de compilation").
 prerequis="$prerequis \\"
 
+# Option à usage de clang, pour casser une boucle cmake / clang / cmake.
+option reamorcage || true
+
 destiner
 
 prerequis
