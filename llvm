@@ -33,14 +33,14 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 constr=configure
 v 3.3 || true
-v 3.4.2 && modifs="pasTropOptim macMath stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
+v 3.4.2 && modifsDyn="pasTropOptim macMath" && modifs="stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
 v 3.5.0 && modifs="$modifs strtoll" || true # A un petit problème avec strtoll.
 v 3.5.2 || true
 v 3.6.0 && modifs="$modifs sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig \\ " || true
 v 3.6.2 || true
-v 3.7.1 && modifs="pasTropOptim macMath stdcppPasTropEnDur ocloexec alignementBiblios" && prerequis="make python >= 2.7 \\" || true
+v 3.7.1 && retirerModif sansOcaml strtoll sansCodecvt pathMax gccframework complications && modifs="$modifs alignementBiblios" && prerequis="make python >= 2.7 \\" || true
 # build external machin: https://www.bountysource.com/issues/29603185-compiler-rt-is-built-with-the-wrong-toolchain-bootstrap-compiler-rather-than-built-clang-linking-fails-when-using-clang-older-than-3-5-eg-mavericks-and-earlier-xcodes. Ne sera plus valable en 4.0 et suivants.
-v 3.9.1 && constr=cmake && modifsDyn="pasTropOptim macMath macLibtool unwind" && modifs="$modifsDyn stdcppPasTropEnDur llvmStrnlen" && prerequis="cmake \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true
+v 3.9.1 && constr=cmake && modifsDyn="$modifsDyn macLibtool unwind" && retirerModif ocloexec alignementBiblios && modifs="$modifs llvmStrnlen" && prerequis="cmake \\" && OPTIONS_CMAKE="-DLLVM_BUILD_EXTERNAL_COMPILER_RT=ON" || true
 v 4.0.0 || true
 v 4.0.1 || true
 v 5.0.0 || true
@@ -69,6 +69,8 @@ v 19.1.5 && modifs="$modifs fs_filesystem" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
 v 20.1.3 && modifs="$modifs internal_close_range copy_file_range" || true
+
+modifs="$modifsDyn $modifs"
 
 lieur()
 {
