@@ -470,6 +470,10 @@ pasTropOptim()
 		FreeBSD) true ;;
 		*) return ;;
 	esac
+	# Estimons arbitrairement qu'à partir d'une certaine version du clang système nous n'avons plus le problème.
+	# De toute façon ça devenait ingérable: en -O1 + Debug + -DBUILD_SHARED_LIBS=ON on finissait avec des binaires de 1,5 à 4 Go chacun, pour un total de plusieurs centaines de Go.
+	pge 8 `clang -dumpversion` || return 0
+	
 	export CXXFLAGS="`printf %s "$CXXFLAGS" | sed -e 's/-O3/-O1/g'`"
 	export CFLAGS="`printf %s "$CFLAGS" | sed -e 's/-O3/-O1/g'`"
 	livrable=Debug
