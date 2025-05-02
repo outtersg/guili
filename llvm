@@ -808,6 +808,8 @@ case $constr in
 		;;
 esac
 
+for modif in true $predestiner ; do $modif ; done
+
 destiner
 
 prerequis
