@@ -33,7 +33,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 constr=configure
 v 3.3 || true
-v 3.4.2 && modifsDyn="pasTropOptim macMath" && modifs="stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
+v 3.4.2 && modifsDyn="pasTropOptim macMath taLibcxxEnPrio" && modifs="stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
 v 3.5.0 && modifs="$modifs strtoll" || true # A un petit problème avec strtoll.
 v 3.5.2 || true
 v 3.6.0 && modifs="$modifs sansCodecvt pathMax ocloexec gccframework complications" && prerequis="swig \\ " || true
@@ -644,6 +644,45 @@ strtoll()
 extern "C" { long long strtoll(const char * nptr, char ** endptr, int base); unsigned long long strtoull(const char * nptr, char ** endptr, int base); }
 ' || true
 	done
+}
+
+cxxToutEnDeux()
+{
+	# Résout un problème survenu dès nos premières versions de clang embarquant libc++abi (5.0.2, fin 2018):
+	# la compilation d'une version suivante de clang pétait dès le départ au lancement de cmake, en "do not use OLD behavior", puis core dumped.
+	# Ce problème s'agrave en 2025 lorsque l'ajout de taLibcxxEnPrio() fait péter le cmake installé non pas post-install, mais dès la phase d'install: on n'a alors même plus l'opportunité de désinstaller l'ancien cmake et le recompiler avec le clang tout juste installé, puisque l'install ne se lance même pas.
+	# Ce cmake (ou même un bête programme C++ qui fait un un cerr << "Plouf"), initialement compilé avec la libc++:libcxxrt système, se retrouve à utiliser la libc++:libc++abi tout juste compilée, ou plus exactement un ensemble libc++:libcxxrt:libc++abi dans cet ordre (les deux premières comme dépendances du binaire, la dernière comme dépendance de la nouvelle version libc++). Dans cette configuration, un coup de lldb et lecture des sources de libc++ / libc++abi montre que, si stderr a été utilisée, le ménage en fin de programme appelle un destructeur ~sentry qui s'assure de n'avoir pas de unhandled_exception(): cet appel invoque du libc++abi mais qui accède à une structure visiblement initialisée par libcxxrt (donc inadaptée, d'où SIGSEGV).
+	# Ici le simple fait pour cmake de signaler que "CMakePolicy.cmake:6 (cmake_policy): The OLD behavior for policy CMP0114 will be removed from a future version of CMake." suffit à le faire péter.
+	
+	# Correctif:
+	# On repose sur la porte de service que laisse ouverte notre cmake personnalisé GuiLI. Notre $CMAKE_LIBRARY_PATH sera invoqué avant $LD_LIBRARY_PATH, mais celui-ci ne sera pas totalement écarté: on s'assure donc d'avoir collé tous nos chemins, même les système, avant qu'$LD_LIBRARY_PATH immisce le build/lib ajouté par taLibcxxEnPrio().
+	local sansBuild="`echo "$LD_LIBRARY_PATH" | sed -e "s#$PWD/build/lib:##g"`"
+	export CMAKE_LIBRARY_PATH="$sansBuild:/usr/lib:/lib"
+	
+	# D'autres pistes pourraient être:
+	# - compiler notre libc++abi sans exceptions?
+	# - reposer sur vblibcxx() pour numéroter nos biblios en .so.2, éliminant le risque de confusion.
+	#   avantage: tous les GuiLI seraient liés à la .2, les autres à la .1
+	#   inconvénient: on perd l'occasion de valider que nos biblios GuiLI sont greffables de façon transparente à un système complet (firefox, libreoffice, etc.).
+	# - retaper nos binaires en faisant passer libc++abi explicitement avant libcxxrt
+	#   testé avec succès (cf. https://github.com/NixOS/patchelf/pull/596) mais un peu compliqué pour cmake qui est tout un écosystème.
+}
+
+taLibcxxEnPrio()
+{
+	# Sur un FreeBSD 14.2 pour compiler un clang 19 à partir de celui système (18),
+	# on se retrouve à l'étape où le build/bin/clang est utilisé pour compiler le reste du runtime ou je ne sais quoi, avec un:
+	#   ld-elf.so.1: Shared object "libc++abi.so.1" not found, required by "libc++.so.1"
+	# Donc notre clang est bien lié à sa (ou une?) libc++.so.1, par contre celui-ci ne trouve pas sa libc++abi.so.1: rpath manquant ou un truc comme ça.
+	# C'est peut-être:
+	# - la même raison que ce qu'évoque dans le § Configuration, le commentaire juste au-dessus de l'appel à vblibcxx
+	# - ce qui nécessite sansChar8T (peut-être deviendra-t-il d'ailleur caduc après l'introduction de taLibcxxEnPrio en 2025. À FAIRE).
+	# - ce pourquoi nos clang-x ont toujours une dépendance vis-à-vis de clang-x-1/lib/libc++.
+	# - ce pourquoi fréquemment on partait sur une première version sans libc++ avant d'en recréer une avec libc++
+	# - la raison d'être de cxxabiSansHesitation, dont au moins le commentaire pourrait être ajusté.
+	
+	cxxToutEnDeux # Mais auparavant laissons notre cmake prendre son indépendance.
+	export LD_LIBRARY_PATH="$PWD/build/lib:$LD_LIBRARY_PATH"
 }
 
 stdcppPasTropEnDur()
