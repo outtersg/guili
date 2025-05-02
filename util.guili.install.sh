@@ -531,12 +531,13 @@ prereqs()
 
 debiner()
 {
-	local d= s=
+	local d= s= perso
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-s) shift ; s="$1" ;;
 			-d) shift ; d="$1" ;;
+			-p) shift ; perso="\\\$$1:" ;;
 			*) break ;;
 		esac
 		shift
@@ -567,7 +568,7 @@ debiner()
 			mv "\$b" "\$b2"
 			cat > "\$b" <<FINI
 #!/bin/sh
-export LD_LIBRARY_PATH="\\\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
+export LD_LIBRARY_PATH="$perso\\\$LD_LIBRARY_PATH:$LD_LIBRARY_PATH"
 "\$b2" "\\\$@"
 FINI
 			chmod a+x "\$b"
