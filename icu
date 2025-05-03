@@ -34,7 +34,7 @@ v 3.6
 v 4.4
 # Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
 #v 4.4.1
-v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees sansSuffixe" || true
+v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees sansSuffixe fbsdutf" || true
 v 52.1 || true
 v 55.1 && modifs="$modifs ldlproot" || true
 # À partir de la 58: char16_t => C++11; cf. PHP qui nous utilise.
@@ -137,6 +137,18 @@ ldlproot()
 	do
 		[ -e "$i" ] && filtrer "$i" sed -e "s#\\\$\\\$\\\$(LDLIBRARYPATH_ENVVAR)#$LD_LIBRARY_PATH#g" || true
 	done
+}
+
+fbsdutf()
+{
+	# Pourquoi seuls Linux et Darwin ont-ils droit à de l'UTF-8 par défaut? FreeBSD est cantonné à l'US-ASCII…
+	filtrer source/common/unicode/platform.h \
+		sed -e '/define U_CHARSET_IS_UTF8 1/{
+a\
+#elif U_PLATFORM == U_PF_BSD
+a\
+#   define U_CHARSET_IS_UTF8 1
+}'
 }
 
 # Variables
