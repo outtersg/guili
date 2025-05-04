@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 0.9.8.7 && prerequis="perl >= 5 \\" && modifs="multiarch sansdoc" || true
+v 0.9.8.7 && prerequis="perl >= 5 \\" && modifs="multiarch sansdoc crioget" || true
 v 0.9.8.13 || true # Première version à ne pas planter sur une Ubuntu 18.04 GCC 7.3.0 64 bits (avant, un bout d'assembleur mal ficelé vautre).
 v 0.9.8.33 || true
 v 1.0.0 || true
@@ -54,7 +54,7 @@ v 1.0.2.18 || true
 v 1.0.2.19 || true
 v 1.0.2.20 || true
 v 1.0.2.21 || true
-v 1.1.0.3 || true
+v 1.1.0.3 && retirerModif crioget || true
 v 1.1.0.4 || true
 v 1.1.0.7 || true
 v 1.1.0.8 || true
@@ -104,6 +104,18 @@ perlredir()
 {
 	# Le traiteur assembleur en Perl s'emmêle les pinceaux lorsque la sortie standard est un SSH.
 	filtrer crypto/perlasm/x86_64-xlate.pl sed -e '/$stddev!=$outdev/s//& || (!$stddev \&\& !defined($outdev))/'
+}
+
+crioget()
+{
+	filtrer crypto/engine/eng_cryptodev.c sed -e '/ifndef HAVE_CRYPTO/{
+i\
+#ifndef CRIOGET
+i\
+#define CRIOGET_NOT_NEEDED
+i\
+#endif
+}'
 }
 
 # Perl 5.18.0 est un peu trop méchant (plus strict sur certains points).
