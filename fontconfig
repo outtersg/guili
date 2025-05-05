@@ -41,7 +41,9 @@ v 2.12.6 && modifs="" || true
 v 2.13.96 && prerequis="python >= 3 \\ $prerequis" || true
 v 2.14.1 || true
 
-archive=https://www.freedesktop.org/software/fontconfig/release/$logiciel-$version.tar.gz
+suffixe=xz
+pge $version 2.14 || suffixe=gz
+archive=https://www.freedesktop.org/software/fontconfig/release/$logiciel-$version.tar.$suffixe
 archive_cvs=cvs://anonymous@cvs.freedesktop.org:/cvs/fontconfig:fontconfig
 
 # Modifications
