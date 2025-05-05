@@ -46,6 +46,19 @@ archive=https://ftp.gnome.org/pub/GNOME/sources/pango/`vmaj $version`/$logiciel-
 
 destiner
 
+# Petit souci sur ma config
+# Harfbuzz et libzip se sont compilées avec une libbz2.a 1.0.7 (et ont donc les symboles BZ2_etc. embarqués), les autres (dont Freetype) à partir du .so 1.0.8 (et requièrent donc un -lbz2).
+# Là-dedans pkg-config s'est embrouillé les pédales et oublie de préciser la dépendance.
+# En plus l'ami meson en fout un peu partout, il faut donc jongler avec les diverses variables qu'il accepte pour faire passer nos modifications (https://github.com/mesonbuild/meson/issues/6377 ou https://patches.dpdk.org/patch/43897/).
+aveclbz2()
+{
+	filtrer meson.build sed -e "/^common_ldflags = /a\\
+common_ldflags += [ '-L$destbzip2/lib', '-lbz2' ]
+"
+	export LDFLAGS="-L$destbzip2/lib -lbz2 $LDFLAGS" LD_LIBRARY_PATH="$destbzip2/lib:$LD_LIBRARY_PATH" LD="$CC -L$destbzip2/lib -lbz2" CFLAGS="-I$destbzip2/include $CFLAGS"
+}
+prerequis="bzip2 $prerequis bzip2" && ajouterModif aveclbz2
+
 prerequis
 
 obtenirEtAllerDansVersion
