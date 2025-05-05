@@ -40,6 +40,7 @@ v 2.12.6 && modifs="" || true
 # Les suivantes ont heureusement regagné en tout-terrain.
 v 2.13.96 && prerequis="python >= 3 \\ $prerequis" || true
 v 2.14.1 || true
+v 2.16.0 || true
 
 suffixe=xz
 pge $version 2.14 || suffixe=gz
