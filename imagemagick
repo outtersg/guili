@@ -25,7 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 # Besoin de GNU make, sans quoi tout se passe bien jusqu'à "don't know how to make MagickCore/ImageMagick-7.Q16HDRI.pc. Stop".
-prerequis="make pkgconfig \\ glib libjpeg libtiff libpng freetype fontconfig cairo pango zlib"
+prerequis="langcxx() make pkgconfig \\ glib libjpeg libtiff libpng freetype fontconfig cairo pango zlib"
 
 logiciel_maj=ImageMagick
 
@@ -49,6 +49,8 @@ v 7.0.8.59 || true
 v 7.0.8.68 || true
 v 7.0.9.17 || true
 v 7.1.0.57 || true
+
+# À FAIRE: une option omp (OpenMP) qui ne s'active que si notre clang GuiLI a été compilé avec l'option correspondante. Sans quoi ImageMagick tente de se lier à la /usr/lib/libomp.so, incompatible avec le clang GuiLI bien plus récent. Notamment __kmpc_dispatch_deinit est introuvable (symbole publié par les .h mais absent d'/usr/lib/libomp.so).
 
 if versions libjpegturbo | grep -q .
 then
