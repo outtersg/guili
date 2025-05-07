@@ -38,9 +38,11 @@ v 6.7.5.6 && modifs=putainDeLibJPEGDeMacOSX || true
 v 6.8.3.3 || true
 v 6.8.7.3 && modifs= || true
 v 6.8.8.1 || true
+v 6.8.9.10 || true
 # N.B.: peut utiliser rsvg pour traiter le SVG.
 v 6.9.0.2 && prerequis="$prerequis librsvg" || true
 v 6.9.0.4 || true
+v 6.9.13.25 || true
 v 7.0.2.7 || true
 v 7.0.3.4 || true
 v 7.0.6.1 || true
@@ -49,6 +51,7 @@ v 7.0.8.59 || true
 v 7.0.8.68 || true
 v 7.0.9.17 || true
 v 7.1.0.57 || true
+v 7.1.1.47 || true
 
 # À FAIRE: une option omp (OpenMP) qui ne s'active que si notre clang GuiLI a été compilé avec l'option correspondante. Sans quoi ImageMagick tente de se lier à la /usr/lib/libomp.so, incompatible avec le clang GuiLI bien plus récent. Notamment __kmpc_dispatch_deinit est introuvable (symbole publié par les .h mais absent d'/usr/lib/libomp.so).
 
