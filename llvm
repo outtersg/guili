@@ -83,6 +83,18 @@ lieur()
 	pge $version 6 || return 0
 	[ `uname` = FreeBSD ] || return 0
 	
+	# Par contre quelques années plus tard, alors que reposer sur binutils (1.) a fonctionné pour monter jusqu'en 15, souci au moment de compiler une 16: le bin/clang-16 lié par ce ld jusque-là sans problème, n'est plus reconnu par le lieur système FBSD 10 (SIGABRT immédiat, ldd se vautre pareillement, seul readelf arrive à lire le binaire).
+	# Peut-être quelque chose à voir avec cxxToutEnDeux?
+	# Pour le moment on arrête les frais:
+	return 0
+	
+	# Bon -DCMAKE_LINKER=/usr/bin/ld (utiliser le ld système) donne exactement le même résultat,
+	# en outre un ldd bin/clang-scan-deps (le second en taille à 137 Mo, contre 168 pour bin/clang-16) marche parfaitement.
+	# Et le readelf -d est identique entre les deux.
+	# Sauf qu'apparemment il n'a pas tenu compte de mon souhait, et a donc tout compilé par GNU ld.
+	# En lançant juste l'édition de liens:
+	# /usr/bin/ld: BFD 2.17.50 [FreeBSD] 2007-07-03 internal error, aborting at /usr/src/gnu/usr.bin/binutils/libbfd/../../../../contrib/binutils/bfd/reloc.c line 445 in unsigned int bfd_get_reloc_size(reloc_howto_type *)
+	
 	local lieur=binutils # Solution 1.
 	#lieur="clang+lld < $version"
 	
