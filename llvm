@@ -968,6 +968,8 @@ case $constr in
 		cd build
 		# -DBUILD_SHARED_LIBS=ON: bof, ça triple le temps d'exécution par rapport au clang système (sur un petit .cxx: g++ 11 0,5 s; /usr/bin/clang++ 0,6 s; clang++ divers sans -O3 1,6 à 2 s; clang++ 13 avec -O3 0,7 s).
 		# https://reviews.llvm.org/D61804
+		# À FAIRE: tester p. 44 de https://llvm.org/devmtg/2023-10/slides/tutorials/Hosek-UnderstandingtheLLVMbuild.pdf
+		#   LLVM_OPTIMIZED_TABLEGEN LLVM_ENABLE_LLD LLVM_ENABLE_LIBCXX pour utiliser les logiciels llvm plutôt que ceux système pour la phase suivante des compil.
 		option dyn && OPTIONS_CMAKE="$OPTIONS_CMAKE -DBUILD_SHARED_LIBS=ON" || true
 		case $constr in
 			cmake) racineCompil=.. ;;
@@ -975,6 +977,10 @@ case $constr in
 				racineCompil=../llvm
 		case "$0" in
 			*clang)
+				# Jolie explication de la différence entre PROJECTS et RUNTIMES:
+				# https://github.com/llvm/llvm-project/issues/124014
+				# Les RUNTIMES sont construits avec le compilo tout juste compilé, alors que les PROJECTS le sont par le compilo précédent:
+				# https://llvm.org/devmtg/2023-10/slides/tutorials/Hosek-UnderstandingtheLLVMbuild.pdf
 				PROJETS="$PROJETS,clang"
 				if option libcxx
 				then
