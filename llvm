@@ -862,6 +862,7 @@ vblibcxx()
 
 # Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
 option dyn || true
+option omp || true
 case $constr in
 	runtimes)
 		! option lldb || PROJETS="$PROJETS,lldb"
@@ -895,7 +896,7 @@ pg 3.9.1 $version || multiarch
 # (et à partir de la 15 on revient à juste un src dans l'archive (les cmake communs deviennent un projet à part))
 src() { [ -d "$1"-*.src ] || { echo . ; return ; } ; echo "$1"-*.src ; }
 
-obtenirSauf=test
+option omp || obtenirSauf=test # On peut se passer des tests (gros trucs lourds avec des .o etc., qu'on ne lance pas), sauf pour omp dont le dossier tests (avec un s) fait appel explicite à une cible définie dans test (en v 20 au moins).
 obtenirEtAllerDansVersion
 cd "`src llvm`"
 case "$constr" in
@@ -947,6 +948,7 @@ integrer projects/libcxx      libcxx
 	if option lldb ; then integrer tools/lldb lldb ; fi
 	if option lld ; then integrer tools/lld lld ; fi
 	# À FAIRE: integrer libunwind? C'est un projet LLVM?
+	! option omp || integrer projects/openmp
 }
 modulesClang
 fi
@@ -991,6 +993,7 @@ case $constr in
 					# Changement en https://reviews.llvm.org/D68855
 					# Mais on se rend cpte que dans notre 18 (qui n'a même pas encore le LIBUNWIND_HAS_NO_EXCEPTIONS_FLAG), est utilisé un CXX_SUPPORTS_FNO_EXCEPTIONS_FLAG qui n'est défini nulle part???
 					# Ah purée le connard en scrutant build/runtimes/runtimes-X86-bins/CMakeFiles/CMakeConfigureLog.yaml (grep -rl) on finit par dénicher un "error: unknown target triple 'X86'"
+					! option omp || OPTIONS_CMAKE="$OPTIONS_CMAKE;openmp"
 					# Ah compris c'est mon BUILD_TARGETS=X86
 					# Et si on compile sans l'option rt:
 					# "LIBCXXABI_USE_LLVM_UNWINDER is set to ON, but libunwind is not specified in LLVM_ENABLE_RUNTIMES."
