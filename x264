@@ -40,6 +40,7 @@ babash()
 # Variables
 
 archive_svn=svn://svn.videolan.org/$logiciel/trunk
+archive_git=https://code.videolan.org/videolan/x264.git
 
 destiner
 
