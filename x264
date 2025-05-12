@@ -29,6 +29,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 OPTIONS_CONF="--enable-shared --enable-pic"
 prerequis="bash make nasm \\"
 v 0.0.2006.09.06 && version=r558 && modifs=babash || true
+v 0.0.2025.04.04 && versionComplete="$version.32c3b801191522961102d4bea292cdb61068d0dd.git" || true
 
 # Modifications
 
