@@ -29,6 +29,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis="make \\ "
 v 2.12.02 || true
 v 2.14.02 || true
+v 2.16.03 || true
 
 prerequis
 
