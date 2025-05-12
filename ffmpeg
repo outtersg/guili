@@ -42,11 +42,11 @@ v 1.0 && prerequis="$prerequis opus lame" && retirerModif -v OPTIONS_CONF --enab
 v 1.0.1 || true
 v 2.5 && modifs="$modifs monCc" && remplacerPrerequis "lame >= 3.98.3" || true
 v 2.5.2 || true
-v 3.2.2 || true
+v 3.2.2 || true # Possibilité: --enable-libopenh264 en plus ou à la place de libx264; accepte aussi gnutls et openssl pour la gestion des flux HTTPS
 v 3.3.2 || true
-v 4.0.2 || true
+v 4.0.2 || true # Possibilité: --enable-libtls, pour LibreTLS
 v 4.2.1 || true
-v 5.1.2 && modifs="$modifs metallib" || true
+v 5.1.2 && modifs="$modifs metallib" || true # Possibilité: --enable-lcms2; sait compiler certains modules de son arbo.
 v 5.1.3 || true
 v 7.1 || true
 
