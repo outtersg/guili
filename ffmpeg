@@ -26,7 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-prerequis="pkgconfig make nasm \\"
+prerequis="pkgconfig make nasm yasm \\"
 
 version=2005-10-14
 modifs=panther
@@ -34,14 +34,13 @@ OPTIONS_CONF="--disable-altivec" # h264_chroma_mc8, entre autres, a une variable
 
 version=2005-10-29
 
-version=r6177
-modifs=avecX264
-OPTIONS_CONF="--enable-x264 --enable-gpl --enable-libogg --enable-vorbis --enable-pp --enable-shared"
+version=r6177 && prerequis="$prerequis libvorbis x264" || true
+OPTIONS_CONF="--enable-gpl --enable-shared --enable-pp"
 
-v 0.7-rc1 && modifs= && OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --disable-yasm"
-v 1.0 && modifs= && OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --enable-libopus" && inclure yasm && inclure opus
-v 1.0.1 && prerequis="$prerequis lame" OPTIONS_CONF="--enable-gpl --enable-nonfree --enable-shared --enable-libopus --enable-libmp3lame"
-v 2.5 && modifs="monCc" prerequis="pkgconfig make nasm \\ opus lame >= 3.98.3" || true
+v 0.7-rc1 && modifs= && OPTIONS_CONF="$OPTIONS_CONF --enable-nonfree" && retirerModif -v OPTIONS_CONF --enable-pp || true
+v 1.0 && prerequis="$prerequis opus lame" && retirerModif -v OPTIONS_CONF --enable-nonfree || true
+v 1.0.1 || true
+v 2.5 && modifs="$modifs monCc" && remplacerPrerequis "lame >= 3.98.3" || true
 v 2.5.2 || true
 v 3.2.2 || true
 v 3.3.2 || true
@@ -51,11 +50,47 @@ v 5.1.2 && modifs="$modifs metallib" || true
 v 5.1.3 || true
 v 7.1 || true
 
+predestiner="$predestiner fbsd10 inclureModules"
+
+# Modifs pré-destiner()
+
+inclureModule()
+{
+	local o="$1" oc="$2" l="$3" # Option, option conf, logiciel
+	case "$l" in "") l="$o" ;; esac
+	case "$oc" in "") oc="$l" ;; esac
+	
+	# Si notre logiciel n'est pas prévu dans les prérequis, c'est que la version de ffmpeg ne le gérait pas encore. On se barre.
+	case "$prerequis" in *" $l "*) true ;; *) return 0 ;; esac
+
+	# Si le logiciel est explicitement écarté, on obtempère.
+	local quoi=disable
+	opSiPasPas $o $l  && quoi="enable" || virerPrerequis $l
+	OPTIONS_CONF="$OPTIONS_CONF --$quoi-$oc"
+}
+
+inclureModules()
+{
+	local m
+	for m in \
+		"vorbis libvorbis libvorbis" \
+		"x264 libx264" \
+		"ogg libogg" \
+		"opus libopus" \
+		"lame libmp3lame"
+	do
+		inclureModule $m
+	done
+}
+
+fbsd10()
+{
 # http://lists.freebsd.org/pipermail/freebsd-questions/2012-February/238956.html
 if [ `uname` = FreeBSD -a `uname -r | sed -e 's/[^0-9].*//'` -lt 10 ] # Le 10 est arbitraire.
 then
 	prerequis="binutils \\ $prerequis"
 fi
+}
 
 # Modifications
 
@@ -77,11 +112,6 @@ cc_default="'"$CC"'"
 	fi
 }
 
-avecX264()
-{
-	inclure x264
-}
-
 # L'édition de liens utilise un truc qui ne marche que pour 10.3… et a la bonne
 # grâce de nous le signaler.
 panther()
@@ -94,6 +124,8 @@ panther()
 archive_cvs="cvs://anonymous:@mplayerhq.hu:/cvsroot/$logiciel:$logiciel"
 archive_svn=svn://svn.mplayerhq.hu/$logiciel/trunk
 archive="http://ffmpeg.org/releases/ffmpeg-$version.tar.bz2"
+
+for modif in true $predestiner ; do $modif ; done
 
 destiner
 
