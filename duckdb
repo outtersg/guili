@@ -25,6 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 v 0.10.3 && prerequis="langcxx() make cmake \\" || true
+v 1.2.2 || true
 
 archive=https://github.com/duckdb/duckdb/archive/refs/tags/v$version.tar.gz
 
