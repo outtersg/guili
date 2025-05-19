@@ -25,6 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 prerequis="langcxx() make cmake \\"
+modifs="$modifs j4"
 v 0.10.3 || true
 v 1.2.2 || true
 
@@ -45,6 +46,11 @@ fi
 #          apparemment après il faut faire un cd build/release/extension/ ; for EXTENSION in *; do ../duckdb -c "INSTALL '${EXTENSION}/${EXTENSION}.duckdb_extension';" ; done
 #          Sinon https://github.com/duckdb/duckdb/blob/main/extension/README.md#using-extension-config-files:
 #          extension/extension_config.cmake
+
+j4()
+{
+	filtrer Makefile sed -e 's/cmake --build \.[^ ]*/& --parallel 4/g'
+}
 
 for modif in true $predestiner ; do "$modif" ; done
 destiner
