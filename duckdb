@@ -24,14 +24,16 @@ set -e
 Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-prerequis="langcxx() make cmake \\"
+# git: pour récupérer les extensions
+# openssl: pour httpfs
+prerequis="langcxx() make cmake git \\ openssl"
 modifs="$modifs j4"
 v 0.10.3 || true
 v 1.2.2 || true
 
 archive=https://github.com/duckdb/duckdb/archive/refs/tags/v$version.tar.gz
 
-predestiner="quelninja"
+predestiner="quelninja quellesext"
 
 quelninja()
 {
@@ -47,11 +49,25 @@ fi
 #          Sinon https://github.com/duckdb/duckdb/blob/main/extension/README.md#using-extension-config-files:
 #          extension/extension_config.cmake
 
+quellesext()
+{
+	CORE_EXTENSIONS="autocomplete;json;fts;httpfs"
+	for o in icu
+	do
+		if optionSi $o
+		then
+			case "$CORE_EXTENSIONS" in ?*) CORE_EXTENSIONS="$CORE_EXTENSIONS;" ;; esac
+			CORE_EXTENSIONS="$CORE_EXTENSIONS$o"
+		fi
+	done
+}
+
 j4()
 {
 	filtrer Makefile sed -e 's/cmake --build \.[^ ]*/& --parallel 4/g'
 }
 
+predestiner="$predestiner prerequisOpenssl"
 for modif in true $predestiner ; do "$modif" ; done
 destiner
 
@@ -66,6 +82,7 @@ echo Configuration… >&2
 
 export OVERRIDE_GIT_DESCRIBE="v$version"
 export COMMON_CMAKE_VARS="-DCMAKE_INSTALL_PREFIX=$dest"
+export CORE_EXTENSIONS="$CORE_EXTENSIONS" # Calculées dans quellesext()
 
 echo Compilation… >&2
 make -j4
