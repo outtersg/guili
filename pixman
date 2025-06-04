@@ -32,6 +32,9 @@ v 0.34.0 || true
 v 0.36.0 || true
 v 0.40.0 || true
 v 0.42.2 || true
+v 0.43.4 && prerequis="meson ninja \\ $prerequis" || true
+v 0.44.2 || true
+v 0.46.0 || true
 
 archive=http://cairographics.org/releases/$logiciel-$version.tar.gz
 
@@ -45,12 +48,22 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+case "$prerequis" in
+	*meson*)
+		meson setup build --prefix="$dest"
+		make=ninja
+		cd build
+		;;
+	*)
 ./configure --prefix="$dest"
+		make=make
+		;;
+esac
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
-sudo make install
+sudoku $make install
 
 sutiliser
