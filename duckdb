@@ -30,6 +30,7 @@ prerequis="langcxx() make cmake git \\ openssl"
 modifs="$modifs j4"
 v 0.10.3 || true
 v 1.2.2 || true
+v 1.3.1 || true
 
 archive=https://github.com/duckdb/duckdb/archive/refs/tags/v$version.tar.gz
 
