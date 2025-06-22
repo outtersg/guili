@@ -28,6 +28,10 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 3.02.02 && modifs="libpthread" && prerequis="leptonica" || true
 v 3.05.02 && prerequis="autoconf automake m4 libtool pkgconfig \\ $prerequis" && remplacerPrerequis "leptonica >= 1.74" || true
+v 4.1.3 && remplacerPrerequis "leptonica >= 1.74.2" || true
+v 5.5.1 || true
+
+# À FAIRE: pour l'entraînement, demande ICU 52.1, pango 1.38, cairo
 
 prerequis
 
