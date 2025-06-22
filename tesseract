@@ -21,15 +21,13 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=tesseract
 
 # Historique des versions gérées
 
 v 3.02.02 && modifs="libpthread" && prerequis="leptonica" || true
-v 3.05.02 && prerequis="pkgconfig leptonica >= 1.74" || true
+v 3.05.02 && prerequis="autoconf automake m4 libtool pkgconfig \\ $prerequis" && remplacerPrerequis "leptonica >= 1.74" || true
 
 prerequis
 
@@ -45,14 +43,15 @@ libpthread()
 
 # Variables
 
-dest="$INSTALLS/$logiciel-$version"
 archive="https://tesseract-ocr.googlecode.com/files/tesseract-ocr-$version.tar.gz"
 archive="https://github.com/tesseract-ocr/tesseract/archive/$version.tar.gz"
 v_min="`echo "$version" | sed -e 's/\([0-9]*\.[0-9]*\).*/\1/'`"
 archive_fr="https://tesseract-ocr.googlecode.com/files/tesseract-ocr-$v_min.fra.tar.gz"
 archive_fr="https://github.com/tesseract-ocr/tessdata/raw/master/fra.traineddata"
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -82,6 +81,5 @@ sudo cp tessdata/fra.traineddata "$dest/share/tessdata/eng.traineddata" # En tan
 		sudoku cp "`basename "$archive_fr"`" "$dest/share/tessdata/eng.traineddata"
 		;;
 esac
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
