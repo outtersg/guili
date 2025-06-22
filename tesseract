@@ -48,6 +48,7 @@ archive="https://github.com/tesseract-ocr/tesseract/archive/$version.tar.gz"
 v_min="`echo "$version" | sed -e 's/\([0-9]*\.[0-9]*\).*/\1/'`"
 archive_fr="https://tesseract-ocr.googlecode.com/files/tesseract-ocr-$v_min.fra.tar.gz"
 archive_fr="https://github.com/tesseract-ocr/tessdata/raw/master/fra.traineddata"
+archive_fr="https://github.com/tesseract-ocr/tessdata/raw/refs/heads/main/fra.traineddata"
 
 destiner
 
