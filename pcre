@@ -41,6 +41,8 @@ v 8.45 || true
 v 10.37 || true
 v 10.42 || true
 v 10.43 || true
+v 10.44 || true
+v 10.45 || true
 
 if option cxx
 then
