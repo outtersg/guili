@@ -185,6 +185,7 @@ v 8.1.29 || true
 v 8.1.30 || true
 v 8.1.31 || true
 v 8.1.32 || true
+v 8.1.33 || true
 v 8.2.1 && virerPrerequis "langcxx()" && prerequis="langcxx(17) \\ $prerequis" && modifs="$modifs atomicconst pglazyfetch" || true
 v 8.2.3 || true
 v 8.2.4 || true
@@ -207,6 +208,7 @@ v 8.2.25 || true
 v 8.2.26 || true
 v 8.2.27 || true
 v 8.2.28 || true
+v 8.2.29 || true
 v 8.3.2 && modifs="$modifs pdeathsig" || true
 v 8.3.3 || true
 v 8.3.4 || true
@@ -225,6 +227,7 @@ v 8.3.19 || true
 v 8.3.20 || true
 v 8.3.21 || true
 v 8.3.22 || true
+v 8.3.23 || true
 v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre && modifs="$modifs ki_tracer" || true
 v 8.4.2 || true
 v 8.4.3 || true
@@ -233,6 +236,7 @@ v 8.4.5 || true
 v 8.4.6 || true
 v 8.4.7 || true
 v 8.4.8 || true
+v 8.4.10 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
