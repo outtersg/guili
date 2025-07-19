@@ -44,6 +44,7 @@ v 2.3.10 || true
 v 2.4.4 || true
 v 2.5.8 || true
 v 2.7.2 || true
+v 2.8.10 || true
 
 argOptions="`options "$argOptions=prudent"`" ; option prudent || true # Par défaut on se montre prudents.
 
