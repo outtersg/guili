@@ -241,10 +241,10 @@ DBM_SRCDIR = $(NULL)
 	done
 	grep -rl '#include "mcom_db.h"' lib | while read f ; do filtrer "$f" \
 		sed -e '/#include "mcom_db.h"/{
-c\
-#include <db.h>
 a\
 #include <fcntl.h>
+c\
+#include <db.h>
 }'
 	done
 	
