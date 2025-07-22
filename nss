@@ -35,6 +35,7 @@ v 3.70 && prerequis="perl \\ $prerequis" && v_nspr=4.32 || true
 v 3.99 && v_nspr=4.35 || true
 v 3.107 && v_nspr=4.36 || true
 v 3.109 && v_nspr=4.36 || true
+v 3.114 || true
 
 prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
 
