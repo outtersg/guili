@@ -45,7 +45,7 @@ then
 fi
 }
 
-# À FAIRE: BUILD_PYTHON BUILD_JDBC
+# À FAIRE: BUILD_JDBC
 #          apparemment après il faut faire un cd build/release/extension/ ; for EXTENSION in *; do ../duckdb -c "INSTALL '${EXTENSION}/${EXTENSION}.duckdb_extension';" ; done
 #          Sinon https://github.com/duckdb/duckdb/blob/main/extension/README.md#using-extension-config-files:
 #          extension/extension_config.cmake
@@ -61,11 +61,28 @@ quellesext()
 			CORE_EXTENSIONS="$CORE_EXTENSIONS$o"
 		fi
 	done
+	if optionSi python
+	then
+		export BUILD_PYTHON=1
+		# BUILD_PYTHON=1 génère et installe bien, mais à l'exécution (import duckdb): Undefined symbol "ASN1_STRING_length": en comparant bin/duckdb à la biblio-pont entre Python et DuckDB, on réalise qu'il manque à cette dernière par rapport au premier libcrypto.so et libssl.so.
+		# Le tools/pythonpkg/README.md laisse penser que c'est parce qu'on a intégré httpfs aux CORE_EXTENSIONS.
+		prerequis="patchelf \\ $prerequis"
+		modifspostcompil="$modifspostcompil libpythonossl"
+	fi
 }
 
 j4()
 {
 	filtrer Makefile sed -e 's/cmake --build \.[^ ]*/& --parallel 4/g'
+}
+
+libpythonossl()
+{
+	pyvc() { printf $2$3 ; }
+	local pyv="`python -V`"
+	local pyvc="cpython-`IFS=". " ; pyvc $pyv`"
+	patchelf --add-needed libcrypto.so --add-needed libssl.so "tools/pythonpkg/build/lib.`uname | tr A-Z a-z`-`uname -r`-`uname -m`-$pyvc/duckdb/duckdb.$pyvc.so"
+	make # On réinstalle la biblio modifiée.
 }
 
 predestiner="$predestiner prerequisOpenssl"
