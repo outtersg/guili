@@ -45,7 +45,7 @@ then
 fi
 }
 
-# À FAIRE: BUILD_PYTHON BUILD_JDBC BUILD_HTTPFS BUILD_AUTOCOMPLETE BUILD_ICU BUILD_FTS BUILD_JSON
+# À FAIRE: BUILD_PYTHON BUILD_JDBC
 #          apparemment après il faut faire un cd build/release/extension/ ; for EXTENSION in *; do ../duckdb -c "INSTALL '${EXTENSION}/${EXTENSION}.duckdb_extension';" ; done
 #          Sinon https://github.com/duckdb/duckdb/blob/main/extension/README.md#using-extension-config-files:
 #          extension/extension_config.cmake
