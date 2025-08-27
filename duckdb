@@ -87,6 +87,7 @@ export CORE_EXTENSIONS="$CORE_EXTENSIONS" # Calculées dans quellesext()
 
 echo Compilation… >&2
 make -j4
+for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudoku cmake -P build/release/cmake_install.cmake
