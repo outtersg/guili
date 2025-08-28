@@ -78,6 +78,7 @@ v 13.16 || true
 v 13.18 || true
 v 13.20 || true
 v 13.21 || true
+v 13.22 || true
 # Cherche à charger un sys/signalfd.h inexistant sur un vieux RedHat.
 v 14.1 || true
 v 14.2 || true
@@ -94,6 +95,7 @@ v 14.13 || true
 v 14.15 || true
 v 14.17 || true
 v 14.18 || true
+v 14.19 || true
 v 15.1 || true
 v 15.2 || true
 v 15.3 || true
@@ -104,6 +106,7 @@ v 15.7 || true
 v 15.8 || true
 v 15.12 || true
 v 15.13 || true
+v 15.14 || true
 v 16.1 && modifs="$modifs fdatasync" || true
 v 16.2 || true
 v 16.3 || true
@@ -111,9 +114,11 @@ v 16.4 || true
 v 16.6 || true
 v 16.8 || true
 v 16.9 || true
+v 16.10 || true
 v 17.2 || true
 v 17.4 || true
 v 17.5 || true
+v 17.6 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
