@@ -43,6 +43,7 @@ v 10.42 || true
 v 10.43 || true
 v 10.44 || true
 v 10.45 || true
+v 10.46 || true
 
 if option cxx
 then
