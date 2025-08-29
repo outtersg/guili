@@ -29,7 +29,9 @@ TERMINE
 # Crée récursivement des liens de $prefixe/<x>/<y> vers $prefixe/<cible>/<x>/<y>
 # © Guillaume Outters 2003-2004,2007,2019-2020
 
-Utilisation: $0 [-r <racine>] [-p <préservés>] [--videur <videur>] <cible>
+Utilisation: $0 [-d] [-r <racine>] [-p <préservés>] [--videur <videur>] <cible>
+  -d
+    Ménage (car "le d ménage"): supprime les références au logiciel.
   -r <racine>
     Va chercher sous <racine> plutôt qu'/usr/local.
     Voir aussi la possibilité de préciser la racine dans <cible>.
@@ -186,7 +188,9 @@ utiliser()
 			utiliserEtoile "../$ou" "$1/"
 		elif [ \( ! -e "$prefixe/$1" \) ]
 		then
+			case "$faire" in 1)
 			ln -s "$ou/$1" "$prefixe/$1"
+			;; esac
 		else
 			[ $gentillesse -gt 1 ] || echo "Impossible d'écraser $1$info" >&2
 		fi
@@ -319,10 +323,12 @@ analyserParametresEtTourner()
 	local preserves=
 	local videur=
 	local une=
+	local faire=1
 	while [ $# -gt 0 ]
 do
 		case "$1" in
 			-h) auSecours ;;
+			-d) faire=0 ; shift ; continue ;;
 			-p) preserves="$preserves $2" ; shift ; shift ; continue ;;
 			--videur) videur="$2" ; shift ; shift ; continue ;;
 			*/*) prefixeIci="`dirname "$1"`" ; lv="`basename "$1"`" ;;
