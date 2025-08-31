@@ -48,6 +48,7 @@ v 23.09.0 || true
 v 23.10.0 || true
 v 24.12.0 || true
 v 25.03.0 || true
+v 25.08.0 || true
 
 # Pour LibreOffice, il nous faut les en-têtes internes (Inkscape a le même souci, cf. https://bugs.launchpad.net/inkscape/+bug/254849).
 if option xpdf
