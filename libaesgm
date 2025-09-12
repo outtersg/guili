@@ -42,6 +42,13 @@ configurer()
 {
 	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
 	cat > Makefile <<TERMINE
+CXX := $CXX
+CC := $CC
+CPPFLAGS := $CPPFLAGS
+LDFLAGS := $LDFLAGS
+biblios := $biblios
+dest := $dest
+
 sourcescpp := `find . -name "*.cpp" | tr '\012' ' '`
 sourcesc := `find . -name "*.c" | tr '\012' ' '`
 sources := \${sourcescpp} \${sourcesc}
@@ -51,18 +58,15 @@ objs := \${objscpp} \${objsc}
 dest := $dest
 
 libaesgm.so: \${objs}
-	c++ -shared -fpic $LDFLAGS \$^ -o \$@
+	\$(CC) -shared -fpic \$(LDFLAGS) \$(biblios) \${objs} -o \$@
 
-%.o: %.cpp
-	c++ -c -fpic $CPPFLAGS \$< -o \$@
-
-%.o: %.c
-	cc -c -fpic $CPPFLAGS \$< -o \$@
+.c.o:
+	\$(CC) -c -fpic \$(CPPFLAGS) \$< -o \$@
 
 install: libaesgm.so
-	mkdir -p ${dest}/lib ${dest}/include
-	cp \$^ ${dest}/lib/
-	cp *.h ${dest}/include
+	mkdir -p \$(dest)/lib \$(dest)/include
+	cp libaesgm.so \$(dest)/lib/
+	cp *.h \$(dest)/include
 TERMINE
 }
 
