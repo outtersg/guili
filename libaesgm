@@ -84,6 +84,8 @@ make
 
 echo Installation… >&2
 sudoku make install
+pkgconfer -laesgm Aesgm "Brian Gladman's AES implementation, packaged for HummusPDF"
+
 sutiliser
 
 rm -Rf $TMP/$$
