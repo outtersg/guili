@@ -24,16 +24,9 @@ set -e
 Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 2007.12.20 && v_hummus=3.9 && prerequis="openssl" || true
-v 2007.12.21 && v_hummus=4.0 && prerequis="openssl" || true
+v 2025.8.26 && versionComplete="$version.14b7fcd.git" || true
 
-# Le site officiel de la libaesgm ne semble plus fonctionnel. On va donc le prélever dans l'empaqueté de HummusPDF (son seul usager, pour l'heure).
-archive_git=http://github.com/galkahana/PDF-Writer.git
-archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
-archive="PDFWriter`echo "$v_hummus" | tr . _`.zip"
-archive="https://github.com/galkahana/PDF-Writer/archive/$v_hummus.tar.gz" # Ouf, il est enfin passé chez Github!
-
-v_simple="`echo "$version" | sed -e 's/[.][^.]*.git$//'`"
+archive_git=https://github.com/BrianGladman/aes.git
 
 configurer()
 {
@@ -46,8 +39,10 @@ LDFLAGS := $LDFLAGS
 biblios := $biblios
 dest := $dest
 
-sourcescpp := `find . -name "*.cpp" | tr '\012' ' '`
-sourcesc := `find . -name "*.c" | tr '\012' ' '`
+#sourcescpp := `find . -name "*.cpp" | grep -v /python_binding/ | tr '\012' ' '`
+#sourcesc := `find . -name "*.c" | grep -v /python_binding/ | tr '\012' ' '`
+# Finalement on ne prend que le script nécessaire pour une compatibilité HummusPDF / PDF-Writer (cf. les quelques .c qu'ils ont copiés directement dans leurs sources: on prend les mêmes).
+sourcesc := aes_modes.c aes_ni.c aescrypt.c aeskey.c aestab.c
 sources := \${sourcescpp} \${sourcesc}
 objscpp := \$(sourcescpp:.cpp=.o)
 objsc := \$(sourcesc:.c=.o)
@@ -72,7 +67,6 @@ destiner
 prerequis
 
 obtenirEtAllerDansVersion
-cd LibAesgm
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
