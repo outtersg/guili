@@ -33,6 +33,7 @@ pkgconfer()
 			-p) shift ; prex="$1" ;;
 			*)
 				paquet="$1"
+				case "$2" in [A-Za-z]*" "*) descr="$2" ; shift ;; esac
 				_pkgconf_pondre > "$t/$paquet.pc"
 				;;
 		esac
