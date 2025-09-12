@@ -32,10 +32,25 @@ v 3.9 && prerequis="$prerequis libpng libaesgm" || true
 v 4.0 || true
 # Pour construire avec cmake (/!\ pas de biblio dynamique), ajouter:
 # && retirerModif monMake monMakeOrdonne && modifs="$modifs sonMake" && prerequis="cmake \\ $prerequis"
+# Suite à l'annonce de l'arrêt par galkahana (https://www.pdfhummus.com/post/699892598656122880/hi-all-its-been-3-years-minus-6-days-since-i),
+# quelques abductions semblaient suivre leur chemin:
+# https://github.com/CReviere/PDF-Writer
+# https://github.com/gerronimo/PDF-Writer
+# https://github.com/junrrein/PDF-Writer
+# Mais a priori le dév a repris.
+v 4.1 || true
+v 4.5.12 || true
+v 4.6.8 && remplacerPrerequis "libtiff >= 4" || true
+# À FAIRE: à partir de la 4.7 la doc (https://github.com/galkahana/PDF-Writer/releases/tag/v4.7.0) indique requérir OpenSSL (pour le chiffrement PDF2.0).
+#          J'ai pu compiler sans sur une de mes machines (par contre à l'utilisation -lcrypto est nécessaire), sans doute parce que cette machine avait tous les .h dans /usr/local/include (cherché par défaut);
+#          mais sur une machine où $INSTALLS = ~/local, il faudra probablement expliciter openssl en prérequis.
+v 4.7.0 || true
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
 archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
 archive="PDFWriter`echo "$version" | tr . _`.zip"
+archive="https://github.com/galkahana/PDF-Writer/archive/refs/tags/v$version.tar.gz"
+pge $version 4.5 ||
 archive="https://github.com/galkahana/PDF-Writer/archive/$version.tar.gz" # Ouf, il est enfin passé chez Github!
 
 sonMake()
