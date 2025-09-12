@@ -53,10 +53,10 @@ _pkgconf_pondre()
 	then
 		for d in lib lib64
 		do
-			[ ! -d "$dest/$d" ] || biblios="-L$dest/$d $biblios"
+			[ ! -d "$dest/$d" ] || biblios="-L\${prefix}/$d $biblios"
 		done
 	fi
-	[ ! -d "$dest/include" ] || cflags="$cflags -I$dest/include"
+	[ ! -d "$dest/include" ] || cflags="$cflags -I\${prefix}/include"
 	[ -n "$descr" ] || descr="$paquet"
 	
 	cat <<TERMINE
