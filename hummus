@@ -47,7 +47,7 @@ sonMake()
 {
 	configurer()
 	{
-		mkdir Build
+		mkdir -p Build
 		cd Build
 		cmake -DCMAKE_INSTALL_PREFIX:PATH=$dest ..
 	}
@@ -122,6 +122,7 @@ int main(int argc, char ** argv)
 TERMINE
 	$mucxx -shared -o $TMP/$$/libmu.so $TMP/$$/Mu1.o $TMP/$$/Mu2.o
 	$mucxx -o $TMP/$$/mu -L$TMP/$$ -lmu $TMP/$$/Mu.cpp
+	filtrer PDFWriter/Makefile sed -E -e 's# \./(PDFWriter|EncryptionOptions)\.cpp##g'
 	case `LD_LIBRARY_PATH=$TMP/$$ $TMP/$$/mu | head -1` in
 		1) filtrer PDFWriter/Makefile sed -e '/^sourcescpp :=/{
 s/:= */:= EncryptionOptions.cpp /
