@@ -34,6 +34,8 @@ v 3.5 && prerequis_libjpeg="libjpegturbo" prerequis="libtiff < 4 $prerequis_libj
 v 3.6 || true
 v 3.9 && prerequis="$prerequis libpng libaesgm" || true
 v 4.0 || true
+# Pour construire avec cmake (/!\ pas de biblio dynamique), ajouter:
+# && retirerModif monMake monMakeOrdonne && modifs="$modifs sonMake" && prerequis="cmake \\ $prerequis"
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
 archive= # Putain de trucs hébergés chez box.com! Ces connards font de la rétention, c'est abominable (téléchargement via cinquante redirections avec du Javascript en POST sans aucune URL directe). En plus les fichiers individuels ne sont pas téléchargeables (401), il faut aller dans "Tous les downloads" depuis le site dév puis Télécharger (tout le répertoire).
@@ -49,7 +51,7 @@ sonMake()
 	{
 		mkdir -p Build
 		cd Build
-		cmake -DCMAKE_INSTALL_PREFIX:PATH=$dest ..
+		cmake -DCMAKE_INSTALL_PREFIX:PATH=$dest -DUSE_BUNDLED=FALSE ..
 	}
 }
 
@@ -63,6 +65,7 @@ monMake()
 		*libaesgm*) biblios="$biblios -laesgm"
 	esac
 	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
+	# À part libaesgm (développement propre à Hummus), il se lie aussi à zlib, libjpeg, libpng, libtiff, Freetype, dont il embarque les sources pour les compiler…
 	cat > PDFWriter/Makefile <<TERMINE
 CXX := $CXX
 CC := $CC
