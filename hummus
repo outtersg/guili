@@ -24,9 +24,9 @@ set -e
 Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 3.0.0.99.1 && versionComplete=$version.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 3.9.4 libjpeg 8.3 freetype zlib" && modifs="monMake" || true # Il faudrait un moyen pour que le numéro de version de libjpeg soit calculé depuis le libjpeg embarqué par le libtiff choisi.
+v 3.0.0.99.1 && versionComplete=$version.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 3.9.4 libjpeg 8.3 freetype zlib" && modifs="monMake binaryFunction" || true # Il faudrait un moyen pour que le numéro de version de libjpeg soit calculé depuis le libjpeg embarqué par le libtiff choisi.
 v 3.2 && versionComplete= || true
-v 3.5 && prerequis_libjpeg="libjpegturbo" prerequis="libtiff < 4 $prerequis_libjpeg freetype zlib" && modifs="monMake monMakeOrdonne" || true
+v 3.5 && prerequis_libjpeg="libjpegturbo" prerequis="libtiff < 4 $prerequis_libjpeg freetype zlib" && modifs="$modifs monMakeOrdonne" || true
 v 3.6 || true
 v 3.9 && prerequis="$prerequis libpng libaesgm" || true
 v 4.0 || true
@@ -38,7 +38,7 @@ v 4.0 || true
 # https://github.com/gerronimo/PDF-Writer
 # https://github.com/junrrein/PDF-Writer
 # Mais a priori le dév a repris.
-v 4.1 || true
+v 4.1 && retirerModif binaryFunction || true
 v 4.5.12 || true
 v 4.6.8 && remplacerPrerequis "libtiff >= 4" || true
 # À FAIRE: à partir de la 4.7 la doc (https://github.com/galkahana/PDF-Writer/releases/tag/v4.7.0) indique requérir OpenSSL (pour le chiffrement PDF2.0).
@@ -144,6 +144,22 @@ s/:= */:= PDFWriter.cpp /
 s/$/ EncryptionOptions.cpp/
 }' ;;
 	esac
+}
+
+binaryFunction()
+{
+	# Les versions inférieures à la 4.1 (4.0 incluse) utilisaient std::binary_function, obsolète depuis C++17.
+	# On rétroporte la modif de la 4.1 vers les versions antérieures (remplacer les class Toto : std::binary_function[…] { public: … } par struct Toto { … }).
+	
+	cat > $TMP/1.cpp <<TERMINE
+#include <functional>
+class Truc {};
+class Toto : public std::binary_function<const Truc *, const Truc *, bool> {};
+TERMINE
+	compilo_test $CXX -c -o $TMP/1.o $TMP/1.cpp || grep -l std::binary_function PDFWriter/*.h | while read f
+	do
+		filtrer "$f" sed -e '/ *:.*std::binary_function.*\(\)/,/^\(}\)/{s//\1/;s/class /struct /;s/public://;}'
+	done
 }
 
 destiner
