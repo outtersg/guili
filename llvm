@@ -70,6 +70,8 @@ v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://githu
 v 19.1.7 || true
 v 20.1.3 && modifs="$modifs internal_close_range copy_file_range" || true
 v 20.1.4 || true
+v 20.1.8 || true
+v 21.1.1 || true
 
 modifs="$modifsDyn $modifs"
 
