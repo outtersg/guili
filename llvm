@@ -870,7 +870,9 @@ vblibcxx()
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_ABI_VERSION=$v"
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXXABI_LIBRARY_VERSION=$v.0"
 	
-		filtrer libcxxabi/src/CMakeLists.txt sed -e 's/SOVERSION "1"/SOVERSION "'"$v"'"/' # Sinon on a libc++abi.so.1 → libc++abi.so.3.0
+	local ou=.
+	case "$PWD" in */build) ou=.. ;; esac
+	filtrer $ou/libcxxabi/src/CMakeLists.txt sed -e 's/SOVERSION "1"/SOVERSION "'"$v"'"/' # Sinon on a libc++abi.so.1 → libc++abi.so.3.0
 }
 
 # Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
