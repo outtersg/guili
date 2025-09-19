@@ -29,7 +29,7 @@ preParamsCompil()
 		paramsPreCFlag="$1"
 		shift
 	fi
-	preCFlag $paramsPreCFlag "-I$1/include"
+	[ ! -e "$1/include" ] || preCFlag $paramsPreCFlag "-I$1/include"
 	for d in $1/lib64 $1/lib
 	do
 		if [ -d "$d" ]
@@ -43,7 +43,7 @@ preParamsCompil()
 postParamsCompil()
 {
 	local d
-	guili_cppflags="$guili_cppflags -I$1/include"
+	[ ! -e "$1/include" ] || guili_cppflags="$guili_cppflags -I$1/include"
 	for d in $1/lib64 $1/lib
 	do
 		if [ -d "$d" ]
