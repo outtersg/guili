@@ -271,7 +271,7 @@ chemins()
 		# Pour le moment il ne fonctionne qu'en préfixage, donc non, mais à voir.
 		# D'autant que son bout de code pour éviter les duplications devrait être inutile du fait du "Déjà en tête de chemin" plus haut.
 		# /!\ Peut-être à glisser *avant* la vérification d'unicité qui ne conserve que le premier: sur du -L / -I etc., n'est-ce pas le *dernier* qu'il faut conserver? Que prend en compte le compilo?
-		[ $MODERNITE -ge 4 ] || preParamsCompil "$racine"
+		[ $MODERNITE -ge 4 ] || { . "$SCRIPTS/util.guili.env.sh" && preParamsCompil "$racine" ; }
 	done
 			;;
 	esac
