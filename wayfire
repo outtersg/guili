@@ -31,6 +31,9 @@ v 0.10.0 && modifs="usrLocalInclude linuxInput" || true
 
 archive=https://github.com/WayfireWM/wayfire/releases/download/v$version/wayfire-$version.tar.xz
 
+argOptions=`options $argOptions=extra`
+option extra || true
+
 linuxInput()
 {
 	# Sous FreeBSD, input.h et input-event-codes.h sont dans …/include/dev/evdev/ et non …/include/linux/ (ou alors uniquement si on a installé la couche de compat Linux).
@@ -74,5 +77,7 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudoku ninja install
+
+greffon extra wayfire-plugins-extra
 
 sutiliser
