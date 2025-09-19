@@ -19,3 +19,36 @@
 # SOFTWARE.
 
 # Utilitaires de configuration des variables d'environnement dans lequel se lancera la construction d'un GuiLI ($PATH, $LD_LIBRARY_PATH, etc.)
+
+preParamsCompil()
+{
+	local d
+	local paramsPreCFlag=
+	if [ "x$1" = x--sans-c-cxx ]
+	then
+		paramsPreCFlag="$1"
+		shift
+	fi
+	preCFlag $paramsPreCFlag "-I$1/include"
+	for d in $1/lib64 $1/lib
+	do
+		if [ -d "$d" ]
+		then
+			guili_lflags="-L$d $guili_lflags"
+			_rc_export LDFLAGS "-L$d"
+		fi
+	done
+}
+
+postParamsCompil()
+{
+	local d
+	guili_cppflags="$guili_cppflags -I$1/include"
+	for d in $1/lib64 $1/lib
+	do
+		if [ -d "$d" ]
+		then
+			guili_lflags="$guili_lflags -L$d"
+		fi
+	done
+}

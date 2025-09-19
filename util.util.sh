@@ -318,39 +318,6 @@ preCFlag()
 	_rc_export CPPFLAGS "$*"
 }
 
-preParamsCompil()
-{
-	local d
-	local paramsPreCFlag=
-	if [ "x$1" = x--sans-c-cxx ]
-	then
-		paramsPreCFlag="$1"
-		shift
-	fi
-	preCFlag $paramsPreCFlag "-I$1/include"
-	for d in $1/lib64 $1/lib
-	do
-		if [ -d "$d" ]
-		then
-			guili_lflags="-L$d $guili_lflags"
-			_rc_export LDFLAGS "-L$d"
-		fi
-	done
-}
-
-postParamsCompil()
-{
-	local d
-	guili_cppflags="$guili_cppflags -I$1/include"
-	for d in $1/lib64 $1/lib
-	do
-		if [ -d "$d" ]
-		then
-			guili_lflags="$guili_lflags -L$d"
-		fi
-	done
-}
-
 # Petite exception à notre règle "pas de variable globale dans ce fichier": dès qu'on a défini chemin(), on charge un éventuel environnement, afin de pouvoir dans ce qui suit détecter de nouveaux logiciels (et donc mettre en place ou non des palliatifs).
 
 . "$SCRIPTS/util.itineraires.sh" # Devrait s'appeler util.util.itineraires.sh, mais doit être manuellement inclus en premier pour avoir dans notre $PATH les utilitaires qu'on est amenés à pallier dans la suite.
