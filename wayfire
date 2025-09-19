@@ -26,7 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # git: pour récupérer les extensions
 # openssl: pour httpfs
-prerequis="meson ninja pkgconfig \\ wayland-protocols"
+prerequis="meson ninja pkgconfig \\ wayland-protocols libxml"
 v 0.10.0 && modifs="usrLocalInclude linuxInput" || true
 
 archive=https://github.com/WayfireWM/wayfire/releases/download/v$version/wayfire-$version.tar.xz
