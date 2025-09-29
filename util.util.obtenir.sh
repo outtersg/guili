@@ -185,6 +185,9 @@ obtenirEtAllerDansGit()
 		cd "$l-$v"
 	else
 		urlGit="$archive_git"
+		local v2
+		dpv2() { unset IFS ; shift $(($# - 1)) ; v2="$1" ; }
+		IFS=.- ; dpv2 $v
 		brancheGit=
 		case "$urlGit" in
 			*@*)
@@ -195,7 +198,7 @@ obtenirEtAllerDansGit()
 		avecOutilsGuili -f git
 		GIT_SSL_NO_VERIFY=true git clone $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
-		[ -z "$v" ] || ( v2="`echo "$v" | sed -e 's/.*[.-]//g'`" ; git checkout "$v2" )
+		case "$v2" in ?*) git checkout "$v2" ;; esac
 		[ -z "$v" ] || ( cd .. && tar czf "$a" "$l-$v" )
 	fi
 }
