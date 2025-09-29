@@ -196,7 +196,10 @@ obtenirEtAllerDansGit()
 				;;
 		esac
 		avecOutilsGuili -f git
-		GIT_SSL_NO_VERIFY=true git clone $brancheGit "$urlGit" "$l-$v"
+		# À FAIRE: le --revision (présent en 2.51.0, pas en 2.48.1) semble inutilisable pour récupérer juste un commit. Explorer son utilité.
+		# À FAIRE: --depth 1 si pas de $v2
+		# À FAIRE: --depth par dichotomie si $v2
+		GIT_SSL_NO_VERIFY=true git clone --single-branch $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
 		case "$v2" in ?*) git checkout "$v2" ;; esac
 		case "$v" in ?*)
