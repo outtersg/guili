@@ -199,7 +199,10 @@ obtenirEtAllerDansGit()
 		GIT_SSL_NO_VERIFY=true git clone $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
 		case "$v2" in ?*) git checkout "$v2" ;; esac
-		[ -z "$v" ] || ( cd .. && tar czf "$a" "$l-$v" )
+		case "$v" in ?*)
+			rm -Rf .git
+			( cd .. && tar czf "$a" "$l-$v" )
+		;; esac
 	fi
 }
 
