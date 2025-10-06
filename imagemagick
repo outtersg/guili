@@ -43,7 +43,7 @@ v 6.8.9.10 || true
 v 6.9.0.2 && prerequis="$prerequis librsvg" || true
 v 6.9.0.4 || true
 v 6.9.13.25 || true
-v 7.0.2.7 && modifs="$modifs rawpict" || true
+v 7.0.2.7 && modifs="$modifs rawpict scaledpict" || true
 v 7.0.3.4 || true
 v 7.0.6.1 || true
 v 7.0.7.11 || true
@@ -56,7 +56,14 @@ v 7.1.2.3 || true
 
 rawpict()
 {
+	# https://github.com/ImageMagick/ImageMagick/issues/8381
 	patch -p1 < "`obtenir https://github.com/ImageMagick/ImageMagick/commit/4fe745c511565748c9fd89940e7d3f4020dedd97.diff`"
+}
+
+scaledpict()
+{
+	# https://github.com/ImageMagick/ImageMagick/issues/8384
+	patch -p1 < "`obtenir https://github.com/ImageMagick/ImageMagick/commit/9f1ca3f94a2632fcdab57d35036c0f855dfb0a8a.diff`"
 }
 
 # À FAIRE: une option omp (OpenMP) qui ne s'active que si notre clang GuiLI a été compilé avec l'option correspondante. Sans quoi ImageMagick tente de se lier à la /usr/lib/libomp.so, incompatible avec le clang GuiLI bien plus récent. Notamment __kmpc_dispatch_deinit est introuvable (symbole publié par les .h mais absent d'/usr/lib/libomp.so).
