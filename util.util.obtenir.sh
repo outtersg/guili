@@ -176,6 +176,8 @@ obtenirEtAllerDansGit()
 	l="`basename "$1"`"
 	v="$2"
 	a="$INSTALL_MEM/$l-$v.tar.gz"
+	local options=--single-branch
+	case "$3" in -p|--partout) options= ;; esac
 	
 	cd "$TMP"
 	echo Obtention et décompression… >&2
@@ -192,6 +194,7 @@ obtenirEtAllerDansGit()
 		case "$urlGit" in
 			*@*)
 				brancheGit="-b `echo "$archive_git" | sed -e 's/.*@//'`"
+				brancheGit="$brancheGit --depth 1"
 				urlGit="`echo "$archive_git" | sed -e 's/@[^@]*//'`"
 				;;
 		esac
@@ -199,7 +202,7 @@ obtenirEtAllerDansGit()
 		# À FAIRE: le --revision (présent en 2.51.0, pas en 2.48.1) semble inutilisable pour récupérer juste un commit. Explorer son utilité.
 		# À FAIRE: --depth 1 si pas de $v2
 		# À FAIRE: --depth par dichotomie si $v2
-		GIT_SSL_NO_VERIFY=true git clone --single-branch $brancheGit "$urlGit" "$l-$v"
+		GIT_SSL_NO_VERIFY=true git clone $options $brancheGit "$urlGit" "$l-$v"
 		cd "$l-$v"
 		case "$v2" in ?*) git checkout "$v2" ;; esac
 		case "$v" in ?*)
