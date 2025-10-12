@@ -33,6 +33,7 @@ v 1.1.3 || true
 v 1.2.2 || true
 v 1.3.1 || true
 v 1.3.2 || true
+v 1.4.1 && modifs="$modifs chaussettedelespace" || true
 
 archive=https://github.com/duckdb/duckdb/archive/refs/tags/v$version.tar.gz
 
@@ -63,6 +64,8 @@ quellesext()
 			CORE_EXTENSIONS="$CORE_EXTENSIONS$o"
 		fi
 	done
+	if pg 1.4 $version # À FAIRE: gérer Python en >= 1.4. Il a été collé dans un silo à part. Pas d'instructions de co-construction, si ce n'est via un bidule en Rust (https://duckdb.org/docs/stable/dev/building/python).
+	then
 	if optionSi python
 	then
 		export BUILD_PYTHON=1
@@ -70,6 +73,7 @@ quellesext()
 		# Le tools/pythonpkg/README.md laisse penser que c'est parce qu'on a intégré httpfs aux CORE_EXTENSIONS.
 		prerequis="patchelf \\ $prerequis"
 		modifspostcompil="$modifspostcompil libpythonossl"
+		fi
 	fi
 }
 
@@ -84,6 +88,16 @@ modifExt()
 	# Il ne suffit pas de récupérer la branche main, car la rustine indiquée peut être sur une branche version, typiquement 1.4-andium, mention qui n'apparaît que dans .github/workflows/_extension_distribution.yml mais ça paraît être la chaîne d'IC de GitHub donc rien à voir.
 	# Le plus sûr reste de tout télécharger, puis d'aller chercher la révision en question. D'où le --partout.
 	agiter --partout -f .github/config/extensions/$ext.cmake "$archive_git" "$version_git" "$@"
+}
+
+chaussettedelespace()
+{
+	# "timespec n'existe pas, inclus par socket.h via curl"
+	# En fait un problème d'#include collé dans le namespace duckdb au lieu d'être en haut comme il se devait.
+	# https://github.com/duckdb/duckdb-httpfs/pull/139
+	modifExt httpfs filtrer src/include/httpfs_curl_client.hpp sed -e '/#include <curl/d' -e '/^namespace/i\
+#include <curl/curl.h>
+'
 }
 
 j4()
