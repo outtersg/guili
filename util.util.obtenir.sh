@@ -173,11 +173,23 @@ _obtenirEtAllerDansVersion_sauf()
 
 obtenirEtAllerDansGit()
 {
-	l="`basename "$1"`"
-	v="$2"
+	local l= v= options=--single-branch
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			-p|--partout) options= ;;
+			*)
+				case "$l;$v" in
+					";") l="`basename "$1"`" ;;
+					?*";") v="$1" ;;
+					?*";"?*) echo "# obtenirEtAllerDansGit: trop de paramètres fournis." >&2 ; return 1 ;;
+				esac
+				;;
+		esac
+		shift
+	done
+	
 	a="$INSTALL_MEM/$l-$v.tar.gz"
-	local options=--single-branch
-	case "$3" in -p|--partout) options= ;; esac
 	
 	cd "$TMP"
 	echo Obtention et décompression… >&2
