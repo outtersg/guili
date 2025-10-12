@@ -197,6 +197,9 @@ obtenirEtAllerDansGit()
 	then
 		tar xzf "$a"
 		cd "$l-$v"
+	elif [ -d "$l-$v" ]
+	then
+		cd "$l-$v"
 	else
 		urlGit="$archive_git"
 		local v2
