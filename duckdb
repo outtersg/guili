@@ -73,6 +73,19 @@ quellesext()
 	fi
 }
 
+modifExt()
+{
+	# Les extensions étant chargées depuis git au moment de la construction, pour corriger une extension il nous faut réécrire le git localement.
+	
+	local ext="$1" ; shift
+	local archive_git="`grep GIT_URL .github/config/extensions/$ext.cmake | awk '{print$2}'`"
+	local version_git="`grep GIT_TAG .github/config/extensions/$ext.cmake | awk '{print$2}'`"
+	
+	# Il ne suffit pas de récupérer la branche main, car la rustine indiquée peut être sur une branche version, typiquement 1.4-andium, mention qui n'apparaît que dans .github/workflows/_extension_distribution.yml mais ça paraît être la chaîne d'IC de GitHub donc rien à voir.
+	# Le plus sûr reste de tout télécharger, puis d'aller chercher la révision en question. D'où le --partout.
+	agiter --partout -f .github/config/extensions/$ext.cmake "$archive_git" "$version_git" "$@"
+}
+
 j4()
 {
 	filtrer Makefile sed -e 's/cmake --build \.[^ ]*/& --parallel 4/g'
