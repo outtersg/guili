@@ -357,3 +357,64 @@ avecOutilsGuili()
 }
 
 #- Travail sur archives --------------------------------------------------------
+
+# Aller sous GIT Et Retravailler
+# Modifie une arbo git et modifie les infos (silo, révision).
+# Utilisation: agiter [-f <fichier contenant les infos>] <URL> <révision> <modifieur à invoquer>
+# agiter téléchargera <URL> à la révision <révision>, invoquera <modifieur à invoquer> (fonction shell, avec pourquoi pas des arguments), créera une révision git avec le résultat, et modifiera <fichier contenant les infos> en remplaçant <URL> par le silo local ainsi créé, ainsi que <révision> par celle créée (en redéfinissant $archive_git et $version_git).
+agiter()
+{
+	local ooeadg fichier ancar ancver
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--partout)
+				ooeadg="$ooeadg $1"
+				;;
+			-f)
+				fichier="$2"
+				shift
+				;;
+			*) break ;;
+		esac
+		shift
+	done
+	archive_git="$1" ; ancar="$1" ; shift
+	version_git="$1" ; ancver="$1" ; shift
+	
+	# Est-ce une première extraction, ou bien a-t-on déjà modifié cette extension localement?
+	case "$archive_git" in
+		http*)
+			archive_git="`obtenirEtAllerDansGit "$logiciel-$ext" "$version_git" --silo $ooeadg && echo "$PWD"`"
+			;;
+		/*) true ;;
+		*)
+			echo "# Impossible d'interpréter l'archive git $archive_git."
+			exit 1
+			;;
+	esac
+	
+	(
+		cd "$archive_git" &&
+		{
+			git checkout "b$version_git" 2> /dev/null >&2 ||
+			git checkout -b "b$version_git"
+		} &&
+		git reset --hard "$version_git"
+	)
+	
+	# On invoque la modif, et on en fait une nouvelle révision git.
+	# checkout -b: pour être sûrs de ne pas être en détaché.
+	version_git="`cd "$archive_git" && "$@" && git add . && git commit -m "$*" > /dev/null && git rev-parse HEAD`"
+	
+	# Et on réécrit l'extension.
+	
+	case "$fichier" in
+		?*)
+			filtrer "$fichier" sed \
+				-e '# La révision avant le chemin, qui peut inclure le numéro de révision.' \
+				-e "s#$ancver#$version_git#" \
+				-e "s#$ancar#$archive_git#"
+			;;
+	esac
+}
