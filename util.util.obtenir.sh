@@ -173,11 +173,12 @@ _obtenirEtAllerDansVersion_sauf()
 
 obtenirEtAllerDansGit()
 {
-	local l= v= options=--single-branch
+	local l= v= options=--single-branch silo=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-p|--partout) options= ;;
+			--silo) silo=.silo ;;
 			*)
 				case "$l;$v" in
 					";") l="`basename "$1"`" ;;
@@ -189,17 +190,18 @@ obtenirEtAllerDansGit()
 		shift
 	done
 	
-	a="$INSTALL_MEM/$l-$v.tar.gz"
+	local lv="$l-$v$silo"
+	a="$INSTALL_MEM/$lv.tar.gz"
 	
 	cd "$TMP"
 	echo Obtention et décompression… >&2
 	if [ -f "$a" ]
 	then
 		tar xzf "$a"
-		cd "$l-$v"
-	elif [ -d "$l-$v" ]
+		cd "$lv"
+	elif [ -d "$lv" ]
 	then
-		cd "$l-$v"
+		cd "$lv"
 	else
 		urlGit="$archive_git"
 		local v2
@@ -217,12 +219,12 @@ obtenirEtAllerDansGit()
 		# À FAIRE: le --revision (présent en 2.51.0, pas en 2.48.1) semble inutilisable pour récupérer juste un commit. Explorer son utilité.
 		# À FAIRE: --depth 1 si pas de $v2
 		# À FAIRE: --depth par dichotomie si $v2
-		GIT_SSL_NO_VERIFY=true git clone $options $brancheGit "$urlGit" "$l-$v"
-		cd "$l-$v"
+		GIT_SSL_NO_VERIFY=true git clone $options $brancheGit "$urlGit" "$lv"
+		cd "$lv"
 		case "$v2" in ?*) git checkout "$v2" ;; esac
 		case "$v" in ?*)
-			rm -Rf .git
-			( cd .. && tar czf "$a" "$l-$v" )
+			case "$silo" in "") rm -Rf .git ;; esac
+			( cd .. && tar czf "$a" "$lv" )
 		;; esac
 	fi
 }
