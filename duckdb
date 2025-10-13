@@ -64,16 +64,20 @@ quellesext()
 			CORE_EXTENSIONS="$CORE_EXTENSIONS$o"
 		fi
 	done
-	if pg 1.4 $version # À FAIRE: gérer Python en >= 1.4. Il a été collé dans un silo à part. Pas d'instructions de co-construction, si ce n'est via un bidule en Rust (https://duckdb.org/docs/stable/dev/building/python).
-	then
 	if optionSi python
 	then
+		. "$SCRIPTS/util.python.sh"
+		# À part à partir de la version 1.4, les sources du pont Python sont livrées à part, ce qui rend le bousin un peu plus complexe.
+		if pge $version 1.4
+		then
+			prerequis="pybind11 \\ $prerequis"
+			modifspostcompil="$modifspostcompil ajouterExtPython"
+		fi
 		export BUILD_PYTHON=1
 		# BUILD_PYTHON=1 génère et installe bien, mais à l'exécution (import duckdb): Undefined symbol "ASN1_STRING_length": en comparant bin/duckdb à la biblio-pont entre Python et DuckDB, on réalise qu'il manque à cette dernière par rapport au premier libcrypto.so et libssl.so.
 		# Le tools/pythonpkg/README.md laisse penser que c'est parce qu'on a intégré httpfs aux CORE_EXTENSIONS.
 		prerequis="patchelf \\ $prerequis"
 		modifspostcompil="$modifspostcompil libpythonossl"
-		fi
 	fi
 }
 
@@ -105,13 +109,51 @@ j4()
 	filtrer Makefile sed -e 's/cmake --build \.[^ ]*/& --parallel 4/g'
 }
 
+ajouterExtPython()
+{
+	local hote="$PWD"
+	(
+		# /!\ Il ne récupérera pas le python courant, mais celui avec lequel pybind11 a été compilé.
+		obtenirEtAllerDans https://github.com/duckdb/duckdb-python/archive/refs/tags/v$version.tar.gz
+		# À FAIRE: nom d'une pipe, pourquoi cmake persiste-t-il à me recompiler tout DuckDB quand je lui demande juste l'extension Python après avoir compilé déjà DuckDB?
+		# Bon donc ça ne sert à rien d'essayer de lui coller sur le chemin les trucs qu'il vient de compiler, de toute façon il recompilera (en écrasant, ce qui fait que si l'install plante tout à la fin, en plus duckdb-python aura bousillé les .o de duckdb, et ce dernier repartira donc de zéro).
+		if false
+		then
+		mkdir -p build/duckdb
+		for d in src extension third_party test
+		do
+			rm -f build/duckdb/$d
+			ln -s "$hote/build/release/$d" build/duckdb/$d
+		done
+		fi
+		rm -f "$hote/tools/pythonpkg"
+		ln -s $PWD "$hote/tools/pythonpkg" # Pour garder le même emplacement qu'en < 1.4 où le pont était embarqué dans le source de DuckDB.
+		rm -Rf external/duckdb
+		ln -s "$hote" external/duckdb # Et inversement, le pont a besoin d'un duckdb.
+		cmake -B build -DCMAKE_INSTALL_PREFIX="$INSTALLS/$PYEXT" -DCMAKE_BUILD_TYPE=Release
+		# À FAIRE: le forcer à s'installer dans pyext-1.0
+		# À FAIRE: pourquoi s'installe-t-il en tant que module _duckdb au lieu de duckdb?
+		cmake --build build --parallel 4
+		sudoku cmake --install build
+	)
+}
+
 libpythonossl()
 {
 	pyvc() { printf $2$3 ; }
 	local pyv="`python -V`"
 	local pyvc="cpython-`IFS=". " ; pyvc $pyv`"
-	patchelf --add-needed libcrypto.so --add-needed libssl.so "tools/pythonpkg/build/lib.`uname | tr A-Z a-z`-`uname -r`-`uname -m`-$pyvc/duckdb/duckdb.$pyvc.so"
-	make # On réinstalle la biblio modifiée.
+	find tools/pythonpkg/build -name "*duck*py*.so*" | while read biblio
+	do
+		patchelf --add-needed libcrypto.so --add-needed libssl.so "$biblio"
+	done
+	# On réinstalle la biblio modifiée.
+	if pge $version 1.4
+	then
+		( cd tools/pythonpkg && sudoku cmake --install build )
+	else
+		make
+	fi
 }
 
 predestiner="$predestiner prerequisOpenssl"
