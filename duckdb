@@ -129,7 +129,9 @@ echo Configuration… >&2
 
 export OVERRIDE_GIT_DESCRIBE="v$version"
 export COMMON_CMAKE_VARS="-DCMAKE_INSTALL_PREFIX=$dest"
-export CORE_EXTENSIONS="$CORE_EXTENSIONS" # Calculées dans quellesext()
+nomExtensions=BUILD_EXTENSIONS
+pge $version 1.4 || nomExtensions=CORE_EXTENSIONS
+export $nomExtensions="$CORE_EXTENSIONS" # Calculées dans quellesext()
 
 echo Compilation… >&2
 make -j4
