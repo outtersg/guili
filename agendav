@@ -28,7 +28,7 @@ absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`d
 
 [ -z "$dest" ] && echo "Merci de préciser la destination via -d <destination>" >&2 && exit 1
 
-v 2.0.0 || true
+v 2.0.0 && modifs="vueSemaine" || true
 v 2.6.0 || true
 
 archive="http://github.com/adobo/agendav/tarball/$version" # Ne contient pas les .css agglomérés.
@@ -65,6 +65,12 @@ cat > web/config/settings.php <<TERMINE
 
 ?>
 TERMINE
+
+vueSemaine()
+{
+	# https://github.com/mtudury/agendav/pull/1
+	filtrer web/src/DateHelper.php sed -e 's/THis/TH:i:s/g' -e '/T000000/{s//T00:00:00/;s/^/if(strlen($input) == 10) /'
+}
 
 set -x
 chmod a+x agendavcli
