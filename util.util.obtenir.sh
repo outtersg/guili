@@ -127,14 +127,14 @@ obtenirEtAllerDans()
 		fichier="`nomArchive "$1"`"
 		fichier="`basename "$fichier"`"
 		# À FAIRE: ce qui suit doit remonter dans nomArchive:
-		echo "$1" | egrep '/archive/v*[0-9][0-9.]*(\.tar|\.gz|\.tgz|\.xz|\.bz2|\.7z|\.zip|\.Z){1,2}$' && fichier="`echo "$1" | sed -e 's#/archive/v*#-#' -e 's#.*/##'`" || true
+		echo "$1" | egrep '/archive/v*[0-9][0-9.]*(\.tar|\.gz|\.lz|\.tgz|\.xz|\.bz2|\.7z|\.zip|\.Z){1,2}$' && fichier="`echo "$1" | sed -e 's#/archive/v*#-#' -e 's#.*/##'`" || true
 	fi
 	archive=`obtenir "$1" "$fichier"`
 	[ -f "$archive" ] || exit 1
 	case "$fichier" in
 		*.tar.gz|*.tgz|*.tar.Z) dec="tar xzf" ; liste="tar tzf" ;;
 		*.tar) dec="tar xf" ; liste="tar tf" ;;
-		*.tar.bz2) dec="tar xjf" ; liste="tar tjf" ;;
+		*.tar.bz2|*.tar.lz) dec="tar xjf" ; liste="tar tjf" ;;
 		*.zip) dec="dezipe" ; liste="listeZip" ;;
 		*.xz) initDecompresseur xz "$archive" ;;
 		*.7z) dec="de7z" ; liste="liste7z" ;;
