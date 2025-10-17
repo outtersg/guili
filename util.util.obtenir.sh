@@ -206,7 +206,9 @@ obtenirEtAllerDansGit()
 		urlGit="$archive_git"
 		local v2
 		dpv2() { unset IFS ; shift $(($# - 1)) ; v2="$1" ; }
+		case "$v" in *.*|*-*)
 		IFS=.- ; dpv2 $v
+		;; esac
 		brancheGit=
 		case "$urlGit" in
 			*@*)
