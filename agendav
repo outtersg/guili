@@ -69,6 +69,7 @@ TERMINE
 set -x
 chmod a+x agendavcli
 filtrer agendavcli sed -e 's#/usr/bin/php#/usr/bin/env php#'
+for modif in true $modifs ; do $modif ; done
 
 tar cf - . | ( cd "$dest" && tar xf - )
 
