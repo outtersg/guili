@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Copyright (c) 2006 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,27 +21,55 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; SCRIPTS="`dirname "$SCRIPTS"`" ; echo "$SCRIPTS" | grep -q "^/" || SCRIPTS=`pwd`/"$SCRIPTS"
-. "$SCRIPTS/util.bash"
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
 
-inclure libjpeg
-inclure libpng
-inclure giflib
-inclure dbus
-
-logiciel=qt
+prerequis="libjpeg libpng giflib dbus"
 
 # Historique des versions gérées
 
-version=4.2.2
-modifs=qtcopy
-OPTIONS_CONF=(-qdbus)
-
-version=3.3.8
-modifs=
-OPTIONS_CONF=()
+v 3.3.8 || true
+v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus" || true
 
 # Modifications
+
+# À FAIRE: éplucher le config.summary
+# entre 6.7 et 6.8, QtMM GStreamer plugin passe de yes à no
+# Fully optimize release builds (-O3) .... no
+# Qt D-Bus directly linked to libdbus .... no
+# Support enabled for:
+# Using pkg-config ....................... no
+# Qt directly linked to OpenSSL ........ no
+# OpenSSL based cryptographic hash ....... no
+# PostgreSQL ............................. no
+# Using system provided SQLite ......... no
+#   Optional system libraries:
+#    re2 .................................. no
+#    icu .................................. no
+#    libwebp, libwebpmux and libwebpdemux . no
+#    opus ................................. no
+#    ffmpeg ............................... no
+#    libvpx ............................... no
+#    snappy ............................... no
+#    glib ................................. no
+#    zlib ................................. no
+#    minizip .............................. no
+#    libevent ............................. no
+#    libxml2 and libxslt .................. no
+#    lcms2 ................................ no
+#    png .................................. no
+#    tiff ................................. no
+#    jpeg ................................. no
+#    libopenjpeg2 ......................... no
+#    harfbuzz ............................. no
+#    freetype ............................. no
+#    libpci ............................... no
+# WARNING: QtPdf won't be built. Build can be done only on Linux, Windows, macO, iOS and Android.
+
+for p in python pkgconf glib iconv icu pcre freetype harfbuzz libjpeg libpng postgresql sqlite mysql libtiff ninja gn fontconfig dbus nss re2 opus ffmpeg zlib libevent libxml libxslt lcms
+do
+	versions $p | grep -q . && prerequis="$prerequis $p" || true
+done
 
 # Variables
 
@@ -49,7 +77,6 @@ truc=opensource-src
 [[ $version = 3.* ]] && truc=free
 
 archive="ftp://ftp.tu-chemnitz.de/pub/Qt/qt/source/$logiciel-mac-$truc-$version.tar.gz"
-dest=/usr/local/$logiciel-$version
 
 qtcopy()
 {
@@ -67,7 +94,9 @@ qtcopy()
 	done
 }
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -75,7 +104,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Compilation… >&2
-./configure --prefix="$dest" -qt-gif "${OPTIONS_CONF[@]}" -thread
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 export DYLD_LIBRARY_PATH="`pwd`/lib" # Car utilise dans la génération les biblios produites.
@@ -83,6 +112,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser $logiciel-$version
 
-rm -Rf /tmp/$$
+sutiliser
