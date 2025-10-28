@@ -32,6 +32,8 @@ v 3.3.8 || true
 v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus" || true
 v 5.12.12 && prerequis="git cmake \\" && modifs="modules cflagsEnCmake" && OPTIONS_CONF="-qdbus" || true
 v 5.15.16 && lts=1 || true
+v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
+v 6.8.2 && retirerModif fqtnConst || true
 
 # Pour Qt 5, l'archive publiée ne contient que le lanceur, pas les .git… mais le lanceur chope des git submodules, donc échoue sans ses .git. On doit donc récupérer l'étiquette plutôt que le .tgz
 pg 5 $version || versionComplete="$version.HEAD.git" # Le HEAD de l'étiquette qui figure en @$version dans $archive_git.
@@ -105,6 +107,25 @@ do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
 done
 
+fqtnConst()
+{
+	# Une 6.7 avec un clang 19 pète dans qdoc sur 3 erreurs, qui semblent être un durcissement de clang face aux tentatives d'extraction de type C++ sur des const tandis que lui attend des non const.
+	# Confirmé en regardant le source d'une 6.8, qui inclut des blocs spécifiques #if LIBCLANG_VERSION_MAJOR >= 19
+	
+	case "$CC" in clang*) true ;; *) return 0 ;; esac
+	local vclang="`versionCompiloChemin clang`"
+	pge $vclang 19 || return 0
+	modifsPostConf="$modifsPostConf _fqtnConst"
+}
+
+_fqtnConst()
+{
+	filtrer qttools/src/qdoc/qdoc/src/qdoc/clangcodeparser.cpp sed \
+		-e '/get_fully_qualified_type_name/s/getDefaultArgument(),/getDefaultArgument().getArgument().getAsType(),/' \
+		-e '/get_expression_as_string/s/getDefaultArgument(),/getDefaultArgument().getSourceExpression(),/' \
+		-e 's/TemplateName::Qualified::Fully/TemplateName::Qualified::AsWritten/'
+}
+
 qtcopy()
 {
 	local version=r619081
@@ -145,6 +166,8 @@ if pge $version 5 && pg 6 $version ; then OPTIONS_CONF="$OPTIONS_CONF -opensourc
 ./configure --prefix="$dest" $OPTIONS_CONF
 # Celui lancé par PhantomJS 2.1.1:
 # /home/gui/tmp/phantomjs-2.1.1/src/qt/qtbase/configure -static -opensource -confirm-license -prefix /home/gui/tmp/phantomjs-2.1.1/src/qt/qtbase -qt-zlib -qt-libpng -qt-libjpeg -qt-pcre -nomake examples -nomake tools -nomake tests -no-qml-debug -no-dbus -no-opengl -no-audio-backend -D QT_NO_GRAPHICSVIEW -D QT_NO_GRAPHICSEFFECT -D QT_NO_STYLESHEET -D QT_NO_STYLE_CDE -D QT_NO_STYLE_CLEANLOOKS -D QT_NO_STYLE_MOTIF -D QT_NO_STYLE_PLASTIQUE -D QT_NO_PRINTPREVIEWDIALOG -no-qpa-platform-guard -qpa phantom -openssl -openssl-linked -no-openvg -no-eglfs -no-egl -no-glib -no-gtkstyle -no-cups -no-sm -no-xinerama -no-xkb -no-xcb -no-kms -no-linuxfb -no-directfb -no-mtdev -no-libudev -no-evdev -no-pulseaudio -no-alsa -no-feature-PRINTPREVIEWWIDGET -fontconfig -icu -system-libjpeg -system-libpng -system-zlib -release (et tous les CFLAGS et cie; on les retrouve dans le build.py de ladite branche.
+
+for modif in true $modifsPostConf ; do $modif ; done
 
 echo Compilation… >&2
 export DYLD_LIBRARY_PATH="`pwd`/lib" # Car utilise dans la génération les biblios produites.
