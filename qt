@@ -30,8 +30,42 @@ prerequis="libjpeg libpng giflib dbus"
 
 v 3.3.8 || true
 v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus" || true
+v 5.12.12 && prerequis="git cmake \\" && modifs="modules cflagsEnCmake" && OPTIONS_CONF="-qdbus" || true
+v 5.15.16 && lts=1 || true
+
+# Pour Qt 5, l'archive publiée ne contient que le lanceur, pas les .git… mais le lanceur chope des git submodules, donc échoue sans ses .git. On doit donc récupérer l'étiquette plutôt que le .tgz
+pg 5 $version || versionComplete="$version.HEAD.git" # Le HEAD de l'étiquette qui figure en @$version dans $archive_git.
 
 # Modifications
+
+modules()
+{
+	local OPTIONS_INIT="--module-subset=default"
+	#OPTIONS_CONF="$OPTIONS_CONF -init-submodules -submodules all"
+	#OPTIONS_CONF="$OPTIONS_CONF -submodules all"
+	case `uname` in
+		FreeBSD)
+			# qtquick3dphysics a une #error explicite dans ses .h pour autre chose que Windows, Linux, Mac.
+			OPTIONS_INIT="$OPTIONS_INIT,-qtquick3dphysics"
+			;;
+	esac
+	OPTIONS_INIT="$OPTIONS_INIT,-qtcharts" # "Imposs de trouver la rév actuelle" en 6.8.
+	[ ! -f guili.initsilos ] || return 0
+	if [ -x init-repository.pl ]
+	then
+		./init-repository.pl $OPTIONS_INIT
+	else
+		./init-repository $OPTIONS_INIT
+	fi
+	touch guili.initsilos
+}
+
+cflagsEnCmake()
+{
+	case "$CFLAGS" in
+		*-O3*) OPTIONS_CONF="$OPTIONS_CONF -Doptimize_full=true" ;;
+	esac
+}
 
 # À FAIRE: éplucher le config.summary
 # entre 6.7 et 6.8, QtMM GStreamer plugin passe de yes à no
@@ -71,13 +105,6 @@ do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
 done
 
-# Variables
-
-truc=opensource-src
-[[ $version = 3.* ]] && truc=free
-
-archive="ftp://ftp.tu-chemnitz.de/pub/Qt/qt/source/$logiciel-mac-$truc-$version.tar.gz"
-
 qtcopy()
 {
 	local version=r619081
@@ -94,6 +121,14 @@ qtcopy()
 	done
 }
 
+# Variables
+
+archive=https://github.com/qt/qt5/archive/refs/tags/v$version`[ -z "$lts" ] || printf %s -lts-lgpl`.tar.gz
+#archive_git=https://github.com/qt/qt5.git@$version # Surtout pas, car la structure à 2 étages fait que qt/playground/jenesaisplusquoi n'existe pas.
+vgit=$version # La branche
+pge $version 6 || vgit=v$version-lts-lgpl # L'étiquette
+archive_git=https://code.qt.io/qt/qt5.git@$vgit
+
 destiner
 
 prerequis
@@ -104,6 +139,9 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+# En l'absence de réseau sur une copie déjà extraite:
+#filtrer cmake/QtIRGitHelpers.cmake sed -e 's/NOT should_clone AND arg_FETCH/FALSE AND &/'
+if pge $version 5 && pg 6 $version ; then OPTIONS_CONF="$OPTIONS_CONF -opensource -confirm-license" ; fi # Sinon il emmerde avec demande de validation manuelle.
 ./configure --prefix="$dest" $OPTIONS_CONF
 # Celui lancé par PhantomJS 2.1.1:
 # /home/gui/tmp/phantomjs-2.1.1/src/qt/qtbase/configure -static -opensource -confirm-license -prefix /home/gui/tmp/phantomjs-2.1.1/src/qt/qtbase -qt-zlib -qt-libpng -qt-libjpeg -qt-pcre -nomake examples -nomake tools -nomake tests -no-qml-debug -no-dbus -no-opengl -no-audio-backend -D QT_NO_GRAPHICSVIEW -D QT_NO_GRAPHICSEFFECT -D QT_NO_STYLESHEET -D QT_NO_STYLE_CDE -D QT_NO_STYLE_CLEANLOOKS -D QT_NO_STYLE_MOTIF -D QT_NO_STYLE_PLASTIQUE -D QT_NO_PRINTPREVIEWDIALOG -no-qpa-platform-guard -qpa phantom -openssl -openssl-linked -no-openvg -no-eglfs -no-egl -no-glib -no-gtkstyle -no-cups -no-sm -no-xinerama -no-xkb -no-xcb -no-kms -no-linuxfb -no-directfb -no-mtdev -no-libudev -no-evdev -no-pulseaudio -no-alsa -no-feature-PRINTPREVIEWWIDGET -fontconfig -icu -system-libjpeg -system-libpng -system-zlib -release (et tous les CFLAGS et cie; on les retrouve dans le build.py de ladite branche.
