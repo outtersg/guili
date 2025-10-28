@@ -108,7 +108,7 @@ echo Compilation… >&2
 
 echo Compilation… >&2
 export DYLD_LIBRARY_PATH="`pwd`/lib" # Car utilise dans la génération les biblios produites.
-make
+make -j4
 
 echo Installation… >&2
 sudo make install
