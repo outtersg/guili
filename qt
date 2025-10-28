@@ -105,6 +105,8 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest" $OPTIONS_CONF
+# Celui lancé par PhantomJS 2.1.1:
+# /home/gui/tmp/phantomjs-2.1.1/src/qt/qtbase/configure -static -opensource -confirm-license -prefix /home/gui/tmp/phantomjs-2.1.1/src/qt/qtbase -qt-zlib -qt-libpng -qt-libjpeg -qt-pcre -nomake examples -nomake tools -nomake tests -no-qml-debug -no-dbus -no-opengl -no-audio-backend -D QT_NO_GRAPHICSVIEW -D QT_NO_GRAPHICSEFFECT -D QT_NO_STYLESHEET -D QT_NO_STYLE_CDE -D QT_NO_STYLE_CLEANLOOKS -D QT_NO_STYLE_MOTIF -D QT_NO_STYLE_PLASTIQUE -D QT_NO_PRINTPREVIEWDIALOG -no-qpa-platform-guard -qpa phantom -openssl -openssl-linked -no-openvg -no-eglfs -no-egl -no-glib -no-gtkstyle -no-cups -no-sm -no-xinerama -no-xkb -no-xcb -no-kms -no-linuxfb -no-directfb -no-mtdev -no-libudev -no-evdev -no-pulseaudio -no-alsa -no-feature-PRINTPREVIEWWIDGET -fontconfig -icu -system-libjpeg -system-libpng -system-zlib -release (et tous les CFLAGS et cie; on les retrouve dans le build.py de ladite branche.
 
 echo Compilation… >&2
 export DYLD_LIBRARY_PATH="`pwd`/lib" # Car utilise dans la génération les biblios produites.
