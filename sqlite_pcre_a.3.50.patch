@@ -1,0 +1,184 @@
+--- Makefile.in
++++ Makefile.in
+@@ -71,6 +71,8 @@
+ LDFLAGS.rt = @LDFLAGS_RT@
+ LDFLAGS.icu = @LDFLAGS_ICU@
+ CFLAGS.icu = @CFLAGS_ICU@
++LDFLAGS.pcre = @LDFLAGS_PCRE@
++CFLAGS.pcre = @CFLAGS_PCRE@
+ 
+ # INSTALL reminder: we specifically do not strip binaries,
+ # as discussed in https://sqlite.org/forum/forumpost/9a67df63eda9925c.
+@@ -132,8 +134,9 @@
+   $(LDFLAGS.rpath) $(LDFLAGS.pthread) \
+   $(LDFLAGS.math) $(LDFLAGS.dlopen) \
+   $(LDFLAGS.zlib) $(LDFLAGS.icu) \
++  $(LDFLAGS.pcre) \
+   $(LDFLAGS.rt) $(LDFLAGS.configure)
+-CFLAGS.libsqlite3 = -I. $(CFLAGS.core) $(CFLAGS.icu) $(OPT_FEATURE_FLAGS)
++CFLAGS.libsqlite3 = -I. $(CFLAGS.core) $(CFLAGS.icu) $(CFLAGS.pcre) $(OPT_FEATURE_FLAGS)
+ 
+ sqlite3.o: $(TOP)/sqlite3.h $(TOP)/sqlite3.c
+ 	$(CC) -c $(TOP)/sqlite3.c -o $@ $(CFLAGS) $(CFLAGS.libsqlite3)
+@@ -247,8 +250,8 @@
+ 		$(TOP)/shell.c $(sqlite3-shell-link-flags.$(ENABLE_STATIC_SHELL)) \
+ 		$(sqlite3-shell-static.flags.$(STATIC_CLI_SHELL)) \
+ 		-I. $(OPT_FEATURE_FLAGS) $(SHELL_OPT) \
+-		$(CFLAGS) $(CFLAGS.readline) $(CFLAGS.icu) \
+-		$(LDFLAGS) $(LDFLAGS.readline)
++		$(CFLAGS) $(CFLAGS.readline) $(CFLAGS.icu) $(CFLAGS.pcre) \
++		$(LDFLAGS) $(LDFLAGS.readline) $(LDFLAGS.pcre)
+ 
+ sqlite3$(T.exe)-1:
+ sqlite3$(T.exe)-0: sqlite3$(T.exe)
+--- autosetup/sqlite-config.tcl
++++ autosetup/sqlite-config.tcl
+@@ -287,6 +287,18 @@
+       }
+     }
+ 
++    # Options for regular expressions: replacing REGEXP with an external library
++    regex-lib {
++      {*} {
++        pcre=1
++          => {Disable PCRE support}
++        pcre2=0
++          => {Explicitly use PCRE2 as PCRE}
++        pcre1=0
++          => {Explicitly use PCRE1 as PCRE}
++      }
++    }
++
+     # Options for ICU: International Components for Unicode
+     icu {
+       {*} {
+@@ -518,6 +530,7 @@
+   sqlite-handle-load-extension
+   sqlite-handle-math
+   sqlite-handle-icu
++  sqlite-handle-regex-lib
+   if {[proj-opt-exists readline]} {
+     sqlite-handle-line-editing
+   }
+@@ -1320,6 +1333,79 @@
+ }
+ 
+ 
++########################################################################
++# Regular Expressions external libraries
++# defines HAVE_PCRE (and one of its children HAVE_PCRE2, HAVE_PCRE1)
++proc sqlite-check-pcre-flags {bin} {
++  if {"pcre2-config" eq $bin} {
++    set cflags [exec $bin --cflags]
++    set ldflags [exec $bin --libs8]
++  }
++  if {"pcre-config" eq $bin} {
++    set cflags [exec $bin --cflags]
++    set ldflags [exec $bin --libs]
++  }
++  define-append LDFLAGS_PCRE $ldflags
++  define-append CFLAGS_PCRE $cflags
++}
++
++proc sqlite-check-regex-lib {} {
++  msg-result "Checking for external regular expressions library..."
++
++  define LDFLAGS_PCRE ""
++  define CFLAGS_PCRE ""
++
++  # @todo use sqlite-check-pcre-flags's flags in cctest, instead of hardcoding pcre2-8
++  if {[opt-bool pcre] || [opt-bool pcre2]} {
++    set pcreLibName "pcre2"
++    sqlite-check-pcre-flags "pcre2-config"
++    if {[cctest \
++           -cflags [get-define CFLAGS_PCRE] -libs [get-define LDFLAGS_PCRE] -nooutput 1 \
++           -source {
++             #define PCRE2_CODE_UNIT_WIDTH 8
++             #include <pcre2.h>
++             int main(void) {
++               int n; size_t t;
++               pcre2_compile((const unsigned char *)"", 0, 0, &n, &t, NULL);
++               return 0;
++             }
++           }
++    ]} {
++      sqlite-add-feature-flag -shell -DSQLITE_ENABLE_PCRE -DSQLITE_ENABLE_PCRE2
++      return pcre2
++    }
++  }
++
++  if {[opt-bool pcre] || [opt-bool pcre1]} {
++    set pcreLibName "pcre1"
++    sqlite-check-pcre-flags "pcre-config"
++    if {[cctest \
++           -cflags "" -libs "pcre" -nooutput 1 \
++           -source {
++             #include <pcre.h>
++             int main(void) {
++               char ** res;
++               pcre_compile("", 0, &res, &n, NULL);
++               return 0;
++             }
++           }
++    ]} {
++      sqlite-add-feature-flag -shell -DSQLITE_ENABLE_PCRE -DSQLITE_ENABLE_PCRE1
++      return pcre1
++    }
++  }
++
++  return "none"
++}; # sqlite-check-regex-lib
++
++########################################################################
++# Runs sqlite-check-regex-lib and adds a message around it
++# In the canonical build this must not be called before
++# sqlite-determine-codegen-tcl.
++proc sqlite-handle-regex-lib {} {
++  msg-result "External regular expressions library: [sqlite-check-regex-lib]"
++}
++
+ ########################################################################
+ # ICU - International Components for Unicode
+ #
+@@ -1798,6 +1884,9 @@
+     gcov
+     icu-collations
+     load-extension
++    pcre
++    pcre1
++    pcre2
+     readline
+     shared
+     tcl
+--- sqlite3.pc.in
++++ sqlite3.pc.in
+@@ -9,5 +9,5 @@
+ Description: SQL database engine
+ Version: @PACKAGE_VERSION@
+ Libs: -L${libdir} -lsqlite3
+-Libs.private: @LDFLAGS_MATH@ @LDFLAGS_ZLIB@ @LDFLAGS_DLOPEN@ @LDFLAGS_PTHREAD@ @LDFLAGS_ICU@
++Libs.private: @LDFLAGS_MATH@ @LDFLAGS_ZLIB@ @LDFLAGS_DLOPEN@ @LDFLAGS_PTHREAD@ @LDFLAGS_ICU@ @LDFLAGS_PCRE@
+ Cflags: -I${includedir}
+--- sqlite3.c
++++ sqlite3.c
+@@ -182663,6 +184801,9 @@
+ /************** End of sqliteicu.h *******************************************/
+ /************** Continuing where we left off in main.c ***********************/
+ #endif
++#ifdef SQLITE_ENABLE_PCRE
++SQLITE_PRIVATE int sqlite3PcreInit(sqlite3 *db);
++#endif
+ /*
+ ** This is an extension initializer that is a no-op and always
+ ** succeeds, except that it fails if the fault-simulation is set
+@@ -182702,6 +184873,10 @@
+ #if defined(SQLITE_ENABLE_ICU) || defined(SQLITE_ENABLE_ICU_COLLATIONS)
+   sqlite3IcuInit,
+ #endif
++#ifdef SQLITE_ENABLE_PCRE
++  /* PCRE comes after ICU, so that its regexp function is preferred */
++  sqlite3PcreInit,
++#endif
+ #ifdef SQLITE_ENABLE_RTREE
+   sqlite3RtreeInit,
+ #endif
