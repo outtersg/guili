@@ -25,9 +25,19 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 prerequis="make \\"
-v 7.5.0 || true
+v 7.5.0 && modifs="ignoreAbsolu" || true
 
 # Modifications
+
+ignoreAbsolu()
+{
+	# https://github.com/Genivia/ugrep/pull/519
+	
+	for f in src/ugrep.cpp src/ugrep-indexer.cpp
+	do
+		filtrer $f sed -E -e '/assign.*PATHSEPSTR.*ignore/s#([^(]*\()(.*\()([^)]*)#if(\3.front()==PATHSEPCHR)\1\3);else &#'
+	done
+}
 
 # Variables
 
