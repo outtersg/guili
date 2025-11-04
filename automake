@@ -30,6 +30,8 @@ v 1.12.4 || true
 v 1.13.4 || true
 v 1.15 || true
 v 1.16.1 || true
+v 1.16.5 || true
+v 1.18.1 || true
 
 archive=https://ftp.gnu.org/gnu/$logiciel/$logiciel-$version.tar.gz
 
