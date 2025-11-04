@@ -35,7 +35,14 @@ ignoreAbsolu()
 	
 	for f in src/ugrep.cpp src/ugrep-indexer.cpp
 	do
-		filtrer $f sed -E -e '/assign.*PATHSEPSTR.*ignore/s#([^(]*\()(.*\()([^)]*)#if(\3.front()==PATHSEPCHR)\1\3);else &#'
+		filtrer $f sed -E \
+			-e '/#include <unistd/{
+				i\
+				#include <string>
+				i\
+				std::string from_dir(const std::string& dir, const std::string& path) { if(path.front() == '"'/'"') return path; std::string fullpath; if(path.front() == '"'~'"') { fullpath.assign(getenv("HOME")).append(path.c_str() + 1); return fullpath; } fullpath.assign(dir).append("/").append(path); return fullpath; }
+				}' \
+			-e '/assign.*PATHSEPSTR.*ignore/s#([^(]*\()([^)]*).*\(([^)]*)#\1from_dir(\2, \3)#'
 	done
 }
 
