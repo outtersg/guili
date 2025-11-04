@@ -47,6 +47,7 @@ v 2.40.1 || true
 v 2.41.0 || true
 v 2.48.1 || true
 v 2.51.0 || true
+v 2.51.2 || true
 
 if option svn
 then
