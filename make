@@ -32,6 +32,7 @@ v 4.2 && modifs="globInterface" || true
 v 4.2.1 || true
 v 4.2.1.2018.08.04 && versionComplete="$version.a1bb739165a944769cbb4a6e4f027ac9c2587122.git" && modifs= && prerequis="automake >= 1.16.1" || true
 v 4.3 && versionComplete= || true
+v 4.4.1 || true
 
 # Modifications
 
