@@ -151,7 +151,7 @@ triversions()
 				print c" "sprintf("%04d", length(ls[nl]))" "ls[nl]
 			}
 		}
-	' | sort | cut -d ' ' -f 3-
+	' | sort "$@" | cut -d ' ' -f 3-
 }
 
 filtrerVersions()
