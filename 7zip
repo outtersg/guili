@@ -27,10 +27,10 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Historique des versions gérées
 
 v 4.57 || true
-v 4.65 && modifs=dlopenPourTous || true
-v 9.20.1 && modifs="dlopenPourTous sansLdl" || true
+v 4.65 && modifs="$modifs dlopenPourTous" || true
+v 9.20.1 && modifs="$modifs sansLdl" || true
 v 15.09 || true
-v 15.14 && modifs="dlopenPourTous sansLdl clang" || true
+v 15.14 && modifs="$modifs clang" || true
 v 16.02 || true
 
 # Modifications
