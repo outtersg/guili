@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 4.57 && modifs="sanss" || true
+v 4.57 && modifs="sanss numMethodsBool" || true
 v 4.65 && modifs="$modifs dlopenPourTous" || true
 v 9.20.1 && modifs="$modifs sansLdl" || true
 v 15.09 || true
@@ -56,6 +56,13 @@ clang()
 sanss()
 {
 	filtrer makefile.machine sed -e '/FLAGS=.*/s/-s//'
+}
+
+numMethodsBool()
+{
+	filtrer CPP/7zip/Archive/Wim/WimHandler.cpp sed \
+		-e 's/bool numMethods/int numMethods/' \
+		-e 's/numMethods == 1/numMethods/'
 }
 
 # Variables
