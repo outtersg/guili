@@ -24,6 +24,12 @@ set -e
 Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
+# À partir de la 4.7 la doc (https://github.com/galkahana/PDF-Writer/releases/tag/v4.7.0) indique requérir OpenSSL (pour le chiffrement PDF2.0).
+# La biblio était probablement optionnelle déjà avant.
+# J'ai pu compiler sans sur une de mes machines qui avait tous les .h dans /usr/local/include (cherché par défaut), puis lancer avec un -lcrypto;
+# mais sur une machine où $INSTALLS = ~/local, il faut expliciter openssl en prérequis.
+# On la rend obligatoire arbitrairement à partir de la 4.5, mais peut-être pourrait-on l'include en optionnelle dès la version 3?
+
 v 3.0.0.99.1 && versionComplete=$version.c79134f39cb68dbcbb08648047d12f3324c3d2db.git && prerequis="libtiff 3.9.4 libjpeg 8.3 freetype zlib" && modifs="monMake binaryFunction" || true # Il faudrait un moyen pour que le numéro de version de libjpeg soit calculé depuis le libjpeg embarqué par le libtiff choisi.
 v 3.2 && versionComplete= || true
 v 3.5 && prerequis_libjpeg="libjpegturbo" prerequis="libtiff < 4 $prerequis_libjpeg freetype zlib" && modifs="$modifs monMakeOrdonne" || true
@@ -39,12 +45,9 @@ v 4.0 || true
 # https://github.com/junrrein/PDF-Writer
 # Mais a priori le dév a repris.
 v 4.1 && retirerModif binaryFunction || true
-v 4.5.11 || true
+v 4.5.11 && prerequis="$prerequis openssl" || true
 v 4.5.12 && modifs="$modifs widthHeight" || true
 v 4.6.8 && remplacerPrerequis "libtiff >= 4" || true
-# À FAIRE: à partir de la 4.7 la doc (https://github.com/galkahana/PDF-Writer/releases/tag/v4.7.0) indique requérir OpenSSL (pour le chiffrement PDF2.0).
-#          J'ai pu compiler sans sur une de mes machines (par contre à l'utilisation -lcrypto est nécessaire), sans doute parce que cette machine avait tous les .h dans /usr/local/include (cherché par défaut);
-#          mais sur une machine où $INSTALLS = ~/local, il faudra probablement expliciter openssl en prérequis.
 v 4.7.0 || true
 
 archive_git=http://github.com/galkahana/PDF-Writer.git
@@ -72,6 +75,9 @@ monMake()
 	esac
 	case "$prerequis" in
 		*libaesgm*) biblios="$biblios -laesgm"
+	esac
+	case "$prerequis" in
+		*openssl*) biblios="$biblios -lcrypto"
 	esac
 	# Le système en cmake ne fait que de la biblio statique, et n'exploite pas nos biblios partagées.
 	# À part libaesgm (développement propre à Hummus), il se lie aussi à zlib, libjpeg, libpng, libtiff, Freetype, dont il embarque les sources pour les compiler…
@@ -171,6 +177,8 @@ widthHeight()
 		-e '/Width = .*GetHeight/s/Height/Width/' \
 		-e '/Height = .*GetWidth/s/Width/Height/'
 }
+
+prerequisOpenssl
 
 destiner
 
