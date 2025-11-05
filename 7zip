@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 4.57 || true
+v 4.57 && modifs="sanss" || true
 v 4.65 && modifs="$modifs dlopenPourTous" || true
 v 9.20.1 && modifs="$modifs sansLdl" || true
 v 15.09 || true
@@ -53,6 +53,11 @@ clang()
 	filtrer CPP/Windows/ErrorMsg.cpp sed -e '/switch(errorCode/s/errorCode/(HRESULT)errorCode/'
 }
 
+sanss()
+{
+	filtrer makefile.machine sed -e '/^\(ALLFLAGS=.*\) -s /s//\1 /'
+}
+
 # Variables
 
 archive=http://heanet.dl.sourceforge.net/sourceforge/p7zip/p7zip_${version}_src_all.tar.bz2
@@ -74,7 +79,6 @@ do
 DEST_HOME='"$dest"'
 ' || true
 done
-filtrer makefile.machine sed -e '/^\(ALLFLAGS=.*\) -s /s//\1 /'
 
 echo Compilation… >&2
 make 7za 7z
