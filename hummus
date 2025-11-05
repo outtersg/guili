@@ -103,7 +103,7 @@ libhummus.so: \${objs}
 install: libhummus.so
 	mkdir -p "\$(dest)/include/Hummus" "\$(dest)/lib"
 	cp libhummus.so "\$(dest)/lib/"
-	ln -s libhummus.so "\$(dest)/lib/libPDFWriter.so"
+	[ -L "\$(dest)/lib/libPDFWriter.so" ] || ln -s libhummus.so "\$(dest)/lib/libPDFWriter.so"
 	cp *.h "\$(dest)/include/Hummus/"
 TERMINE
 	configurer()
@@ -135,7 +135,7 @@ TERMINE
 	$mucxx -shared -o $TMP/$$/libmu.so $TMP/$$/Mu1.o $TMP/$$/Mu2.o
 	$mucxx -o $TMP/$$/mu -L$TMP/$$ -lmu $TMP/$$/Mu.cpp
 	filtrer PDFWriter/Makefile sed -E -e 's# \./(PDFWriter|EncryptionOptions)\.cpp##g'
-	case `LD_LIBRARY_PATH=$TMP/$$ $TMP/$$/mu | head -1` in
+	case `LD_LIBRARY_PATH=$TMP/$$:$LD_LIBRARY_PATH $TMP/$$/mu | head -1` in
 		1) filtrer PDFWriter/Makefile sed -e '/^sourcescpp :=/{
 s/:= */:= EncryptionOptions.cpp /
 s/$/ PDFWriter.cpp/
@@ -144,6 +144,7 @@ s/$/ PDFWriter.cpp/
 s/:= */:= PDFWriter.cpp /
 s/$/ EncryptionOptions.cpp/
 }' ;;
+		*) echo "# Impossible de MUer. Je sors." >&2 ; exit 1 ;;
 	esac
 }
 
