@@ -55,7 +55,7 @@ clang()
 
 sanss()
 {
-	filtrer makefile.machine sed -e '/^\(ALLFLAGS=.*\) -s /s//\1 /'
+	filtrer makefile.machine sed -e '/FLAGS=.*/s/-s//'
 }
 
 # Variables
