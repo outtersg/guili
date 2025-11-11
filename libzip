@@ -29,6 +29,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis="cmake \\ zlib bzip2 openssl"
 
 v 1.5.1 || true
+v 1.11.4 || true
 
 # Modifications
 
