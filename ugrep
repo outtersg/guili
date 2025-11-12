@@ -60,7 +60,7 @@ obtenirEtAllerDansVersion
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" --with-bash-completion-dir="$dest/share/bash-completion/completions"
 
 echo Compilation… >&2
 make
