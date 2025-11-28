@@ -40,8 +40,6 @@ v 3.2.1 || true
 v 3.3.1 || true
 v 3.5.1 || true
 
-prerequis
-
 # Modifications
 
 # Si on a le malheur de s'installer sur une machine où tourne le Darwin Calendar Server, celui-ci aura installé une libevent 1.4 quand on veut utiliser notre 2.0.
@@ -72,7 +70,11 @@ surMac()
 v_alpha="`echo "$version" | awk -F . 'BEGIN{t="abcdefghijklmnopqrstuvwxyz"}{c="";n=$3;while(n>25){n-=25;c=c"z"}if(n)c=c""substr(t,n,1);print $1"."$2""c}'`"
 archive="https://github.com/tmux/tmux/releases/download/$v_alpha/tmux-$v_alpha.tar.gz" || true
 
+for modif in true $predestiner ; do "$modif" ; done
+
 destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -80,7 +82,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+./configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
 make
