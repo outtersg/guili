@@ -25,9 +25,21 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 prerequis="make \\"
-v 7.5.0 && modifs="ignoreAbsolu" || true
+v 7.5.0 && modifs="ignoreAbsolu sysParam" || true
 
 # Modifications
+
+sysParam()
+{
+	filtrer configure sed -e '/include <unistd.h>/{
+		a\
+		#endif
+		a\
+		#ifdef HAVE_SYS_PARAM_H
+		a\
+		# include <sys/param.h>
+	}'
+}
 
 ignoreAbsolu()
 {
