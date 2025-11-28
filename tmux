@@ -37,7 +37,7 @@ v 2.7 || true
 v 2.8 || true
 v 2.9.1 || true
 v 3.2.1 || true
-v 3.3.1 || true
+v 3.3.1 && predestiner="$predestiner macutf8" || true
 v 3.5.1 || true
 
 # Modifications
@@ -63,6 +63,14 @@ surMac()
 	then
 		filtrer osdep-darwin.c sed -e 's/bsdshortinfo/bsdinfo/g' -e 's/_SHORTBSDINFO/BSDINFO/g' -e 's/pbsi_/pbi_/g'
 	fi
+}
+
+macutf8()
+{
+	# À partir de la 3.3, tmux se plaint d'un support trop léger d'UTF-8 sur Mac. Il forcent à utiliser utf8proc (ou renoncer explicitement).
+	mac || return
+	prerequis="pkgconfig \\ $prerequis utf8proc"
+	OPTIONS_CONF="$OPTIONS_CONF --enable-utf8proc"
 }
 
 # Variables
