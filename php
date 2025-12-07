@@ -838,7 +838,10 @@ TERMINE
 	# Du fait de --enable-fileinfo=shared
 	echo "extension = fileinfo"
 	
-if pge $version 5.5 ; then
+	if pge $version 8.5 ; then
+		# À partir de la 8.5, opcache est intégré au moteur.
+		true
+	elif pge $version 5.5 ; then
 		echo 'zend_extension = "opcache.so"'
 else
 	echo "Il est suggéré d'installer APC ($SCRIPTS/apc)." >&2

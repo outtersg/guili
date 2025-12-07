@@ -114,7 +114,7 @@ do
 	[ -e "modules/$f" ] && break || true
 done
 sudo cp "modules/$f" "$monPhp/lib/"
-ini="`php --ini | grep Loaded | cut -d : -f 2 | sed -e 's/^ *//' -e 's/ *$//'`"
+ini="`php --ini | grep Loaded | cut -d : -f 2 | sed -e 's/^ *//' -e 's/ *$//' -e 's/"//g'`"
 sufiltrer "$ini" grep -v 'zend_extension=.*xdebug'
 sufiltrer "$ini" sed -e '$a\
 zend_extension="'"$monPhp"'/lib/'"$f"'"
