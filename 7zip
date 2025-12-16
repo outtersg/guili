@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 # Historique des versions gérées
 
-v 4.57 && modifs="sanss numMethodsBool" || true
+v 4.57 && modifs="sanss numMethodsBool opendocument" || true
 v 4.65 && modifs="$modifs dlopenPourTous" || true
 v 9.20.1 && modifs="$modifs sansLdl" || true
 v 15.09 || true
@@ -51,6 +51,15 @@ clang()
 	filtrer makefile.machine sed -e "s#g++#$CXX#g" -e "s#gcc#$CC#g"
 	# clang est notablement plus strict sur le typage.
 	filtrer CPP/Windows/ErrorMsg.cpp sed -e '/switch(errorCode/s/errorCode/(HRESULT)errorCode/'
+}
+
+opendocument()
+{
+	# 7za respecte presque tous les critères pour créer des fichiers OpenDocument (mimetype en Stored, sans métadonnées), sauf qu'il ne respecte pas l'ordre de la ligne de commande et place donc le fichier mimetype après les fichiers en majuscules (Pictures).
+	# Donc la commande file ne reconnaît pas la combi magique en début de fichier, et ne détecte le fichier .odt que comme un banal ZIP, pas un OpenDocument.
+	# LibreOffice ne bronche pas (il le voit comme un fichier un poil corrompu et sait réparer), mais c'est embêtant.
+	# On pallie donc en forçant un fichier nommé mimetype à apparaître toujours en premier.
+	filtrer CPP/Common/Wildcard.cpp awk '{print}/CompareFileNames.const wchar_t/{entre=1}entre&&/{/{print"if(wcscmp(s1, L\"mimetype\") == 0) return -1;if(wcscmp(s2, L\"mimetype\") == 0) return 1;";entre=0}'
 }
 
 sanss()
