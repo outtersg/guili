@@ -34,7 +34,7 @@ v 12.62 || true
 
 # Variables
 
-archive="http://owl.phy.queensu.ca/~phil/exiftool/Image-ExifTool-$version.tar.gz"
+archive="https://deac-ams.dl.sourceforge.net/project/exiftool/Image-ExifTool-$version.tar.gz"
 
 prerequis
 argOptions="+perl_`echo "$version_perl" | tr . _`"
