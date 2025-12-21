@@ -51,7 +51,7 @@ perl Makefile.PL
 
 echo Installation… >&2
 sudoku -d "$destperl" make install
-sudoku mkdir "$dest"
+sudoku mkdir -p "$dest"
 sutiliser -
 
 mon_guili_alias="$guili_alias"
