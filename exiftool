@@ -29,6 +29,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis=perl
 v 11.23 || true
 v 12.62 || true
+v 13.44 || true
 
 # Modifications
 
