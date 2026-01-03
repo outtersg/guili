@@ -30,6 +30,7 @@ v 5.9 && prerequis="pkgconfig \\" && modifs="exclusivementPrerequis fpic avecPkg
 v 6.1 && modifs="exclusivementPrerequis fpic avecPkgconfig" || true
 v 6.4 || true
 v 6.5 || true
+v 6.6 || true
 
 archive=http://ftp.gnu.org/pub/gnu/ncurses/ncurses-$version.tar.gz
 
