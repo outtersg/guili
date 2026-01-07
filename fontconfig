@@ -41,10 +41,14 @@ v 2.12.6 && modifs="" || true
 v 2.13.96 && prerequis="python >= 3 \\ $prerequis" || true
 v 2.14.1 || true
 v 2.16.0 || true
+v 2.16.2 || true
+v 2.17.1 && prerequis="meson ninja \\ $prerequis" || true
 
 suffixe=xz
 pge $version 2.14 || suffixe=gz
 archive=https://www.freedesktop.org/software/fontconfig/release/$logiciel-$version.tar.$suffixe
+pg 2.16 $version ||
+archive=https://gitlab.freedesktop.org/fontconfig/fontconfig/-/archive/$version/fontconfig-$version.tar.bz2
 archive_cvs=cvs://anonymous@cvs.freedesktop.org:/cvs/fontconfig:fontconfig
 
 # Modifications
@@ -82,16 +86,33 @@ prerequis
 
 obtenirEtAllerDansVersion
 
+[ ! -f meson.build ] || parmeson=1
+
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --x-includes=/usr/X11R6/include --with-add-fonts="/usr/local/share/fonts,/Users/gui/Library/Fonts,/Library/Fonts,/System/Library/Fonts"
+dossiersPolices="/usr/local/share/fonts,/Users/gui/Library/Fonts,/Library/Fonts,/System/Library/Fonts"
+if [ -n "$parmeson" ]
+then
+	mkdir -p build
+	meson setup build --buildtype=release --prefix="$dest" -D"additional-fonts-dirs=$dossiersPolices" $OPTIONS_CONF
+	cd build
+	make=ninja
+else
+	./configure --prefix="$dest" --x-includes=/usr/X11R6/include --with-add-fonts="$dossiersPolices"
+	make=make
+fi
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
+if [ -n "$parmeson" ]
+then
+	sudokupy $make install
+else
 sudo make install
+fi
 
 sutiliser
