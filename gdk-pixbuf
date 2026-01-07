@@ -26,8 +26,23 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 v 2.26.5 && prerequis="python pkgconfig \\ glib libtiff libjpeg libpng" && modifs="putainDeLibJPEGDeMacOSX" || true
 v 2.42.10 && prerequis="python meson ninja pkgconfig \\ glib libtiff libjpeg libpng shared-mime-info gobject-introspection" && modifs="$modifs sansTests" || true
+# À partir de glib 2.80, c'est glib elle-même qui fournit GModule-2.0.gir, sous réserve d'avoir l'option +intro
+v 2.43.5 && prerequis="$prerequis glycin >= 2" && remplacerPrerequis "glib+intro >= 2.80" && virerPrerequis gobject-introspection && predestiner="$predestiner avecOuSansGlycin" && modifs="$modifs sansDoc" || true
+v 2.44.4 || true
 
 # Modifications
+
+avecOuSansGlycin()
+{
+	optionSi glycin || { virerPrerequis glycin ; OPTIONS_CONF="$OPTIONS_CONF -Dglycin=disabled" ; }
+}
+
+sansDoc()
+{
+	# En 2.43 est ajoutée l'option documentation en true par défaut (revient à false en 2.44).
+	# Mais elle requiert docgen qui requiert du git etc.
+	OPTIONS_CONF="$OPTIONS_CONF -Ddocumentation=false"
+}
 
 sansTests()
 {
