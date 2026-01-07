@@ -36,6 +36,8 @@ v 1.44.7 && prerequis="meson ninja \\ $prerequis" || true
 v 1.49.1 && prerequis="$prerequis fribidi" || true
 v 1.50.12 && remplacerPrerequis "fontconfig >= 2.13" || true
 v 1.56.3 && remplacerPrerequis "fontconfig >= 2.15" || true
+v 1.56.4 || true
+v 1.57.0 || true
 
 # Modifications
 
