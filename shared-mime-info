@@ -27,8 +27,43 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 v 2.2 && prerequis="python meson ninja pkgconfig cmake gettext \\ glib libxml" && modifs="libpkgconfig" || true
+v 2.3 && modifs="$modifs libcxxfs" || true
+v 2.4 || true
 
 # Modifications
+
+libcxxfs()
+{
+	# Sur Raspbian avec un gcc 8.3, la 2.2 se lie bien, mais pas la 2.3 ni la 2.4:
+	#   update-mime-database.cpp.o: undefined reference to `std::filesystem::status(std::filesystem::__cxx11::path const&)'
+	# nm -o /home/pi/tmp/shared-mime-info-2.4/build/src/update-mime-database.p/update-mime-database.cpp.o | grep filesystem.\*status
+	#   /home/pi/tmp/shared-mime-info-2.4/build/src/update-mime-database.p/update-mime-database.cpp.o:         U _ZNSt10filesystem6statusERKNS_7__cxx114pathE
+	# Après un grep -rl un peu long sur les dossiers système, on trouve la biblio correspondante:
+	# nm -o /usr/lib/gcc/arm-linux-gnueabihf/8/libstdc++fs.a  | grep filesystem6status
+	#   /usr/lib/gcc/arm-linux-gnueabihf/8/libstdc++fs.a:std-ops.o:00000000 T _ZNSt10filesystem6statusERKNS_7__cxx114pathE
+	#   /usr/lib/gcc/arm-linux-gnueabihf/8/libstdc++fs.a:cow-std-ops.o:00000000 T _ZNSt10filesystem6statusERKNS_4pathE
+	# Reste donc juste à lier la bête.
+	# Ah tiens problème déjà rencontré par d'autres: https://stackoverflow.com/questions/53201991/how-to-use-stdfilesystem-on-gcc-8
+	# Et attention pour le test, les biblios vont à la fin (https://stackoverflow.com/a/11894098/1346819)
+	
+	local cpf ldf
+	
+	cat > $TMP/$$/1.c++ <<TERMINE
+#include <filesystem>
+
+int main(int argc, char ** argv)
+{
+	std::filesystem::path c;
+	std::filesystem::file_status e = std::filesystem::status(c);
+	return 0;
+}
+TERMINE
+	if compilo_test $CXX -o $TMP/$$/1 $TMP/$$/1.c++ ; then return 0 ; fi
+	cpf="-std=c++17" ldf="-lstdc++fs"
+	if compilo_test $CXX $cpf -o $TMP/$$/1 $TMP/$$/1.c++ $ldf ; then export CXXFLAGS="$CXXFLAGS $cpf" LDFLAGS="$LDFLAGS $ldf" ; return 0 ; fi
+	echo "# Impossible de compiler / lier filesystem::status()." >&2
+	return 1
+}
 
 libpkgconfig()
 {
