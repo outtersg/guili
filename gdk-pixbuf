@@ -42,6 +42,8 @@ sansTests()
 
 archive="https://gitlab.gnome.org/GNOME/gdk-pixbuf/-/archive/$version/gdk-pixbuf-$version.tar.bz2"
 
+for modif in true $predestiner ; do "$modif" ; done
+
 destiner
 
 prerequis
@@ -57,7 +59,7 @@ echo Configuration… >&2
 if [ -n "$parmeson" ]
 then
 	mkdir -p build
-	meson setup build --buildtype=release --prefix="$dest" -Dman=false
+	meson setup build --buildtype=release --prefix="$dest" -Dman=false $OPTIONS_CONF
 	cd build
 	make=ninja
 else
