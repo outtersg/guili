@@ -40,7 +40,7 @@ sansTests()
 
 # Variables
 
-archive="http://ftp.acc.umu.se/pub/gnome/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
+archive="https://gitlab.gnome.org/GNOME/gdk-pixbuf/-/archive/$version/gdk-pixbuf-$version.tar.bz2"
 
 destiner
 
