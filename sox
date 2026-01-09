@@ -25,6 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 v 14.5.1.1 || true
+v 14.7.0.3 || true
 
 archive=https://codeberg.org/sox_ng/sox_ng/releases/download/sox_ng-$version/sox_ng-$version.tar.gz
 
