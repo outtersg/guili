@@ -235,6 +235,7 @@ v 8.3.25 || true
 v 8.3.27 || true
 v 8.3.28 || true
 v 8.3.29 || true
+v 8.3.30 || true
 v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre && modifs="$modifs ki_tracer" || true
 v 8.4.2 || true
 v 8.4.3 || true
@@ -250,8 +251,10 @@ v 8.4.13 || true
 v 8.4.14 || true
 v 8.4.15 || true
 v 8.4.16 || true
+v 8.4.17 || true
 v 8.5.0 || true
 v 8.5.1 || true
+v 8.5.2 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
