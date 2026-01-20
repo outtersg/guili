@@ -21,7 +21,7 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 modifs="multiarch"
@@ -31,6 +31,22 @@ v 1.0.0 || true
 v 1.1.0 || true
 v 1.2.0 || true
 v 1.2.2 || true
+
+predestiner="$predestiner configureOuAutogen"
+
+configureOuAutogen()
+{
+	case "$version#$archive" in
+		r*)
+			prerequis="autoconf automake m4 libtool \\ $prerequis"
+			conf=autoroute
+			autoroute() { ./autogen.sh "$@" && ./configure "$@" ; }
+			;;
+		*)
+			conf=./configure
+			;;
+	esac
+}
 
 inclusions_ao()
 {
@@ -57,19 +73,18 @@ x
 }'
 }
 
-prerequis
-
 archive=http://downloads.xiph.org/releases/ao/$logiciel-$version.tar.gz
 archive_svn=http://svn.xiph.org/trunk/`echo "$logiciel" | sed -e 's/lib//g'`
 
+for modif in true $predestiner ; do "$modif" ; done
+
 destiner
 
-conf=./configure
+prerequis
+
 case "$version" in
 	r*)
 		obtenirEtAllerDansSvn -r `echo "$version" | sed -e 's/^r//'` $archive_svn
-		export ACLOCAL_FLAGS="-I $INSTALLS/share/aclocal"
-		conf=./autogen.sh
 		;;
 	*)
 obtenirEtAllerDansVersion
