@@ -47,6 +47,7 @@ v 72.1 || true
 v 73.2 || true
 v 76.1 || true
 v 77.1 || true
+v 78.2 && modifs="gen78" || true
 
 versiong="`echo "$version" | tr . _`"
 versiont="`echo "$version" | tr . -`"
@@ -56,6 +57,21 @@ pg 68 $version || archive=https://github.com/unicode-org/icu/releases/download/r
 pg 78 $version || archive=https://github.com/unicode-org/icu/releases/download/release-$version/icu4c-$version-sources.tgz
 
 # Modifications
+
+gen78()
+{
+	# rm -rf pkgdata.inc
+	# ../../bin/genrb: can not initialize ICU.  status = U_INVALID_FORMAT_ERROR
+	# En fin de configure, il a signalé que l'absence de Python ne permettrait pas de regénérer les données depuis les sources, mais avec Python ça ne marche pas mieux; on est a priori sur une question d'empaquetage et non de constitution.
+	# Le configure nous signale sinon avoir choisi:
+	#   Data Packaging: library (méthode par défaut: on repose sur l'OS pour exposer les données Unicode partagées sous forme d'une biblio)
+	# mais une 77.1 a bien sa libicudata.so pleine à craquer, et marche très bien
+	# On retrouve le problème décrit: https://unicode-org.atlassian.net/browse/ICU-23263 (sera corrigé en 79.1).
+	# Pourtant libicudata.so est bien générée.
+	# C'est donc juste son interprétation par le chargeur de .so (propre à ICU) qui foire.
+	patch -p2 < `obtenir https://github.com/unicode-org/icu/commit/aa17de1994d188560d99d07c37bf333416483899.patch`
+	# N.B.: pourrait être lié à pasDonnees(), les données compilées dans une biblio partagée qui ne sont pas vues sous Raspbian.
+}
 
 sansSuffixe()
 {
