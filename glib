@@ -56,6 +56,17 @@ v 2.79.3 && remplacerPrerequis "gobject-introspection" && modifs="$modifs pippac
 v 2.80.5 || true
 v 2.81.2 && modifs="$modifs piletypee sanssysprof" || true
 v 2.82.5 || true
+v 2.83.0 && remplacerPrerequis "gobject-introspection >= 1.80" || true
+v 2.83.4 || true
+v 2.83.5 || true
+v 2.84.4 || true
+v 2.85.4 || true
+v 2.86.3 || true
+v 2.87.2 || true
+
+# À FAIRE: faire marcher dtrace
+# À FAIRE: faire marcher sysprof
+# À FAIRE: activer libmount, selon disponibilité des sous-jacents.
 
 suffixe=xz
 pge $version 2.29 || suffixe=gz
