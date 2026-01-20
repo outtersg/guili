@@ -50,7 +50,8 @@ uint()
 
 prerequis
 
-archive=http://downloads.xiph.org/releases/ogg/$logiciel-$version.tar.gz
+#archive=https://github.com/xiph/ogg/archive/refs/tags/v$version.tar.gz
+archive=https://github.com/xiph/ogg/releases/download/v$version/libogg-$version.tar.gz
 
 destiner
 
