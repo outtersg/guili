@@ -38,6 +38,8 @@ v 1.80.1 && remplacerPrerequis "glib >= 2.80 < 2.83" || true
 v 1.81.4 && remplacerPrerequis "glib >= 2.81 < 2.83" || true
 v 1.82.0 && remplacerPrerequis "glib >= 2.82 < 2.83" || true
 v 1.83.4 && remplacerPrerequis "glib >= 2.82" || true
+v 1.84.0 || true
+v 1.86.0 || true
 
 vmin="`echo "$version" | cut -d . -f 1-2`"
 archive="https://download.gnome.org/sources/$logiciel/$vmin/$logiciel-$version.tar.xz"
