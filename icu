@@ -53,6 +53,7 @@ versiont="`echo "$version" | tr . -`"
 archive=ftp://ftp.software.ibm.com/software/globalization/$logiciel/$version/$logiciel-$version.tgz
 pge $version 3.8 && archive=http://download.icu-project.org/files/icu4c/$version/${logiciel}4c-$versiong-src.tgz
 pg 68 $version || archive=https://github.com/unicode-org/icu/releases/download/release-$versiont/icu4c-$versiong-src.tgz
+pg 78 $version || archive=https://github.com/unicode-org/icu/releases/download/release-$version/icu4c-$version-sources.tgz
 
 # Modifications
 
