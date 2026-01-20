@@ -28,9 +28,9 @@ modifs="multiarch"
 # Argh, sans pkg-config il ne détecte pas libao (en tout cas pas sa version)!
 # Par contre il détecte alors tout plein d'autres trucs, du genre un curl dont le .h semble avoir un #if sans #endif.
 prerequis="pkgconfig \\ libvorbis iconv curl openssl"
-v 1.1.1 && modifs="$modifs MUTE incutf" || true
+v 1.1.1 && modifs="$modifs MUTE" || true
 v 1.4.0 && retirerModif MUTE || true
-v 1.4.2 || true
+v 1.4.2 && modifs="$modifs incutf" && prerequis="$prerequis opusfile" || true
 
 incutf()
 {
