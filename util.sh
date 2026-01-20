@@ -68,9 +68,15 @@ cheminsGuili()
 }
 # Détecte le "degré de modernité" du GuiLI appelant.
 # Cette détection se fonde sur la fonction par laquelle est calculé SCRIPTS.
+# Les noms varient autour du verbe "délier".
+# Idées pour la suite: Delimite, NewDeli, Deslhiver
 detecterModernite()
 {
 	MODERNITE=0
+	# 6: si un prérequis apparaît plusieurs fois, il est trié de manière à ce que les plus récentes apparaissent en premier, masquant les plus anciennes.
+	#    Ainsi si OpenSSL nous arrive à la fois en 3.3 par notre prérequis curl, et en 3.2 par postgresql, on placera la 3.3 en priorité dans tous les chemins.
+	#    Une version plus stricte virerait carrément la 3.2, mais avec le risque que postgresql ne marche plus, pour un symbole supprimé de la 3.3, tandis qu'il fonctionnouille sur la 3.3 ayant gardé l'ABI de la 3.2 pour les appels maintenus.
+	if command -v Delictueux > /dev/null 2>&1 ; then MODERNITE=6
 	# 5: le compilo doit être choisi par un des prérequis langx() (par défaut langc).
 	#   On évite ainsi:
 	#   - la multitude de façons de glisser un compilo (compiloSysVersion, meilleurCompilo, cxx1x, cpp1x, etc.), qui oblige à une sacrée gymnastique pour les détecter
@@ -78,7 +84,7 @@ detecterModernite()
 	#     L'exemple le plus flagrant étant auparavant les cxx1x() qui commençaient leur vie avec un compiloSysVersion() dédié C, puis en rappellaient un autre pour basculer en C++, ou plutôt voir si par hasard celui trouvé à côté du compilo C pourrait faire l'affaire; les deux ne s'invoquant évidemment pas de la même manière, ça compliquait les choses, puisque le premier faisait une fouille exhaustive des $INSTALLS/compilo-*/bin, tandis que le second reposait sur le premier, sinon ne fouillait qu'$INSTALLS/bin: asymétrie.
 	#   - de fait on peut avoir des GuiLI multi-langages (juste petit point d'attention sur l'ordre d'agrégation des $COMPILO_lang_AJOUTS à l'environnement).
 	#   Pour compatibilité un langc() est implicitement ajouté à $prerequis si aucun autre langage ne se déclare; lang() permet de ficher les GuiLI n'ayant pas besoin de compilo (juste déployer un truc).
-	if command -v Delirant > /dev/null 2>&1 ; then MODERNITE=5
+	elif command -v Delirant > /dev/null 2>&1 ; then MODERNITE=5
 	# 4: les prérequis directs apparaissent tous avant les prérequis de prérequis (auparavant: pr3 pr3pr2 pr3pr1 pr2 pr1 pr1pr1; maintenant: pr3 pr2 pr1 pr3pr2 pr3pr1 pr1pr1); DPOM (destiner avant prerquis: si déjà présent, on ne réexplore pas tous les prérequis); seul guili_ppath est accumulé, les autres n'en sont déduits qu'en toute fin; PKG_CONFIG_PATH respecte exclusivementPrerequis.
 	# - => Gain de perf du fait de DPOM au lieu de PDOM.
 	# À VÉRIF: réordo des guili_ppath selon parcours horizontal $prerequis

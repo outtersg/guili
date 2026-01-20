@@ -170,6 +170,7 @@ _cheminsPrerequis4()
 	local chemins cheminsRecursifs
 	chemins="`guili_prerequis_path`" # Où sont nos prérequis?
 	cheminsRecursifs="`IFS=: ; tifs prereqs -u -d $chemins`" # Où sont les prérequis de nos prérequis?
+	pg 6 $MODERNITE || cheminsRecursifs="`echo "$cheminsRecursifs" | tr : '\012' | triversions -r | tr '\012' :`"
 	IFS=: ; tifs chemins += $cheminsRecursifs # Eh bien on les prend et on les ajoute tous à l'environnement (-L, -I, etc.), histoire que la compile se passe bien.
 	
 	modifs="_cheminsExportes $modifs"
