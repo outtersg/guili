@@ -37,7 +37,7 @@ predestiner="$predestiner configureOuAutogen"
 configureOuAutogen()
 {
 	case "$version#$archive" in
-		r*)
+		r*|*/tags/*)
 			prerequis="autoconf automake m4 libtool \\ $prerequis"
 			conf=autoroute
 			autoroute() { ./autogen.sh "$@" && ./configure "$@" ; }
@@ -73,8 +73,7 @@ x
 }'
 }
 
-archive=http://downloads.xiph.org/releases/ao/$logiciel-$version.tar.gz
-archive_svn=http://svn.xiph.org/trunk/`echo "$logiciel" | sed -e 's/lib//g'`
+archive=https://github.com/xiph/$logiciel/archive/refs/tags/$version.tar.gz
 
 for modif in true $predestiner ; do "$modif" ; done
 
