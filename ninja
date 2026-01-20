@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 1.9.0 && prerequis="python >= 3" && modifs="" || true
 v 1.12.1 && modifs="$modifs paramcpuset" || true
+v 1.13.2 || true
 
 # Modifications
 
