@@ -29,6 +29,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 prerequis="autoconf automake m4 libtool pkgconfig opus \\"
 modifs="autoc"
 v 0.2.1 || true
+v 0.3 || true
 
 # Modifications
 
