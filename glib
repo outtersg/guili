@@ -54,12 +54,23 @@ v 2.76.3 || true
 v 2.78.6 || true
 v 2.79.3 && remplacerPrerequis "gobject-introspection" && modifs="$modifs pippackaging" || true
 v 2.80.5 || true
-v 2.81.2 && modifs="$modifs piletypee" || true
+v 2.81.2 && modifs="$modifs piletypee sanssysprof" || true
 v 2.82.5 || true
 
 suffixe=xz
 pge $version 2.29 || suffixe=gz
 archive=https://download.gnome.org/sources/glib/`vmaj $version`/glib-$version.tar.$suffixe
+
+sanssysprof()
+{
+	# À partir de la 2.81, sysprof passe de disabled à auto. Sauf que c'est une saloperie Linux pas du tout prévue pour FreeBSD, donc notamment par défaut il définit un -D_GNU_SOURCE -D_POSIX_C_SOURCE=200809L qui empêche la définition de __BSD_VISIBLE, lui-même conditionnant strlcpy.
+	# On peut certes désactiver ces deux zozos (export CFLAGS="$CFLAGS -U_POSIX_C_SOURCE -U_GNU_SOURCE"), mais c'est alors O_CLOEXEC qui n'est plus reconnu.
+	# Le plus simple est de se passer de sysprof qui nous enquiquine.
+	
+	case `uname` in Linux) return 0 ;; esac
+	
+	optionsMeson="$optionsMeson -Dsysprof=disabled"
+}
 
 piletypee()
 {
