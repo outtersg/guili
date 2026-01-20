@@ -114,14 +114,18 @@ _vc()
 triversions()
 {
 	# De deux logiciels en même version, on prend le chemin le plus long: c'est celui qui embarque le plus de modules optionnels.
+	# Si plusieurs logiciels sont mêlés, le tri est stable: le premier apparu sortira avec toutes ses versions, puis le second apparu avec toutes ses versions, etc.
 	# À FAIRE: en fait calculer sur le nombre d'options plutôt que sur leur longueur: abc+x+y est plus avancé qu'abc+option_longue.
 	# À FAIRE: permettre à l'appelant de fournir une fonction (awk) qui joue sur l'ordre; par exemple parce qu'avoir telle option est au contraire une pénalité, ou pour privilégier +ossl11 par rapport à +ossl10, ou encore pour que, à nombre d'options égal, le logiciel en cours d'installation soit considéré plus plus avancé que les autres déjà installés.
+	local incdec="++"
+	case " $* " in *" -r "*) incdec="--" ;; esac
 	awk '
 		BEGIN {
 			# Certaines versions d awk veulent que ls soit initialisée en array avant de pouvoir être length()ée.
 			nls = 0;
 			nvs = 0;
 			ntailles = 0;
+			posaulogi = 499; # Position de ce logiciel. On part de cette valeur mediane pour pouvoir traiter incrementer ou decrementer indifferemment avant d atteindre nos limites (le negatif, ou la valeur qui fera peter le sprintf).
 		}
 		{
 			ls[++nls] = $0;
@@ -139,6 +143,11 @@ triversions()
 				if(length(decoupe[i]) > tailles[i])
 					tailles[i] = length(decoupe[i]);
 			}
+			# On repere le logiciel (sans ses options) pour le comparer aux versions du meme logiciel.
+			logi = $0
+			sub(/(\+[^\/]+)*-[0-9]+(\.[0-9]+)*$/, "", logi);
+			if(!reflogis[logi]) reflogis[logi] = '"$incdec"'posaulogi;
+			logis[nls] = reflogis[logi];
 		}
 		END {
 			for(nl = 0; ++nl <= nvs;)
@@ -148,10 +157,10 @@ triversions()
 				ndecoupe = split(v, decoupe, ".");
 				for(nv = 0; ++nv <= ntailles;)
 					c = c sprintf("%0"tailles[nv]"d", nv > ndecoupe ? 0 : decoupe[nv]);
-				print c" "sprintf("%04d", length(ls[nl]))" "ls[nl]
+				print sprintf("%04d", logis[nl])" "c" "sprintf("%04d", length(ls[nl]))" "ls[nl]
 			}
 		}
-	' | sort "$@" | cut -d ' ' -f 3-
+	' | sort "$@" | cut -d ' ' -f 4-
 }
 
 filtrerVersions()
