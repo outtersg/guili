@@ -75,7 +75,6 @@ autoc()
 {
 	if [ -f meson.build ]
 	then
-		set -x
 		mkdir -p build
 		parMeson()
 		{
