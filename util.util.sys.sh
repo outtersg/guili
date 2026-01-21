@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+#- Mac -------------------------------------------------------------------------
+
 # Le Mac a la fâcheuse tendance d'embarquer ses propres versions de composants Open Source (iconv, sqlite3…);
 # et d'y lier certaines de ses bibliothèques système.
 # Donc pour peu qu'un logiciel se lie à ses dernières (ex.: un truc cherchant un pontage vers CoreGraphics, ou un Python et son scproxy),
@@ -57,3 +59,5 @@ similisys_sqlite()
 	
 	echo "sqlite$o $1$v"
 }
+
+#- FreeBSD ---------------------------------------------------------------------
