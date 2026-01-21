@@ -32,7 +32,7 @@ v 1.32.3 || true
 v 1.35.3 && modifs= || true
 v 1.36.5 || true
 v 1.36.8 || true
-v 1.44.7 && prerequis="meson ninja \\ $prerequis" || true
+v 1.44.7 && prerequis="meson ninja pkgconfig \\ $prerequis" && modifs="$modifs pkgsys" || true
 v 1.49.1 && prerequis="$prerequis fribidi" || true
 v 1.50.12 && remplacerPrerequis "fontconfig >= 2.13" || true
 v 1.56.3 && remplacerPrerequis "fontconfig >= 2.15" || true
@@ -40,6 +40,12 @@ v 1.56.4 || true
 v 1.57.0 || true
 
 # Modifications
+
+pkgsys()
+{
+	# Sous FreeBSD, je ne sais quel .pc d'une dépendance inclut x11, qui est défini dans les paquets système. On ne peut donc se contenter du $PKG_CONFIG_PATH défini par prerequis.
+	export PKG_CONFIG_PATH="`pkgconf_path`"
+}
 
 # Variables
 
