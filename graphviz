@@ -32,6 +32,7 @@ v 2.40.1 || true
 v 2.44.0 || true
 v 2.44.1 || true
 v 7.1.0 && prerequis="autoconf automake m4 libtool bison python >= 3 \\ $prerequis" || true
+v 14.1.1 || true
 
 # À FAIRE: ne trouve pas gdk, gdk_pixbuf, gtk, pangocairo, webp, gv_php, gv_python3: les passer en optionSi?
 
