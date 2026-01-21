@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # openssl: pour httpfs
 prerequis="meson ninja pkgconfig \\ wayland-protocols libxml"
 v 0.10.0 && modifs="usrLocalInclude linuxInput" || true
+v 0.10.1 || true
 
 archive=https://github.com/WayfireWM/wayfire/releases/download/v$version/wayfire-$version.tar.xz
 
