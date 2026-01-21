@@ -28,6 +28,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 
 OPTIONS_CONF=
 
+modifs="multiarch moiDAbord"
 v 0.9.29 && prerequis="icu graphite" || true
 v 0.9.37 || true
 v 1.3.2 || true
@@ -86,6 +87,14 @@ autoc()
 	make=make
 	maki=sudoku make install
 	[ -f configure ] || { filtrer autogen.sh sed -e 's/which/command -v/g' && configure=./autogen.sh ; }
+}
+
+moiDAbord()
+{
+	# Comme harfbuzz dépend de freetype qui dépend d'harfbuzz, on peut se retrouver avec une version plus ancienne de nous-mêmes dans nos prérequis.
+	# Il serait malencontreux que ses biblios soient alors utilisées pour le lien de nos exécutables, qui n'y trouveraient pas leurs symboles en dernière version.
+	# On introduit donc le dossier de compil' en premier dans les chemins de liens.
+	export LDFLAGS="-Lsrc $LDFLAGS"
 }
 
 # Variables
