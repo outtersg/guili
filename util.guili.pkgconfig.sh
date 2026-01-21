@@ -106,10 +106,12 @@ pkgconf_path()
 	local prems=1 rech_racine rech_dossier
 	for rech_racine in "$INSTALLS" /usr/local /usr
 	do
-		for rech_dossier in libdata lib
+		for rech_dossier in libdata lib share
 		do
+			rech_dossier="$rech_racine/$rech_dossier/pkgconfig"
+			[ -e "$rech_dossier" ] || continue
 			case "$prems" in 1) prems=2 ;; *) printf : ;; esac
-			printf %s "$rech_racine/$rech_dossier/pkgconfig"
+			printf %s "$rech_dossier"
 		done
 	done
 	# À FAIRE: en fait le début pourrait être récupéré de $guili_pcpath.
