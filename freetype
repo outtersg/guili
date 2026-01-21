@@ -100,6 +100,7 @@ moirantHb()
 		*) guili_diag_original=" $guili_diag" ; export guili_diag="$guili_diag diag_modifs" ;; # Avec un espace au début pour être sûrs qu'il ne soit pas -z
 	esac
 	# On prend de l'avance sur notre passage en moiré, pour que nous-mêmes rappelés dans un cadre récursif sachions qu'on se compile sans Harfbuzz. En effet, le moire() ne gère que le cas simple de FreeType appelant FreeType. Mais dans notre prerequis, et même auparavant dans notre destiner qui, en $INSTALLS_MAX, peut être tenter d'invoquer un harfbuzz, nous (freetype) allons appeler harfbuzz qui lui-même rappellera freetype.
+	# https://github.com/harfbuzz/harfbuzz/issues/2524
 	export GUILI_MOIRE_FT=":hb"
 	moire -i hb "$@" --sans-hb 7> $TMP/$$/sortieMoire
 	destAvecHb="`grep "^+ $logiciel+" < $TMP/$$/sortieMoire | tail -1 | cut -c 3-`"
