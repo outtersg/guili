@@ -41,19 +41,23 @@ v 5.3.1 || true
 v 7.3.0 || true
 v 8.3.1 || true
 v 8.5.0 || true
-# À partir de la 9 on passe sur du cmake.
-#v 9.0.0 || true
-#v 10.1.0 || true
+# À partir de la 9 on passe sur du cmake ou meson.
+v 9.0.0 && prerequis="python ninja meson \\ gettext icu graphite >= 1.2 freetype+hb $ft_v" || true
+v 10.4.0 || true
+v 11.5.1 || true
+v 12.3.0 || true
 
 # Modifications
 
 optionsEtPrerequisIcu
 optionSi glib || true
 case ":$GUILI_PILE" in *:cairo:*) argOptions="`options $argOptions-cairo`" ;; esac
+# À FAIRE: imposer un cairo avec un freetype d'une version. À l'heure actuelle si on a un cairo+ft-2.7 et un ft-2.9, c'est le ft du cairo qui apparaît en 1er dans le chemin (dép de dép) et donc le configure dit que ft < 2.x pas suffisant => échec. Même si on remettait dans l'ordre il faudrait trouver moyen de demander un cairo avec la même version. C'était le but de la commande ecosysteme, jamais menée à bout. Pour l'heure le seul moyen est de supprimer le cairo et de le recompiler au goût du jour.
 optionSi cairo || OPTIONS_CONF="$OPTIONS_CONF --without-cairo"
 optionSi fc/fontconfig || OPTIONS_CONF="$OPTIONS_CONF --without-fontconfig"
 optionSi graphite && OPTIONS_CONF="$OPTIONS_CONF --with-graphite2" || OPTIONS_CONF="$OPTIONS_CONF --without-graphite2"
 # Pour ce qui est du freetype, finalement on ne le prérequiert que s'il est déjà installé dans la version voulue (par exemple itération 0 d'un freetype+hb).
+# https://github.com/harfbuzz/harfbuzz/issues/2524
 # Ce après l'optionsEtPrerequisIcu() afin qu'il ait toutes ses options (ICU) d'étiquetées.
 optionSi ft/freetype || true
 optionSi png/libpng || true
