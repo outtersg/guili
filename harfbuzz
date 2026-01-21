@@ -68,6 +68,23 @@ fi
 configure=./configure
 autoc()
 {
+	if [ -f meson.build ]
+	then
+		set -x
+		mkdir -p build
+		parMeson()
+		{
+			meson setup build --buildtype=release --prefix="$dest"
+			cd build
+		}
+		configure=parMeson
+		make=ninja
+		maki="sudoku ninja install"
+		return 0
+	fi
+	
+	make=make
+	maki=sudoku make install
 	[ -f configure ] || { filtrer autogen.sh sed -e 's/which/command -v/g' && configure=./autogen.sh ; }
 }
 
@@ -91,9 +108,9 @@ echo Configuration… >&2
 $configure --prefix="$dest" $OPTIONS_CONF
 
 echo Compilation… >&2
-make
+$make
 
 echo Installation… >&2
-sudo make install
+$maki
 
 sutiliser
