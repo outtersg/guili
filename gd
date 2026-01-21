@@ -21,10 +21,8 @@
 
 set -e
 
-SCRIPTS="`command -v "$0"`" ; [ -x "$SCRIPTS" -o ! -x "$0" ] || SCRIPTS="$0" ; case "`basename "$SCRIPTS"`" in *.*) true ;; *sh) SCRIPTS="$1" ;; esac ; case "$SCRIPTS" in /*) ;; *) SCRIPTS="`pwd`/$SCRIPTS" ;; esac ; delie() { while [ -h "$SCRIPTS" ] ; do SCRIPTS2="`readlink "$SCRIPTS"`" ; case "$SCRIPTS2" in /*) SCRIPTS="$SCRIPTS2" ;; *) SCRIPTS="`dirname "$SCRIPTS"`/$SCRIPTS2" ;; esac ; done ; } ; delie ; SCRIPTS="`dirname "$SCRIPTS"`" ; delie
+Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delictueux ; s="`dirname "$s"`" ; Delictueux ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=gd
 
 # Historique des versions gérées
 
@@ -35,9 +33,8 @@ v 2.2.4 && prerequis="libpng libjpegturbo libtiff freetype fontconfig" && modifs
 # Variables
 
 archive="https://github.com/libgd/libgd/releases/download/gd-$version/libgd-$version.tar.xz"
-dest="$INSTALLS/$logiciel-$version"
 
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -54,6 +51,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
