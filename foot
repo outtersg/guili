@@ -27,7 +27,15 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 prerequis="python ninja meson \\ ncurses fcft"
 v 1.25.0 && modifs="linuxInput" || true
 
+argOptions="`options "$argOptions=autoserver"`"
+! option autoserver || modifs="$modifs autoserver"
+
 # Modifications
+
+autoserver()
+{
+	patch -p1 < `obtenir https://codeberg.org/dnkl/foot/pulls/1928.patch`
+}
 
 # Variables
 
