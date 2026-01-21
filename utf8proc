@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 2.2.0 && prerequis="cmake" && modifs="" || true
 v 2.11.2 || true
+v 2.11.3 || true
 
 # Modifications
 
