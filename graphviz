@@ -27,7 +27,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 # Historique des versions gérées
 
 prerequis="make pkgconfig \\ expat zlib"
-v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf" || true
+v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf uli" || true
 v 2.40.1 || true
 v 2.44.0 || true
 v 2.44.1 || true
@@ -40,6 +40,13 @@ optionSi gd || true
 optionSi fontconfig || true
 
 # Modifications
+
+uli()
+{
+	# GL/gl.h peut être fourni par le système dans un dossier non pris en charge par défaut.
+	[ -d /usr/local/include ] || return 0
+	export CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+}
 
 sansps2pdf()
 {
