@@ -61,3 +61,18 @@ similisys_sqlite()
 }
 
 #- FreeBSD ---------------------------------------------------------------------
+
+linuxInput()
+{
+	# Sous FreeBSD, input.h et input-event-codes.h sont dans …/include/dev/evdev/ et non …/include/linux/ (ou alors uniquement si on a installé la couche de compat Linux).
+	# Le problème est que la coquille n'est pas dans notre source, mais dans le paquet installé par les ports: on ne peut donc pas corriger, juste poser un fichier équivalent.
+	echo "#include <linux/input.h>" > $TMP/$$/1.c
+	echo "#include <dev/evdev/input.h>" > $TMP/$$/2.c
+	if ! compilo_test $CC -E $TMP/$$/1.c > /dev/null 2>&1 && compilo_test $CC -E $TMP/$$/2.c > /dev/null 2>&1
+	then
+		mkdir -p $TMP/$$/linux
+		echo "#include <dev/evdev/input.h>" > $TMP/$$/linux/input.h
+		echo "#include <dev/evdev/input-event-codes.h>" > $TMP/$$/linux/input-event-codes.h
+		export CPPFLAGS="-I$TMP/$$ $CPPFLAGS"
+	fi
+}
