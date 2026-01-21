@@ -31,8 +31,9 @@ v 0.10.0 && modifs="usrLocalInclude linuxInput" || true
 
 archive=https://github.com/WayfireWM/wayfire/releases/download/v$version/wayfire-$version.tar.xz
 
-argOptions=`options $argOptions=extra`
+argOptions=`options $argOptions=extra=shell`
 option extra || true
+option shell || true
 
 linuxInput()
 {
@@ -79,5 +80,6 @@ echo Installation… >&2
 sudoku ninja install
 
 greffon extra wayfire-plugins-extra
+greffon shell wf-shell
 
 sutiliser
