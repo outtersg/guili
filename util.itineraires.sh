@@ -39,7 +39,7 @@ _itineraireBis()
 	unset IFS
 	local racine v d
 	for v in guili_ppath_mono \
-		guili_xpath guili_lpath guili_lpath guili_pcpath guili_xdgpath guili_acpath
+		guili_xpath guili_lpath guili_lpath guili_cmpath guili_pcpath guili_xdgpath guili_acpath
 	do
 		eval $v=
 	done
@@ -65,6 +65,7 @@ _itineraireBis()
 		do
 			[ ! -e "$racine/$d/pkgconfig" ] || guili_pcpath="$guili_pcpath$racine/$d/pkgconfig:"
 		done
+		[ ! -e "$racine/lib/cmake" ] || guili_cmpath="$guili_cmpath$racine/lib/cmake:"
 		guili_xdgpath="$guili_xdgpath$racine/share:"
 		if [ -e "$racine/share/aclocal" ] ; then # aclocal est pointilleux: si on lui précise un -I sur quelque chose qui n'existe pas, il sort immédiatement en erreur.
 			guili_acpath="$guili_acpath$racine/share/aclocal:"
@@ -82,7 +83,7 @@ itinerairesSauvegardeEnv()
 	[ -z "$guili_memEnv" ] || return 0
 	
 	local var
-	for var in PATH LD_LIBRARY_PATH CMAKE_LIBRARY_PATH LDFLAGS CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS CMAKE_INCLUDE_PATH PKG_CONFIG_PATH XDG_DATA_DIRS ACLOCAL ACLOCAL_PATH
+	for var in PATH LD_LIBRARY_PATH CMAKE_LIBRARY_PATH LDFLAGS CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS CMAKE_PREFIX_PATH CMAKE_INCLUDE_PATH PKG_CONFIG_PATH XDG_DATA_DIRS ACLOCAL ACLOCAL_PATH
 	do
 		eval "guili_env_$var=\"\$$var\""
 	done
@@ -104,6 +105,7 @@ _cheminsExportes()
 		CPPFLAGS="$guili_cppflags $guili_env_CPPFLAGS" \
 		CFLAGS="$guili_cflags $guili_env_CFLAGS" \
 		CXXFLAGS="$guili_cxxflags $guili_env_CXXFLAGS" \
+		CMAKE_PREFIX_PATH="$guili_cmpath$guili_env_CMAKE_PREFIX_PATH" \
 		CMAKE_INCLUDE_PATH="$guili_ipath$guili_env_CMAKE_INCLUDE_PATH" \
 		PKG_CONFIG_PATH="$guili_pcpath$guili_env_PKG_CONFIG_PATH" \
 		XDG_DATA_DIRS="$guili_xdgpath$guili_env_XDG_DATA_DIRS" \
