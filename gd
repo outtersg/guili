@@ -27,6 +27,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 # Historique des versions gérées
 
 v 2.2.4 && prerequis="libpng libjpegturbo libtiff freetype fontconfig" && modifs="" || true
+v 2.3.3 || true
 
 # Modifications
 
