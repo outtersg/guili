@@ -35,6 +35,7 @@ v 0.42.2 || true
 v 0.43.4 && prerequis="meson ninja \\ $prerequis" || true
 v 0.44.2 || true
 v 0.46.0 || true
+v 0.46.4 || true
 
 archive=http://cairographics.org/releases/$logiciel-$version.tar.gz
 
