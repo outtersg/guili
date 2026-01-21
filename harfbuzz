@@ -78,7 +78,8 @@ autoc()
 		mkdir -p build
 		parMeson()
 		{
-			meson setup build --buildtype=release --prefix="$dest"
+			OPTIONS_CONF="`echo " $OPTIONS_CONF" | sed -E -e 's#--with-([^ ]*)#-D\1=enabled#g' -e 's#--without-([^ ]*)#-D\1=disabled#g'`"
+			meson setup build --buildtype=release --prefix="$dest" $OPTIONS_CONF
 			cd build
 		}
 		configure=parMeson
