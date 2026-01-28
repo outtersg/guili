@@ -40,6 +40,8 @@ v 3.2.1 || true
 v 3.3.1 && predestiner="$predestiner macutf8" || true
 v 3.4 && predestiner="$predestiner sixel" || true
 v 3.5.1 || true
+v 3.6 || true
+v 3.6.1 || true # /!\ Ne peut être lancé sur une machine sur laquelle un tmux tourne déjà, ou a tourné en laissant des /tmp/*tmux*, cf. https://github.com/tmux/tmux/issues/4745
 
 # Modifications
 
