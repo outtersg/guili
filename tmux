@@ -68,7 +68,7 @@ surMac()
 macutf8()
 {
 	# À partir de la 3.3, tmux se plaint d'un support trop léger d'UTF-8 sur Mac. Il forcent à utiliser utf8proc (ou renoncer explicitement).
-	mac || return
+	mac || return 0
 	prerequis="pkgconfig \\ $prerequis utf8proc"
 	OPTIONS_CONF="$OPTIONS_CONF --enable-utf8proc"
 }
