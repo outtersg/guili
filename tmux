@@ -38,9 +38,16 @@ v 2.8 || true
 v 2.9.1 || true
 v 3.2.1 || true
 v 3.3.1 && predestiner="$predestiner macutf8" || true
+v 3.4 && predestiner="$predestiner sixel" || true
 v 3.5.1 || true
 
 # Modifications
+
+sixel()
+{
+	# Pas la peine de conditionner pas à libsixel, apparemment tmux arrive à se compiler sans (implémentation à soi?).
+	OPTIONS_CONF="$OPTIONS_CONF --enable-sixel"
+}
 
 # Si on a le malheur de s'installer sur une machine où tourne le Darwin Calendar Server, celui-ci aura installé une libevent 1.4 quand on veut utiliser notre 2.0.
 bonneLibevent()
