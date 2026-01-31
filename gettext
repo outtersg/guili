@@ -33,6 +33,7 @@ v 0.20.1 || true
 v 0.21 || true
 v 0.22.2 || true
 v 0.23 || true
+v 1.0 || true
 
 archive="https://mirror.ibcp.fr/pub/gnu/gettext/$logiciel-$version.tar.gz"
 
