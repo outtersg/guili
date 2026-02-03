@@ -41,6 +41,7 @@ v 2.10.4 || true
 v 2.11.6 || true
 v 2.12.9 || true
 v 2.13.5 || true
+v 2.15.1 || true
 
 if pge $version 2.10
 then
