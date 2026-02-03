@@ -32,6 +32,7 @@ OPTIONS_CONF=
 v 1.2.27 && prerequis="libtool libxml libxslt openssl nss" && modifs="inclusions inclusionsNss nssPasMozilla" || true
 v 1.2.29 || true
 v 1.2.37 || true
+v 1.3.9 || true
 
 option nss && virerPrerequis openssl || virerPrerequis nss
 option nss && OPTIONS_CONF="$OPTIONS_CONF --with-nss --without-openssl --with-default-crypto=nss" || true
