@@ -39,9 +39,9 @@ v 1.1.42 || true
 
 # Variables
 
-#archive=ftp://fr.rpmfind.net/pub/libxml/$logiciel-$version.tar.gz
-archive=ftp://xmlsoft.org/libxslt/$logiciel-$version.tar.gz
-archive=http://xmlsoft.org/sources/libxslt-$version.tar.gz
+archive=https://gitlab.gnome.org/GNOME/libxslt/-/archive/v$version/libxslt-v$version.tar.gz
+v_maj="`echo "$version" | cut -d . -f 1-2`"
+archive=https://download.gnome.org/sources/libxslt/$v_maj/libxslt-$version.tar.xz
 
 destiner
 
