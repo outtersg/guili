@@ -70,11 +70,14 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+# scriptdir sans quoi il sépare le binaire (perl, qui va bien dans bin) des autres scripts (pod2man etc., qui terminent dans le premier dossier codé en dur qu'il déniche et qui n'est évidemment pas dans le $PATH habituel).
+# Cela donnait une install' non déterministe, par exemple sur ma Kimsufi les premières versions installaient bien leurs pod2man dans le bin (dossier par défaut s'il n'existe aucun dossier scripts), mais après une install' de mysql qui, gros sagouin, s'est autorisé à créer un /usr/local/scripts/mysql_install_db, hop, désormais perl installait ses scripts dans ce dossier.
+# Conséquence: plantage de l'installation PostgreSQL qui cherchait un pod2man dans le $PATH.
 sh Configure -de \
 	-A define:paths="/bin /usr/bin $INSTALLS/bin" \
 	-A define:locincpth="$INSTALLS/include" \
 	-A define:loclibpth="$INSTALLS/lib" \
-	-Dprefix="$dest"
+	-Dprefix="$dest" -Dscriptdir="$dest/bin"
 
 echo Compilation… >&2
 make
