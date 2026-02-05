@@ -53,6 +53,7 @@ v 3.50.2 || true
 v 3.50.4 || true
 v 3.51.0 || true
 v 3.51.1 || true
+v 3.51.2 && v_annee=2026 || true
 
 option intarray && modifs="$modifs intarray" || true
 
