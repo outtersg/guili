@@ -58,10 +58,38 @@ v 3.12.7 || true
 v 3.13.1 || true
 v 3.13.2 || true
 v 3.13.7 || true
-v 3.14.0 || true
+v 3.14.0 && modifs="vieuxfbsd" || true
 v 3.14.3 || true
 
 # Modifications
+
+vieuxfbsd()
+{
+	# À partir de la 3.14, ne compile plus sur un FreeBSD un peu ancien, à la recherche d'une fonction inexistante.
+	# (et le compilo signale "implicit function explicit_machin forbidden en C99, ce qui est rigolo pour une fonction explicite).
+	# C'est toute une nouvelle partie (HACL) qui est ajoutée au projet, avec un LIBHACL_FLAG_D='-D_BSD_SOURCE -D_DEFAULT_SOURCE' et un test spécifique Linux: if test "$ac_cv_func_explicit_bzero" = "no"; then (définition de LINUX_NO_EXPLICIT_BZERO).
+	#filtrer Modules/_hacl/Lib_Memzero0.c sed -e '/LINUX_NO_EXPLICIT_BZERO/s/.*/#elif !defined(LINUX_NO_EXPLICIT_BZERO) && (defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__))/'
+	filtrer Modules/_hacl/Lib_Memzero0.c sed -e '/LINUX_NO_EXPLICIT_BZERO/s/.*/#elif defined(HAVE_EXPLICIT_BZERO)/'
+	
+	# Un beau commentaire réserve pthread_np.h à OpenBSD "parce que FreeBSD les définit déjà dans son pthread.h".
+	# Ben oui mais pas sur ma vieille FreeBSD 10.
+	filtrer Modules/_threadmodule.c sed -e '/defined.__OpenBSD/s/$/ || defined(__FreeBSD__)/'
+	
+	# La 3.14 essaie d'explorer encore plus d'options du Bluetooth. On s'en fout.
+	cat > $TMP/$$/1.c <<TERMINE
+#define L2CAP_SOCKET_CHECKED
+#include <bluetooth.h>
+
+int plouf(struct sockaddr_l2cap * i)
+{
+    return i->l2cap_cid != 0;
+}
+TERMINE
+	if ! compilo_test -i compiloSysVersion _compiler_c -c -o /dev/null $TMP/$$/1.c 2> /dev/null
+	then
+		filtrer Modules/socketmodule.c sed -e 's/_BT_L2_MEMB(.*, cid)/0/g' -e 's/ 0 = [^;]*//g'
+	fi
+}
 
 testsLocalhost()
 {
