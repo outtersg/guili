@@ -252,7 +252,7 @@ v 8.4.14 || true
 v 8.4.15 || true
 v 8.4.16 || true
 v 8.4.17 || true
-v 8.5.0 || true
+v 8.5.0 && modifs="$modifs elffbsd10" || true
 v 8.5.1 || true
 v 8.5.2 || true
 
@@ -355,6 +355,41 @@ i\
 a\
 #endif
 }'
+}
+
+elffbsd10()
+{
+	# PHP 8.5 repose sur la macro ElfW(), qui, dans FreeBSD 15, est commentée:
+	# /* Define ElfW for compatibility with Linux, prefer __ElfN() in FreeBSD code */
+	# Et notre FreeBSD 10.2 n'a pas cette adaptation.
+	
+	cat > $TMP/$$/1.c <<TERMINE
+#include <stdio.h>
+#include <elf.h>
+
+int main(int argc, char ** argv)
+{
+#if !defined(ElfW) && defined(__ElfN)
+	printf("#define ElfW(x) __ElfN(x)\n");
+#endif
+	return 0;
+}
+TERMINE
+	local ajout
+	if compilo_test $CC $TMP/$$/1.c -o $TMP/$$/1.bin 2> /dev/null
+	then
+		printf "Compatibilité ElfW via __ElfN: "
+		ajout="`$TMP/$$/1.bin`"
+		case "$ajout" in
+			"") echo "non nécessaire" ;;
+			?*)
+				cyan nécessaire
+				echo "  $ajout"
+			filtrer ext/opcache/ZendAccelerator.c sed -e "/include.*<elf\\.h>/a\\
+$ajout
+"
+		;; esac
+	fi
 }
 
 ki_tracer()
