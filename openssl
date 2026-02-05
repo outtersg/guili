@@ -84,6 +84,7 @@ v 3.0.15 || true
 v 3.0.16 || true
 v 3.0.17 || true
 v 3.0.18 || true
+v 3.0.19 || true
 v 3.1.4 || true
 v 3.1.5 || true
 v 3.1.6 || true
@@ -101,16 +102,20 @@ v 3.3.2 || true
 v 3.3.3 || true
 v 3.3.4 || true
 v 3.3.5 || true
+v 3.3.6 || true
 v 3.4.0 || true
 v 3.4.1 || true
 v 3.4.2 || true
 v 3.4.3 || true
+v 3.4.4 || true
 v 3.5.0 || true
 v 3.5.1 || true
 v 3.5.2 || true
 v 3.5.3 || true
 v 3.5.4 || true
+v 3.5.5 || true
 v 3.6.0 || true
+v 3.6.1 || true
 
 # Modifications
 
