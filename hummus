@@ -47,7 +47,7 @@ v 4.0 || true
 v 4.1 && retirerModif binaryFunction || true
 v 4.5.11 && prerequis="$prerequis openssl" || true
 v 4.5.12 && modifs="$modifs widthHeight" || true
-v 4.6.8 && remplacerPrerequis "libtiff >= 4" || true
+v 4.6.8 && remplacerPrerequis "libtiff >= 4" && modifs="$modifs tsize" || true
 v 4.7.0 || true
 v 4.8.0 && retirerModif widthHeight && modifs="$modifs vector" || true
 v 4.8.1 && retirerModif vector || true
@@ -178,6 +178,16 @@ widthHeight()
 	filtrer PDFWriter/DocumentContext.cpp sed \
 		-e '/Width = .*GetHeight/s/Height/Width/' \
 		-e '/Height = .*GetWidth/s/Width/Height/'
+}
+
+tsize()
+{
+	# Curieusement, TIFFImageHandler.h fait un beau commentaire expliquant qu'ils permettent au choix d'inclure les tiffio.h ou de redéfinir tout ce qu'il y a dans ce .h en local,
+	# mais en pratique on se retrouve avec une erreur comme quoi il a redéfini un type de tiffio.h avec la mauvaise taille.
+	# Bref il a à la fois inclus (inconditionnellement depuis le .cpp) et surchargé (depuis le .h).
+	filtrer PDFWriter/TIFFImageHandler.h sed -e '/^#ifdef _INCLUDE_TIFF_HEADER/i\
+#define _INCLUDE_TIFF_HEADER 1
+'
 }
 
 vector()
