@@ -26,7 +26,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 
 prerequis="zlib iconv icu openssl sqlite"
 v 2.0.16 && modifs="cheminBiblios" || true
-v 2.2.3 && prerequis="$prerequis libstemmer clucene" && modifs="cheminBiblios avecLucene" || true
+v 2.2.3 && prerequis="$prerequis libstemmer clucene" && modifs="$modifs testsSansFuseau avecLucene" || true
 v 2.2.24 || true
 #v 2.2.25 || true # http://dovecot.org/list/dovecot/2016-July/105084.html, reproduit chez moi.
 v 2.3.10 || true
@@ -44,6 +44,13 @@ cheminBiblios()
 	# Attention aussi: sur du LD_LIBRARY_PATH, il faudrait utiliser du -rpath (avec du -R clang plante, ne comprenant pas que c'est le -R pour compatibilité, qu'il faut passer en tant que -rpath à ld), alors qu'en SSL_LIBS, qui passe par libtool, il faut forcément du -rpath, car -rpath a une autre signification pour libtool ("où je dois installer cette biblio").
 	SSL_LIBS="-L$INSTALLS/lib -lssl -lcrypto -R$INSTALLS/lib"
 	export SSL_LIBS
+}
+
+testsSansFuseau()
+{
+	# https://dovecot.org/mailman3/archives/list/dovecot@dovecot.org/thread/TGGVVULMOPE64VV34QEBYDPAAEU4OYOQ/
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=268204
+	filtrer src/lib-index/test-mail-index-transaction-update.c sed -e 's/ + timezone//g'
 }
 
 avecLucene()
