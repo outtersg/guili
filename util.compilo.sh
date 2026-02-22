@@ -439,31 +439,39 @@ langcxx()
 	langCEtCompagnie
 }
 
+_cxx()
+{
+	compiloSysVersion -i "$@" "clang $verpre_clang" "gcc $verpre_gcc"
+	libcxx
+}
+
 cxx17()
 {
-	compiloSysVersion -i "$@" "clang >= 5" "gcc >= 7"
-	libcxx
+	local verpre_clang="$verpre_clang >= 5"
+	local verpre_gcc="$verpre_gcc >= 7"
+	_cxx "$@"
 }
 
 cpp14() { cxx14 "$@" ; }
 cxx14()
 {
-	compiloSysVersion -i "$@" "clang >= 3.5" "gcc >= 5" # clang 3.4 supporte, mais en -std=c++1y.
-	libcxx
+	local verpre_clang="$verpre_clang >= 3.5" # clang 3.4 supporte, mais en -std=c++1y.
+	local verpre_gcc="$verpre_gcc >= 5"
+	_cxx "$@"
 }
 
 cpp11() { cxx11 "$@" ; }
 cxx11()
 {
-	compiloSysVersion -i "$@" "clang >= 3.3" "gcc >= 4.8.1"
-	libcxx
+	local verpre_clang="$verpre_clang >= 3.3"
+	local verpre_gcc="$verpre_gcc >= 4.8.1"
+	_cxx "$@"
 }
 
 cxx()
 {
 	# Similaire au compiloSysVersion par défaut.
-	compiloSysVersion -i "$@" clang gcc
-	libcxx
+	_cxx "$@"
 }
 
 libcxx()
