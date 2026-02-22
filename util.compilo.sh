@@ -426,10 +426,28 @@ langc()
 meilleurCompilo() { langc ; }
 meilleurCompiloInstalle() { meilleurCompilo "$@" ; }
 
+_paramLangcxx()
+{
+	local p prochaineVar
+	case "$1" in [0-9]*) v_cxx="$1" ; shift ;; esac
+	for p in "$@"
+	do
+		case "$p" in
+			clang|gcc) prochaineVar="verpre_$p" ;;
+			*)
+				case "$prochaineVar" in
+					"") fatal "# Je ne reconnais pas le paramètre langcxx($p)" ;;
+					*) eval $prochaineVar='"$'$prochaineVar' $p"' ;;
+				esac
+				;;
+		esac
+	done
+}
+
 langcxx()
 {
-	local v_cxx="$v_langcxx"
-	case "$1" in ?*) v_cxx="$1" ;; esac
+	local v_cxx="$v_langcxx" verpre_clang verpre_gcc
+	_paramLangcxx $*
 	# À FAIRE: pour le moment on s'ajoute encore à COMPILO_AJOUTS (au lieu d'un COMPILO_cxx_AJOUTS).
 	case "$v_cxx" in
 		""|11|14|17) cxx$v_cxx + ;; # Avec un + car en $MODERNITE 5, nous sommes appelés en direct, et non plus en second choix après une passe en + qui elle aura eu le loisir de fouiller tous les compilos disponibles.
