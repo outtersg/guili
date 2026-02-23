@@ -252,9 +252,11 @@ v 8.4.14 || true
 v 8.4.15 || true
 v 8.4.16 || true
 v 8.4.17 || true
+v 8.4.18 || true
 v 8.5.0 && modifs="$modifs elffbsd10" || true
 v 8.5.1 || true
 v 8.5.2 || true
+v 8.5.3 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
