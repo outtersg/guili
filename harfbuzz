@@ -50,7 +50,7 @@ v 12.3.0 || true
 # Modifications
 
 optionsEtPrerequisIcu
-optionSi glib || true
+if optionSi glib ; then prerequis="$prerequis gobject-introspection" ; fi
 case ":$GUILI_PILE" in *:cairo:*) argOptions="`options $argOptions-cairo`" ;; esac
 # À FAIRE: imposer un cairo avec un freetype d'une version. À l'heure actuelle si on a un cairo+ft-2.7 et un ft-2.9, c'est le ft du cairo qui apparaît en 1er dans le chemin (dép de dép) et donc le configure dit que ft < 2.x pas suffisant => échec. Même si on remettait dans l'ordre il faudrait trouver moyen de demander un cairo avec la même version. C'était le but de la commande ecosysteme, jamais menée à bout. Pour l'heure le seul moyen est de supprimer le cairo et de le recompiler au goût du jour.
 optionSi cairo || OPTIONS_CONF="$OPTIONS_CONF --without-cairo"
