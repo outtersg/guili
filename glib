@@ -62,7 +62,7 @@ v 2.83.5 || true
 v 2.84.4 || true
 v 2.85.4 || true
 v 2.86.3 || true
-v 2.87.2 || true
+v 2.87.2 && modifs="$modifs f_kinfo" || true
 
 # À FAIRE: faire marcher dtrace
 # À FAIRE: faire marcher sysprof
@@ -71,6 +71,16 @@ v 2.87.2 || true
 suffixe=xz
 pge $version 2.29 || suffixe=gz
 archive=https://download.gnome.org/sources/glib/`vmaj $version`/glib-$version.tar.$suffixe
+
+f_kinfo()
+{
+	{ echo '#include <fcntl.h>' ; echo 'int f() { return F_KINFO; }' ; } > $TMP/$$/1.c
+	if ! compilo_test $CC $TMP/$$/1.c -c -o $TMP/$$/1.o 2> /dev/null
+	then
+		cyan "F_KINFO non disponible. g_unix_fd_query_path passe en non implémenté."
+		filtrer glib/glib-unix.c sed -e 's/fcntl *([^)]*F_KINFO[^)]*)/(errno = ENOSYS) || -1/g'
+	fi
+}
 
 sanssysprof()
 {
