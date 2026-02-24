@@ -28,6 +28,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
+modifs="angliche"
 v 2.4.5 || true
 v 2.4.6 || true
 v 2.8.3 && modifs="$modifs putainDeLibJPEGDeMacOSX" || true
@@ -127,6 +128,14 @@ havefchdir()
 	filtrer Utilities/cmlibarchive/libarchive/archive_platform.h sed -e '/define ARCHIVE_PLATFORM_H_INCLUDED/a\
 #include "config_freebsd.h"
 '
+}
+
+angliche()
+{
+	# Ces crétins s'assurent de n'avoir aucun message d'alerte autres qu'une liste bien maîtrisée.
+	# … Sauf que la liste est codée en anglais. Donc sur un environnement en français le bootstrap croit tomber sur une alerte inconnue au bataillon.
+	# (en l'occurrence: "/usr/local/bin/ld : warning : libc++abi.so.1, requis par /usr/local/lib/libc++.so, peut être en conflit avec libc++abi.so.3", pour quand je mêle biblios système de 2015 et biblios compilées avec un clang de 10 ans postérieur, dont j'ai par prudence déporté la libc++ vers un suffixe différent).
+	export LC_ALL=C LANG=C
 }
 
 # Variables
