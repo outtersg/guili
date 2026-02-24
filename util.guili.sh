@@ -375,8 +375,20 @@ greffon()
 	preutiliser
 	! option "$nom" ||
 	(
+		local desto="$dest"
+		# Si l'incluant a été appelé en excluant explicitement des options (ex.: php +postgresql +-mysql), sa $dest contiendra uniquement les options actives (php +postgresql):
+		# si nous sommes son greffon, il ne faut surtout pas qu'on demande simplement ce php +postgresql, sans quoi il pourrait vouloir ajouter l'option habituellement implicite écartée.
+		# On doit donc aussi prendre en compte les options négatives.
+		# En réalité ça n'est pas grave si on est simplement dans de l'inclusion non forcée (dans ce cas le tout juste compilé répondra), par contre si notre ./php incluant est appelé avec l'option + ("monter tous les prérequis en leur version maximale"), alors il va nous recompiler un mysql.
+		case "$argOptionsInvocation" in
+			*-*)
+				local opNeg="`echo "$argOptionsInvocation" | sed -e 's/[+=][^-=+]*//g' -e 's/-/+-/g'`"
+				desto="`echo "$desto" | sed -e "s/-[^-]*$/$opNeg&/"`"
+				;;
+		esac
+		
 		cd "$SCRIPTS"
-		"$SCRIPTS/$inst" --pour "$dest"
+		"$SCRIPTS/$inst" --pour "$desto"
 	) ||
 	{ sudoku rm "$dest/$ENCOURS" ; return 1 ; }
 }
