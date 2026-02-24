@@ -50,7 +50,18 @@ v 12.3.0 || true
 # Modifications
 
 optionsEtPrerequisIcu
-if optionSi glib ; then prerequis="$prerequis gobject-introspection" ; fi
+if optionSi glib
+then
+	# À partir de glib 2.80, les .gir sont fournis par la biblio (sous réserve d'être compilée avec l'option +intro), tandis que pour les versions précédentes c'est gobject-introspection qui les fournissait pour toutes les biblios. On prérequiert donc soit glib+intro, soit glib gobject-introspection, selon la version la plus récente installée sur le système.
+	# À FAIRE: ça devrait sans doute rejoindre un util.glib.sh pour que tout le monde en profite. Cf. gdk-pixbuf.
+	v_glib="`versions -1 glib | sed -e 's/.*-//'`"
+	if [ -n "$v_glib" ] && pg 2.80 "$v_glib"
+	then
+		prerequis="$prerequis gobject-introspection"
+	else
+		remplacerPrerequis glib+intro
+	fi
+fi
 case ":$GUILI_PILE" in *:cairo:*) argOptions="`options $argOptions-cairo`" ;; esac
 # À FAIRE: imposer un cairo avec un freetype d'une version. À l'heure actuelle si on a un cairo+ft-2.7 et un ft-2.9, c'est le ft du cairo qui apparaît en 1er dans le chemin (dép de dép) et donc le configure dit que ft < 2.x pas suffisant => échec. Même si on remettait dans l'ordre il faudrait trouver moyen de demander un cairo avec la même version. C'était le but de la commande ecosysteme, jamais menée à bout. Pour l'heure le seul moyen est de supprimer le cairo et de le recompiler au goût du jour.
 optionSi cairo || OPTIONS_CONF="$OPTIONS_CONF --without-cairo"
