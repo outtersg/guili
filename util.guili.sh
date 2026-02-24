@@ -247,6 +247,7 @@ analyserParametresInstall()
 	argOptions="`options "$argOptions" | tr -d ' '`"
 	argOptionsOriginal="$argOptions"
 	argOptionsDemandees="$argOptions+"
+	case "$argOptionsInvocation" in "") argOptionsInvocation="$argOptions+" ;; esac
 }
 
 analyserParametresInstallLsj()
