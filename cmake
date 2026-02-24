@@ -30,11 +30,11 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 2.4.5 || true
 v 2.4.6 || true
-v 2.8.3 && modifs=putainDeLibJPEGDeMacOSX || true
-v 2.8.6 && modifs=putainDeLibJPEGDeMacOSX || true
-v 2.8.11 && modifs="putainDeLibJPEGDeMacOSX etToiAlors havefchdir" || true
-v 2.8.12 && modifs="etToiAlors havefchdir" || true
-v 3.5.2 && modifs="etToiAlors speMac macGcc macOpenssl" || true
+v 2.8.3 && modifs="$modifs putainDeLibJPEGDeMacOSX" || true
+v 2.8.6 || true
+v 2.8.11 && modifs="$modifs etToiAlors havefchdir" || true
+v 2.8.12 && retirerModif putainDeLibJPEGDeMacOSX || true
+v 3.5.2 && retirerModif havefchdir && modifs="$modifs speMac macGcc macOpenssl" || true
 v 3.13.1 && prerequis="langcxx(11) \\" || true
 v 3.13.5 || true
 if eventfd # À partir de là cmake repose sur une libuv qui ne compile pas sur les "vieux" systèmes.
