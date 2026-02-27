@@ -99,6 +99,7 @@ v 14.18 || true
 v 14.19 || true
 v 14.20 || true
 v 14.21 || true
+v 14.22 || true
 v 15.1 || true
 v 15.2 || true
 v 15.3 || true
@@ -112,6 +113,7 @@ v 15.13 || true
 v 15.14 || true
 v 15.15 || true
 v 15.16 || true
+v 15.17 || true
 v 16.1 && modifs="$modifs fdatasync" || true
 v 16.2 || true
 v 16.3 || true
@@ -122,15 +124,18 @@ v 16.9 || true
 v 16.10 || true
 v 16.11 || true
 v 16.12 || true
+v 16.13 || true
 v 17.2 || true
 v 17.4 || true
 v 17.5 || true
 v 17.6 || true
 v 17.7 || true
 v 17.8 || true
+v 17.9 || true
 v 18.0 || true
 v 18.1 || true
 v 18.2 || true
+v 18.3 || true
 
 pg 8.4 $version || contribs="$contribs citext"
 pg 9.0 $version || contribs="$contribs unaccent"
