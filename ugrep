@@ -25,7 +25,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 prerequis="make \\"
-v 7.5.0 && modifs="ignoreAbsolu sysParam" || true
+v 7.5.0 && modifs="sysParam" || true
 
 # Modifications
 
@@ -44,6 +44,7 @@ sysParam()
 ignoreAbsolu()
 {
 	# https://github.com/Genivia/ugrep/pull/519
+	# Bon finalement inutile, il suffit de passer par exclude-from plutôt qu'ignore-files, cf. les commentaires de la PR.
 	
 	for f in src/ugrep.cpp src/ugrep-indexer.cpp
 	do
