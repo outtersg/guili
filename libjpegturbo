@@ -57,7 +57,7 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 if pge $version 2 # En fait cmake est supporté dès la 1.1; mais le configure y étant éprouvé, on l'y garde.
 then
-	cmake -DCMAKE_INSTALL_PREFIX="$dest"
+	cmake -DCMAKE_INSTALL_PREFIX="$dest" -DWITH_JPEG8=1
 else
 ./configure --prefix="$dest" --with-jpeg8
 fi
