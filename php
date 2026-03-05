@@ -88,7 +88,7 @@ v 5.6.40 || true
 v 5.6.40.1 || true
 # icu < 70 car en 70, l'UBool operator== de brkiter.h devient un bool operator== (le premier étant un unsigned char, et clang refusant de faire la conversion => la version interne à PHP est incompatible).
 # On peut voir d'ailleurs dans les codepointiterator_internal.h des versions 8 qu'ils l'ont aiguillé d'un #if U_ICU_VERSION_MAJOR_NUM >= 70
-v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
+v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis libjpegturbo && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 && ajouterModif cve201911043 confclosedir && remplacerPrerequis "openssl < 3" || true
@@ -822,13 +822,15 @@ true || \
 	make -j4 && TEST_PHP_EXECUTABLE=`pwd`/sapi/cli/php ./sapi/cli/php run-tests.php ext/pdo_pgsql/tests
 }
 # --with-jpeg-dir est nécessaire, même si les CPPFLAGS et LDFLAGS ont tout ce qu'il faut: libjpeg n'est pas détecté par compil d'un programme de test comme libpng.
+#   (devenue --with-jpeg à partir de je ne sais quelle version. À rendre adaptative?)
+# GD: on pourrait aussi choisir --with-external-gd, pour utiliser la GD GuiLI. Pour le moment la GD embarquée ne pose pas de problème, on continue avec elle.
 # --enable-fileinfo=shared pour éviter de pénaliser de 7 Mo de mémoire chaque lancement de PHP, pour une fonction quasi inutilisée (et cf. https://bugs.php.net/bug.php?id=65106 2023-01-23 05:15 UTC); cf. https://bugs.php.net/bug.php?id=73046
 ./configure --prefix="$dest" \
 	--with-zlib \
 	--with-iconv \
 	--enable-exif \
-	`pge $version 8 && printf %s --enable || printf %s --with`-gd \
-	--with-jpeg-dir \
+	`pge $version 7.4 && printf %s --enable || printf %s --with`-gd \
+	--with-jpeg \
 	--with-ncurses \
 	--with-readline \
 	--with-curl \
