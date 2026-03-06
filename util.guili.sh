@@ -502,9 +502,11 @@ guili_temoinsPresents()
 	local temoin
 	for temoin in `guili_temoins`
 	do
-		# Cas particulier: un témoin trouvé via un lien symbolique occupant notre $dest est invalide. Ce peut être par exemple un libjpeg-x.y -> libjpegturbo-z.t, alors que nous tentons d'installer le libjpeg officiel.
 		case "$temoin" in
-			"$dest/$COMPLET") [ -L "$dest" ] && return 1 || true ;;
+			"$dest/$COMPLET")
+				# Cas particulier: un témoin trouvé via un lien symbolique occupant notre $dest est invalide. Ce peut être par exemple un libjpeg-x.y -> libjpegturbo-z.t, alors que nous tentons d'installer le libjpeg officiel.
+				[ -L "$dest" ] && return 1 || true
+				;;
 		esac
 		[ -e "$temoin" ] || guili_temoinEnCoursTenantLieuDeComplet "$temoin" || return 1
 	done
