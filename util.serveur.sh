@@ -156,8 +156,9 @@ serveur()
 			[0-9]*) # Numéro de port.
 				[ -z "$dest" ] || ports="$ports $remplace"
 				[ -L "$dservices/$remplace" ] || continue
+				local fservice="$dservices/$remplace"
 				remplace="`cat "$dservices/$remplace"`"
-				sudoku -d "$dservices" rm "$dservices/$remplace"
+				sudoku -d "$dservices" rm "$fservice"
 				;;
 		esac
 		servir "$remplace" remove 2> /dev/null || true
