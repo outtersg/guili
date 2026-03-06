@@ -506,6 +506,22 @@ guili_temoinsPresents()
 			"$dest/$COMPLET")
 				# Cas particulier: un témoin trouvé via un lien symbolique occupant notre $dest est invalide. Ce peut être par exemple un libjpeg-x.y -> libjpegturbo-z.t, alors que nous tentons d'installer le libjpeg officiel.
 				[ -L "$dest" ] && return 1 || true
+				# Cas particulier 2: install' dans un dossier générique (cf. destiner() dans util.guili.install.sh, chercher "générique")
+				#   Dans ce cas le fichier témoin peut avoir été déposé par une version antérieure du logiciel (voire n'importe quel logiciel).
+				#   On vérifie qu'il respecte nos contraintes.
+				# Deux sous-cas:
+				# - un .guili.version complet (ex.: _phpfpm85/.guili.version décrivant toutes les options de _phpfpm rentrées dans la recette)
+				# - un .guili.version partiel (ex.: php+apc+mysql+ossl36+postgresql+xdebug-8.5.3/.guili.version qui contient php+mysql+ossl36+postgresql-8.5.3, pour dire qu'il répond au moins à ce besoin).
+				if [ -e "$dest/$GUILI_F_VERSION" ]
+				then
+					local lv="$logiciel`argOptions`-$version"
+					local ddest="`bn "$dest"`"
+					# À FAIRE: en fait pas un versionDifferenciante, mais un versionDifferente: si on veut revenir à une version antérieure sur une dossier générique, on ne peut pas avec versionDifferenciante, car la version installée, supérieure à celle vers laquelle on veut rétrograder, va nous enquiquiner.
+					if versionDifferenciante "$logiciel" "$lv" "$ddest"
+					then
+						return 1
+					fi
+				fi
 				;;
 		esac
 		[ -e "$temoin" ] || guili_temoinEnCoursTenantLieuDeComplet "$temoin" || return 1
