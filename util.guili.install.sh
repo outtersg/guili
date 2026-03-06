@@ -214,12 +214,37 @@ utiliserSiDerniere()
 	if [ -d "$dest" ]
 	then
 		# Si notre dossier d'installation ne porte pas notre logiciel et notre version, on l'inscrit dans un fichier explicitant ce que nous contenons en terme de $logiciel-$version.
-		[ "$lv" = "$ddest" ] || sudoku sh -c "echo $lv > $dest/$GUILI_F_VERSION"
+		if versionDifferenciante "$logiciel" "$lv" "$ddest"
+		then
+			sudoku sh -c "echo $lv > $dest/$GUILI_F_VERSION"
+		fi
 		sudoku "$SCRIPTS/utiliser" -p "$cadets" --videur "$SCRIPTS/util siPlusRecent42 $logiciel $lv" "$dest"
 		# Si notre logiciel a des alias (ex.: libjpegturbo en tant que libjpeg, ou curl+ossl11 en tant que curl), allons-y.
 		IFS=:
 		tifs guili_tirerAlias -p "`unset IFS ; f() { IFS=\| ; echo "$*" ; } ; f $cadets`" "$dest" $guili_alias
 	fi
+}
+
+# Détermine si le logiciel $1 demandé à l'install avec ses options $2 est différenciant par rapport à un dossier d'install $3.
+# On est différenciant si:
+# - On s'installe dans un dossier à nom générique (ex.: _phpfpm85 qui ne donne pas de numéro de version)
+# - On installe un logiciel qui fournit plus d'options que ce que son nom indique
+versionDifferenciante()
+{
+	local logiciel="$1" ainscrire="$2" dest="$3"
+	# Égaux? Non différenciants.
+	case "$ainscrire" in "$dest") return 1 ;; esac
+	# Pas le même logiciel? Différenciant.
+	case "$dest" in
+		$logiciel+*) true ;;
+		$logiciel-*[^0-9.]*) return 0 ;; # Un autre logiciel, même s'il a un nom similaire, ex.: apr-util par rapport à apr.
+		$logiciel-*) true ;;
+		*) return 0 ;; # Un tout autre logiciel.
+	esac
+	# Là on rejoint siPlusRecent42(): mutualiser?
+	case "`{ echo "$dest" ; echo "$ainscrire" ; } | triversions | tail -1`" in "$ainscrire") return 0 ;; esac
+	return 1
+	# À FAIRE?: en fait en cas de même nombre d'options, on va avoir une indécision (parfois l'un apparaîtra avant, parfois après): à partir du moment où une option est différenciante on doit le signaler (ex.: réécriture d'options). Quoique… Si un logiciel branché à OpenSSL réécrit l'option ossl en ossl3, c'est peut-être une mauvaise idée d'inscrire en tant que .guili.version qu'on est une +ossl.
 }
 
 # Arbitre destiné à $SCRIPTS/utiliser
