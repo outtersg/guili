@@ -26,6 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="make \\"
 v 7.5.0 && modifs="sysParam" || true
+v 7.6.0 || true
 
 # Modifications
 
