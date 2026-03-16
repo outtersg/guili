@@ -1,0 +1,88 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delictueux ; s="`dirname "$s"`" ; Delictueux ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
+
+prerequis="python cmake \\"
+modifs="$modifs assert2 scalaireTest sansNccl"
+v 2.10.0 && remplacerPrerequis cmake && retirerModif cmake3 || true
+
+# Modifications
+
+assert2()
+{
+	# Le bidule utilise la fonction _assert(booléen, message) pour ne pas empiéter sur l'assert(booléen && message) système.
+	# Problème: sous FreeBSD, assert est défini en fonction d'_assert(), lui-même macro.
+	filtrer aten/src/ATen/native/sparse/ValidateCompressedIndicesCommon.h sed -e '/^namespace/i\
+#undef _assert
+'
+}
+
+scalaireTest()
+{
+	# conversion from 'long long' to 'Scalar' is ambiguous: il n'y a de constructeurs que pour les uint16, 32 et 64.
+	filtrer c10/test/core/Scalar_test.cpp sed -e 's/1LL/(uint64_t)&/'
+}
+
+sansNccl()
+{
+	export USE_NCCL=0
+}
+
+# Variables
+
+archive=https://github.com/pytorch/pytorch/releases/download/v$version/pytorch-v$version.tar.gz
+
+for modif in true $predestiner ; do "$modif" ; done
+
+destiner
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Corrections… >&2
+for modif in true $modifs ; do "$modif" ; done
+
+echo Prérequis… >&2
+pip install --prefix $INSTALLS/$PYEXT pyyaml typing_extensions
+
+echo Compilation… >&2
+while true
+do
+	touch $TMP/$$/h
+	python ./setup.py build && break ||
+	find . -newer $TMP/$$/h -type f -not -size 0 -not -name ".ninja*" -not -name version.py -not -name native_functions.yaml -not -name tags.yaml -not -name "*.check_cache" | tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
+	{ jaune "# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup." >&2 && sh ; }
+done
+
+echo Installation… >&2
+dest0="`pwd`/dest"
+rm -Rf "$dest0"
+pyextinit "$dest0"
+sudokupy USE_NCCL=$USE_NCCL python ./setup.py install --prefix="$dest0"
+
+sudoku mkdir -p "$dest"
+sudoku cp -Rp "$dest0/." "$dest/."
+sutiliser - "$PYEXT"
