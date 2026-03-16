@@ -58,7 +58,7 @@ v 3.12.7 || true
 v 3.13.1 || true
 v 3.13.2 || true
 v 3.13.7 || true
-v 3.14.0 && modifs="vieuxfbsd" || true
+v 3.14.0 && modifs="$modifs vieuxfbsd" || true
 v 3.14.3 || true
 
 # Modifications
