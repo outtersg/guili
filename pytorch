@@ -27,7 +27,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 prerequis="python cmake \\"
 v 2.6.0 && modifs="assert2 scalaireTest benchbench cmake3 memsetthis clang17Sympa isarithmetic picore" || true # Impossible à compiler en mars 2026 avec un clang 21.
 v 2.7.1 && retirerModif cmake3 memsetthis clang17Sympa isarithmetic benchbench && modifs="$modifs sansNccl" || true # N'a pas encore le USE_NCCL.
-v 2.8.0 && modifs="$modifs fmtMalloc funcClosure" || true # Plante sur la macro F_CODE.
+v 2.8.0 && modifs="$modifs fmtMalloc funcClosure" || true # Compile, mais finit avec un Undefined symbol "dynamo_eval_custom_code" (qui est effectivement U dans notre .so, tandis qu'il est T dans celui d'une 2.9.1 compilée à côté): en reprenant des fichiers entiers de la 2.9.1, a-t-on chopé un .h qui en 2.9.1 ne fait que déclarer un symbole défini dans un .c que nous n'avons pas repris?
 v 2.9.1 && retirerModif picore funcClosure || true
 v 2.10.0 && remplacerPrerequis cmake && retirerModif fmtMalloc || true
 
@@ -53,7 +53,51 @@ i\
 #define Py_BUILD_CORE
 a\
 #undef Py_BUILD_CORE
+}' \
+		-e '/IS_PYTHON_3_11_PLUS/{
+a\
+#if IS_PYTHON_3_14_PLUS
+a\
+#define stacktop stackpointer
+a\
+#endif
+}' \
+		-e '/update_framelocals.*localsplus/{
+i\
+#if IS_PYTHON_3_14_PLUS
+i\
+update_framelocals(i, PyStackRef_AsPyObjectBorrow(frame->localsplus[i]));
+i\
+#else
+a\
+#endif
 }'
+	filtrer torch/csrc/dynamo/cpython_includes.h sed \
+		-e '/#if IS_PYTHON_3_13_PLUS/{
+i\
+#if IS_PYTHON_3_14_PLUS
+i\
+#define F_CODE(x) (PyCodeObject*)PyStackRef_AsPyObjectBorrow(x->f_executable)
+i\
+#define PREV_INSTR(x) (x)->instr_ptr
+s/#/#el/
+}' \
+		-e '/#define FUNC/{
+i\
+#if IS_PYTHON_3_14_PLUS
+i\
+#define FUNC(x) ((PyFunctionObject*)PyStackRef_AsPyObjectBorrow((x)->f_funcobj))
+i\
+#else
+a\
+#endif
+}'
+	# Pour ceux-là il y a trop de modifs.
+	for f in torch/csrc/dynamo/cpython_defs.c torch/csrc/dynamo/cpython_defs.h
+	do
+		bnf=`bn $f`
+		cp `obtenir https://raw.githubusercontent.com/pytorch/pytorch/refs/tags/v2.9.1/$f $bnf.pytorch.2.9.1` $f
+	done
 }
 
 picore()
