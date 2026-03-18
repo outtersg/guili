@@ -25,10 +25,132 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 . "$SCRIPTS/util.sh"
 
 prerequis="python cmake \\"
-modifs="$modifs assert2 scalaireTest sansNccl"
-v 2.10.0 && remplacerPrerequis cmake && retirerModif cmake3 || true
+v 2.6.0 && modifs="assert2 scalaireTest benchbench cmake3 memsetthis clang17Sympa isarithmetic picore" || true # Impossible à compiler en mars 2026 avec un clang 21.
+v 2.7.1 && retirerModif cmake3 memsetthis clang17Sympa isarithmetic benchbench && modifs="$modifs sansNccl" || true # N'a pas encore le USE_NCCL.
+v 2.8.0 && modifs="$modifs fmtMalloc funcClosure" || true # Plante sur la macro F_CODE.
+v 2.9.1 && retirerModif picore funcClosure || true
+v 2.10.0 && remplacerPrerequis cmake && retirerModif fmtMalloc || true
 
 # Modifications
+
+fmtMalloc()
+{
+	# La 2.8 introduit du new sans les malloc et free qui vont avec: ça plante.
+	# On repique la correction de la 2.10: précéder d'un <stdlib.h>
+	filtrer third_party/fmt/include/fmt/format.h sed -e '/ifndef FMT_MODULE/a\
+#include <stdlib.h>
+'
+}
+
+funcClosure()
+{
+	filtrer torch/csrc/dynamo/framelocals_mapping.cpp sed \
+		-e '/PyObject.*closure.*PyFunctionObject.*func_closure/c\
+PyObject* closure = FUNC(frame)->func_closure;
+' \
+		-e '/pycore_code.h/{
+i\
+#define Py_BUILD_CORE
+a\
+#undef Py_BUILD_CORE
+}'
+}
+
+picore()
+{
+	filtrer torch/csrc/dynamo/cpython_includes.h sed \
+		-e '/pycore_frame.h/{
+a\
+#if IS_PYTHON_3_14_PLUS
+a\
+#include <internal/pycore_interpframe_structs.h>
+a\
+#include <internal/pycore_stackref.h>
+a\
+#include <internal/pycore_code.h>
+a\
+#endif
+}'
+}
+
+clang17Sympa()
+{
+	# Les vieilles versions ne supportent pas un clang un peu moderne. On récupère les adaptations de la 2.10 ().
+	true ||
+	filtrer third_party/fbgemm/CMakeLists.txt sed -e '/CheckCXXCompilerFlag/{
+i\
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 17.0.0)
+i\
+target_compile_options(asmjit         PRIVATE "-Wno-vla-cxx-extension")
+i\
+target_compile_options(fbgemm_generic PRIVATE "-Wno-vla-cxx-extension")
+i\
+target_compile_options(fbgemm_avx2    PRIVATE "-Wno-vla-cxx-extension")
+i\
+target_compile_options(fbgemm_avx512  PRIVATE "-Wno-vla-cxx-extension")
+i\
+endif()
+}
+'
+	cat >> third_party/fbgemm/CMakeLists.txt <<TERMINE
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 17.0.0)
+target_compile_options(asmjit         PRIVATE "-Wno-vla-cxx-extension")
+target_compile_options(fbgemm_generic PRIVATE "-Wno-vla-cxx-extension")
+target_compile_options(fbgemm_avx2    PRIVATE "-Wno-vla-cxx-extension")
+target_compile_options(fbgemm_avx512  PRIVATE "-Wno-vla-cxx-extension")
+endif()
+TERMINE
+}
+
+benchbench()
+{
+	# third_party/benchmark/src/mutex.h:79:40: error: mutex 'mut_' is still held at the end of function
+	# Normal, la fonction c'est le constructeur lock(): la libération se fera au destructeur.
+	# Pourtant il y a bien un attribut compilo mentionnant que l'on enfreint sciemment.
+	# Mais les macros de définition des attributs compilo sont conditionnées par HAVE_THREAD_SAFETY_ATTRIBUTES,
+	# or dans build/CMakeFiles/CMakeConfigureLog.yaml on s'aperçoit que la compil' du test menant à la définition de cet HAVE_ a planté,
+	# pour cause de third_party/benchmark/cmake/thread_safety_attributes.cpp qui inclut ../src/mutex.h qui inclut check.h puis internal_macros.h puis benchmark/benchmark.h qui n'existe pas (depuis le sous-dossier cmake).
+	# Les versions suivantes de pytorch embarquent un internal_macros.h sans benchmark/benchmark.h (à chaque appelant de l'invoquer).
+	# Bon au début j'ai essayé de faire le travail à la main en codant en dur le chemin vers benchmark.h
+	# Sauf que finalement leur test CMake revient à compiler tout benchmark, pour valider qu'on peut le compiler. Ça devenait une merde pas possible.
+	# Finalement on télécharge une version un peu plus récente (et on l'espère compatible) adaptée par Google aux clang un poil plus récents, et on n'en parle plus.
+	( obtenirEtAllerDans https://github.com/google/benchmark/archive/refs/tags/v1.7.1.tar.gz ; tar cf - . ) | ( cd third_party/benchmark && tar xf - )
+}
+
+isarithmetic()
+{
+	# error: 'is_arithmetic' cannot be specialized: Users are not allowed to specialize this standard library entity
+	# Et n'a pas l'air de servir.
+	filtrer c10/util/strong_type.h awk '/^template/{t=(t?t"\n":"")$0;next}t&&/is_arithmetic/{t="";tari=1}tari&&/^};/{tari="";next}tari{next}t{print t;t=""}{print}'
+}
+
+memsetthis()
+{
+	# error: first argument in call to 'memset' is a pointer to non-trivially copyable type 'asmjit::ZoneAllocator'
+	for f in \
+		third_party/fbgemm/third_party/asmjit/src/asmjit/core/zone.cpp \
+		third_party/fbgemm/third_party/asmjit/src/asmjit/core/zone.h \
+		third_party/fbgemm/third_party/asmjit/src/asmjit/core/zonevector.h \
+		third_party/fbgemm/third_party/asmjit/src/asmjit/core/func.h
+	do
+		filtrer "$f" sed \
+			-e 's/memset.this/memset((void *)this/g' \
+			-e 's/memcpy.this/memcpy((void *)this/g'
+	done
+	
+	filtrer third_party/fbgemm/third_party/asmjit/src/asmjit/core/zonevector.h sed -E \
+		-e 's/(memcpy\()([^,]*)/\1(void *)(\2)/g'
+}
+
+cmake3()
+{
+	# Certains des CMakeLists.txt mentionnent une compatibilité jusqu'à des cmake 2.8; sauf que les versions récentes (4.2) disent "je ne supporte plus les cmake < 3.5 (et bientôt 3.10)".
+	# On aurait pu se rajouter cmake < 4 en prérequis (qui nous modifie le $PATH), sauf que setup.py utilise le module Python cmake, non pas le binaire du $PATH.
+	grep -li 'cmake_minimum_required.VERSION.[0-3]' `find . -name CMakeLists.txt` | while read f
+	do
+		filtrer "$f" sed -e 's/VERSION [0-3][.0-9]*/VERSION 3.10/'
+	done
+}
 
 assert2()
 {
