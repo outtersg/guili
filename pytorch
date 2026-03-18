@@ -73,7 +73,7 @@ while true
 do
 	touch $TMP/$$/h
 	python ./setup.py build && break ||
-	find . -newer $TMP/$$/h -type f -not -size 0 -not -name ".ninja*" -not -name version.py -not -name native_functions.yaml -not -name tags.yaml -not -name "*.check_cache" | tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
+	find . -newer $TMP/$$/h -type f -not -size 0 -not -name ".ninja*" -not -name CMakeConfigureLog.yaml -not -name version.py -not -name native_functions.yaml -not -name tags.yaml -not -name "*.check_cache" | tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
 	{ jaune "# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup." >&2 && sh ; }
 done
 
