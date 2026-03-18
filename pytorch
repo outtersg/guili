@@ -81,7 +81,11 @@ echo Installation… >&2
 dest0="`pwd`/dest"
 rm -Rf "$dest0"
 pyextinit "$dest0"
-sudokupy USE_NCCL=$USE_NCCL python ./setup.py install --prefix="$dest0"
+# Pas de sudokupy: on est sur un dossier local. Et sudokupy est une grosse machinerie qui rappelle ./pytorch (… même si je ne rappelle plus ce qui le justifie; peut-être y a-t-il un couac à corriger).
+#sudokupy USE_NCCL=$USE_NCCL python ./setup.py install --prefix="$dest0"
+# setup.py ne transmet pas le --prefix au pip sous-jacent. De plus il empaquette le projet en .wheel, puis l'installe… juste par nom, donc si on est en train d'installer une 2.9 alors qu'il a déjà téléchargé une 2.10, c'est la 2.10 qui finit en place.
+#python ./setup.py install --prefix="$dest0"
+pip install --prefix="$dest0" --no-build-isolation -v .
 
 sudoku mkdir -p "$dest"
 sudoku cp -Rp "$dest0/." "$dest/."
