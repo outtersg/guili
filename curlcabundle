@@ -57,6 +57,7 @@ affecterArboSiArboDeGuillaume()
 installerAC()
 {
 	local pousserperso=oui
+	local destac=
 	
 	# Analyse des paramètres.
 	
@@ -64,6 +65,7 @@ installerAC()
 	do
 		case "$1" in
 			--sans-perso) pousserperso=non ;;
+			-o) destac="$2" ; shift ;;
 			*) break ;;
 		esac
 		shift
@@ -74,7 +76,7 @@ installerAC()
 	# Des fois qu'une surcharge de curl sous forme de fonction shell soit en place, on va chercher le vrai binaire.
 	local bin="`IFS=: ; for chemin in $PATH ; do [ -x "$chemin/curl" -a -x "$chemin/curl-config" ] && echo "$chemin" && break || true ; done`"
 	[ -d "$bin" ] || ! echo "# curl et curl-config introuvables dans le \$PATH ($PATH)." >&2 || exit 1
-	local destac="`"$bin/curl-config" --ca`"
+	case "$destac" in "") destac="`"$bin/curl-config" --ca`" ;; esac
 	local dossierac="`dirname "$destac"`"
 	local arbo=.
 	affecterArboSiArboDeGuillaume
