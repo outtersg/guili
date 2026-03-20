@@ -92,7 +92,7 @@ then
 	OPTIONS_CONF="$OPTIONS_CONF --with-libssh2"
 fi
 
-# À FAIRE: --with-brotli, --with-zstd, --enable-ldap / --with-ldap-lib, --enable-ldaps, HTTP3 (--with-ngtcp2 --with-nghttp3, --with-quiche, --with-openssl-quic)
+# À FAIRE: --with-brotli, --with-zstd, --enable-ldap / --with-ldap-lib, --enable-ldaps
 
 opSiPasPas idn libidn || true # libidn par défaut (sauf si explicitement exclue).
 optionSi ldap/openldap || true
