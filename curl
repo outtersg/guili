@@ -24,6 +24,8 @@ set -e
 DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
+DEST_CA_BUNDLE=share/curl-ca-bundle.crt
+
 # Historique des versions gérées
 
 v 7.16.0 && prerequis="gettext zlib libidn < 2" && modifs="multiarch sslcertfile" || true
@@ -113,7 +115,7 @@ i\
 #define CURL_CA_BUNDLE (getenv("CURL_CA_BUNDLE") && strlen(getenv("CURL_CA_BUNDLE")) ? getenv("CURL_CA_BUNDLE") : getenv("SSL_CA_CERT"))
 }
 '
-	filtrer configure sed -e "/want_ca=\"unset\"/s#=.*#=\"$dest/share/curl-ca-bundle.crt\"#"
+	filtrer configure sed -e "/want_ca=\"unset\"/s#=.*#=\"$INSTALLS/$DEST_CA_BUNDLE\"#"
 }
 
 multiarchPrecombiner()
@@ -140,7 +142,8 @@ then
 	installerACDest()
 	{
 		[ -z "$GUILI_MOIRE" ] || return 0
-		PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC "$@"
+		# On force l'install dans $dest, car le curl-config qu'on a créé va sinon l'installer dans $INSTALLS (cf. sslcertfile()), où ça peut être un lien symbolique vers un compendium hébergé par une ancienne version de curl: ça marcherait mais ne ferait pas propre, et surtout il serait supprimé le jour où on purgerait cette ancienne version.
+		PATH="$dest/bin:$PATH" LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH" installerAC -o "$dest/$DEST_CA_BUNDLE" "$@"
 	}
 else
 	installerACDest() { true ; }
