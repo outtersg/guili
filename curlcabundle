@@ -60,7 +60,14 @@ installerAC()
 	
 	# Analyse des paramètres.
 	
-	[ "x$1" = "x--sans-perso" ] && pousserperso=non && shift || true
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+			--sans-perso) pousserperso=non ;;
+			*) break ;;
+		esac
+		shift
+	done
 	
 	# Tout le reste sera passé à curl.
 	
