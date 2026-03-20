@@ -68,6 +68,7 @@ v 8.11.1 || true
 v 8.12.1 || true
 v 8.16.0 || true
 v 8.18.0 || true
+v 8.19.0 || true
 
 # OpenSSL:
 # - s'il ne préexiste pas, on ne force pas: on est peut-être sur un système qui a besoin de cURL pour installer OpenSSL.
