@@ -60,7 +60,7 @@ v 7.84.0 && v_nghttp2=">= 1.12" || true # Ouille, https://github.com/curl/curl/i
 v 7.85.0 || true
 v 7.86.0 || true
 v 7.88.1 || true
-v 8.0.1 || true
+v 8.0.1 && prerequis="$prerequis nghttp3 ngtcp2" || true
 v 8.3.0 || true
 v 8.5.0 || true
 v 8.6.0 && prerequis="perl \\ $prerequis libpsl" || true # perl pour la doc.
@@ -96,6 +96,10 @@ if [ -n "$v_nghttp2" ] && opSiPasPas http2 "nghttp2 $v_nghttp2"
 then
 	modifs="$modifs moinsLnghttp2"
 fi
+case "$prerequis" in *nghttp3*)
+	argOptions="`options $argOptions=http3`"
+	option http3 && OPTIONS_CONF="$OPTIONS_CONF --with-ngtcp2 --with-nghttp3" || virerPrerequis nghttp3 ngtcp2
+;; esac
 
 prerequisOpenssl
 
