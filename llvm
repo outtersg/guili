@@ -891,6 +891,7 @@ vblibcxx()
 }
 
 # Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
+! option flang || argOptions="`options "$argOptions+rt+omp"`" # D'après https://flang.llvm.org/docs/GettingStarted.html; sinon il émet une notice.
 option dyn || true
 option omp || true
 case $constr in
@@ -900,6 +901,8 @@ case $constr in
 		case "$0" in *clang)
 			PROJETS="$PROJETS,clang"
 		;; esac
+		# À FAIRE: passer par un moiré; à l'heure actuelle par exemple un clang +flang 22 plante s'il n'est pas compilé par un clang 22 (car flang, ou peut-être son flang-rt, repose sur des structures propres au clang avec lequel il vient).
+		! option flang || PROJETS="$PROJETS,mlir,flang"
 		;;
 esac
 
@@ -970,6 +973,12 @@ modulesClang()
 	local moduleClang=clang
 	pge $version 9 || moduleClang=cfe
 	integrer tools/clang          $moduleClang
+	if option flang
+	then
+		# À FAIRE: pas sûr que ça marche, ajouté à l'aveugle (seul le mode runtimes a été testé):
+		integrer projects/flang-rt flang-rt
+		integrer projects/flang flang
+	fi
 	! option rt || integrer projects/compiler-rt compiler-rt
 	if option libcxx
 	then
@@ -1032,14 +1041,18 @@ case $constr in
 					# Mais on se rend cpte que dans notre 18 (qui n'a même pas encore le LIBUNWIND_HAS_NO_EXCEPTIONS_FLAG), est utilisé un CXX_SUPPORTS_FNO_EXCEPTIONS_FLAG qui n'est défini nulle part???
 					# Ah purée le connard en scrutant build/runtimes/runtimes-X86-bins/CMakeFiles/CMakeConfigureLog.yaml (grep -rl) on finit par dénicher un "error: unknown target triple 'X86'"
 					! option omp || OPTIONS_CMAKE="$OPTIONS_CMAKE;openmp"
+					! option flang || OPTIONS_CMAKE="$OPTIONS_CMAKE;flang-rt"
 					# Ah compris c'est mon BUILD_TARGETS=X86
 					# Et si on compile sans l'option rt:
 					# "LIBCXXABI_USE_LLVM_UNWINDER is set to ON, but libunwind is not specified in LLVM_ENABLE_RUNTIMES."
+					# Mais argh, Flang does not currently support building with LLVM exceptions enabled. Please disable LLVM_ENABLE_EH when building flang.
 					if pge $version 18
 					then
 						if option rt
 						then
-							OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=ON -DLIBCXXABI_ENABLE_EXCEPTIONS=ON"
+							exceptions=ON
+							option flang && exceptions=OFF || true
+							OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RTTI=ON -DLLVM_ENABLE_EH=$exceptions -DLIBCXXABI_ENABLE_EXCEPTIONS=ON"
 						fi
 					fi
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_DEFAULT_CXX_STDLIB=libc++"
