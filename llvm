@@ -1075,10 +1075,11 @@ for modif in true $modifsPostConf ; do $modif ; done
 echo Compilation… >&2
 while true
 do
-	touch $TMP/h
+	touch $TMP/$$/h
 	make -j4 && break ||
-	find . -newer $TMP/h -type f -not -path "*/CMakeFiles/Progress/*" -not -size 0 -not -name "*.check_cache" | tee /tmp/z | grep -q . ||
-	{ echo "[33m# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup.[0m" >&2 && sh ; }
+	find . -newer $TMP/$$/h -type f -not -path "*/CMakeFiles/Progress/*" -not -size 0 -not -name "*.check_cache" |
+	tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
+	{ jaune "# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup." >&2 && sh ; }
 done
 #make -j 4 || make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 ) # Quand 4 éditions de liens tournent en même temps, ça finit par péter faute de mémoire.
 
