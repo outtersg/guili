@@ -1058,7 +1058,7 @@ case $constr in
 				;;
 		esac
 				case "$PROJETS" in
-					,*) OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=`printf '%s' "$PROJETS" | cut -d , -f 2-`" ;;
+					,*) OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_PROJECTS=`printf '%s' "$PROJETS" | cut -d , -f 2- | tr , \;`" ;;
 				esac
 			;;
 		esac
