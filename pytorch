@@ -232,7 +232,7 @@ echo Corrections… >&2
 for modif in true $modifs ; do "$modif" ; done
 
 echo Prérequis… >&2
-pip install --prefix $INSTALLS/$PYEXT pyyaml typing_extensions
+pip install --prefix $INSTALLS/$PYEXT packaging pyyaml typing_extensions
 
 echo Compilation… >&2
 while true
