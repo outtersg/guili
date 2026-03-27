@@ -894,9 +894,12 @@ vblibcxx()
 option dyn || true
 option omp || true
 case $constr in
-	runtimes)
+	cmake|runtimes)
 		! option lldb || PROJETS="$PROJETS,lldb"
 		! option lld || PROJETS="$PROJETS,lld"
+		case "$0" in *clang)
+			PROJETS="$PROJETS,clang"
+		;; esac
 		;;
 esac
 
@@ -1011,7 +1014,6 @@ case $constr in
 				# https://github.com/llvm/llvm-project/issues/124014
 				# Les RUNTIMES sont construits avec le compilo tout juste compilé, alors que les PROJECTS le sont par le compilo précédent:
 				# https://llvm.org/devmtg/2023-10/slides/tutorials/Hosek-UnderstandingtheLLVMbuild.pdf
-				PROJETS="$PROJETS,clang"
 				if option libcxx
 				then
 							# compiler-rt: https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477 + sans ça pas de libclang_rt.profile-x86_64.a indispensable au -fprofile-instr-generate qui permet (par ex. à Python) de se générer avec les stats de perfs.
