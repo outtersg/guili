@@ -73,6 +73,7 @@ v 20.1.4 || true
 v 20.1.8 || true
 v 21.1.1 || true
 v 21.1.6 || true
+v 22.1.2 && modifs="$modifs float16bis" || true
 
 modifs="$modifsDyn $modifs"
 
@@ -278,6 +279,17 @@ a\
 '
 		fi
 	fi
+}
+
+float16bis()
+{
+	option rt || [ `uname` != FreeBSD ] || return 0
+	
+	# https://github.com/llvm/llvm-project/issues/185662
+	# Symptôme similaire à float16(): sous FreeBSD, pétage lors de la compil de __Float16 dans i386.dir
+	# Solution différente: simplement virer la compil pour les trop vieux proc.
+	
+	filtrer clang/lib/Driver/ToolChains/Arch/X86.cpp sed -e s/i686/pentium4/g
 }
 
 float16()
