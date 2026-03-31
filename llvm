@@ -73,7 +73,7 @@ v 20.1.4 || true
 v 20.1.8 || true
 v 21.1.1 || true
 v 21.1.6 || true
-v 22.1.2 && modifs="$modifs float16bis" || true
+v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt" || true
 
 modifs="$modifsDyn $modifs"
 
@@ -204,6 +204,13 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+dlfcnflangrt()
+{
+	filtrer flang-rt/lib/runtime/environment.cpp sed -e '/#include <limits>/a\
+#include <dlfcn.h>
+'
+}
 
 auxv_optio()
 {
