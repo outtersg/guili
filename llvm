@@ -73,7 +73,7 @@ v 20.1.4 || true
 v 20.1.8 || true
 v 21.1.1 || true
 v 21.1.6 || true
-v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt" || true
+v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit" || true
 
 modifs="$modifsDyn $modifs"
 
@@ -210,6 +210,13 @@ dlfcnflangrt()
 	filtrer flang-rt/lib/runtime/environment.cpp sed -e '/#include <limits>/a\
 #include <dlfcn.h>
 '
+}
+
+threadAtExit()
+{
+	# https://github.com/llvm/llvm-project/pull/116261#discussion_r3020471740
+	
+	filtrer libcxxabi/src/cxa_thread_atexit.cpp sed -e '/__Fuchsia__/s/$/ || 1/'
 }
 
 auxv_optio()
