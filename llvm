@@ -1240,6 +1240,7 @@ case "$PWD" in */build) cd .. ;; esac # La compil' terminée, on se replace à l
 # Ainsi les produits de compilation pourront être réutilisés (à discrétion du Makefile).
 case "$GUILI_CLANG_PID" in ?*)
 	echo "$dest" > "$TMP/$GUILI_CLANG_PID/destin" # DESTination du guili INterne.
+	rm -Rf build-passe1 || true
 	mv build build-passe1 # À un autre endroit tout de même: c'est le flangPostConf de l'appelant qui y piochera ce qu'il veut, en évitant surtout de reprendre tout le cache CMake qui s'est fixé sur l'ancien compilo.
 	cd "$TMP/$$"
 ;; esac
