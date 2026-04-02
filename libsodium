@@ -1,0 +1,85 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delictueux ; s="`dirname "$s"`" ; Delictueux ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
+
+# Historique des versions gérées
+
+v 1.0.21 && modifs="$modifs avecLld" || true
+
+archive="https://github.com/jedisct1/libsodium/archive/refs/tags/$version-RELEASE.tar.gz"
+
+# Prédestinations
+
+predestiner="$predestiner peutEtreLld"
+
+peutEtreLld()
+{
+	commande lld || retirerModif avecLld
+}
+
+# Modifications
+
+avecLld()
+{
+	# /usr/local/binutils-2.41/bin/ld: sodium/.libs/libsodium_la-codecs.o(.text+0x1c5f): unresolvable R_X86_64_DTPOFF32 relocation against symbol `_ThreadRuneLocale@@FBSD_1.3'
+	# Même avec binutils 2.46.0
+	# A priori c'est une variable statique de thread; est-ce que ça interfère avec les full ou même partial relro?
+	#   https://maskray.me/blog/2021-06-13-dependency-related-linker-options
+	#   https://groups.google.com/g/comp.os.linux.development.apps/c/0uVDmHDHrPk?pli=1
+	#   https://stackoverflow.com/questions/5093851/problems-with-static-local-variables-with-relocatable-code
+	#   https://www.redhat.com/fr/blog/hardening-elf-binaries-using-relocation-read-only-relro
+	#   readelf -r ~/tmp/libsodium-1.0.21-RELEASE/src/libsodium/sodium/.libs/libsodium_la-codecs.o | less # Montre le fameux _ThreadRuneLocale en R_X86_64_DTPOFF32
+	#   en readlef -a on le voit bien en TLS (cf. https://bugs.eclipse.org/bugs/show_bug.cgi?id=493979 R_X86_64_DTPOFF32 can sometimes be replaced by R_X86_64_34): "Thread-Local Storage", correspond bien à la cible souhaitée.
+	# Avec lld ça passe…
+	
+	printf "Lieur: " ; cyan lld
+	
+	#filtrer configure sed -e 's#\$CC -print-prog-name=ld#echo /usr/bin/ld#g'
+	export LD=lld
+	export LDFLAGS="$LDFLAGS -fuse-ld=lld"
+}
+
+# Variables
+
+for modif in true $predestiner ; do "$modif" ; done
+destiner
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+./configure --prefix="$dest"
+
+echo Compilation… >&2
+make -j4
+
+echo Installation… >&2
+sudoku make install
+
+sutiliser
