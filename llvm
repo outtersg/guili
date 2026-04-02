@@ -68,7 +68,7 @@ v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setna
 v 19.1.5 && modifs="$modifs fs_filesystem" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
-v 20.1.3 && modifs="$modifs internal_close_range copy_file_range" || true
+v 20.1.3 && modifs="$modifs internal_close_range copy_file_range timespec_get" || true
 v 20.1.4 || true
 v 20.1.8 || true
 v 21.1.1 || true
@@ -290,6 +290,17 @@ int main(int argc, char ** argv) { return copy_file_range(0, 0, 0, 0, 0, 0); }
 TERMINE
 	compilo_test $CC $TMP/$$/1.c -o $TMP/$$/1.bin ||
 	filtrer libcxx/src/filesystem/operations.cpp grep -v 'define _LIBCPP_FILESYSTEM_USE_COPY_FILE_RANGE'
+}
+
+timespec_get()
+{
+	# Certains vieux systèmes ont un timespec sans la fonction timespec_get: on doit dissocier les #if defined(NO_TIMESPEC), entre ceux qui entourent des blocs faisant seulement appel à timespec, et ceux à bloc à timespec_get.
+	case `uname` in
+		FreeBSD)
+			grep -q timespec_get /usr/include/time.h ||
+			filtrer flang-rt/lib/runtime/time-intrinsic.cpp awk 'depart{retention=retention"\n"$0}!depart&&/#if.*NO_TIMESPEC/{depart=$0;retention=""}!depart{print}/time\.h>/{print "#define NO_TIMESPEC_GET"}depart&&/#endif/{printf("%s",depart);print retention;depart=""}depart&&/timespec_get|ConvertTimeSpecToCount/{gsub(/NO_TIMESPEC[_A-Z]*/,"NO_TIMESPEC_GET",depart)}'
+			;;
+	esac
 }
 
 problematicCompilerId()
