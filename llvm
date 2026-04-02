@@ -1212,7 +1212,7 @@ while true
 do
 	touch $TMP/$$/h
 	make -j4 && break ||
-	find . -newer $TMP/$$/h -type f -not -path "*/CMakeFiles/Progress/*" -not -size 0 -not -name "*.check_cache" -not -name compiler_depend.internal -not -name "*.c*.o.d" |
+	find . -newer $TMP/$$/h -type f -not -path "*/CMakeFiles/Progress/*" -not -size 0 -not -name "*.check_cache" -not -name progress.\* -not -name cmake_clean.cmake -not -name compiler_depend.\* -not -name "*.c*.o.d" |
 	tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
 	{ jaune "# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup." >&2 && sh ; }
 done
