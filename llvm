@@ -130,11 +130,11 @@ flangPostConf()
 	for suffixe in o.d o a so
 	do
 		sleep 1
-		find "$b0" -type f -name \*.$suffixe -print0 | xargs -0 touch
+		find "$b0" -type f -name \*.$suffixe -print0 | xargs -0 touch || true
 	done
 	sleep 1
-	touch "$b0/bin"/*
-	find "$b0" -type f -not -newer $TMP/$$/h -print0 | xargs -0 rm
+	touch "$b0/bin"/* || true
+	find "$b0" -type f -not -newer $TMP/$$/h -print0 | xargs -0 rm || return 0
 	#( cd "$b0" && tar cf - . ) | tar xf -
 	cp -Rlp "$b0/." ./ 2> /dev/null || true
 }
