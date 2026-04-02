@@ -101,13 +101,13 @@ destiner "$rai$destphp"
 prerequis
 
 obtenirEtAllerDansVersion
+cd xdebug-$version
 
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 monPhp="`php-config --prefix`"
 
-cd xdebug-$version
 phpize
 ./configure --enable-xdebug
 make
