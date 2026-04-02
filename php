@@ -32,7 +32,7 @@ OPTIONS_CONF=
 # pkgconfig au moins pour libxml en PHP 8.
 # openssl < 1.1: apparemment la 5.2 connaît déjà la 1.1, mais ça doit être dans nos dépendances que ça coince (genre on se lie à un PostgreSQL ne connaissant lui-même qu'OpenSSL 1.0).
 prerequis="langc() langcxx() pkgconfig \\ libjpeg libpng freetype gettext ncurses readline curl+osslxx < 8 zlib iconv mysql postgresql+osslxx < 17 libxml openssl < 1.1 libssh+osslxx sqlite"
-v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl doubleYytext || true
+v 4.4.7 && ajouterModif readlineNcurses lcplusplus pginfossl doubleYytext cxx11maxi finfoimplicint zlibvoidctor domc mbfllaxiste sessionconst testreaddir ps_title_unistd || true
 v 5.0.3
 v 5.0.4
 # PHP 5.0.3 ne gère pas l'iconv de Panther; il détecte bien l'appel libiconv,
@@ -74,7 +74,8 @@ v 5.4.36 || true # Apache 2.4.10 + mod_php = au bout d'un certain temps, segfaul
 v 5.4.39 || true
 v 5.4.41 || true
 v 5.4.45 || true
-v 5.4.45.1 || true # Qq modifs faites sur un BSD avec un clang++ 17 qui gueulait: 1. un fichier pète sur les register: le recomp en -std=c++11; 2. readdir_r pète: définir à 1 le HAVE_ dans le config.h; 3. cooie_seeker pète: transformer ds toutes les déclarations off_t en fpos_t *, puis le passer en *
+v 5.4.45.1 || true
+# Qq modifs manuelles sur un BSD avec un clang++ 17 qui gueulait (en plus de celles déjà intégrées comme $modifs): 3. cookie_seeker pète: transformer ds toutes les déclarations off_t en fpos_t *, puis le passer en *
 v 5.5.7 || true
 v 5.5.8 || true
 v 5.5.14 || true
@@ -88,7 +89,7 @@ v 5.6.40 || true
 v 5.6.40.1 || true
 # icu < 70 car en 70, l'UBool operator== de brkiter.h devient un bool operator== (le premier étant un unsigned char, et clang refusant de faire la conversion => la version interne à PHP est incompatible).
 # On peut voir d'ailleurs dans les codepointiterator_internal.h des versions 8 qu'ils l'ont aiguillé d'un #if U_ICU_VERSION_MAJOR_NUM >= 70
-v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis libjpegturbo && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" || true
+v 7.0.2 && prerequis="langc() langcxx(11) \\ $prerequis" && remplacerPrerequis libjpegturbo && modifs="$modifs doubleEgalEnShDansLeConfigure isfinite icucxx11 truefalse" && retirerModif cxx11maxi finfoimplicint zlibvoidctor domc mbfllaxiste sessionconst testreaddir ps_title_unistd || true
 v 7.0.8 || true
 v 7.0.15 || true
 v 7.1.13 && ajouterModif cve201911043 confclosedir && remplacerPrerequis "openssl < 3" || true
@@ -337,6 +338,61 @@ doubleYytext()
 	do
 		filtrer "$f" sed -e '/^char.*yytext/s#^#//#'
 	done
+}
+
+cxx11maxi()
+{
+	# Le prerequis langcxx(11) demande un C++ a minima 11. Mais pour compiler un vieux PHP avec un compilo moderne, on a demande un C++ a maxima 11.
+	# Identifiées: au moins ext/intl, qui tartine ses fichiers de register.
+	export CXXFLAGS="$CXXFLAGS -std=c++11"
+}
+
+finfoimplicint()
+{
+	filtrer ext/fileinfo/libmagic/funcs.c sed -e '/^file_replace/s/^/protected int /'
+}
+
+zlibvoidctor()
+{
+	filtrer ext/zlib/zlib.c sed -e '/ZEND_MODULE_GLOBALS_CTOR_N/{
+s/)/&))/
+s/Z/((void (*)(void *))(&/
+}'
+}
+
+domc()
+{
+	filtrer ext/dom/dom_iterators.c sed -e 's/itemHashScanner,/(xmlHashScanner)&/g'
+}
+
+mbfllaxiste()
+{
+	filtrer ext/mbstring/libmbfl/filters/mbfilter_iso2022jp_mobile.c sed -e 's/mbfl_encoding_2022jp_kddi_aliases,/\&&/'
+	filtrer ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c sed -e '/mbfilter_utf8_mobile.h/a\
+extern int mbfl_filt_put_invalid_char(int c, mbfl_convert_filter *filter);
+'
+}
+
+sessionconst()
+{
+	# 3 occurrences d'unserialize, dont 1 étrangement non protégée par une conversion en const.
+	filtrer ext/session/session.c sed -e '/php_var_unserialize.*, endptr/{
+s/&val/(const unsigned char **)&/
+s/endptr/(const unsigned char *)&/
+}'
+}
+
+testreaddir()
+{
+	# Le configure teste la version de readdir_r en vérifiant que la compilation pète. Sauf qu'elle pète, mais pas pour cause d'absence de la fonction testée, pour cause de programme de test complètement pourri.
+	filtrer configure awk '/type of readdir_r/{dans=1}dans&&/#include/{print"#include <stdlib.h>"}dans&&/main/{print "int";dans=0}1'
+}
+
+ps_title_unistd()
+{
+	filtrer sapi/cli/ps_title.c sed -e '/#include "ps_title.h"/a\
+#include "php.h"
+'
 }
 
 atomicconst()
