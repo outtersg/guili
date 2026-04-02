@@ -56,16 +56,16 @@ v 10.0.1 || true
 v 11.1.0 && modifs="$modifs maxAlign" || true
 v 12.0.0 && modifs="$modifs float16" || true
 v 12.0.1 || true
-v 13.0.0 || true
+v 13.0.0 && modifs="$modifs ptrace_events" || true
 v 13.0.1 || true
-v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet" || true
+v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet kvmopen2" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
 v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx problematicCompilerId" || true
-v 17.0.1 && modifs="$modifs tailleintsanitizer" && prerequis="python >= 3 cmake >= 3.20 \\" || true
+v 17.0.1 && modifs="$modifs tailleintsanitizer signaux" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
 v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setname" || true
-v 19.1.5 && modifs="$modifs fs_filesystem" || true
+v 19.1.5 && modifs="$modifs fs_filesystem user_localbase" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
 v 20.1.3 && modifs="$modifs internal_close_range copy_file_range timespec_get" || true
@@ -250,6 +250,19 @@ pthread_setname()
 '
 }
 
+signaux()
+{
+	local s expr
+	for s in BUS_OOMERR SEGV_PKUERR
+	do
+		{ echo '#include <sys/signal.h>' ; echo "int f() { return $s; }" ; } > $TMP/$$/1.c
+		compilo_test $CC -c -o $TMP/$$/1.o $TMP/$$/1.c > /dev/null 2>&1 || case "$expr" in "") expr=$s ;; *) expr="$expr|$s" ;; esac
+	done
+	case "$expr" in ?*)
+		filtrer lldb/source/Plugins/Process/Utility/FreeBSDSignals.cpp awk "/$expr/"'{print "#if 0";dedans=1}{print}dedans&&/;/{print "#endif";dedans=0}'
+	;; esac
+}
+
 getentropy_optio()
 {
 	# FreeBSD 10.2 n'a pas de getentropy, la 14.2 en a un. On place la barre entre les deux en attendant de connaître la version précise qui nous permet de l'utiliser.
@@ -268,6 +281,11 @@ fs_filesystem()
 	# MAIS libc++ considère qu'une version d'ABI > 1 est expérimentale, et à ce titre se permet (à partir de la 19) encore d'autres modifs qui obligeraient à un nouveau changement de version.
 	# La 19 n'ayant que cette incompatibilité d'ABI, facilement débrayable, on la débraye pour éviter de multiplier les versions (avoir une libc++.so.x fournie par libc++ 18, et une libc++.so.y par la 19, obligeant à conserver les deux pépères de 3,5 Go chacun pour ne pas péter les logiciels liés à la .x… dont clang 19 lui-même).
 	filtrer libcxx/include/__configuration/abi.h grep -v define\ \*_LIBCPP_ABI_NO_FILESYSTEM_INLINE_NAMESPACE
+}
+
+user_localbase()
+{
+	grep -q USER_LOCALBASE /usr/include/sys/sysctl.h || filtrer lldb/source/Plugins/SymbolLocator/Default/SymbolLocatorDefault.cpp sed -e '/__FreeBSD__/s/$/ \&\& 0/'
 }
 
 internal_close_range()
@@ -383,6 +401,12 @@ endif()
 		deja>1{next}
 		!deja&&/set.i386_SOURCES/{deja=1}
 		deja&&/^$/{++deja;print"list(REMOVE_ITEM i386_SOURCES truncdfbf2.c truncsfbf2.c)"}'
+}
+
+ptrace_events()
+{
+	# /!\ Ça marche encore, si on neutralise SetupTrace et MonitorSIGTRAP?
+	grep -q PTRACE_EXEC /usr/include/sys/ptrace.h || filtrer lldb/source/Plugins/Process/FreeBSD/NativeProcessFreeBSD.cpp awk 'dedans&&/^}|return ReinitializeThreads/{print "#endif";dedans=0}/::SetupTrace|::MonitorSIGTRAP/{dedans=1}{print}dedans==1&&/{/{dedans=2;print"#if 0"}'
 }
 
 shaxxx()
@@ -624,6 +648,18 @@ sansBenchmarks()
 		filtrer $projects/libcxx/CMakeLists.txt sed \
 			-e '/option.LIBCXX_INCLUDE_BENCHMARKS/s/ON/OFF/'
 	fi
+}
+
+kvmopen2()
+{
+	grep -q kvm_open2 /usr/include/kvm.h && return 0 || true
+	
+	filtrer lldb/source/Plugins/Process/FreeBSDKernel/ProcessFreeBSDKernel.cpp sed -e '/<kvm/{
+a\
+#define kvm_open2(execfile, corefile, flags, errbuf, resolver) kvm_open(execfile, corefile, NULL, flags, NULL)
+a\
+#define kvm_read2 kvm_read
+}'
 }
 
 quandMemeCxxISystem()
