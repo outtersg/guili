@@ -142,7 +142,6 @@ flangPostConf()
 flangPostCompil()
 {
 	# Si une version d'amorçage a été compilée spécialement pour nous, on la transbahute à notre destination définitive, avant d'installer vers celle-ci, écrasant ses fichiers par notre version plus complète: d'un point de vue espace disque ça évitera d'avoir la version d'amorçage faisant doublon avec celle définitive juste à côté.
-cat $TMP/26660/destin > "$TMP/$$/destin"
 	if [ -z "$TMP/$$/destin" ]
 	then
 		destin="`cat "$TMP/$$/destin"`"
