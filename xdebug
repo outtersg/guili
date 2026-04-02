@@ -50,7 +50,7 @@ esac
 # Historique des versions gérées
 
 # make: mon FreeBSD make n'arrive pas à renseigner $^ sur une règle pourtant ultra simple (debugclient: main.o usefulstuff.o), et fait générer une "clang: error: no input files".
-v 2.1.0 && prerequis="make autoconf \\ $prerequis" || true
+v 2.1.0 && prerequis="make autoconf \\ $prerequis" && modifs="$modifs type_original_bailout" || true
 v 2.2.1 || true
 v 2.2.5 || true
 v 2.2.7 || true
@@ -60,7 +60,7 @@ v 2.6.0 || true
 v 2.6.1 || true
 v 2.7.1 || true
 v 2.8.1 || true
-v 2.9.2 || true
+v 2.9.2 && retirerModif type_original_bailout || true
 v 2.9.8 || true
 v 3.0.2 || true
 v 3.0.4 || true
@@ -80,6 +80,11 @@ v 3.5.0 || true
 v 3.5.1 || true
 
 # Modifications
+
+type_original_bailout()
+{
+	filtrer xdebug_handler_dbgp.c sed -e '/jmp_buf.*original_bailout/s/jmp/sigjmp/'
+}
 
 # Variables
 
