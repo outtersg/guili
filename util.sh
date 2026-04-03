@@ -73,10 +73,12 @@ cheminsGuili()
 detecterModernite()
 {
 	MODERNITE=0
+	# 7: les $predestiner sont joués automatiquement par destiner(), prerequisOpenssl() en fait partie.
+	if command -v Delibere > /dev/null 2>&1 ; then MODERNITE=7
 	# 6: si un prérequis apparaît plusieurs fois, il est trié de manière à ce que les plus récentes apparaissent en premier, masquant les plus anciennes.
 	#    Ainsi si OpenSSL nous arrive à la fois en 3.3 par notre prérequis curl, et en 3.2 par postgresql, on placera la 3.3 en priorité dans tous les chemins.
 	#    Une version plus stricte virerait carrément la 3.2, mais avec le risque que postgresql ne marche plus, pour un symbole supprimé de la 3.3, tandis qu'il fonctionnouille sur la 3.3 ayant gardé l'ABI de la 3.2 pour les appels maintenus.
-	if command -v Delictueux > /dev/null 2>&1 ; then MODERNITE=6
+	elif command -v Delictueux > /dev/null 2>&1 ; then MODERNITE=6
 	# 5: le compilo doit être choisi par un des prérequis langx() (par défaut langc).
 	#   On évite ainsi:
 	#   - la multitude de façons de glisser un compilo (compiloSysVersion, meilleurCompilo, cxx1x, cpp1x, etc.), qui oblige à une sacrée gymnastique pour les détecter

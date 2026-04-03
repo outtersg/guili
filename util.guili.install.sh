@@ -52,6 +52,8 @@ DPOM()
 
 destiner()
 {
+	[ $MODERNITE -lt 7 ] || for modif in true $predestiner ; do $modif ; done
+	
 	local argOptionsResolu
 	verifierConsommationOptions
 	

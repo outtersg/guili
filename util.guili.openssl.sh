@@ -18,8 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+[ $MODERNITE -lt 7 ] || predestiner="$predestiner prerequisOpenssl"
+
 prerequisOpenssl()
 {
+	case "$argOptions $prerequis" in *ssl*) true ;; *) return 0 ;; esac
+	
 	# À FAIRE: dans les prerequis sans +osslxx, repérer ceux qui contiennent un prerequisOpenssl et leur ajouter alors un +osslxx.
 	case "$argOptions" in
 		# Au moins une option OpenSSL positive: on va pouvoir passer à la suite (qui gérera l'aiguillage).
