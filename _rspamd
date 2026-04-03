@@ -32,7 +32,11 @@ auSecours()
 {
 	moi="`basename "$0"`"
 	cat >&2 <<TERMINE
-# Utilisation: $moi [<version rspamd>]
+# Utilisation: $moi [-s <suffixe démarreur>] [-p <préfixe ports>] <base de données> [<version rspamd>]
+  -s <suffixe démarreur>
+    Le service sera installé en tant que rspamd<suffixe démarreur>, ce qui permet d'en faire cohabiter plusieurs sur le serveur
+  -p <préfixe ports>
+    Le préfixe ports doit être de la forme 113xx (x littéral, précédé de 3 chiffres): les services tourneront sur les ports 11332 à 11335
 TERMINE
 	exit 1
 }
@@ -40,12 +44,24 @@ TERMINE
 analyserParametres()
 {
 	vars="bdd"
-	versionRspamd=
 	compte=
+	prefixePorts=
 	while [ $# -gt 0 ]
 	do
 		case "$1" in
 			-u) shift ; compte="$1" ;;
+			-s)
+				suffixe="$2"
+				guili_alias="$guili_alias:$logiciel$suffixe"
+				shift
+				;;
+			-p)
+				case "$2" in [1-9][0-9][0-9]xx) true ;; *) rouge "# La plage de ports doit être spécifiée sous la forme 123xx." >&2 ; exit 1 ;; esac
+				prefixePorts="`printf '%.3s' "$2"`"
+				PARAMS_SERVEUR="$PARAMS_SERVEUR -r $2"
+				shift
+				;;
+			rspamd) shift ; break ;; # Mentionner rspamd est un marqueur certain que la suite est à passer au rspamd sous-jacent.
 			*) apAffecter "$1" $vars ;;
 		esac
 		shift
@@ -70,8 +86,7 @@ analyserParametres()
 		bdd="$dest/var/db/rspamd"
 	fi
 	
-	[ -z "$versionRspamd" -a ! -z "$argVersion" ] && versionRspamd="$argVersion" || true
-	[ -z "$versionRspamd" ] || prerequis="`echo " $prerequis " | sed -e "s# rspamd # rspamd $versionRspamd #g"`"
+	case "$*" in ?*) remplacerPrerequis "rspamd $*" ;; esac
 }
 
 ajouterPaf()
@@ -81,6 +96,21 @@ ajouterPaf()
 	[ -f "$paf/make" ] || fatal "# Impossible de trouver les sources de paf."
 	
 	( cd "$paf" && sudoku ./make "$dest/etc/rspamd.0" )
+}
+
+porter()
+{
+	case "$prefixePorts" in "") return 0 ;; esac
+	
+	local desti="$1" afaire port fichier
+	
+	lire() { port=$1 ; fichier=$2 ; }
+	
+	for afaire in "33 worker-normal.inc" "34 worker-controller.inc" "32 worker-proxy.inc" "35 worker-fuzzy.inc"
+	do
+		lire $afaire
+		echo 'bind_socket = "localhost:'$prefixePorts$port'";' >> "$desti/etc/rspamd.0/local.d/$fichier"
+	done
 }
 
 analyserParametres "$@"
@@ -107,14 +137,17 @@ fi
 echo "Auto-démarrage…" >&2
 t="$TMP/$$/dest"
 mkdir -p "$t/etc" "$t/var/run" "$t/var/log"
+# À FAIRE: ne pas ignorer la config, mais fusionner s'il en existe une.
+#   Par exemple en recopiant la partie personnalisée de l'arbo, et laissant chaque modifieur (ex.: porter()) décider s'il écrase ou s'efface devant un paramètre déjà présent.
 if [ ! -d "$dest/etc/rspamd.0" ]
 then
 	cp -R "$destrspamd/etc/rspamd" "$t/etc/rspamd.0"
 	mkdir -p "$t/etc/rspamd.0/local.d"
 	echo "secure_ip = \"`localhost`\";" > "$t/etc/rspamd.0/local.d/worker-controller.inc"
 fi
+porter "$t"
 # Il faut lui préciser un SSL_CERT_FILE pour qu'il puisse télécharger ses listes régulièrement sur https://rspamd.com/.
-serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" demon rspamd \
+serveur -d0 "$t" -d "$dest" -p "$dest/var/run/rspamd.pid" -u "$compte" demon rspamd$suffixe \
 	LD_LIBRARY_PATH="$INSTALLS/lib" \
 	SSL_CERT_FILE="$INSTALLS/share/curl-ca-bundle.crt" \
 	"$destrspamd/bin/rspamd LOGDIR=$dest/var/log CONFDIR=$dest/etc/rspamd.0 LOCAL_CONFDIR=$dest/etc/rspamd.0 DBDIR=$bdd -c $dest/etc/rspamd.0/rspamd.conf -u $compte -p $dest/var/run/rspamd.pid"
@@ -131,6 +164,6 @@ then
 	ajouterPaf
 fi
 
-servir rspamd restart
+servir rspamd$suffixe restart
 
 sutiliser -
