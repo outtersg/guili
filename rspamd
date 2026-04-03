@@ -34,10 +34,17 @@ v 1.6.2 && modifs="lpeginternevisible" || true
 v 1.6.6 || true
 v 1.7.0 && virerPrerequis fann && prerequis="$prerequis luajit" || true # Luajit optionnel avant; maintenant Cannot compile torch without luajit.
 v 1.9.4 || true
+v 2.7 && prerequis="$prerequis libsodium" && modifs="$modifs icuDeSecours" || true
 
 # À FAIRE: une option +blas (avec openblas?).
 
 # Modifications
+
+icuDeSecours()
+{
+	# Curieusement alors que la version 1.9 trouvait tout ce qu'il fallait comme biblios ICU, la 2.7, bien que parcourant bien icui18n, icuuc, et icudata, n'inclue que la première aux paramètres d'édition de liens. Donc pétage à ce moment, pour quelques symboles manquants. On rajoute icuuc (elle-même liée à icudata, donc pas besoin d'ajout explicite de cette dernière).
+	OPTIONS="$OPTIONS -DCMAKE_REQUIRED_LIBRARIES=-licuuc"
+}
 
 lpeginternevisible()
 {
