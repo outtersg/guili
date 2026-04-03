@@ -77,7 +77,7 @@ for modif in true $modifs ; do $modif ; done
 echo Configuration… >&2
 mkdir -p build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX="$dest" $OPTIONS
+cmake .. -DCMAKE_INSTALL_PREFIX="$dest" -DCMAKE_BUILD_TYPE=Release $OPTIONS
 
 echo Compilation… >&2
 make
