@@ -21,10 +21,8 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=lua
 
 # Historique des versions gérées
 
@@ -75,7 +73,18 @@ fpic()
 
 compilo()
 {
-	filtrer src/Makefile sed -e 's#^CC *= *gcc#CC=cc#'
+	filtrer src/Makefile sed -e '/^CC *=/{
+s#=.*#= $(MYCC)#
+a\
+MYCC =
+}'
+	filtrer src/Makefile sed -e 's# CC="[^"]*"##' # Pas de surcharge!
+	local val
+	for var in CC CFLAGS LDFLAGS
+	do
+		eval 'val="$'$var'"'
+		filtrer src/Makefile sed -E -e "/^MY$var *=/s#=.*#= $val#"
+	done
 }
 
 # Variables
