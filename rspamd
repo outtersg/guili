@@ -35,10 +35,32 @@ v 1.6.6 || true
 v 1.7.0 && virerPrerequis fann && prerequis="$prerequis luajit" || true # Luajit optionnel avant; maintenant Cannot compile torch without luajit.
 v 1.9.4 || true
 v 2.7 && prerequis="$prerequis libsodium" && modifs="$modifs icuDeSecours" || true
+v 3.7.5 && remplacerPrerequis cmake && modifs="$modifs string_view_iter" && predestiner="$predestiner vieillear" || true
+v 3.14.3 || true
+v 4.0.1 || true
 
 # À FAIRE: une option +blas (avec openblas?).
 
 # Modifications
+
+string_view_iter()
+{
+	# Tente de compiler un std:::string_view{std::begin(…), …}, c'est-à-dire d'un itérateur.
+	# Cette structure est en théorie (https://stackoverflow.com/questions/68954044/why-cant-i-create-a-stdstring-view-from-stdstring-iterators) disponible depuis C++20.
+	# Mais clang 22 échoue dessus, même en -std=c++20; "because '__weakly_equality_comparable_with<unsigned long, std::__wrap_iter<const char *>>' evaluated to false"
+	# On recourt donc à la pirouette mentionnée dans le StackOverflow ci-dessus, à savoir déspécifier par l'opérateur ->.
+	filtrer src/libutil/cxx/util.hxx sed -E -e 's/:string_view{(std::begin\([^)]*\)|pos)/&.operator->()/'
+	filtrer src/libserver/html/html_url.cxx sed -E -e 's/(g_ascii_strncasecmp|rspamd_substring_search)\(text_data.begin\(\)/&.operator->()/'
+	filtrer src/libserver/css/css_util.cxx sed -E -e 's/auto \*.*\.begin\(\)/&.operator->()/'
+	filtrer src/client/rspamc.cxx sed -E -e 's/:string_view.*{([^,]*\.begin\([^)]*\))/&.operator->()/'
+}
+
+vieillear()
+{
+	# Les vieux FreeBSD ont une vieille archive.h.
+	
+	grep -q archive_read_add_passphrase /usr/include/archive.h || prerequis="$prerequis libarchive"
+}
 
 icuDeSecours()
 {
