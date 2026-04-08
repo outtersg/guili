@@ -122,4 +122,5 @@ make
 echo Installation… >&2
 sudo make install
 
+case "`pwd`" in */build) cd .. ;; esac # Remontons pour faire effacer tout le dossier sources lors du ménage.
 sutiliser
