@@ -35,7 +35,7 @@ v 1.6.6 || true
 v 1.7.0 && virerPrerequis fann && prerequis="$prerequis luajit" || true # Luajit optionnel avant; maintenant Cannot compile torch without luajit.
 v 1.9.4 || true
 v 2.7 && prerequis="$prerequis libsodium" && modifs="$modifs icuDeSecours" || true
-v 3.7.5 && remplacerPrerequis cmake && modifs="$modifs string_view_iter" && predestiner="$predestiner vieillear" || true
+v 3.7.5 && remplacerPrerequis cmake && modifs="$modifs string_view_iter capture_regexp" && predestiner="$predestiner vieillear" || true
 v 3.14.3 || true
 v 4.0.1 || true
 
@@ -53,6 +53,12 @@ string_view_iter()
 	filtrer src/libserver/html/html_url.cxx sed -E -e 's/(g_ascii_strncasecmp|rspamd_substring_search)\(text_data.begin\(\)/&.operator->()/'
 	filtrer src/libserver/css/css_util.cxx sed -E -e 's/auto \*.*\.begin\(\)/&.operator->()/'
 	filtrer src/client/rspamc.cxx sed -E -e 's/:string_view.*{([^,]*\.begin\([^)]*\))/&.operator->()/'
+}
+
+capture_regexp()
+{
+	# https://github.com/rspamd/rspamd/issues/5973
+	patch -p1 < "`obtenir https://github.com/rspamd/rspamd/commit/543867fbbd390fbe032983fb13aaaf4f4bae3ad4.diff`"
 }
 
 vieillear()
