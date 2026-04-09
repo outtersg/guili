@@ -26,6 +26,7 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="langcxx() cmake git \\"
 v 1.7.5 && modifs="aussiLeTelechargeur" || true
+v 1.8.4 || true
 
 # Variables
 
