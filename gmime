@@ -29,6 +29,8 @@ v 2.2.27 && remplacerPrerequis "glib >= 2.6" || true
 v 2.4.33 && remplacerPrerequis "glib >= 2.12" || true
 v 2.6.20 && remplacerPrerequis "glib >= 2.18" && modifs="$modifs sansGpg" || true
 v 3.2.7 || true # Dernière sur gnome.org
+v 3.2.9 || true # Première sur github/jstedfast
+v 3.2.15 || true
 
 v_maj="`echo "$version" | cut -d . -f 1-2`"
 suffixe=bz2
