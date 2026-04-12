@@ -21,14 +21,13 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=gmime
-
-v 2.2.27 && prerequis="glib >= 2.6" || true
-v 2.4.33 && prerequis="glib >= 2.12" || true
-v 2.6.20 && prerequis="glib >= 2.18" && modifs="sansGpg" || true
+prerequis="pkgconf+ig make \\ glib"
+v 2.2.27 && remplacerPrerequis "glib >= 2.6" || true
+v 2.4.33 && remplacerPrerequis "glib >= 2.12" || true
+v 2.6.20 && remplacerPrerequis "glib >= 2.18" && modifs="$modifs sansGpg" || true
 
 v_maj="`echo "$version" | cut -d . -f 1-2`"
 suffixe=bz2
@@ -44,9 +43,7 @@ s/%s: %s/%s: %d/
 	filtrer tests/Makefile.in sed -e 's/-lgpg-error//g'
 }
 
-dest="$INSTALLS/$logiciel-$version"
-
-[ -d "$dest" ] && exit 0
+destiner
 
 prerequis
 
@@ -63,6 +60,5 @@ make
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
