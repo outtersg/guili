@@ -44,6 +44,8 @@ v 1.21.5 && remplacerPrerequis "pcre >= 10" || true
 v 1.29.1 || true
 v 1.29.4 || true
 v 1.29.5 || true
+v 1.29.8 || true
+v 1.30.0 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
