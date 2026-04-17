@@ -121,7 +121,7 @@ echo Configuration… >&2
 ./configure --prefix="$dest" $options
 
 echo Compilation… >&2
-make
+make -j8
 
 echo Installation… >&2
 sudo make install
