@@ -52,7 +52,7 @@ prerequisOpenssl()
 	local osslxx mami ma mi
 	
 	ma_et_mi() { ma=$1 ; mi=$2 ; }
-	for mami in "1 0" "1 1" "3 0" "3 1" "3 2" "3 3" "3 4"
+	for mami in "1 0" "1 1" "3 0" "3 1" "3 2" "3 3" "3 4" "3 5" "3 6" "4 0"
 	do
 		ma_et_mi $mami
 		if option ossl$ma$mi
