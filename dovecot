@@ -37,6 +37,12 @@ v 2.2.36.4 || true
 v 2.3.0 && prerequis="pkgconf+ig \\ $prerequis libsodium zstd lua >= 5.1 < 5.5" || true
 v 2.3.10 || true
 v 2.3.21.1 || true
+# lua quasi obligatoire car normalement il est optionnel sauf que les programmes de test s'y lient en dur:
+# libtool:   error: cannot find the library '../../src/lib-lua/libdovecot-lua.la' or unhandled argument '../../src/lib-lua/libdovecot-lua.la'
+v 2.4.0 && virerPrerequis clucene nss zlib && prerequis="$prerequis pcre >= 10 xapian" && modifs="$modifs paramcpuset fdatasync" || true
+v 2.4.1 || true
+v 2.4.2 || true
+v 2.4.3 || true
 
 predestiner="$predestiner optionnels"
 
@@ -50,6 +56,7 @@ optionnels()
 		"o lzma" \
 		"o sodium libsodium" \
 		"o lucene clucene" \
+		"  flatcurve xapian" \
 		"  stemmer libstemmer" \
 		"O sqlite" \
 		"o pgsql postgresql" \
@@ -81,6 +88,27 @@ optionnels()
 			o) options="$options --with-$1" ;;
 		esac
 	done
+}
+
+paramcpuset()
+{
+	# https://lists.freebsd.org/pipermail/freebsd-net/2016-May/045202.html
+	# cpuset.h ne compile pas sans param.h, non seulement à la compil', mais aussi dans le configure qui définit HAVE_SYS_CPUSET_H
+	filtrer src/lib/cpu-count.c sed -e '/include.*cpuset/i\
+#include <sys/param.h>
+' -e '/ifdef.*HAVE_SYS_CPUSET_H/c\
+#if defined(HAVE_SYS_CPUSET_H) || defined(HAVE_CPUSET_GETAFFINITY)
+'
+}
+
+fdatasync()
+{
+	{ echo '#include <unistd.h>' ; echo 'int x(int fd) { return fdatasync(fd); }' ; } > $TMP/$$/1.c
+	if compiloTest $CC -c $TMP/$$/1.c -o $TMP/$$/1.o ; then return ; fi
+	
+	filtrer src/lib/lib.h sed -e '/#include.*compat.h/a\
+#define fdatasync fsync
+'
 }
 
 cheminBiblios()
