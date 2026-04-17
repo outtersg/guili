@@ -105,6 +105,7 @@ echo Compilation… >&2
 case `uname | tr '[A-Z]' '[a-z]'` in
 	darwin) make macosx ;;
 	freebsd) make freebsd ;;
+	linux) make linux ;;
 esac
 
 echo Installation… >&2
