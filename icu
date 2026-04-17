@@ -34,7 +34,7 @@ v 3.6
 v 4.4
 # Me fait Bus errorer un packagedata à la compil; à moins que ça ne soit le gmake que j'ai installé entretemps à la place du BSDmake.
 #v 4.4.1
-v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees sansSuffixe fbsdutf" || true
+v 50.1.2 && modifs="$modifs moinsIPointAvantILocal toutLeMondeVeutTruncate pasDonnees sansSuffixe fbsdutf libliees" || true
 v 52.1 || true
 v 55.1 && modifs="$modifs ldlproot" || true
 # À partir de la 58: char16_t => C++11; cf. PHP qui nous utilise.
@@ -47,7 +47,7 @@ v 72.1 || true
 v 73.2 || true
 v 76.1 || true
 v 77.1 || true
-v 78.2 && modifs="gen78" || true
+v 78.2 && modifs="gen78 libliees" || true
 
 versiong="`echo "$version" | tr . _`"
 versiont="`echo "$version" | tr . -`"
@@ -83,6 +83,17 @@ gen78()
 	# C'est donc juste son interprétation par le chargeur de .so (propre à ICU) qui foire.
 	patch -p2 < `obtenir https://github.com/unicode-org/icu/commit/aa17de1994d188560d99d07c37bf333416483899.patch`
 	# N.B.: pourrait être lié à pasDonnees(), les données compilées dans une biblio partagée qui ne sont pas vues sous Raspbian.
+}
+
+libliees()
+{
+	# Voilà que curieusement depuis je ne sais quoi, plusieurs logiciels (rspamd, dovecot) qui essayent d'utiliser -licui18n se font retoquer pour des symboles manquants, que l'on retrouve dans libicuuc.
+	# Pourtant la seconde est référencée depuis la première (d'après lld).
+	# Qu'ai-je changé sur mon pauvre FreeBSD 10.2? Passage à clang 22, installation de ld.lld?
+	# Il est possible aussi que les logiciels en question aient décidé d'abandonner leur détection maison des biblios pour ICU, et reposent maintenant intégralement sur pkg-config.
+	# Notons que parmi les 3 lieurs essayés (GNU ld, peut-être un gold, ld.lld, et l'/usr/bin/ld de FreeBSD), seul le 3ème a l'intelligence de proposer "try adding -licuuc".
+	
+	filtrer source/Makefile.in sed -e '/Requires.private: icu-uc/s/\.private//'
 }
 
 sansSuffixe()
