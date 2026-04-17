@@ -110,5 +110,6 @@ esac
 
 echo Installation… >&2
 sudo make install INSTALL_TOP="$dest"
+pkgconfer -llua -lm lua
 
 sutiliser
