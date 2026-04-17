@@ -28,9 +28,12 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 5.1.5 && modifs="compilo fpic" || true
 v 5.2.1 || true
+v 5.2.4 || true
 v 5.3.1 && modifs="compilo fpic log2" || true
 v 5.3.3 || true
 v 5.3.5 || true
+v 5.3.6 || true
+v 5.4.8 || true
 v 5.5.0 || true
 
 # Modifications
