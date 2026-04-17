@@ -21,17 +21,64 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-prerequis="zlib iconv icu openssl sqlite"
+prerequis="zlib iconv openssl < 4 bzip2 sqlite clucene postgresql mysql"
 v 2.0.16 && modifs="cheminBiblios" || true
-v 2.2.3 && prerequis="$prerequis libstemmer clucene" && modifs="$modifs testsSansFuseau avecLucene" || true
+v 2.2.0 && prerequis="$prerequis icu xz lz4 cassandra libstemmer" || true
+v 2.2.3 && modifs="$modifs testsSansFuseau" || true
 v 2.2.24 || true
 #v 2.2.25 || true # http://dovecot.org/list/dovecot/2016-July/105084.html, reproduit chez moi.
+# À partir de la 2.3, les logiciels optionnels (sodium, sqlite…) ne sont plus testés qu'avec pkg-config (ou alors passer des LOGICIELOPTIONNEL_CFLAGS pour chaque…).
+# /!\ La 2.3 n'a plus de FTS (full text search): le C++ de la 2.3, moderne, est incompatible avec celui de CLucene, et le nouveau moteur exploitant Xapian n'est intégré qu'à partir de la 2.4. Entre-temps on aura soit des moteurs lourds (Java, externes) soit du tierce (https://github.com/grosjo/fts-xapian), comme référencé depuis la doc officielle https://doc.dovecot.org/2.3/configuration_manual/fts/.
+v 2.3.0 && prerequis="pkgconf+ig \\ $prerequis libsodium zstd lua" || true
 v 2.3.10 || true
 
+predestiner="$predestiner optionnels"
+
 # Modifications
+
+optionnels()
+{
+	local o explicite force
+	for o in \
+		"  zstd" \
+		"o lzma" \
+		"o sodium libsodium" \
+		"o lucene clucene" \
+		"  stemmer libstemmer" \
+		"O sqlite" \
+		"o pgsql postgresql" \
+		"o mysql mysql ou sinon mariadb comment gérer le choix?" \
+		"o cassandra" \
+		"  lua" \
+		# [O ou o, s'il faut un --with-<option> explicite (O si on l'intègre d'office)] <logiciel> [<option>]
+	do
+		set -- $o
+		explicite= ; force=
+		case "$1" in
+			o) explicite=o ; shift ;;
+			O) explicite=o ; force=o ; shift ;;
+		esac
+		# Si pas présent dans les prerequis, pas géré dans cette version.
+		case " $prerequis " in
+			*" $2"[\ +]*) true ;;
+			*) continue ;;
+		esac
+		# Si pas présent sur le système, on ne pousse pas à la consommation.
+		case "$force" in
+			o) true ;; # Si on force, la question ne se pose pas, il nous le faut en prérequis.
+			*)
+				case "$2" in "") o=$1 ;; *) o=$1/$2 ;; esac
+				optionSi $o || { gris "Sans l'option $1 (prérequis absent)" ; continue ; }
+				;;
+		esac
+		case "$explicite" in
+			o) options="$options --with-$1" ;;
+		esac
+	done
+}
 
 cheminBiblios()
 {
@@ -53,11 +100,6 @@ testsSansFuseau()
 	filtrer src/lib-index/test-mail-index-transaction-update.c sed -e 's/ + timezone//g'
 }
 
-avecLucene()
-{
-	options="--with-lucene --with-stemmer"
-}
-
 # Variables
 
 v_maj="`echo "$version" | cut -d . -f 1-2`"
@@ -74,7 +116,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --with-sqlite $options # --with-ldap
+./configure --prefix="$dest" $options
 
 echo Compilation… >&2
 make
