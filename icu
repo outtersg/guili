@@ -48,6 +48,7 @@ v 73.2 || true
 v 76.1 || true
 v 77.1 || true
 v 78.2 && modifs="gen78 libliees" || true
+v 78.3 || true
 
 versiong="`echo "$version" | tr . _`"
 versiont="`echo "$version" | tr . -`"
