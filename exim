@@ -128,7 +128,7 @@ tlsManuel()
 	
 	echo "SUPPORT_TLS=yes" >> Local/Makefile
 	echo "TLS_LIBS=-L$destopenssl/lib -lssl -lcrypto" >> Local/Makefile
-	echo "TLS_INCLUDE=-L$destopenssl/include" >> Local/Makefile
+	echo "TLS_INCLUDE=-I$destopenssl/include" >> Local/Makefile
 	
 	# À partir de la 4.92 ou 4.93, il faut préciser quelle biblio.
 	
