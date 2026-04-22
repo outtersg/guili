@@ -104,7 +104,7 @@ paramcpuset()
 fdatasync()
 {
 	{ echo '#include <unistd.h>' ; echo 'int x(int fd) { return fdatasync(fd); }' ; } > $TMP/$$/1.c
-	if compiloTest $CC -c $TMP/$$/1.c -o $TMP/$$/1.o ; then return ; fi
+	if compilo_test $CC -c $TMP/$$/1.c -o $TMP/$$/1.o ; then return ; fi
 	
 	filtrer src/lib/lib.h sed -e '/#include.*compat.h/a\
 #define fdatasync fsync
