@@ -72,7 +72,7 @@ futimens()
 {
 	local f
 	{ echo '#include <sys/stat.h>' ; echo 'int x() { struct timespec ts[2]; return futimens(0, ts); }' ; } > $TMP/$$/1.c
-	compiloTest $CC $TMP/$$/1.c -Werror -c -o $TMP/$$/1.o ||
+	compilo_test $CC $TMP/$$/1.c -Werror -c -o $TMP/$$/1.o ||
 	grep -l EXIM_HAVE_FUTIMENS OS/os.h-* | while read f
 	do
 		filtrer $f grep -v '#define EXIM_HAVE_FUTIMENS'
