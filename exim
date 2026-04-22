@@ -76,7 +76,8 @@ EXIM_RELEASE_VERSION=$version
 EXIM_VARIANT_VERSION=
 EXIM_COMPILE_NUMBER=0
 TERMINE
-	mkdir Local
+	mkdir -p Local
+	> Local/Makefile
 }
 
 headcat()
