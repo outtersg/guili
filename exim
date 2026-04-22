@@ -43,6 +43,8 @@ v 4.93.0.4 || true
 # Celle-ci est encore pire, elle rejette les méls car même la lecture du fichier .aliases (dépendant de $domain) est considérée comme du "tainted data".
 v 4.93.0.4.2020.04.22 && versionComplete="$version.a06afb97d53eb100c7f1b5b00da746d071d52415.git" || true
 v 4.94.2 || true
+v 4.95 && modifs="$modifs futimens" && retirerModif headcat || true
+v 4.96.2 && remplacerPrerequis pcre openssl || true
 
 BIBLIOS=
 if optionSi bdb/db
@@ -65,6 +67,17 @@ fi
 prerequis
 
 # Modifications
+
+futimens()
+{
+	local f
+	{ echo '#include <sys/stat.h>' ; echo 'int x() { struct timespec ts[2]; return futimens(0, ts); }' ; } > $TMP/$$/1.c
+	compiloTest $CC $TMP/$$/1.c -Werror -c -o $TMP/$$/1.o ||
+	grep -l EXIM_HAVE_FUTIMENS OS/os.h-* | while read f
+	do
+		filtrer $f grep -v '#define EXIM_HAVE_FUTIMENS'
+	done
+}
 
 degit()
 {
