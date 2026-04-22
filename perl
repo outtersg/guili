@@ -35,6 +35,7 @@ v 5.30.0 || true
 v 5.30.1 || true
 v 5.40.0 || true
 v 5.42.0 || true
+v 5.42.2 || true
 v 5.44.0 || true
 
 # Modifications
