@@ -21,18 +21,18 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 # Historique des versions gérées
 
 prerequis="db < 6"
 v 4.77 && modifs="menageMakefile lthr majmin" || true
-v 4.80.1 && modifs="menageMakefile lthr majmin paf" && prerequis="$prerequis pcre" || true
+v 4.80.1 && modifs="menageMakefile lthr majmin paf" && prerequis="$prerequis pcre < 10" || true
 v 4.82 || true
 v 4.82.1 || true
 v 4.87 || true
-v 4.89 && modifs="menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="$prerequis openssl" || true
+v 4.89 && modifs="menageMakefile lthr majmin paf2 tlsManuel headcat" && prerequis="$prerequis openssl < 3" || true
 v 4.90.1 || true
 # Quelque part par là disparaît le machin qui pourrissait les en-têtes, introduit en 4.89 semble-t-il, en mettant un octet 0 au beau milieu du nom d'en-tête DKIM-Signature (à la place du D, du K, du I, du M, parfois du -, moins fréquemment plus loin) lorsque celui-ci se trouvait en début de mél, le plus souvent ceux venant de gmail (où il est suivi d'un X-Google-DKIM-Signature), et plus fréquemment en cas de pièce jointe. Comme un cas d'écrasement de mémoire entre je ne sais quoi qui voudrait terminer une chaîne par \0, et le mmap du message.
 v 4.91 || true
@@ -44,7 +44,6 @@ v 4.93.0.4 || true
 v 4.93.0.4.2020.04.22 && versionComplete="$version.a06afb97d53eb100c7f1b5b00da746d071d52415.git" || true
 
 BIBLIOS=
-prerequisOpenssl
 if optionSi bdb/db
 then
 	USE_DB=yes
