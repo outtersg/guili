@@ -474,6 +474,8 @@ smtp_vers_local:
 
 remote_smtp:
   driver = smtp
+  # Google rejette en "451-4.3.0 Multiple destination domains per transaction is unsupported." si on agrège dans une connexion plusieurs domaines personnalisés hébergés pa Google.
+  multi_domain = false
   # https://serverfault.com/a/452706
   # Mais finalement on commente car si notre EHLO n'est pas le Reverse-DNS de notre adresse IP on est marqués pourriel.
   #helo_data = ${lc:${if eq{$authenticated_id}{} {$primary_hostname} {mail.${domain:$authenticated_id}}}}
