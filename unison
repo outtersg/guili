@@ -33,6 +33,7 @@ v 2.52.1 && prerequis="ocaml >= 4.08 make \\" || true
 v 2.53.3 || true
 v 2.53.7 || true
 v 2.53.8 || true
+v 2.54.0 || true
 
 # Modifications
 
