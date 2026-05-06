@@ -26,6 +26,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 
 prerequis="python ninja meson \\ ncurses fcft"
 v 1.25.0 && modifs="linuxInput" || true
+v 1.26.1 || true
 
 argOptions="`options "$argOptions=autoserver"`"
 ! option autoserver || modifs="$modifs autoserver"
@@ -34,6 +35,8 @@ argOptions="`options "$argOptions=autoserver"`"
 
 autoserver()
 {
+	# Si besoin d'une version sur la 1.24:
+	# https://codeberg.org/dnkl/foot/compare/c34f0633...025153e2.diff
 	patch -p1 < `obtenir https://codeberg.org/dnkl/foot/pulls/1928.patch`
 }
 
