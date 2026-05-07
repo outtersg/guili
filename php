@@ -237,6 +237,7 @@ v 8.3.27 || true
 v 8.3.28 || true
 v 8.3.29 || true
 v 8.3.30 || true
+v 8.3.31 || true
 v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre && modifs="$modifs ki_tracer" || true
 v 8.4.2 || true
 v 8.4.3 || true
