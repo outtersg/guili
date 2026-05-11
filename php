@@ -212,6 +212,7 @@ v 8.2.27 || true
 v 8.2.28 || true
 v 8.2.29 || true
 v 8.2.30 || true
+v 8.2.31 || true
 v 8.3.2 && modifs="$modifs pdeathsig" || true
 v 8.3.3 || true
 v 8.3.4 || true
@@ -257,12 +258,14 @@ v 8.4.17 || true
 v 8.4.18 || true
 v 8.4.19 || true
 v 8.4.20 || true
+v 8.4.21 || true
 v 8.5.0 && modifs="$modifs elffbsd10" || true
 v 8.5.1 || true
 v 8.5.2 || true
 v 8.5.3 || true
 v 8.5.4 || true
 v 8.5.5 || true
+v 8.5.6 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
