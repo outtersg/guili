@@ -26,7 +26,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 1.4.3 && modifs="enPrison incertitudes mmap64 cEstPasLaCourse" && prerequis="openssl < 3" || true
+v 1.4.3 && modifs="enPrison incertitudes mmap64 cEstPasLaCourse deTester" && prerequis="openssl < 3" || true
 v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
@@ -48,6 +48,14 @@ v 1.26.3 || true
 predestiner="$predestiner prerequisGo"
 
 # Modifications
+
+deTester()
+{
+	# Pour les plates-formes un peu limites (ex.: Raspberry Pi 3, qui met 10 x plus de temps à exécuter les tests que mon "petit" portable Dell, et finit dans le décor, le garde-fou lâchant au bout de plusieurs minutes), il est possible d'invoquer le script avec un DETESTER=1.
+	case "$DETESTER" in ?*)
+		filtrer src/all.bash sed -e '/run\.bash/s/^/#/'
+	;; esac
+}
 
 cEstPasLaCourse()
 {
