@@ -158,7 +158,7 @@ void decouperPrerequis(char * chaine, L * resultatAgrege)
 		}
 		ptrV = chaine;
 		tV = 0;
-		while(*chaine == '<' || *chaine == '>' || *chaine == '=' || estVersion(chaine))
+		while(*chaine == '<' || *chaine == '>' || *chaine == '=' || *chaine == '@' || estVersion(chaine))
 		{
 			while(*chaine && *chaine != ' ') ++chaine;
 			tV = chaine - ptrV;

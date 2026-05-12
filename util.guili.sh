@@ -83,7 +83,7 @@ argVersionSauf()
 virerPrerequis()
 {
 	local aVirer="`echo "$*" | sed -e 's/[+]/\\\\+/g' -e 's/()/\\\\([^)]*\\\\)/g' -e 's/ /|/g'`"
-	prerequis="`echo " $prerequis " | sed -E -e 's/ /  /g' -e "s# ($aVirer)([ <=>0-9.]+|\+[^ ]*)* # #g" -e 's/pasttdesuite   */ /g'`"
+	prerequis="`echo " $prerequis " | sed -E -e 's/ /  /g' -e "s# ($aVirer)([ <=>0-9.]+|[+@][^ ]*)* # #g" -e 's/pasttdesuite   */ /g'`"
 }
 
 remplacerPrerequis()
