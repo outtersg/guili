@@ -79,13 +79,13 @@ prerequisGo()
 
 versionGo()
 {
-	local p pr="$prerequis"
+	local p pr="$prerequis" v="$2"
 	unset IFS
 	for p in $prerequis
 	do
 		case "$p" in
 			@version) p="$version" ;;
-			@n2version) p=$1.$((2 * ($2 / 2 - 1))) ;;
+			@n2version) p=$1.$((2 * (v / 2 - 1))) ;;
 		esac
 		printf '%s ' "$p"
 	done
