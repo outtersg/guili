@@ -27,6 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 v 0.14.7 && prerequis="go \\" || true
+v 2.1.0 || true
 
 # Modifications
 
@@ -44,6 +45,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+go mod vendor
 rm -f src vendor/github.com/syncthing/syncthing/*
 ln -s . src
 mkdir -p vendor/github.com/syncthing/syncthing
