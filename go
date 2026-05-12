@@ -32,6 +32,18 @@ v 1.4.3.10 || true
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
 v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs certifFossile" || true
 v 1.19.13 || true
+v 1.20 && remplacerPrerequis "go >= 1.17 < @version" || true
+v 1.20.14 || true
+v 1.21.0 || true
+v 1.21.13 || true
+v 1.22.0 && remplacerPrerequis "go >= @n2version < @version" || true
+v 1.22.12 || true
+v 1.23.0 || true
+v 1.23.12 || true
+v 1.24.0 || true
+v 1.24.13 || true
+v 1.25.10 || true
+v 1.26.3 || true
 
 predestiner="$predestiner prerequisGo"
 
@@ -44,6 +56,12 @@ cEstPasLaCourse()
 	# https://github.com/golang/go/issues/73782
 	# https://github.com/golang/go/issues/65425
 	filtrer test/fixedbugs/bug513.go sed -e 's/-race//g'
+	
+	# Autres bizarreries survenues sur les versions suivantes.
+	
+	# 1.20
+	[ ! -f misc/cgo/testsanitizers/msan_test.go ] || filtrer misc/cgo/testsanitizers/msan_test.go grep -v msan8.go
+	[ ! -f src/cmd/cgo/internal/testsanitizers/msan_test.go ] || filtrer src/cmd/cgo/internal/testsanitizers/msan_test.go grep -v msan8.go
 }
 
 prerequisGo()
@@ -189,14 +207,17 @@ s/if /if err == nil \&\& len(ifat) > 0 \&\& /
 		-o -name dial_unix_test.go \
 		-o -name tcpsock_unix_test.go \
 	\) -exec rm {} \;
-	for f in src/net/dial_test.go src/net/http/transport_test.go
+	# Court-circuitage de certains tests.
+	local cc="TestDialLocal|TestDialWithNonZeroDeadline|TestTransportServerClosingUnexpectedly" # 1.19
+	cc="$cc|TestDialListenerAddr|TestCrossVersionResume" # 1.21
+	for f in src/net/dial_test.go src/net/http/transport_test.go src/crypto/tls/handshake_server_test.go
 	do
 		filtrer "$f" awk \
 		'
 			dedans && /^}/ { dedans = 0; }
 			dedans { sub(/^/, "//"); }
 			1
-			/func (TestDialLocal|TestDialWithNonZeroDeadline|TestTransportServerClosingUnexpectedly)/ { dedans = 1; print "return"; }
+			/func ('"$cc"')/ { dedans = 1; print "return"; }
 '
 	done
 }
