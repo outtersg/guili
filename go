@@ -21,18 +21,14 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-logiciel=go
 
 # Historique des versions gérées
 
 v 1.4.3 && modifs="enPrison incertitudes mmap64" && prerequis="openssl < 3" || true
 v 1.4.3.10 || true
 v 1.7.1 && prerequis="go < 1.5" || true
-
-prerequisOpenssl
 
 prerequis
 
@@ -144,9 +140,10 @@ archive="https://go.googlesource.com/go/+archive/go$version.tar.gz"
 case $version in
 	1.4.3.10) archive=https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz ;;
 esac
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -177,6 +174,7 @@ chmod -R a+r "$TMP/$$/build/libexec/go"
 chmod a+x "$TMP/$$/build/libexec/go/bin/go"
 find "$TMP/$$/build/libexec/go" -type d -exec chmod a+x {} \;
 sudo cp -R "$TMP/$$/build" "$dest"
-sutiliser "$logiciel-$version"
+sutiliser
 
-rm -Rf "$TMP/$$"
+# Remontée d'un niveau pour que le ménage s'applique à toute l'arbo, pas seulement au src.
+case "`pwd`" in */tmp/*src) cd .. ;; esac
