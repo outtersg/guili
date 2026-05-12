@@ -28,11 +28,33 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 1.4.3 && modifs="enPrison incertitudes mmap64" && prerequis="openssl < 3" || true
 v 1.4.3.10 || true
-v 1.7.1 && prerequis="go < 1.5" || true
+# Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
+v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
+
+predestiner="$predestiner prerequisGo"
 
 prerequis
 
 # Modifications
+
+prerequisGo()
+{
+	prerequis="`IFS=. ; versionGo $version`"
+}
+
+versionGo()
+{
+	local p pr="$prerequis"
+	unset IFS
+	for p in $prerequis
+	do
+		case "$p" in
+			@version) p="$version" ;;
+			@n2version) p=$1.$((2 * ($2 / 2 - 1))) ;;
+		esac
+		printf '%s ' "$p"
+	done
+}
 
 mmap64()
 {
