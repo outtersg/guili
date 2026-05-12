@@ -157,7 +157,7 @@ s/if /if err == nil \&\& len(ifat) > 0 \&\& /
 
 # Variables
 
-archive="https://go.googlesource.com/go/+archive/go$version.tar.gz"
+archive="https://go.dev/dl/go$version.src.tar.gz"
 # Archives spéciales pour la branche 1.4, cf. https://go.dev/doc/install/source#bootstrapFromSource
 case $version in
 	1.4.3.10) archive=https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz ;;
