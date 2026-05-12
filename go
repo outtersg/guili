@@ -188,7 +188,7 @@ s/if /if err == nil \&\& len(ifat) > 0 \&\& /
 		-o -name dial_unix_test.go \
 		-o -name tcpsock_unix_test.go \
 	\) -exec rm {} \;
-	for f in src/net/http/transport_test.go src/net/http/transport_test.go
+	for f in src/net/dial_test.go src/net/http/transport_test.go
 	do
 		filtrer "$f" awk \
 		'
