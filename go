@@ -31,6 +31,7 @@ v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
 v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs certifFossile" || true
+v 1.19.13 || true
 
 predestiner="$predestiner prerequisGo"
 
