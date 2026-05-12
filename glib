@@ -63,6 +63,7 @@ v 2.84.4 || true
 v 2.85.4 || true
 v 2.86.3 || true
 v 2.87.2 && modifs="$modifs f_kinfo" || true
+v 2.88.1 || true
 
 # À FAIRE: faire marcher dtrace
 # À FAIRE: faire marcher sysprof
