@@ -63,7 +63,7 @@ echo Configuration… >&2
 ./configure --prefix="$dest" --disable-valadoc
 
 echo Compilation… >&2
-make
+make -j4
 
 echo Installation… >&2
 sudoku make install
