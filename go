@@ -34,8 +34,6 @@ v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs certifFossile" || true
 
 predestiner="$predestiner prerequisGo"
 
-prerequis
-
 # Modifications
 
 cEstPasLaCourse()
