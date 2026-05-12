@@ -186,7 +186,16 @@ export GOROOT_FINAL GOROOT_BOOTSTRAP
 
 echo Compilation… >&2
 cd src
-bash all.bash
+# Boucle pour éviter de planter en cas de processus buté à un moment de contention mémoire.
+# En réalité ça ne sert pas à grand-chose tant que l'on utilise le gros script bourrin qui (re)fait tout: à la différence d'un Makefile, la seconde passe regénère la totalité même si ça replante au même endroit, donc on va détecter du mouvement en faux positif.
+while true
+do
+	touch $TMP/$$/h
+	bash all.bash && break ||
+	find .. -newer $TMP/$$/h -type f -not -size 0 |
+	tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
+	{ jaune "# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup." >&2 && sh ; }
+done
 
 echo Installation… >&2
 mkdir -p "$TMP/$$/build/libexec" "$TMP/$$/build/bin"
