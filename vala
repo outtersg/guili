@@ -28,8 +28,21 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="make pkgconfig \\ glib flex < 2.6.4.1 bison"
 v 0.56.4 && remplacerPrerequis "glib >= 2.48" || true
+v 0.56.10 || true
+v 0.56.13 || true
+v 0.56.14 || true
+v 0.56.15 && remplacerPrerequis "glib >= 2.79" && modifs="$modifs girdirChezGir" || true
+v 0.56.17 || true
 
 # Modifications
+
+girdirChezGir()
+{
+	# Je ne sais pas sur quelles distrib Linux ils dénichent la variable pkg-config dans gobject-introspection-1.0,
+	# en tout cas moi depuis glib 2.79 et son embarquement de gobject-introspection, girdir je ne la trouve que dans girepository-2.0.
+	
+	filtrer configure sed -e 's#gobject-introspection-1.0#girepository-2.0#g'
+}
 
 # Variables
 
