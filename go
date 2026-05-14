@@ -32,7 +32,7 @@ v 1.4.3.10 || true
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
 v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs certifFossile" || true
 v 1.19.13 || true
-v 1.20 && remplacerPrerequis "go >= 1.17 < @version" || true
+v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
 v 1.20.14 || true
 v 1.21.0 || true
 v 1.21.13 || true
@@ -77,15 +77,50 @@ prerequisGo()
 	prerequis="`IFS=. ; versionGo $version`"
 }
 
+vminplus1()
+{
+	local vmaj="$1" vmin="$2" v
+	
+	case "$vmin" in
+		"") v=$((vmaj+1)) ;;
+		*)  v=$vmaj.$((vmin+1)) ;;
+	esac
+	
+	if pge $v $version
+	then
+		printf $version
+	else
+		printf $v
+	fi
+}
+
 versionGo()
 {
-	local p pr="$prerequis" v="$2"
+	# NOTE: prochainMin
+	# Si le prérequis est "$logiciel >= 1.20 < @version", avec @version = 1.29.7, à moins d'avoir une 1.28.5 dans les parages, ça va nous compiler une 1.29.6, qui elle-même compilera une 1.29.5 en prérequis, etc., ce qui va faire beaucoup de versions intermédiaires.
+	# Pour éviter cela (à moins de dénicher une version déjà compilée) on ira chercher la dernière version de la majeure concernée, donc dans notre cas on cherchera à transformer en:
+	# "$logiciel >= 1.20 < 1.21"
+	local p pr="$prerequis" v="$2" prochainMin= min=
 	unset IFS
 	for p in $prerequis
 	do
 		case "$p" in
-			@version) p="$version" ;;
+			">=") prochainMin=1 ;;
+			@version)
+				# Cf. "NOTE: prochainMin"
+				if [ -z "$min" ] || versions -1 $logiciel ">= $min < $version" | grep -q .
+				then
+					p="$version"
+				else
+					p="`IFS=. ; tifs vminplus1 $min`"
+				fi
+				;;
 			@n2version) p=$1.$((2 * (v / 2 - 1))) ;;
+		esac
+		case "$prochainMin:$p" in
+			*:">=") true ;;
+			1:[0-9]*) min="$p" ; prochainMin= ;;
+			1:*) jaune "# Impossible de reconnaître un numéro de version dans '>= $p'" >&2 ; prochainMin= ;;
 		esac
 		printf '%s ' "$p"
 	done
