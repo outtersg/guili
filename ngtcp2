@@ -28,6 +28,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 
 prerequis="cmake \\"
 v 1.21.0 || true
+v 1.22.1 || true
 
 archive="https://github.com/ngtcp2/ngtcp2/releases/download/v$version/ngtcp2-$version.tar.gz"
 
