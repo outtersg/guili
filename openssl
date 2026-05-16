@@ -78,7 +78,7 @@ v 1.1.1.19 || true
 v 1.1.1.20 || true
 v 1.1.1.23 || true
 # Sur (vieux) Mac: Undefined symbols for architecture i386: ___atomic_is_lock_free
-v 3.0.12 && retirerModif multiarch || true
+v 3.0.12 && modifs="$modifs atomicPeteSurMac" || true
 v 3.0.13 || true
 v 3.0.14 || true
 v 3.0.15 || true
@@ -126,6 +126,24 @@ v 3.6.2 || true
 v 4.0.0 || true
 
 # Modifications
+
+atomicPeteSurMac()
+{
+	# https://github.com/openssl/openssl/issues/20687
+	# https://github.com/openssl/openssl/issues/16551
+	# https://github.com/nodejs/node/issues/28231
+	# Et moins pertinents:
+	# https://github.com/openssl/openssl/issues/20490
+	# https://stackoverflow.com/questions/63090529/why-doesnt-atomic-is-lock-free-link-correctly-on-mac
+	# N.B.: utilisation de deux int, car en-dessous d'une certaine taille __atomic_is_lock_free est magiquement évacué par le compilo.
+	echo 'typedef struct { int x; int y; } gros; int main(int argc, char ** argv) { gros a = { 0, 0 }; gros * val = &a; return __atomic_is_lock_free(sizeof(*val), val) ? 0 : 1; }' > $TMP/$$/1.c
+	compilo_test $CC $CPPFLAGS $CFLAGS $LDFLAGS $TMP/$$/1.c -o $TMP/$$/a.out 2> /dev/null ||
+	compilo_test $CC $CPPFLAGS $CFLAGS $LDFLAGS $TMP/$$/1.c -latomic -o $TMP/$$/a.out 2> /dev/null ||
+	export CFLAGS="$CFLAGS -DBROKEN_CLANG_ATOMICS"
+	# Notons que https://github.com/openssl/openssl/issues/20687#issuecomment-1849842361 préconise aussi:
+	# -fno-common à CFLAGS
+	# no-asm au ./Configure
+}
 
 perlredir()
 {
