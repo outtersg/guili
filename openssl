@@ -251,7 +251,7 @@ for modif in true $modifs ; do $modif ; done
 	for modif in true $modifspostconf ; do $modif ; done
 	
 	echo Compilation… >&2
-	make
+	make -j4
 	
 	echo Installation… >&2
 	sudo make install
