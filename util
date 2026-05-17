@@ -79,6 +79,96 @@ _guiliInstaller()
 	"$SCRIPTS/$l" $o "$@"
 }
 
+# Environne, Prérequiert, et Opère (Enveloppe)
+# Utilisation:
+#   epo var="val" var="val" commande args*
+# La forme simplifiée:
+#   epo "<prérequis>"
+# est équivalente à:
+#   epo prerequis="<prérequis>" prerequis \; sh
+# À FAIRE?: créer des alias e ou sh? Afin de ne pas polluer avec une fonction shell on pourrait le faire dans le case général.
+epo()
+{
+	local prerequis _epo_bouffes _epo_qqc
+	
+	case " $* " in
+		*" prerequis "*) true ;; # Déjà un appel à prerequis explicite.
+		*) # prerequis implicite, on doit déterminer où le caler (après la définition des prerequis).
+			while [ $# -gt 0 ]
+			do
+				# Pour distinguer un = affectation d'un = dans "truc >= 1.2", pas vraiment d'autre moyen que grep.
+				if printf %s "$1" | grep -q '^[a-zA-Z_][a-zA-Z0-9_]*='
+				then
+					IFS="="
+					_epo_setvar "$1"
+					shift
+				else
+					break
+				fi
+			done
+			# Si prerequis n'a pas été explicitement définie, le premier paramètre s'y colle.
+			case "$prerequis" in
+				"") prerequis="$1" ; shift ;;
+			esac
+			_epo_exec prerequis
+			;;
+	esac
+	
+	# Exécution!
+	
+	while [ $# -gt 0 ]
+	do
+		_epo_exec "$@"
+		shift $_epo_bouffes
+		case "$1" in \;) shift ;; esac
+	done
+	
+	# Si rien n'a été lancé, on veut entrer dans un shell.
+	case "$_epo_qqc" in "")
+		local _epo_id="`id -u`"
+		local _epo_sh="`getent passwd $_epo_id | sed -e 's/.*://'`"
+		[ -n "$_epo_sh" -a -f "$_epo_sh" -a -x "$_epo_sh" ] || _epo_sh=sh
+		PS1="epo> " "$_epo_sh"
+	;; esac
+}
+
+_epo_setvar()
+{
+	local var="$1"
+	shift
+	#eval $var='"$*"'
+	setvar $var "$*"
+	unset IFS
+}
+
+# Exécute jusqu'au point-virgule.
+_epo_exec()
+{
+	local _epo_p _epo_init=1 _epo_modif
+	for _epo_p in "$@"
+	do
+		case "$_epo_init" in 1) set -- ; _epo_init= ;; esac # Si on est à l'initialisation, on repart d'une liste de paramètres vides.
+		case "$_epo_p" in \;) break ;; esac
+		set -- "$@" "$_epo_p"
+	done
+	"$@"
+	_epo_bouffes=$#
+	
+	case "$1" in
+		prerequis)
+			# Cas particulier: prerequis prépare l'environnement mais ne l'exécute pas.
+			for _epo_modif in $modifs
+			do
+				$_epo_modif
+			done
+			;;
+		*)
+			# Pour tout le reste: on signale qu'on a lancé une charge utile.
+			_epo_qqc=1
+			;;
+	esac
+}
+
 util_commande="$1" ; shift
 case "$util_commande" in
 	var) util_var "$@" ;;
