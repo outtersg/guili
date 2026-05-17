@@ -171,6 +171,6 @@ _epo_exec()
 
 util_commande="$1" ; shift
 case "$util_commande" in
-	var) util_var "$@" ;;
-	*) "$util_commande" "$@" ;;
+	var) util_commande=util_var ;;
 esac
+"$util_commande" "$@"
