@@ -86,7 +86,6 @@ _guiliInstaller()
 #   epo "<prérequis>"
 # est équivalente à:
 #   epo prerequis="<prérequis>" prerequis \; sh
-# À FAIRE?: créer des alias e ou sh? Afin de ne pas polluer avec une fonction shell on pourrait le faire dans le case général.
 epo()
 {
 	local prerequis _epo_bouffes _epo_qqc
@@ -172,5 +171,6 @@ _epo_exec()
 util_commande="$1" ; shift
 case "$util_commande" in
 	var) util_commande=util_var ;;
+	e|sh) util_commande=epo ;;
 esac
 "$util_commande" "$@"
