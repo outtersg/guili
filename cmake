@@ -53,12 +53,17 @@ v 3.31.2 && v_openssl=">= 3.2" || true
 v 3.31.3 || true
 v 3.31.7 || true
 v 3.31.10 || true
+v 3.31.12 || true
+v 4.0.7 || true
 v 4.1.3 || true
+v 4.1.6 || true
 v 4.2.0 || true
 v 4.2.1 || true
 v 4.2.3 || true
 v 4.2.4 || true
+v 4.2.5 || true
 v 4.3.1 || true
+v 4.3.2 || true
 fi
 
 # Modifications
