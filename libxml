@@ -43,6 +43,8 @@ v 2.12.9 || true
 v 2.13.5 || true
 v 2.15.1 || true
 
+predestiner="$predestiner gettextSansMoi"
+
 if pge $version 2.10
 then
 archive=https://gitlab.gnome.org/GNOME/libxml2/-/archive/v$version/libxml2-v$version.tar.gz
@@ -52,6 +54,14 @@ prerequis="pkgconfig \\ $prerequis"
 else
 archive=http://xmlsoft.org/sources/libxml2-$version.tar.gz
 fi
+
+gettextSansMoi()
+{
+	# Si on a un gettext qui répond à tous les critères tant mieux, mais sinon on s'assure qu'il va se compiler sans nous qui avons besoin de lui.
+	# N.B.: on doit passer après les éventuels predestiner ayant ajouté des options (ex.: +multiarch).
+	local prgt="`decoupePrerequis "$prerequis" | grep gettext | sed -e 's/gettext/gettext +libxml/'`"
+	versions "$prgt" | grep -q . || remplacerPrerequis "`echo "$prgt" | sed -e 's/+libxml/+-libxml/g'`"
+}
 
 forcagePython()
 {

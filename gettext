@@ -35,6 +35,10 @@ v 0.22.2 || true
 v 0.23 || true
 v 1.0 || true
 
+# Par défaut gettext va chercher un libxml; autant passer par celui GuiLI, pour un peu contrôler.
+pg 0.17 $version ||
+optionSi libxml || OPTIONS_CONF="$OPTIONS_CONF --with-included-libxml"
+
 archive="https://mirror.ibcp.fr/pub/gnu/gettext/$logiciel-$version.tar.gz"
 
 destiner
