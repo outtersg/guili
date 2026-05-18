@@ -264,6 +264,18 @@ prerequisMultiarch()
 	case " $modifs " in *" multiarch "*)
 		# N.B.: uniquement les prérequis auxquels on est susceptibles de se lier pour l'exécution (après l'éventuel \ dans la liste de $prerequis).
 		#       Les prérequis de construction (avant le \) ne sont nécessaires que dans l'archi actuelle.
-		prerequis="`decoupePrerequis "$prerequis" | sed -e 's/^[^ +]*/&++multiarch/' -e '1,/\\\\/s/++multiarch//' -e 's/++/+/' | tr '\012' ' '`"
+		prerequis="`prerequisAvecOption multiarch`"
 	;; esac
+}
+
+prerequisAvecOption()
+{
+	local option="$1"
+	decoupePrerequis "$prerequis" |
+	case "$prerequis" in
+		# Sur la forme "<prérequis de compil> \ <prérequis d'exécution>", on ne retape que ceux d'exécution. Si un prérequis de compil a un +$1 explicite on le laisse.
+		*[a-z]*\\*) sed -e "s/^[^ +]*/&++$1/" -e "1,/\\\\/s/++$1//" -e 's/++/+/' ;;
+		*)          sed -e "s/^[^ +]*/&+$1/" ;;
+	esac |
+	tr '\012' ' '
 }
