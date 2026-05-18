@@ -246,6 +246,9 @@ multiarchConfigurer()
 # À invoquer avant destiner (fait automatiquement en MODERNITE >= 7, à partir de Delibere(), cf. le predestiner en début de ce fichier).
 prerequisMultiarch()
 {
+	# À FAIRE: quand prerequis est appelé avant destiner, le moiré est écrasé (le CFLAGS revient de -arch i386 -O3 à -O3).
+	#  Pallier, ou tout du moins détecter et sortir.
+	
 	# Recherche de l'option, ou d'une mention dans les $modifs.
 	
 	case " $modifs " in *" multiarch "*) modifierOptions =multiarch ;; esac
