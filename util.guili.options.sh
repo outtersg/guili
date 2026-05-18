@@ -37,6 +37,14 @@ argOptionsBrut()
 	echo "$_guili_argOptionsBrut"
 }
 
+# Modifie la liste d'options globales GuiLI ($argOptions).
+# Ex.:
+#   modifierOptions =hop # Ajoute l'option hop si non présente, à moins qu'elle ait été explicitement écartée à l'invocation (par un +-hop).
+modifierOptions()
+{
+	argOptions="`options "$argOptions$*"`"
+}
+
 # "Compile" les options (de deux mentions + et - pour une option, garde la dernière; le = devient + si aucun - ne le précède).
 options()
 {
