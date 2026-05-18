@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+predestiner="$predestiner prerequisMultiarch"
+
 multiarchMemoriserInvocation()
 {
 	IFS="`printf '\003'`"
@@ -238,4 +240,27 @@ multiarchConfigurer()
 	export CXXFLAGS="$attr $multiarch_arch $CXXFLAGS"
 	export OBJCFLAGS="$attr $multiarch_arch $OBJCFLAGS" # Pour Objective C, typiquement glib.
 	export LDFLAGS="$attr $multiarch_arch $LDFLAGS"
+}
+
+# S'assure que si le logiciel est demandé en multiarch (comme modif par défaut, ou par option implicite), ses prérequis le sont aussi.
+# À invoquer avant destiner (fait automatiquement en MODERNITE >= 7, à partir de Delibere(), cf. le predestiner en début de ce fichier).
+prerequisMultiarch()
+{
+	# Recherche de l'option, ou d'une mention dans les $modifs.
+	
+	case " $modifs " in *" multiarch "*) modifierOptions =multiarch ;; esac
+	if option multiarch
+	then
+		case " $modifs " in *" multiarch "*) true ;; *) modifs="multiarch $modifs" ;; esac
+	else
+		case " $modifs " in *" multiarch "*) retirerModif multiarch ;; esac
+	fi
+	
+	# Application aux prérequis.
+	
+	case " $modifs " in *" multiarch "*)
+		# N.B.: uniquement les prérequis auxquels on est susceptibles de se lier pour l'exécution (après l'éventuel \ dans la liste de $prerequis).
+		#       Les prérequis de construction (avant le \) ne sont nécessaires que dans l'archi actuelle.
+		prerequis="`decoupePrerequis "$prerequis" | sed -e 's/^[^ +]*/&++multiarch/' -e '1,/\\\\/s/++multiarch//' -e 's/++/+/' | tr '\012' ' '`"
+	;; esac
 }
