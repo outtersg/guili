@@ -30,6 +30,7 @@ v 1.26 && prerequis="iconv" && modifs="avecVersionScript" || true
 v 1.29 || true
 v 2.2.0 || true
 v 2.3.7 || true
+v 2.3.8 || true
 
 # Modifications
 
