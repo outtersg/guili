@@ -56,9 +56,9 @@ v 10.0.1 || true
 v 11.1.0 && modifs="$modifs maxAlign" || true
 v 12.0.0 && modifs="$modifs float16" || true
 v 12.0.1 || true
-v 13.0.0 && modifs="$modifs ptrace_events" || true
+v 13.0.0 || true
 v 13.0.1 || true
-v 14.0.6 && constr=runtimes && modifs="$modifs sansBenchmarks bibliosTriplet kvmopen2" || true
+v 14.0.6 && constr=runtimes && modifs="$modifs ptrace_events sansBenchmarks bibliosTriplet kvmopen2" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
 v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx problematicCompilerId" || true
 v 17.0.1 && modifs="$modifs tailleintsanitizer signaux" && prerequis="python >= 3 cmake >= 3.20 \\" || true
