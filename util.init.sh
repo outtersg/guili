@@ -43,7 +43,7 @@ util_tmp()
 
 util_menage()
 {
-	if [ $? -eq 0 ] # En cas de meurtre, on ne fait pas disparaître les preuves.
+	if [ $? -eq 0 -a ! -f .pastouche -a ! -f .laisser -a ! -f .laisse ] # En cas de meurtre, on ne fait pas disparaître les preuves.
 	then
 		local dossierCourant="`pwd`"
 		cd /tmp/ # On se place dans un dossier neutre, pas un de ceux que l'on va supprimer juste en-dessous.
