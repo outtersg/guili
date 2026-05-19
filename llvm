@@ -1037,8 +1037,11 @@ pg 3.9.1 $version || multiarch
 # Sur la 14, les extensions CMake sont livrées à côté du source. obtenirEtAllerDans() ne rentre donc pas dans le source, mais se place à côté des deux.
 # (et à partir de la 15 on revient à juste un src dans l'archive (les cmake communs deviennent un projet à part))
 src() { [ -d "$1"-*.src ] || { echo . ; return ; } ; echo "$1"-*.src ; }
+# À FAIRE: rt en 12, pas sûr que ça existât.
 
-option omp || obtenirSauf=test # On peut se passer des tests (gros trucs lourds avec des .o etc., qu'on ne lance pas), sauf pour omp dont le dossier tests (avec un s) fait appel explicite à une cible définie dans test (en v 20 au moins).
+# On peut se passer des tests (gros trucs lourds avec des .o etc., qu'on ne lance pas), sauf pour omp dont le dossier tests (avec un s) fait appel explicite à une cible définie dans test (en v 20 au moins).
+pg 13 $version ||
+option omp || obtenirSauf=test
 obtenirEtAllerDansVersion
 cd "`src llvm`"
 case "$constr" in
