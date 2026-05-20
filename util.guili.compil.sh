@@ -49,7 +49,7 @@ moire()
 			;;
 		*)
 			MOIRE_STATUT=pere
-			GUILI_MOIRE="$GUILI_MOIRE:$id" TMP="$TMP/$$/moire$id" "$install_moi" "$@"
+			GUILI_MOIRE="$GUILI_MOIRE:$id" TMP="$TMP/moire.$id" "$install_moi" "$@"
 			;;
 	esac
 	
