@@ -406,6 +406,7 @@ endif()
 ptrace_events()
 {
 	# /!\ Ça marche encore, si on neutralise SetupTrace et MonitorSIGTRAP?
+	[ ! -f /usr/include/sys/ptrace.h ] ||
 	grep -q PTRACE_EXEC /usr/include/sys/ptrace.h || filtrer lldb/source/Plugins/Process/FreeBSD/NativeProcessFreeBSD.cpp awk 'dedans&&/^}|return ReinitializeThreads/{print "#endif";dedans=0}/::SetupTrace|::MonitorSIGTRAP/{dedans=1}{print}dedans==1&&/{/{dedans=2;print"#if 0"}'
 }
 
