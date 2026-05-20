@@ -80,6 +80,14 @@ v 21.1.8 || true
 v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit" || true
 
 modifs="$modifsDyn $modifs"
+predestiner="multiarchAPartirDe $predestiner"
+
+multiarchAPartirDe()
+{
+	local avecOuSans="="
+	pge $version 3.9.1 || avecOuSans="-"
+	modifierOptions ${avecOuSans}multiarch
+}
 
 _9vers12()
 {
@@ -1072,8 +1080,6 @@ then
 	[ -d build ] && cd build || true
 	bash
 else
-
-pg 3.9.1 $version || multiarch
 
 # Sur la 14, les extensions CMake sont livrées à côté du source. obtenirEtAllerDans() ne rentre donc pas dans le source, mais se place à côté des deux.
 # (et à partir de la 15 on revient à juste un src dans l'archive (les cmake communs deviennent un projet à part))
