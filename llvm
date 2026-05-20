@@ -702,7 +702,7 @@ sansChar8T()
 	# echo "int main(int argc, char ** argv) { char8_t c = 0; return 0; }" > /tmp/1.cpp ; compilable_cxx -c /tmp/1.cpp
 	# Mais apparemment ne marche pas: même sur un clang++ qui marchait ça ne donne rien.
 	# Le plus fiable reste d'aller egreper l'expression sur nm -o libc++abi.so/.dylib.
-	local libcxxabi="`trouverBiblio libc++abi`"
+	local libcxxabi="`trouverBiblio libc++abi | head -1`"
 	if [ -z "$libcxxabi" ] || egrep -q '_ZT[IS]P?K?Du' < "$libcxxabi" ; then return ; fi
 	
 	# On tente du similaire à https://askcodez.com/comment-construire-libcxx-et-libcxxabi-par-clang-sur-centos-7.html
