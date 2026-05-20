@@ -176,7 +176,9 @@ lieur
 
 case `basename "$0"` in
 	clang)
-		argOptions="`options "$argOptions=libcxx=rt"`"
+		ajouts="=libcxx"
+		if pge $version 14 ; then ajouts="$ajouts=rt" ; fi
+		modifierOptions $ajouts
 		option libcxx || true
 		option rt || true
 		;;
