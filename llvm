@@ -539,6 +539,7 @@ bibliosTriplet()
 	# À partir de la 14, libc++abi installe ses biblios non dans lib, mais dans lib/<triplet>, sans lien symbolique.
 	# Résultat, tout programme qui se compile en -lc++ plante à l'exécution, ne trouvant pas libc++abi dont dépend libc++.
 	# https://discourse.llvm.org/t/is-it-possible-to-disable-the-triple-that-llvm-15-added-to-the-libc-abi-library-path/68704
+	# Par contre ça empêchera peut-être de faire des compil' multiarch d'un coup (cf. multiarchConfigurer). Dans ce cas étudier la version modifsPostInstall.
 	
 	for f in $racineLlvm/CMakeLists.txt $racineLlvm/runtimes/CMakeLists.txt
 	do
@@ -728,9 +729,28 @@ sansChar8T()
 # Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction des archis supportées par le ld système; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un nouveau llvm + clang.
 multiarchConfigurer()
 {
+	# À étudier: https://discourse.llvm.org/t/runtime-builds-for-multiple-targets/61908
+	#   À partir de la 14 au moins, il semble possible de balancer plusieurs cibles, en -DLLVM_RUNTIME_TARGETS="x-y-z;t-u-v"
+	#   Cela pourrait remplacer le multiarch (qui compile deux fois, avec seule une petite partie qui diffère, toute la partie compilo étant de toute façon faite pour l'hôte).
+	#   Se poserait tout de même la question de la forme des binaires (a priori dans des dossiers séparés, donc à nous de jouer du lipo pour en faire des binaires combinant les 2 archis, pour être iso ce que fournit Apple avec son système; et cf. note dans bibliosTriplet() sur une possible limitation).
+	#   En outre le fil de discussion ci-dessus dit que (au moins en 14.0) bien que les options globales soient présentes, elles ne sont pas propagées à chaque archi → plantage au bout du compte: sans doute une petite passe manuelle supplémentaire à appliquer (le fil donne la technique: décliner les -D<xxx>_USE_<lemachinjustecompilé>=ON en -DRUNTIMES_<triplet>_<xxx>_USE_<lemachinjustecompilé>=ON).
+	if pge $version 14
+	then
+		case "$multiarch_arch" in "") return 0 ;; esac
+		local cible="`target -g > /dev/null ; echo "$cible" | sed -e "s/^$proc/$multiarch_arch/"`"
+		cyan YOUPI $cible
+		OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_DEFAULT_TARGET_TRIPLE=$cible"
+	else
+		# Version 13 et inférieures.
+		# À partir de la 14: "LIBCXX_BUILD_32_BITS is not supported anymore when building the runtimes, please specify a full triple instead"
+		#   (dans libcxx/CMakeLists.txt)
+		#   Préco: CMAKE_CXX_COMPILER_TARGET ou LLVM_DEFAULT_TARGET_TRIPLE
+		#   Notons que dans certaines versions plus récentes, on trouve une LLVM_TARGET_TRIPLE_LIST (l'éclatement de LLVM_RUNTIME_TARGETS sur ses ";"?)
 	case "$multiarch_arch" in
 		i386) OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXX_BUILD_32_BITS=ON" ;; # Pas besoin de LLVM_BUILD_32_BITS=ON pour les binaires, seule libc++ nous intéresse.
 	esac
+	fi
+	# N.B.: https://libc.llvm.org/full_cross_build.html indique ĉᵗ exécuter les tests dans une qemu
 }
 
 emmintrim()
