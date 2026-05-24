@@ -50,6 +50,7 @@ marcher()
 	
 	case "$GUILI_MOIRE:" in
 		*:multiarch:*)
+			moire -i multiarch
 			multiarchConfigurer
 			;;
 		*)
