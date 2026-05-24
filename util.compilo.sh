@@ -603,8 +603,10 @@ compilo_test()
 # Ajoute une modification à la pile de modifs à jouer avant de compiler.
 compilo_modif()
 {
-	modifs="$modifs $*" # Celle-ci est la standard, sauf que, à disposition du script appelant, elle risque d'être réinitialisée entre maintenant (le prologue) et la compil.
+	# On s'intègre en début de $modifs: le compilo doit être en première position (car les modifs faisant du compilo_test ont besoin d'un compilo bien configuré)).
+	modifs="$* $modifs" # Celle-ci est la standard, sauf que, à disposition du script appelant, elle risque d'être réinitialisée entre maintenant (le prologue) et la compil.
 	GUILI_MODIFS_ENV="$GUILI_MODIFS_ENV $*" # Celle-ci persiste.
+	# À FAIRE?: empiler $GUILI_MODIFS_ENV dans le même ordre que "en début de $modifs"? Si on a plusieurs compilo_modif à appliquer ça peut jouer.
 }
 
 # Teste qu'un programme simple compile et s'exécute.
