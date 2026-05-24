@@ -193,6 +193,7 @@ multiarchCombinerDarwin()
 						;;
 					.so|.dylib|.a|.bin)
 						# Certains logiciels (clang + libc++) sont sélectifs: les binaires et bibliothèques privées sont mono-archi (celle du système), tandis que les bibliothèques publiques sont sur l'archi cible. On se garde d'un pétage lipo en vérifiant ce qu'il en est.
+						# Intéressant: même approche utilisée par Moundir Idrassi https://groups.google.com/a/openssl.org/g/openssl-users/c/850deEeXUrs/m/WwsSQo62BgAJ
 						aref="`archisBinDarwin "$f"`"
 						ala="`archisBinDarwin "$multiarch_destLa/$f"`"
 						case "$ala" in
