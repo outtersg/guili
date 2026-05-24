@@ -130,7 +130,7 @@ mas()
 			local archi
 			for archi in x86_64 i386
 			do
-				cc $CPPFLAGS $CFLAGS $LDFLAGS -arch $archi -o $TMP/$$/a.out $TMP/$$/1.c 2> /dev/null && [ oui = "`$TMP/$$/a.out`" ] && multiarch_archs="$multiarch_archs $archi" || true
+				$CC $CPPFLAGS $CFLAGS $LDFLAGS -arch $archi -o $TMP/$$/a.out $TMP/$$/1.c 2> /dev/null && [ oui = "`$TMP/$$/a.out`" ] && multiarch_archs="$multiarch_archs $archi" || true
 			done
 			[ -n "$multiarch_archs" ] || multiarch_archs="`uname -m`"
 			;;
