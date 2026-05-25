@@ -23,6 +23,7 @@ set -e
 
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.jalons.sh"
 
 # Chemin de compilation pour un FreeBSD 11.2 (clang 6): clang "< 9", clang (12).
 # Chemin de compilation pour un FreeBSD 10.2 (clang 3.5): clang 3.7.1, clang 3.9.1.
@@ -1080,6 +1081,9 @@ then
 	bash
 else
 
+if ! jalon source
+then
+
 # Sur la 14, les extensions CMake sont livrées à côté du source. obtenirEtAllerDans() ne rentre donc pas dans le source, mais se place à côté des deux.
 # (et à partir de la 15 on revient à juste un src dans l'archive (les cmake communs deviennent un projet à part))
 src() { [ -d "$1"-*.src ] || { echo . ; return ; } ; echo "$1"-*.src ; }
@@ -1152,10 +1156,20 @@ fi
 
 livrable=Release
 
+jalonner source
+
+fi
+
 echo Correction… >&2
+if ! jalon modifs
+then
 for modif in true $modifs ; do $modif ; done
+jalonner modifs
+fi
 
 echo Configuration… >&2
+if ! jalon config
+then
 # Souci sous FreeBSD 8: en créant un clang via gcc, le clang généré est incapable de créer un nouveau clang (>= 3.5) car il est fait appel à <cmath>; et pour celui-ci, soit on utilise les en-têtes clang (mais alors ils déclarent std::log2 comme un appel à log2, qui est déclarée en #if 0 dans le math.h de FreeBSD 8), soit on prend ceux de GCC (qui utilisent un __builtin_log2, embarqué par GCC, mais les include comportent des directives non reconnues de clang). Le clang généré arrive par contre à se lier à la libstdc++, si l'on avait les bons .h on pourrait faire quelque chose (un .c compilé en clang -o 1 -lstdc++ 1.c est capable d'utiliser coshl pourvu qu'on la lui ait définie en haut, sans inclusion).
 #pge $version 3.5 && OPTIONS_CONF="$OPTIONS_CONF --enable-libcpp" && CXX="clang -stdlib=libc++" && export CXX || true
 false && pge $version 3.5 && CC=gcc && CXX=g++ && export CC CXX || true
@@ -1251,12 +1265,19 @@ pge $version 3.7 && mkdir -p bouild && cd bouild && configure="../configure" || 
 $configure --prefix="$dest" --enable-optimized --enable-shared $OPTIONS_CONF
 	;;
 esac
+jalonner_config() { jalonner config ; }
+modifsPostConf="$modifsPostConf jalonner_config"
+else
+jalonner_config() { true ; }
+fi
 
 fi # manuel
 
 for modif in true $modifsPostConf ; do $modif ; done
 
 echo Compilation… >&2
+if ! jalon compil
+then
 while true
 do
 	touch $TMP/$$/h
@@ -1268,6 +1289,8 @@ done
 #make -j 4 || make -j 4 || make -j 4 || ( echo "# Parfois il faut relancer une seconde fois (le -j 4 s'emmêle les pédales). Pour la seconde fois, passez le if false en true." >&2 ; exit 1 ) # Quand 4 éditions de liens tournent en même temps, ça finit par péter faute de mémoire.
 
 for modif in true $modifsPostCompil ; do $modif ; done
+jalonner compil
+fi
 
 echo Installation… >&2
 install=install/strip # Depuis je ne sais quelle version, 3 Go par binaire, ça commence à faire beaucoup. Heureusement l'install' propose un mode bien dégagé autour des oreilles.
