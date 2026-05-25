@@ -766,7 +766,6 @@ multiarchConfigurer()
 	then
 		case "$multiarch_arch" in "") return 0 ;; esac
 		local cible="`target -g > /dev/null ; echo "$cible" | sed -e "s/^$proc/$multiarch_arch/"`"
-		cyan YOUPI $cible
 		OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_DEFAULT_TARGET_TRIPLE=$cible"
 	else
 		# Version 13 et inférieures.
