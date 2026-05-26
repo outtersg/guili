@@ -79,6 +79,8 @@ v 21.1.1 || true
 v 21.1.6 || true
 v 21.1.8 || true
 v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit" || true
+v 22.1.5 || true
+v 22.1.6 || true
 
 modifs="$modifsDyn $modifs"
 predestiner="multiarchAPartirDe $predestiner"
