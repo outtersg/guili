@@ -54,5 +54,12 @@ jalonner()
 	{
 		set # Inclut le PWD, normalement.
 		export -p # export -p est le seul qui marche à l'identique sur les /bin/sh de FreeBSD 15.0 ou 10.2, Mac OS X 10.13, et Raspbian sur un RPi3.
-	} > "$TMP/$jalon.tmp" && mv "$TMP/$jalon.tmp" "$TMP/$jalon"
+	} | _jalonner_filtrer > "$TMP/$jalon.tmp" && mv "$TMP/$jalon.tmp" "$TMP/$jalon"
+}
+
+_jalonner_filtrer()
+{
+	# Sur vieux Mac, le /bin/sh qui est en fait un bash sera aussi strict qu'un sh au moment d'ingérer les affectations… qu'il aura générées comme un bash, donc avec des BASH_ARGC=([0]="1") qui feront exploser la réingestion.
+	# En outre quelques variables readonly sont intégrées.
+	egrep -v '^[^=]*=\(|^(EUID|PPID|SHELLOPTS|UID)=' || true
 }
