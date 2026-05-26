@@ -32,6 +32,8 @@
 
 jalon()
 {
+	# À FAIRE: pour du multiarch, le $GUILI_MOIRE mentionne simplement :multiarch, ce qui risque d'entraîner un chevauchement en cas de plusieurs architectures secondaires;
+	#   il faudrait du multiarch_i386, multiarch_etc. pour ne pas se marcher sur les pieds.
 	local jalon="jalon.$1:`bn "$dest"`$GUILI_MOIRE" PWD=
 	eval jalon_$1="$jalon"
 	
