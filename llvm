@@ -1080,6 +1080,49 @@ vblibcxx()
 	local ou=.
 	case "$PWD" in */build) ou=.. ;; esac
 	filtrer $ou/libcxxabi/src/CMakeLists.txt sed -e 's/SOVERSION "1"/SOVERSION "'"$v"'"/' # Sinon on a libc++abi.so.1 → libc++abi.so.3.0
+	
+	vblibcxx="$v"
+}
+
+# Post-install
+# Un clang en ABI 2 compilé par un autre en ABI 1 va garder en dur son lien à libc++.so.1
+# Tout va bien tant qu'on a pour $LD_LIBRARY_PATH $INSTALLS/lib, qui possède des liens symboliques vers les deux (ex.: .so.1 → ../clang-14/lib/.so.1, .so.2 → ../clang-17.so.2).
+# Mais dans le cadre des GuiLI avec $MODERNITE >= 5, le LD_LIBRARY_PATH est limité à clang-17/lib, qui n'a rien à proposer comme .so.1
+# On crée donc un lien symbolique *interne à clang* (installé après le sutiliser) pour avoir toujours une version de la biblio sous la main.
+vblibcxxpi()
+{
+	case "$vblibcxx" in "") return ;; esac
+	(
+		cd "$dest/lib"
+		{
+			_vblibcxxpi_biblios ../bin/clang++ | while read nouv anc
+			do
+				echo "$nouv" "$anc"
+				case "$nouv" in libc++.*)
+					[ ! -e "$nouv" ] || _vblibcxxpi_biblios "$nouv"
+				;; esac
+			done
+		} | while read nouv anc
+		do
+			# Idée de départ: tirer un lien de la .so.1 vers la .so.2 du clang 17
+			# /!\ NE PAS UTILISER
+			#     C'était une belle idée mais en pratique les ABI sont justement différentes, donc pour faire tourner un clang 17 compilé par un clang 14 (et son ABI), il faut avoir cette dernière sous la main; sans quoi il trouve bien la biblio mais n'y trouve plus les symboles qui y étaient au moment de la compil.
+			# Idée finale: tirer un lien de la .so.1 vers la .so.1 du clang 14
+			#   Pour se faciliter la vie on rajoute juste la petite ligne suivante qui surcharge $nouv:
+			# BOGUE: ça marche la première fois, tant qu'on n'a pas de .so.1 chez nous, celui d'$INSTALLS/lib reste à pointer sur celui de l'ancienne version, car le principe de fonctionnement de sutiliser est de dire "je ne remplace dans $INSTALLS que ce qui existe dans $dest, je laisse en place les pointeurs vers des fichiers d'une ancienne version qui n'existent pas dans la nouvelle".
+			#   Par contre, à partir du moment où on le crée comme lien symbolique, au prochain sudo ./utiliser, notre .so.1 existant dans notre arbo, celui de $INSTALLS deviendra un lien symbolique vers celui de notre nouvelle version. On aura donc une boucle infinie de liens: $INSTALLS/lib/libc++.so.1 -> ../clang-17/lib/libc++.so.1 -> ../../lib/libc++.so.1
+			nouv="../../lib/`bn "$anc"`"
+			
+			[ ! -e "$anc" -a -e "$nouv" ] || continue
+			jaune "Création d'un lien $anc -> $nouv"
+			sudoku ln -s "$nouv" "$anc"
+		done
+	)
+}
+
+_vblibcxxpi_biblios()
+{
+	biblios "$1" | grep /libc++ | sed -E -e "s#.*/##;s#.*#& &#;s#[.]([0-9]+)([.]|$)#.$vblibcxx\\2#"
 }
 
 # Préconsommons les options qui seront traitées plus tard, pour éviter que destiner ne nous enguirlande.
@@ -1351,5 +1394,7 @@ case "$GUILI_CLANG_PID" in ?*)
 	mv build build-passe1 # À un autre endroit tout de même: c'est le flangPostConf de l'appelant qui y piochera ce qu'il veut, en évitant surtout de reprendre tout le cache CMake qui s'est fixé sur l'ancien compilo.
 	cd "$TMP/$$"
 ;; esac
+
+vblibcxxpi
 
 sutiliser
