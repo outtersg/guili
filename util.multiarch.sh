@@ -49,8 +49,8 @@ marcher()
 	mac || return 0 # Pour le moment je ne sais pas faire sur d'autres plates-formes que le Mac.
 	
 	case "$GUILI_MOIRE:" in
-		*:multiarch:*)
-			moire -i multiarch
+		*:multiarch_$multiarch_arch:*)
+			moire -i multiarch_$multiarch_arch
 			multiarchConfigurer
 			;;
 		*)
@@ -96,7 +96,7 @@ maLancer()
 			# Le reste des opérations va se faire dans la suite de ce script.
 		else
 			# Lancement d'un fils pour l'archi.
-			moire -i multiarch "$@" --arch "$a"
+			moire -i multiarch_$a "$@" --arch "$a"
 			
 			# Déplacement pour que le suivant trouve la place nette.
 			
