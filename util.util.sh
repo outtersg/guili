@@ -132,7 +132,7 @@ biblios()
 	case `uname` in
 		Darwin) otool -L "$@" ;;
 		*) ldd "$@" ;;
-	esac | grep '^	.*(.*)$' | sed -e 's/^	//' -e 's/ *([^)]*)$//' -e 's/^[^/]* => //' | grep -v '[(>]' | grep '^/'
+	esac | grep '^	.*(.*)$' | sed -e 's/^	//' -e 's/ *([^)]*)$//' -e 's/^[^/]* => //' | grep -v '[(>]' | grep '^[/@]'
 }
 
 readlinky()
