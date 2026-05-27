@@ -64,7 +64,7 @@ v 13.0.0 || true
 v 13.0.1 || true
 v 14.0.6 && constr=runtimes && modifs="$modifs ptrace_events sansBenchmarks bibliosTriplet kvmopen2" || true
 v 15.0.7 && modifs="$modifs shaxxx cxxabiSansHesitation cxxToutEnUn" || true
-v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx problematicCompilerId" || true
+v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs="$modifs atomicutmx problematicCompilerId tripletDefautVide" || true
 v 17.0.1 && modifs="$modifs tailleintsanitizer signaux" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
@@ -352,6 +352,33 @@ timespec_get()
 			filtrer flang-rt/lib/runtime/time-intrinsic.cpp awk 'depart{retention=retention"\n"$0}!depart&&/#if.*NO_TIMESPEC/{depart=$0;retention=""}!depart{print}/time\.h>/{print "#define NO_TIMESPEC_GET"}depart&&/#endif/{printf("%s",depart);print retention;depart=""}depart&&/timespec_get|ConvertTimeSpecToCount/{gsub(/NO_TIMESPEC[_A-Z]*/,"NO_TIMESPEC_GET",depart)}'
 			;;
 	esac
+}
+
+tripletDefautVide()
+{
+	# https://discourse.llvm.org/t/cmake-error-with-compiler-rt-string-sub-command-replace-requires-at-least-four-arguments/66017
+	# Reproduit sur mon vieux Mac, tard dans la compil ("[100%] Performing configure step for 'builtins'"):
+	#   string sub-command REPLACE requires at least four arguments.
+	# Dans compiler-rt/cmake/Modules/CompilerRTUtils.cmake:
+	#   string(REPLACE "-" ";" LLVM_TARGET_TRIPLE_LIST ${COMPILER_RT_DEFAULT_TARGET_TRIPLE})
+	# Comme dit dans la conversation: quand le COMPILER_etc. est vide, ça ne fait que 3 paramètres.
+	# Problème: pourquoi est-il vide, alors qu'en 14 ça passe?
+	# En tout cas la solution n'est pas d'ajouter des guillemets: en clang 22 ils n'y sont pas.
+	
+	option multiarch || return 0 # Reproduit uniquement sur Mac OS X 10.13 (sur lequel je compile en multiarch).
+	
+	# On fait un if STREQUAL plutôt qu'un NOT DEFINED OR STREQUAL car je n'arrive pas à jouer avec les parenthèses, CMake voit une erreur de syntaxe.
+	# Faut-il en plus supprimer le mot-clé CACHE?
+	filtrer compiler-rt/cmake/Modules/CompilerRTUtils.cmake sed -e '/set.COMPILER_RT_DEFAULT_TARGET_TRIPLE.*LLVM_TARGET_TRIPLE/{
+i\
+if("_${LLVM_TARGET_TRIPLE}" STREQUAL "_")
+i\
+set(LLVM_TARGET_TRIPLE ${LLVM_DEFAULT_TARGET_TRIPLE})
+i\
+message(WARNING "Oups j'\''ai dû reporter LLVM_DEFAULT_TARGET_TRIPLE (${LLVM_DEFAULT_TARGET_TRIPLE}) vers un LLVM_TARGET_TRIPLE vide")
+i\
+endif()
+}'
 }
 
 problematicCompilerId()
