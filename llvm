@@ -599,6 +599,12 @@ bibliosTriplet()
 	# https://discourse.llvm.org/t/is-it-possible-to-disable-the-triple-that-llvm-15-added-to-the-libc-abi-library-path/68704
 	# Par contre ça empêchera peut-être de faire des compil' multiarch d'un coup (cf. multiarchConfigurer). Dans ce cas étudier la version modifsPostInstall.
 	
+	# Autre remarque: les +rt n'ont peut-être pas besoin de +multiarch.
+	# En compilant une 14 +rt +multiarch, déjà à la compilation de la première passe (i386), les résultats de compil ont non pas 2 mais 3 archis:
+	# file ./build/runtimes/runtimes-bins/compiler-rt/lib/lsan/CMakeFiles/clang_rt.lsan_osx_dynamic.dir/lsan_mac.cpp.o
+	# ./build/runtimes/runtimes-bins/compiler-rt/lib/lsan/CMakeFiles/clang_rt.lsan_osx_dynamic.dir/lsan_mac.cpp.o: Mach-O universal binary with 3 architectures: [i386:Mach-O object i386] [x86_64h:Mach-O 64-bit object x86_64h]
+	# qui sont celles mentionnées au moment du configure.
+	
 	for f in $racineLlvm/CMakeLists.txt $racineLlvm/runtimes/CMakeLists.txt
 	do
 		# Parfois ils passent par une LLVM_ENABLE_PER_TARGET_RUNTIME_DIR_default, parfois en codant en dur un ON.
