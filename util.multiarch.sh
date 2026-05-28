@@ -254,6 +254,15 @@ prerequisMultiarch()
 	# Recherche de l'option, ou d'une mention dans les $modifs.
 	
 	case " $modifs " in *" multiarch "*) modifierOptions =multiarch ;; esac
+	# Sauf sur les plates-formes à une seule archi.
+	if option multiarch
+	then
+		mas
+		case "$multiarch_archs" in
+			[a-zA-Z0-9]*" "[a-zA-Z0-9]*) true ;; # Au moins 2 archis.
+			*) modifierOptions -multiarch ;;
+		esac
+	fi
 	if option multiarch
 	then
 		case " $modifs " in *" multiarch "*) true ;; *) modifs="multiarch $modifs" ;; esac
