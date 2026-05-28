@@ -137,9 +137,37 @@ biblios()
 
 readlinky()
 {
-	case `uname` in
-		Linux) readlink -e "$@" ;;
-		*)
+	# Test pour savoir par quoi nous remplacer.
+	
+	local D=$TMP/$$/readlinky essai impl=_readlinky_impl_iter
+	rm -Rf "$D"
+	mkdir -p $D/d
+	touch $D/a
+	ln -s $D/a $D/b
+	ln -s b $D/c
+	ln -s ../c $D/d/d
+	for essai in "readlink -f" "readlink -e" realpath
+	do
+		case "`$essai $D/d/d 2> /dev/null`" in
+			"$D/a")
+				impl="$essai"
+				break
+				;;
+		esac
+	done
+	impl='readlinky() { '"$impl"' "$@" ; }'
+	gris "$impl"
+	# À FAIRE?: cacher dans un util.cache.sh?
+	eval "$impl"
+	
+	# Invocation.
+	
+	readlinky "$@"
+}
+
+_readlinky_impl_iter()
+{
+	# Cf. aussi readlinkf()
 			local c="$1"
 			case "$c" in [^/]*) c="`pwd`/$c" ;; esac
 			IFS=/
@@ -147,8 +175,6 @@ readlinky()
 			unset IFS
 			[ -e "$c" ] || return 1
 			echo "$c"
-			;;
-	esac
 }
 
 _readlinky()
