@@ -909,6 +909,8 @@ stdcppPasTropEnDur()
 {
 	# clang code en dur les chemins dans lesquels il cherche ses include système pour lib(std)c++ (cf. lib/Driver/ToolChains.cpp).
 	
+	local f
+	
 	# >= 14
 	# Chacun fait à sa sauce, cf. InitHeaderSearch.cpp:AddDefaultIncludePaths() (qui centralisait): "This code path is going away."
 	# Donc on va regarder les clang/lib/Driver/ToolChains/*.cpp:
@@ -928,13 +930,15 @@ stdcppPasTropEnDur()
 # Notre lib s insère avant celle codée en dur dans le constructeur.
 /FreeBSD::FreeBSD/{constr=1}
 constr&&/{/{constr="";print "getFilePaths().push_back(std::string(getDriver().'"$siegePilote"') + \"/../lib\");"}
-# Et notre libc++ ne sait pas marcher sans sa libc++abi.
-/"-lc\+\+"/{print"CmdArgs.push_back(\"-lc++abi\");"}
 '
-		filtrer $tools/clang/lib/Driver/ToolChain.cpp awk '
+# Et notre libc++ ne sait pas marcher sans sa libc++abi.
+		for f in ToolChain.cpp ToolChains/FreeBSD.cpp ToolChains/Darwin.cpp
+		do
+			filtrer "$tools/clang/lib/Driver/$f" awk '
 {print}
 /"-lc\+\+"/{print"CmdArgs.push_back(\"-lc++abi\");"}
 '
+		done
 	fi
 	
 	# À FAIRE: faire le pont entre les deux (le bloc du dessus et du dessous).
