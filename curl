@@ -43,6 +43,7 @@ version=7.26.0
 v 7.38.0 || true
 v 7.39.0 || true
 v 7.43.0 || true
+v 7.46.0 && prerequis="$prerequis libpsl" || true # libpsl obligatoire seulement à partir de la 8.6, mais détecté dès la 7.46: si on l'a, pkg-config le détectera donc on doit l'avoir en prérequis.
 v 7.49.0 || true
 v 7.51.0 && remplacerPrerequis "libidn >= 2" || true
 v 7.53.1 || true
@@ -63,7 +64,7 @@ v 7.88.1 || true
 v 8.0.1 && prerequis="$prerequis nghttp3 ngtcp2" || true
 v 8.3.0 || true
 v 8.5.0 || true
-v 8.6.0 && prerequis="perl \\ $prerequis libpsl" || true # perl pour la doc.
+v 8.6.0 && prerequis="perl \\ $prerequis" || true # perl pour la doc.
 v 8.11.1 || true
 v 8.12.1 || true
 v 8.16.0 || true
