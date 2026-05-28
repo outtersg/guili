@@ -86,17 +86,40 @@ virerPrerequis()
 	prerequis="`echo " $prerequis " | sed -E -e 's/ /  /g' -e "s# ($aVirer)([ <=>0-9.]+|[+@][^ ]*)* # #g" -e 's/pasttdesuite   */ /g'`"
 }
 
+# Remplace les contraintes sur un prérequis (ou l'ajoute s'il n'était pas déjà dans la liste).
+# Notez la nuance:
+#   remplacerPrerequis "logiciel +option >= 3" # Ajouter l'option et la contrainte de version pour toute occurrence de logiciel.
+#   remplacerPrerequis "logiciel+option >= 3" # Imposer la contrainte de version sur une entrée qui a déjà l'option +option. Notez que des options multiples doivent être dans l'ordre alphabétique.
 remplacerPrerequis()
 {
 	local remplAwk="`for r in "$@" ; do echo "$r" ; done | sed -e 's/^[^ <=>]*/r["&"]="&/' -e 's/$/";/'`"
 	prerequis="`decoupePrerequis "$prerequis" | awk '
-		BEGIN{ '"$remplAwk"' }
+		BEGIN{
+			'"$remplAwk"'
+			# Les remplacements de x+option sont constitués en regex.
+			for(logi in r)
+				if(logi ~ /[+]/)
+				{
+					logis = logi; # logi[ciel] s[ouple], car cherchable par regex plutôt que seulement tel quel.
+					gsub(/[+]/, ".*+", logis);
+					exprs[logi] = logis;
+					adesexprs = 1;
+				}
+		}
 		{
 			sub(/[+]/, " +");
-			if(r[$1])
+			trouve = $1;
+			if(!r[trouve] && adesexprs)
+				for(expr in exprs)
+					if($0 ~ exprs[expr])
+					{
+						trouve = expr;
+						break;
+					}
+			if(r[trouve])
 			{
-				print r[$1];
-				delete r[$1];
+				print r[trouve];
+				delete r[trouve];
 			}
 			else
 				print;
