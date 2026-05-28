@@ -49,6 +49,8 @@ jalonner()
 	eval jalon='"$jalon_'$1'"'
 	case "$jalon" in "") rouge "# jalonner() appelée sans jalon() préalable" >&2 ; return 1 ;; esac
 	
+	unset PWD ; PWD="`pwd`" # Par sécurité on part d'un PWD réel (car c'est une variable qui peut être manuellement écrasée).
+	
 	{
 		set # Inclut le PWD, normalement.
 		export -p # export -p est le seul qui marche à l'identique sur les /bin/sh de FreeBSD 15.0 ou 10.2, Mac OS X 10.13, et Raspbian sur un RPi3.
