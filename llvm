@@ -1113,9 +1113,8 @@ vblibcxxpi()
 			#     C'était une belle idée mais en pratique les ABI sont justement différentes, donc pour faire tourner un clang 17 compilé par un clang 14 (et son ABI), il faut avoir cette dernière sous la main; sans quoi il trouve bien la biblio mais n'y trouve plus les symboles qui y étaient au moment de la compil.
 			# Idée finale: tirer un lien de la .so.1 vers la .so.1 du clang 14
 			#   Pour se faciliter la vie on rajoute juste la petite ligne suivante qui surcharge $nouv:
-			# BOGUE: ça marche la première fois, tant qu'on n'a pas de .so.1 chez nous, celui d'$INSTALLS/lib reste à pointer sur celui de l'ancienne version, car le principe de fonctionnement de sutiliser est de dire "je ne remplace dans $INSTALLS que ce qui existe dans $dest, je laisse en place les pointeurs vers des fichiers d'une ancienne version qui n'existent pas dans la nouvelle".
-			#   Par contre, à partir du moment où on le crée comme lien symbolique, au prochain sudo ./utiliser, notre .so.1 existant dans notre arbo, celui de $INSTALLS deviendra un lien symbolique vers celui de notre nouvelle version. On aura donc une boucle infinie de liens: $INSTALLS/lib/libc++.so.1 -> ../clang-17/lib/libc++.so.1 -> ../../lib/libc++.so.1
-			nouv="../../lib/`bn "$anc"`"
+			#   N.B.: utilisation de realinky pour avoir un chemin absolu vers une vrai biblio, on ne peut pas se contenter de pointer vers $INSTALLS/lib/libc++.so.1 qui (après sutiliser) sera remplacé par un lien vers nous… ce qui entraînerait une boucle infinie $INSTALLS/lib/libc++.so.1 -> ../clang-17/lib/libc++.so.1 -> ../../lib/libc++.so.1 -> etc.
+			nouv="`readlinky "$INSTALLS/lib/$anc"`"
 			
 			[ ! -e "$anc" -a -e "$nouv" ] || continue
 			jaune "Création d'un lien $anc -> $nouv"
@@ -1399,6 +1398,6 @@ case "$GUILI_CLANG_PID" in ?*)
 	cd "$TMP/$$"
 ;; esac
 
-vblibcxxpi
-
 sutiliser
+
+vblibcxxpi
