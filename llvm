@@ -1173,6 +1173,7 @@ src() { [ -d "$1"-*.src ] || { echo . ; return ; } ; echo "$1"-*.src ; }
 # On peut se passer des tests (gros trucs lourds avec des .o etc., qu'on ne lance pas), sauf pour omp dont le dossier tests (avec un s) fait appel explicite à une cible définie dans test (en v 20 au moins).
 pg 13 $version ||
 option omp || obtenirSauf=test
+case "$obtenirSauf" in *test*) OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF" ;; esac
 obtenirEtAllerDansVersion
 cd "`src llvm`"
 case "$constr" in
