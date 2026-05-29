@@ -1374,6 +1374,7 @@ for modif in true $modifsPostCompil ; do $modif ; done
 jalonner compil
 fi
 
+# À FAIRE: le jalon nous remet dans le dossier temporaire
 echo Installation… >&2
 install=install/strip # Depuis je ne sais quelle version, 3 Go par binaire, ça commence à faire beaucoup. Heureusement l'install' propose un mode bien dégagé autour des oreilles.
 pge $version 17 || install=install
