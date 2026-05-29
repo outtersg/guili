@@ -32,8 +32,16 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Chemin de compilation pour un Mac OS X 10.8 (clang 3.5svn): gcc 4.9.4, clang 3.4.2, clang 3.5.2, clang 3.7.1, clang 3.9.1.
 # Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction de ce qu'il trouve; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un llvm + clang. Cf. multiarchLibCxx().
 # Chemin de compilation pour un Mac OS X 10.12: sudo mkdir /usr/local/clangs && sudo mv /usr/local/clang-* /usr/local/clangs/ && ./clang '< 5' # On vire tous nos compilos i386 + x86_64: dénichant un SDK iOS, il essaye de se compiler pour, avec en particulier l'archi amd64, non supportée par la libc++.dylib de notre première mouture clang maison.
-# Chemin de compilation pour un Mac OS X 10.13.6: ./clang "< 12" (cf. _9vers12()) && ./clang # Après avoir commenté le multiarch, en attendant d'avoir résolu "Sur les systèmes multi"
 # Attention, quand on a déjà un llvm-3.9.1 d'installé, et qu'on essaie de compiler un llvm+clang 3.9.1, pour je ne sais quelle raison, seul le llvm se compile, argh.
+# Chemin de compilation pour un Mac OS X 10.13.6:
+#   ./clang "< 12" (cf. _9vers12())
+#   ./clang +-rt "< 15" # inclut le multiarch désormais par défaut, on doit donc l'exclure.
+#      Étrange: pour compiler une 14+multiarch+rt à partir d'une 14+multiarch, la 1ère compil' a foiré immédiatement (/usr/local/clang+libcxx+multiarch-14.0.6/include/c++/v1/wchar.h:141:77: error: use of undeclared identifier 'wcschr'), en relançant ça passe.
+#   ./clang "< 15"
+#   # Pas la 15:
+#   #   CMake Error at /Users/gui/tmp/llvm-project-llvmorg-15.0.7/compiler-rt/cmake/Modules/CompilerRTDarwinUtils.cmake:73 (message):
+#   #   Failed to determine SDK version for "iphonesimulator" SDK
+#   ./clang "< 18"
 
 constr=configure
 v 3.3 || true
@@ -790,7 +798,6 @@ sansChar8T()
 	}
 
 # (utilisée avec multiarch())
-# Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction des archis supportées par le ld système; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un nouveau llvm + clang.
 multiarchConfigurer()
 {
 	# À étudier: https://discourse.llvm.org/t/runtime-builds-for-multiple-targets/61908
