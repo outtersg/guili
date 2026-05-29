@@ -780,6 +780,7 @@ sansChar8T()
 	filtrer $projects/libcxxabi/lib/itanium-base.exp egrep -v '_ZT[IS]P?K?Du'
 	
 	modifsPostCompil="$modifsPostCompil _sansChar8T"
+}
 	_sansChar8T()
 	{
 		cp ../$projects/libcxxabi/lib/itanium-base-v2.exp ../$projects/libcxxabi/lib/itanium-base.exp
@@ -787,7 +788,6 @@ sansChar8T()
 		grep -rl /bin/clang ../$projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-+_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
 		make -j4
 	}
-}
 
 # (utilisée avec multiarch())
 # Sur les systèmes multi-architectures (ex.: Mac OS X), clang détermine pour quelles architectures se compiler en fonction des archis supportées par le ld système; mais libc++ ne se compile par défaut que pour l'architecture par défaut. Et comme clang est écrit en C++, il requiert libc++. Autrement dit, un llvm + clang + libc++ compilé avec le clang système (multi-arch) et les options par défaut sera incapable de compiler un nouveau llvm + clang.
