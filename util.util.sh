@@ -156,7 +156,7 @@ readlinky()
 		esac
 	done
 	impl='readlinky() { '"$impl"' "$@" ; }'
-	gris "$impl"
+	gris "$impl" 2> /dev/null > /dev/tty || true
 	# À FAIRE?: cacher dans un util.cache.sh?
 	eval "$impl"
 	
