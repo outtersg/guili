@@ -876,7 +876,7 @@ cxxToutEnDeux()
 	
 	# Correctif:
 	# On repose sur la porte de service que laisse ouverte notre cmake personnalisé GuiLI. Notre $CMAKE_LIBRARY_PATH sera invoqué avant $LD_LIBRARY_PATH, mais celui-ci ne sera pas totalement écarté: on s'assure donc d'avoir collé tous nos chemins, même les système, avant qu'$LD_LIBRARY_PATH immisce le build/lib ajouté par taLibcxxEnPrio().
-	local sansBuild="`echo "$LD_LIBRARY_PATH" | sed -e "s#$PWD/build/lib:##g"`"
+	local sansBuild="`echo "$LD_LIBRARY_PATH" | sed -e "s#`pwd`/build/lib:##g"`"
 	export CMAKE_LIBRARY_PATH="$sansBuild:/usr/lib:/lib"
 	
 	# D'autres pistes pourraient être:
@@ -902,7 +902,7 @@ taLibcxxEnPrio()
 	# - la raison d'être de cxxabiSansHesitation, dont au moins le commentaire pourrait être ajusté.
 	
 	cxxToutEnDeux # Mais auparavant laissons notre cmake prendre son indépendance.
-	export LD_LIBRARY_PATH="$PWD/build/lib:$LD_LIBRARY_PATH"
+	export LD_LIBRARY_PATH="`pwd`/build/lib:$LD_LIBRARY_PATH"
 }
 
 stdcppPasTropEnDur()
@@ -1082,7 +1082,7 @@ vblibcxx()
 	OPTIONS_CMAKE="$OPTIONS_CMAKE -DLIBCXXABI_LIBRARY_VERSION=$v.0"
 	
 	local ou=.
-	case "$PWD" in */build) ou=.. ;; esac
+	case "`pwd`" in */build) ou=.. ;; esac
 	filtrer $ou/libcxxabi/src/CMakeLists.txt sed -e 's/SOVERSION "1"/SOVERSION "'"$v"'"/' # Sinon on a libc++abi.so.1 → libc++abi.so.3.0
 	
 	vblibcxx="$v"
@@ -1374,7 +1374,6 @@ for modif in true $modifsPostCompil ; do $modif ; done
 jalonner compil
 fi
 
-# À FAIRE: le jalon nous remet dans le dossier temporaire
 echo Installation… >&2
 install=install/strip # Depuis je ne sais quelle version, 3 Go par binaire, ça commence à faire beaucoup. Heureusement l'install' propose un mode bien dégagé autour des oreilles.
 pge $version 17 || install=install
@@ -1389,7 +1388,7 @@ for modif in true $modifsPostInstall ; do $modif ; done
 # À FAIRE: si nous sommes clang, nous pouvons aussi créer un alias (lien symbolique) llvm+clang-x.y.z -> clang-x.y.z,
 # car nous en sommes un surensemble et les logiciels cherchant llvm devraient pouvoir nous trouver (ex.: mesa).
 
-case "$PWD" in */build) cd .. ;; esac # La compil' terminée, on se replace à la racine des sources pour la phase ménage.
+case "`pwd`" in */build) cd .. ;; esac # La compil' terminée, on se replace à la racine des sources pour la phase ménage.
 
 # Si nous sommes compilés comme amorçage d'un clang plus étoffé, on se déplace pour éviter que notre répertoire sources soit effacé.
 # Ainsi les produits de compilation pourront être réutilisés (à discrétion du Makefile).
