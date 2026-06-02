@@ -230,6 +230,18 @@ multiarchPrecombiner()
 	true
 }
 
+marchArgsC()
+{
+	local attr="-march"
+	case "`uname`" in
+		Darwin) attr="-arch" ;;
+	esac
+	case $# in 0) set -- "$multiarch_arch" ;; esac
+	
+	local a
+	for a in "$@" ; do printf '%s %s ' "$attr" "$a" ; done
+}
+
 # multiarchConfigurer par défaut: ajout de -arch ou -march à CFLAGS et compagnie.
 # Peut être surchargée par les logiciels à configuration d'archi exotique.
 multiarchConfigurer()
