@@ -54,6 +54,8 @@ marcher()
 			multiarchConfigurer
 			;;
 		*)
+			if marcherAccelere ; then return ; fi
+			
 			if [ $# -eq 0 ]
 			then
 				IFS="`printf '\003'`"
