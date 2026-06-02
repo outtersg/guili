@@ -73,6 +73,29 @@ marcher()
 	esac
 }
 
+marcherAccelere()
+{
+	# À partir de je ne sais quelle version, clang acquiert la capacité de générer directement des binaires multiarch (via -arch a1 -arch a2 etc.).
+	# Si c'est le cas, au lieu de notre multiarch habituel par moiré (compilation a1 + compilation a2 + combinaison des lib et des bin), on peut en une seule étape générer les binaires combinés.
+	# - dans le cas général ça sera plus rapide.
+	# - dans le cas particulier de clang, qui sait tirer parti de cela, on multiplie même par 4 le temps de compil:
+	#   pour une compil clang+rt (runtimes), clang se compile, puis sa libc++abi, puis sa libc++ (dans l'archi forcée par notre moiré), puis ses runtimes (dans toutes les archis autodétectées)
+	#   donc si notre moiré est en i386 seul, les runtimes (qui tentent i386,x86_64,x86_64h) plantent faute de symbole x86_64 dans notre libc++.
+	#   Ce qui obligeait en théorie une compil en 4 passes: clang sans rt (clang i386, clang x86_64, combinaison), puis clang+rt (toujours en moiré, donc: clang i386, rt i386,x86_64, clang x86_64, rt i386,x86_64, combinaison; en espérant que les rt exploitassent le résultat de la combinaison de la clang+-rt.
+	# Pour un logiciel ne supportant pas: redéfinir marcherAccelere() { return 1 ; }
+	
+	local multiarch_archs ; mas
+	case "$multiarch_archs" in *[a-z0-9]*" "*[a-z0-9]*) true ;; *) return 1 ;; esac # Moins de 2 archis? Quel intérêt alors?
+	local optarch="`marchArgsC $multiarch_archs`"
+	
+	echo '#include <iostream>|int main(int argc, char ** argv) { std::cout << "Salut" << std::endl; return 0; }'| tr \| \\012 > $TMP/$$/1.cxx
+	compilo_test $CXX $optarch $CPPFLAGS $CXXFLAGS $LDFLAGS $TMP/$$/1.cxx -o $TMP/$$/a.out 2> /dev/null && $TMP/$$/a.out > /dev/null || return 1
+	
+	multiarchConfigurer $multiarch_archs
+	
+	gris "(multiarch accéléré avec: $optarch)" > /dev/tty 2> /dev/null
+}
+
 maLancer()
 {
 	shift # Le premier paramètre est $install_moi, pour compatibilité avec l'ancien multiarch.
