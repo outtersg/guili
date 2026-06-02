@@ -244,16 +244,15 @@ marchArgsC()
 
 # multiarchConfigurer par défaut: ajout de -arch ou -march à CFLAGS et compagnie.
 # Peut être surchargée par les logiciels à configuration d'archi exotique.
+# À FAIRE: faire sauter le mode version 1, qui repose sur $multiarch_arch: ne plus utiliser que le mode v2 où la (ou les, en cas de marcherAccelere) archi est passée explicitement en paramètre.
 multiarchConfigurer()
 {
-	local attr="-march"
-	case "`uname`" in
-		Darwin) attr="-arch" ;;
-	esac
-	export CFLAGS="$attr $multiarch_arch $CFLAGS"
-	export CXXFLAGS="$attr $multiarch_arch $CXXFLAGS"
-	export OBJCFLAGS="$attr $multiarch_arch $OBJCFLAGS" # Pour Objective C, typiquement glib.
-	export LDFLAGS="$attr $multiarch_arch $LDFLAGS"
+	local args="`marchArgsC "$@"`"
+	export \
+		CFLAGS="$args $CFLAGS" \
+		CXXFLAGS="$args $CXXFLAGS" \
+		OBJCFLAGS="$args $OBJCFLAGS" \
+		LDFLAGS="$args $LDFLAGS"
 }
 
 # S'assure que si le logiciel est demandé en multiarch (comme modif par défaut, ou par option implicite), ses prérequis le sont aussi.
