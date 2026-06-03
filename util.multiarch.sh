@@ -92,6 +92,7 @@ marcherAccelere()
 	
 	echo '#include <iostream>|int main(int argc, char ** argv) { std::cout << "Salut" << std::endl; return 0; }'| tr \| \\012 > $TMP/$$/1.cxx
 	compilo_test $CXX $optarch $CPPFLAGS $CXXFLAGS $LDFLAGS $TMP/$$/1.cxx -o $TMP/$$/a.out 2> /dev/null && $TMP/$$/a.out > /dev/null || return 1
+	case "`archisBin "$TMP/$$/a.out"`" in *[a-z0-9]*" "[a-z0-9]*) true ;; *) gris "marcherAccelere(): le fichier généré n'est pas multiarchis" >&2 ; return 1 ;; esac
 	
 	multiarchConfigurer $multiarch_archs
 	
