@@ -243,6 +243,12 @@ multiarchCombinerDarwin()
 	done
 }
 
+archisBin()
+{
+	local sys=`uname`
+	archisBin$sys "$@"
+}
+
 archisBinDarwin()
 {
 	lipo -info "$1" | sed -e '1!d' -e 's/^[^:]*:[^:]*: //' -e 's/ $//' # "Non-fat file: x is architecture: " ou "Architectures in the fat file: x are: "
