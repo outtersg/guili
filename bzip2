@@ -32,7 +32,7 @@ dyna()
 {
 	filtrer Makefile awk '
 /^all: /{ print $0" libbz2.so"; next; }
-/^libbz2\.a:/{ print "libbz2.so: $(OBJS)"; print "\t$(CC) -shared -fPIC -o $@ $(OBJS)" ; print ""; }
+/^libbz2\.a:/{ print "libbz2.so: $(OBJS)"; print "\t$(CC) -shared -fPIC $(LDFLAGS) -o $@ $(OBJS)" ; print ""; }
 { print; }
 /^install:/{ install = 1; }
 install&&/^$/{ install = 0; }
@@ -58,6 +58,7 @@ filtrer Makefile sed \
 	-e "s#^PREFIX=.*#PREFIX=$dest#" \
 	-e "s#^CFLAGS=#CFLAGS=$CFLAGS #" \
 	-e "s#^CC=.*#CC=$CC#" \
+	-e "s#^LDFLAGS=#LDFLAGS=$LDFLAGS #" \
 
 echo Compilation… >&2
 make
