@@ -28,14 +28,29 @@ logiciel=sslh
 
 # Historique des versions gérées
 
+configure=true
 # À FAIRE: pcre est peut-être optionnel.
 v 1.18 && prerequis="make \\ pcre" && modifs="sansLibConfig" || true
 v 1.22.2 || true
 v 1.23.0 || true
 v 2.0.0 && prerequis="$prerequis libevent" && modifs="$modifs sansLibevCrade" || true
 v 2.0.1 || true
+v 2.1.4 && configure=./configure && retirerModif sansLibevCrade && modifs="$modifs sansLibev" || true
+v 2.2.4 || true
+v 2.3.0 || true
+v 2.3.1 || true
 
 # Modifications
+
+sansLibev()
+{
+	local f
+	for f in Makefile Makefile.in
+	do
+		[ -f "$f" ] || continue
+		filtrer $f sed -e '/^USELIBEV=/s/=.*/=/'
+	done
+}
 
 sansLibevCrade()
 {
@@ -49,9 +64,12 @@ sansLibevCrade()
 
 sansLibConfig()
 {
-	filtrer Makefile sed -e '/^USELIBCONFIG=/c\
-USELIBCONFIG=
-'
+	local f
+	for f in Makefile Makefile.in
+	do
+		[ -f "$f" ] || continue
+		filtrer $f sed -e '/^USELIBCONFIG=/s/=.*/=/'
+	done
 }
 
 # Variables
@@ -71,6 +89,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+$configure
 
 echo Compilation… >&2
 make
