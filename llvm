@@ -801,8 +801,35 @@ sansChar8T()
 # (utilisée avec multiarch())
 multiarchConfigurer()
 {
+	# Compatibilité aux deux modes d'appel de multiarchConfigurer(): 1. par $multiarch_arch prédéfinie 2. par passage de paramètres explicite.
+	local multiarch_arch="$multiarch_arch"
+	case $# in 0) set -- "$multiarch_arch" ;; esac
+	case "$multiarch_arch" in "") multiarch_arch="$1" ;; esac
+	
+	# Si plusieurs archis demandées d'un coup, peut-on reposer sur un mécanisme interne au constructeur LLVM?
+	case $# in [2-9]|[1-9][0-9]*)
+		case `uname` in
+			Darwin)
+				# Sur Mac, cmake sait piloter directement le cas "même système, plusieurs archis" grâce à CMAKE_OSX_ARCHITECTURES
+				# https://stackoverflow.com/questions/30813653/how-to-build-fat-libclang
+				# Notons que c'est assez fragile de transposer notre multiarch en cmake: on imagine que le CMake de LLVM va décliner ça en la même chose que ce qu'on teste dans marcherAccelere(). S'il ne le fait pas, il va nous lancer en mode "toutes les archis en même temps", et on ne saura pas gérer.
+				# À FAIRE: à partir de quelle version exactement clang est-il capable de se faire piloter par CMAKE_OSX_ARCHITECTURES?
+				# Notons les errements de https://reviews.llvm.org/D116976, qui a essayé (avant de se rétracter) d'écraser le CMAKE_OSX_ARCHITECTURES des runtimes par le global (alors que, au moins en 19 mais peut-être avant, la partie runtimes sait déjà compiler sa libc++ en toutes les archis standard sur la plate-forme (ex.: x86_64;i386;x86_64h sur mon Mac 10.13, alors que je ne sais tester que les deux premiers en multiarch: donc dans mon cas l'écrasement du CMAKE_OSX_ARCHITECTURES, qui permettait certes de générer un clang à 2 archis, faisait aussi passer libc++ à 2 archis alors que le mécanisme intégré lui en donnait 3).
+				IFS=\;
+				OPTIONS_CMAKE="$OPTIONS_CMAKE -DCMAKE_OSX_ARCHITECTURES=$*"
+				unset IFS
+				return 0
+				;;
+			*)
+				rouge "# Je ne sais pas configurer la compil pour plusieurs archis ($*) sur `uname`" >&2
+				return 1
+				;;
+		esac
+	;; esac
+	
 	# À étudier: https://discourse.llvm.org/t/runtime-builds-for-multiple-targets/61908
 	#   À partir de la 14 au moins, il semble possible de balancer plusieurs cibles, en -DLLVM_RUNTIME_TARGETS="x-y-z;t-u-v"
+	#   Ça paraît plus complexe que les mécanismes multiarch standard (cf. ci-dessus avec CMAKE_OSX_ARCHITECTURES), puisqu'ici on a plusieurs triplets pouvant varier aussi sur l'OS, et non pas simplement des variations de processeur pour une même système.
 	#   Cela pourrait remplacer le multiarch (qui compile deux fois, avec seule une petite partie qui diffère, toute la partie compilo étant de toute façon faite pour l'hôte).
 	#   Se poserait tout de même la question de la forme des binaires (a priori dans des dossiers séparés, donc à nous de jouer du lipo pour en faire des binaires combinant les 2 archis, pour être iso ce que fournit Apple avec son système; et cf. note dans bibliosTriplet() sur une possible limitation).
 	#   En outre le fil de discussion ci-dessus dit que (au moins en 14.0) bien que les options globales soient présentes, elles ne sont pas propagées à chaque archi → plantage au bout du compte: sans doute une petite passe manuelle supplémentaire à appliquer (le fil donne la technique: décliner les -D<xxx>_USE_<lemachinjustecompilé>=ON en -DRUNTIMES_<triplet>_<xxx>_USE_<lemachinjustecompilé>=ON).
