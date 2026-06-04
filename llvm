@@ -884,7 +884,8 @@ cxxToutEnDeux()
 	
 	# Correctif:
 	# On repose sur la porte de service que laisse ouverte notre cmake personnalisé GuiLI. Notre $CMAKE_LIBRARY_PATH sera invoqué avant $LD_LIBRARY_PATH, mais celui-ci ne sera pas totalement écarté: on s'assure donc d'avoir collé tous nos chemins, même les système, avant qu'$LD_LIBRARY_PATH immisce le build/lib ajouté par taLibcxxEnPrio().
-	local sansBuild="`echo "$LD_LIBRARY_PATH" | sed -e "s#`pwd`/build/lib:##g"`"
+	local pwd="`pwd`"
+	local sansBuild="`echo "$LD_LIBRARY_PATH" | sed -e "s#$pwd/build/lib:##g"`"
 	export CMAKE_LIBRARY_PATH="$sansBuild:/usr/lib:/lib"
 	
 	# D'autres pistes pourraient être:
