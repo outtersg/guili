@@ -27,6 +27,7 @@ Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s
 prerequis="python ninja meson \\ ncurses fcft"
 v 1.25.0 && modifs="linuxInput" || true
 v 1.26.1 || true
+v 1.27.0 || true
 
 argOptions="`options "$argOptions=autoserver"`"
 ! option autoserver || modifs="$modifs autoserver"
