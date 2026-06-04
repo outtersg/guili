@@ -912,6 +912,11 @@ taLibcxxEnPrio()
 	
 	cxxToutEnDeux # Mais auparavant laissons notre cmake prendre son indépendance.
 	export LD_LIBRARY_PATH="`pwd`/build/lib:$LD_LIBRARY_PATH"
+	# Il est important que notre dossier-chantier se retrouve avant même le lib du clang précédent avec lequel on se compile,
+	# pour que si (par exemple…) libc++abi a déjà été compilée, la construction de libc++ repose sur cette dernière plutôt que sur celle du précédent clang.
+	# D'une ça permettra que le clang compilé soit indépendant du précédent,
+	# de deux ça permettra de ne pas échouer sur des absences de symboles ajoutés uniquement dans cette version (ex.: __cxa_init_primary_exception en 18).
+	export LDFLAGS="-L`pwd`/build/lib $LDFLAGS"
 }
 
 stdcppPasTropEnDur()
