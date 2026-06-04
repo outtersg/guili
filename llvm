@@ -92,13 +92,26 @@ v 22.1.6 || true
 v 22.1.7 || true
 
 modifs="$modifsDyn $modifs"
-predestiner="multiarchAPartirDe $predestiner"
+predestiner="multiarchAPartirDe $predestiner constructeur"
 
 multiarchAPartirDe()
 {
 	local avecOuSans="="
 	pge $version 3.9.1 || avecOuSans="-"
 	modifierOptions ${avecOuSans}multiarch
+}
+
+constructeur()
+{
+	constructeur=make
+	# À FAIRE: à partir de quelle version?
+	if versions ninja | grep -q .
+	then
+		virerPrerequis make
+		prerequis="ninja \\ $prerequis"
+		constructeur=ninja
+		OPTIONS_CMAKE="$OPTIONS_CMAKE -G Ninja"
+	fi
 }
 
 _9vers12()
@@ -795,7 +808,7 @@ sansChar8T()
 		cp ../$projects/libcxxabi/lib/itanium-base-v2.exp ../$projects/libcxxabi/lib/itanium-base.exp
 		touch ../$projects/libcxxabi/src/*.cpp
 		grep -rl /bin/clang ../$projects/libcxxabi | while read f ; do filtrer "$f" sed -e "s#[-+_/.a-zA-Z0-9]*/bin/clang#`pwd`/bin/clang#g" ; done
-		make -j4
+	$constructeur -j4
 	}
 
 # (utilisée avec multiarch())
@@ -1418,6 +1431,8 @@ do
 		-not -name cmake_clean.cmake \
 		-not -name CMakeError.log \
 		-not -name compiler_depend.\* \
+		-not -name .ninja_deps \
+		-not -name .ninja_log \
 		-not -name "*.c*.o.d" \
 	|
 	tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
@@ -1433,7 +1448,7 @@ echo Installation… >&2
 install=install/strip # Depuis je ne sais quelle version, 3 Go par binaire, ça commence à faire beaucoup. Heureusement l'install' propose un mode bien dégagé autour des oreilles.
 pge $version 17 || install=install
 # CMAKE_LIBRARY_PATH: cf. cxxToutEnDeux(); ou faudrait-il inclure CMAKE_LIBRARY_PATH dans LD_LIBRARY_PATH directement depuis cxxToutEnDeux()?
-sudoku LD_LIBRARY_PATH="$CMAKE_LIBRARY_PATH:$LD_LIBRARY_PATH" make $install
+sudoku LD_LIBRARY_PATH="$CMAKE_LIBRARY_PATH:$LD_LIBRARY_PATH" $constructeur $install
 # Certains utilisateurs de llvm (ex.: rust) ont besoin d'avoir accès aux outils intermédiaires de llvm.
 [ -e bin/FileCheck ] && sudo cp bin/FileCheck "$dest/bin/" || true
 for modif in true $modifsPostInstall ; do $modif ; done
