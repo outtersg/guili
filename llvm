@@ -1295,7 +1295,14 @@ case $constr in
 							# compiler-rt: https://github.com/llvm/llvm-project/issues/57104#issuecomment-1335572477 + sans ça pas de libclang_rt.profile-x86_64.a indispensable au -fprofile-instr-generate qui permet (par ex. à Python) de se générer avec les stats de perfs.
 					OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_ENABLE_RUNTIMES=libcxx;libcxxabi"
 					! option rt || OPTIONS_CMAKE="$OPTIONS_CMAKE;compiler-rt"
-					! option rt || pg 18 $version || OPTIONS_CMAKE="$OPTIONS_CMAKE;libunwind" # À partir de https://reviews.llvm.org/D150897 compiler-rt utilise par défaut la libunwind embarquée (plutôt que celle système) et donc a besoin qu'on la rajoute aux projets à compiler.
+					if pge $version 18
+					then
+						# À partir de https://reviews.llvm.org/D150897 compiler-rt utilise par défaut la libunwind embarquée (plutôt que celle système) et donc a besoin qu'on la rajoute aux projets à compiler.
+						# Et quelques échecs ont révélé que libcxxabi elle-même en avait besoin:
+						#   LIBCXXABI_USE_LLVM_UNWINDER is set to ON, but libunwind is not specified in LLVM_ENABLE_RUNTIMES.
+						# Donc on ajoute libunwind dès lors qu'on a une libcxxabi (sans condition d'option +rt).
+						OPTIONS_CMAKE="$OPTIONS_CMAKE;libunwind"
+					fi
 					# Bon pas si simple:
 					# Compiler doesn't support generation of unwind tables if exception support is disabled.  Building libunwind DSO with runtime dependency on C++ ABI library is not supported. [/home/gui/tmp/llvm-project-llvmorg-18.1.8/libunwind/src/CMakeLists.txt:102]
 					# Comment on lui colle support de l'exception?
@@ -1307,11 +1314,9 @@ case $constr in
 					# Changement en https://reviews.llvm.org/D68855
 					# Mais on se rend cpte que dans notre 18 (qui n'a même pas encore le LIBUNWIND_HAS_NO_EXCEPTIONS_FLAG), est utilisé un CXX_SUPPORTS_FNO_EXCEPTIONS_FLAG qui n'est défini nulle part???
 					# Ah purée le connard en scrutant build/runtimes/runtimes-X86-bins/CMakeFiles/CMakeConfigureLog.yaml (grep -rl) on finit par dénicher un "error: unknown target triple 'X86'"
+					# Ah compris c'est mon BUILD_TARGETS=X86
 					! option omp || OPTIONS_CMAKE="$OPTIONS_CMAKE;openmp"
 					! option flang || OPTIONS_CMAKE="$OPTIONS_CMAKE;flang-rt"
-					# Ah compris c'est mon BUILD_TARGETS=X86
-					# Et si on compile sans l'option rt:
-					# "LIBCXXABI_USE_LLVM_UNWINDER is set to ON, but libunwind is not specified in LLVM_ENABLE_RUNTIMES."
 					# Mais argh, Flang does not currently support building with LLVM exceptions enabled. Please disable LLVM_ENABLE_EH when building flang.
 					if pge $version 18
 					then
