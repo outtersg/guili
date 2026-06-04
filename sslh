@@ -32,8 +32,20 @@ logiciel=sslh
 v 1.18 && prerequis="make \\ pcre" && modifs="sansLibConfig" || true
 v 1.22.2 || true
 v 1.23.0 || true
+v 2.0.0 && prerequis="$prerequis libevent" && modifs="$modifs sansLibevCrade" || true
+v 2.0.1 || true
 
 # Modifications
+
+sansLibevCrade()
+{
+	local f
+	for f in Makefile Makefile.in
+	do
+		[ -f "$f" ] || continue
+		filtrer $f sed -e '/^sslh:.*sslh-ev/s/ sslh-ev//'
+	done
+}
 
 sansLibConfig()
 {
