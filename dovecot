@@ -43,6 +43,7 @@ v 2.4.0 && virerPrerequis clucene nss zlib && prerequis="$prerequis pcre >= 10 x
 v 2.4.1 || true
 v 2.4.2 || true
 v 2.4.3 || true
+v 2.4.4 || true
 
 predestiner="$predestiner optionnels"
 
