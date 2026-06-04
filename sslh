@@ -42,7 +42,10 @@ USELIBCONFIG=
 
 # Variables
 
-archive="http://www.rutschle.net/tech/sslh/sslh-v$version.tar.gz"
+varch=$version
+pge $version 1.23 || { varcher() { local vmin=$3 ; case vmin in ?*) vmin=`{ echo obase=16 ; echo $vmin+10 ; } | bc | tr A-Z a-z` ;; esac ; varch=$1.$2$vmin ; } ; IFS=. ; tifs varcher $version ; }
+case $version in *[b-z]) varch="`printf %s $version | tr -d a-z`.`printf %s ${version}-A | tr a-z0-9. A-Z | bc`" ;; esac
+archive="https://github.com/yrutschle/sslh/archive/refs/tags/v$varch.tar.gz"
 
 destiner
 
