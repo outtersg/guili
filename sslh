@@ -21,16 +21,15 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 logiciel=sslh
 
 # Historique des versions gérées
 
-v 1.18 && prerequis="make" && modifs="sansLibConfig" || true
-
-prerequis
+# À FAIRE: pcre est peut-être optionnel.
+v 1.18 && prerequis="make \\ pcre" && modifs="sansLibConfig" || true
 
 # Modifications
 
@@ -44,9 +43,10 @@ USELIBCONFIG=
 # Variables
 
 archive="http://www.rutschle.net/tech/sslh/sslh-v$version.tar.gz"
-dest=$INSTALLS/$logiciel-$version
 
-[ -d "$dest" ] && exit 0
+destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
@@ -62,6 +62,5 @@ echo Installation… >&2
 sudo mkdir -p "$dest/bin"
 sudo cp sslh-fork "$dest/bin/"
 sudo ln -s sslh-fork "$dest/bin/sslh"
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
