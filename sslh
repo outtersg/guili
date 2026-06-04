@@ -30,6 +30,8 @@ logiciel=sslh
 
 # À FAIRE: pcre est peut-être optionnel.
 v 1.18 && prerequis="make \\ pcre" && modifs="sansLibConfig" || true
+v 1.22.2 || true
+v 1.23.0 || true
 
 # Modifications
 
