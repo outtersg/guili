@@ -38,6 +38,7 @@ v 2.7 && prerequis="$prerequis libsodium" && modifs="$modifs icuDeSecours" || tr
 v 3.7.5 && remplacerPrerequis cmake && modifs="$modifs string_view_iter capture_regexp" && predestiner="$predestiner vieillear" || true
 v 3.14.3 || true
 v 4.0.1 || true
+v 4.1.0 && retirerModif string_view_iter capture_regexp || true # Mes deux modifs ont été acceptées.
 
 # À FAIRE: une option +blas (avec openblas?).
 
