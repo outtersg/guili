@@ -316,7 +316,9 @@ prerequisMultiarch()
 	# Sauf sur les plates-formes à une seule archi.
 	if option multiarch
 	then
-		mas
+		# Nous sommes appelés avant les premières modifs qui définissent l'environnement de compilation; il nous faut donc simuler le travail de ces modifs, dans un sous-shell pour éviter de polluer.
+		# À FAIRE: mettre en cache le résultat! (util.local.cache.sh?)
+		multiarch_archs="`langc ; for modif in true $GUILI_MODIFS_ENV ; do $modif ; done ; mas ; echo "$multiarch_archs"`"
 		case "$multiarch_archs" in
 			*[a-zA-Z0-9]*" "[a-zA-Z0-9]*) true ;; # Au moins 2 archis.
 			*) modifierOptions -multiarch ;;
