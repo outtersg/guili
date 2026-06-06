@@ -873,8 +873,7 @@ multiarchConfigurer()
 	if pge $version 14
 	then
 		case "$multiarch_arch" in "") return 0 ;; esac
-		local cible="`target -g > /dev/null ; echo "$cible" | sed -e "s/^$proc/$multiarch_arch/"`"
-		OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_DEFAULT_TARGET_TRIPLE=$cible"
+		OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_DEFAULT_TARGET_TRIPLE=`multiarchTriplets "$multiarch_arch"`"
 	else
 		# Version 13 et inférieures.
 		# À partir de la 14: "LIBCXX_BUILD_32_BITS is not supported anymore when building the runtimes, please specify a full triple instead"
