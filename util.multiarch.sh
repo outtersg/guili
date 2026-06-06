@@ -164,6 +164,22 @@ mas()
 	esac
 }
 
+# Renvoie les triplets (proc-vendeur-système) pour les différents processeurs passés en paramètres.
+multiarchTriplets()
+{
+	local sep=" "
+	case "$1" in -s) sep="$2" ; shift 2 ;; esac
+	case $# in 0) target -g ; return ;; esac
+	
+	local sys="`target -g | cut -d - -f 2-`"
+	while [ $# -gt 0 ]
+	do
+		printf %s "$1-$sys"
+		case $# in 1) true ;; *) printf %s "$sep" ;; esac
+		shift
+	done
+}
+
 multiarchCombiner()
 {
 	multiarch_combineur="multiarchCombiner`uname`"
