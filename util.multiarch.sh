@@ -318,7 +318,7 @@ prerequisMultiarch()
 	then
 		mas
 		case "$multiarch_archs" in
-			[a-zA-Z0-9]*" "[a-zA-Z0-9]*) true ;; # Au moins 2 archis.
+			*[a-zA-Z0-9]*" "[a-zA-Z0-9]*) true ;; # Au moins 2 archis.
 			*) modifierOptions -multiarch ;;
 		esac
 	fi
