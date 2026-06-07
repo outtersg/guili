@@ -259,6 +259,7 @@ v 8.4.18 || true
 v 8.4.19 || true
 v 8.4.20 || true
 v 8.4.21 || true
+v 8.4.22 || true
 v 8.5.0 && modifs="$modifs elffbsd10" || true
 v 8.5.1 || true
 v 8.5.2 || true
