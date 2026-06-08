@@ -42,6 +42,8 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 #   #   CMake Error at /Users/gui/tmp/llvm-project-llvmorg-15.0.7/compiler-rt/cmake/Modules/CompilerRTDarwinUtils.cmake:73 (message):
 #   #   Failed to determine SDK version for "iphonesimulator" SDK
 #   ./clang "< 18"
+#   # Après passage à ninja, et marcherAccelere():
+#   ./clang "< 20"
 
 constr=configure
 v 3.3 || true
