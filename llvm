@@ -852,9 +852,48 @@ multiarchConfigurer()
 				# Notons que c'est assez fragile de transposer notre multiarch en cmake: on imagine que le CMake de LLVM va décliner ça en la même chose que ce qu'on teste dans marcherAccelere(). S'il ne le fait pas, il va nous lancer en mode "toutes les archis en même temps", et on ne saura pas gérer.
 				# À FAIRE: à partir de quelle version exactement clang est-il capable de se faire piloter par CMAKE_OSX_ARCHITECTURES?
 				# Notons les errements de https://reviews.llvm.org/D116976, qui a essayé (avant de se rétracter) d'écraser le CMAKE_OSX_ARCHITECTURES des runtimes par le global (alors que, au moins en 19 mais peut-être avant, la partie runtimes sait déjà compiler sa libc++ en toutes les archis standard sur la plate-forme (ex.: x86_64;i386;x86_64h sur mon Mac 10.13, alors que je ne sais tester que les deux premiers en multiarch: donc dans mon cas l'écrasement du CMAKE_OSX_ARCHITECTURES, qui permettait certes de générer un clang à 2 archis, faisait aussi passer libc++ à 2 archis alors que le mécanisme intégré lui en donnait 3).
+				
+				### Pour les binaires: clang etc.
+				
+				# https://discourse.llvm.org/t/how-to-pass-cmake-options-to-the-runtimes-configuration/61235
+				# Notre paramétrage se retrouve dans build.ninja ./projects/runtimes/tmp/runtimes-cfgcmd.txt ./CMakeCache.txt
+				# /!\ Ne fonctionne pas seul (en 19 au moins): les binaires d'amorçage (llvm-ar etc.) sont construits en multiarch,
+				#   mais pas libunwind et subséquentes libc++abi, libc++, elles-mêmes indispensables à libclang puis clang, elles uniquement compilées en LLVM_DEFAULT_TARGET_TRIPLE.
+				#   Résultat: pétage au moment de lier une libclang i386+x86_64, avec une libunwind x86_64 seulement.
+				#   -DCMAKE_OSX_ARCHITECTURES ne fonctionne donc que si -DRUNTIMES_CMAKE_ARGS=-DCMAKE_OSX_ARCHITECTURES= est en plus invoque (cf. plus bas).
+				#   Par contre -DRUNTIMES_etc. seul est possible (on finira avec des libc++ double archi, mais pas les exécutables clang et compagnie).
 				IFS=\;
 				OPTIONS_CMAKE="$OPTIONS_CMAKE -DCMAKE_OSX_ARCHITECTURES=$*"
+				# Pas la peine de *FLAGS manuels comme suit, c'est exactement ce que fait CMAKE_OSX_ARCHITECTURES:
+				#OPTIONS_CMAKE="$OPTIONS_CMAKE -DRUNTIMES_`target -g`_CMAKE_OSX_ARCHITECTURES=$*"
+				#OPTIONS_CMAKE="$OPTIONS_CMAKE -DRUNTIMES_`target -g`_CMAKE_CFLAGS=-arch;x86_64;-arch;i386"
+				#OPTIONS_CMAKE="$OPTIONS_CMAKE -DRUNTIMES_`target -g`_CMAKE_CXXFLAGS=-arch;x86_64;-arch;i386"
+				#OPTIONS_CMAKE="$OPTIONS_CMAKE -DRUNTIMES_`target -g`_CMAKE_LDFLAGS=-arch;x86_64;-arch;i386"
 				unset IFS
+				
+				### Pour les libc++ etc.
+				
+				IFS=\|
+				OPTIONS_CMAKE="$OPTIONS_CMAKE -DRUNTIMES_CMAKE_ARGS=-DCMAKE_OSX_ARCHITECTURES=$*"
+				unset IFS
+				
+				# Précédente tentative pour les biblios:
+				# https://discourse.llvm.org/t/how-to-build-clang-and-libc-for-macos-and-ios-devices/70134/14
+				# /!\ Ne fonctionne pas: en 19 en tout cas, llvm/runtimes/CMakeLists.txt:59 a une mention explicite sortant en erreur "compiler-rt for Darwin builds for all platforms and architectures".
+				true ||
+				OPTIONS_CMAKE="$OPTIONS_CMAKE -DLLVM_RUNTIME_TARGETS=`multiarchTriplets -s \; "$@"`"
+				
+				# libc/docs/gpu/building.rst montre que (sur d'autres plates-formes que Darwin?) on peut combiner -DLLVM_RUNTIME_TARGETS="default;amdgcn-amd-amdhsa" et -DRUNTIMES_amdgcn-amd-amdhsa_LLVM_ENABLE_RUNTIMES=libc pour créer une libc dédiée GPU AMD, en plus de la chaîne de l'hôte.
+				
+				# Intéressant pour passer les archis aux runtimes: clang/cmake/caches/Fuchsia.cmake
+				#   set(RUNTIMES_CMAKE_ARGS "-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13;-DCMAKE_OSX_ARCHITECTURES=arm64|x86_64" CACHE STRING "")
+				# (variable utilisée dans llvm/runtimes/CMakeLists.txt, en plus de COMMON_CMAKE_ARGS)
+				# Puis toute une série de:
+				#   set(RUNTIMES_${target}_CMAKE_BUILD_TYPE Release CACHE STRING "")
+				
+				# runtimes/CMakeLists.txt donne l'ordre canonique:
+				#   set(LLVM_DEFAULT_RUNTIMES "libc;libunwind;libcxxabi;pstl;libcxx;compiler-rt;openmp;offload")
+				
 				return 0
 				;;
 			*)
