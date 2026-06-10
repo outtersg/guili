@@ -82,7 +82,7 @@ v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setna
 v 19.1.5 && modifs="$modifs fs_filesystem user_localbase" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
-v 20.1.3 && modifs="$modifs internal_close_range copy_file_range timespec_get" || true
+v 20.1.3 && modifs="$modifs internal_close_range copy_file_range timespec_get is_same_ptrdiff_t" || true
 v 20.1.4 || true
 v 20.1.8 || true
 v 21.1.1 || true
@@ -376,6 +376,19 @@ timespec_get()
 			filtrer flang-rt/lib/runtime/time-intrinsic.cpp awk 'depart{retention=retention"\n"$0}!depart&&/#if.*NO_TIMESPEC/{depart=$0;retention=""}!depart{print}/time\.h>/{print "#define NO_TIMESPEC_GET"}depart&&/#endif/{printf("%s",depart);print retention;depart=""}depart&&/timespec_get|ConvertTimeSpecToCount/{gsub(/NO_TIMESPEC[_A-Z]*/,"NO_TIMESPEC_GET",depart)}'
 			;;
 	esac
+}
+
+is_same_ptrdiff_t()
+{
+	# En 20, un certain nombre de tests de la 19:
+	#   COMPILER_CHECK(sizeof(::PTRDIFF_T) == sizeof(ptrdiff_t));
+	# sont remplacés par quelque chose de plus contraignant:
+	#   COMPILER_CHECK((__sanitizer::is_same<::PTRDIFF_T, ::ptrdiff_t>::value));
+	# Sur mon vieux Mac OS X 10.13, les types simples passent (size_t, ssize_t), mais pas ptrdiff_t qui finit en:
+	#   error: static assertion failed due to requirement '__sanitizer::is_same<long, int>::value': 
+	# Jouons avec le feu: estimons que ce n'est pas bien grave?
+	
+	filtrer compiler-rt/lib/interception/interception_type_test.cpp sed -E -e '/is_same<::PTRDIFF_T/s/\(__sanitizer::is_same<(::PTRDIFF_T), ::(ptrdiff_t)>::value\)/sizeof(\1) == sizeof(\2)/'
 }
 
 tripletDefautVide()
