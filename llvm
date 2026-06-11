@@ -1222,7 +1222,7 @@ vblibcxx()
 	
 	vblibcxx="$v"
 	
-	modifs="$modifs _vblibcxx_enDur"
+	_vblibcxx_enDur
 }
 
 _vblibcxx_enDur()
@@ -1231,13 +1231,16 @@ _vblibcxx_enDur()
 	
 	case "$vblibcxx" in [2-9]|[1-9][0-9]*) true ;; *) return ;; esac
 	
-	filtrer compiler-rt/lib/tsan/rtl/tsan_interceptors_mac.cpp sed -e "s/_ZNSt3__1/_ZNSt3__$vblibcxx/g"
+	local d=.
+	case "`pwd`" in */build) d=.. ;; esac
+	
+	filtrer $d/compiler-rt/lib/tsan/rtl/tsan_interceptors_mac.cpp sed -e "s/_ZNSt3__1/_ZNSt3__$vblibcxx/g"
 	# À FAIRE?: si on passe en ABI 10 et suivante, le chiffre supplémentaire casse-t-il le symbole condensé?
 	
 	# En plus de cette histoire d'ABI, les deux symboles interceptés en release_shared n'existent plus chez nous.
 	# On les retrouve dans libcxx/src/memory.cpp, conditionnés par un #if defined(_LIBCPP_SHARED_PTR_DEFINE_LEGACY_INLINE_FUNCTIONS)
 	
-	filtrer compiler-rt/lib/tsan/rtl/tsan_interceptors_mac.cpp awk \
+	filtrer $d/compiler-rt/lib/tsan/rtl/tsan_interceptors_mac.cpp awk \
 	'
 		/STDCXX_INTERCEPTOR.*release_shared/ { print "#if defined(_LIBCPP_SHARED_PTR_DEFINE_LEGACY_INLINE_FUNCTIONS)"; dedans = 1; }
 		1
