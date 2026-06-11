@@ -88,7 +88,7 @@ v 20.1.8 || true
 v 21.1.1 || true
 v 21.1.6 || true
 v 21.1.8 || true
-v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit" || true
+v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit aligned_alloc sanitizer_vieux_mac" || true
 v 22.1.5 || true
 v 22.1.6 || true
 v 22.1.7 || true
@@ -274,6 +274,40 @@ threadAtExit()
 	# https://github.com/llvm/llvm-project/pull/116261#discussion_r3020471740
 	
 	filtrer libcxxabi/src/cxa_thread_atexit.cpp sed -e '/__Fuchsia__/s/$/ || 1/'
+}
+
+aligned_alloc()
+{
+	echo '#include <stdlib.h>|int main(int argc, char ** argv) { return aligned_alloc(4, 0) ? 0 : 1; }' | tr \| \\012 > $TMP/$$/1.c
+	if $CC $CPPFLAGS $CFLAGS $LDFLAGS $TMP/$$/1.c -o $TMP/$$/a.out ; then return ; fi
+	
+	filtrer libcxx/src/include/aligned_alloc.h sed -e 's/elif !defined(__ANDROID__).*/elif 0/'
+}
+
+sanitizer_vieux_mac()
+{
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_mac.cpp sed -e '/#ifndef VM_MEMORY_SANITIZER/{
+i\
+#ifndef KERN_DENIED
+i\
+#define KERN_DENIED 53
+i\
+#endif
+}'
+	# uptr est défini comme un unsigned long. Mais sur un vieux Mac, le long fait 4 octets, pas 8, donc on finit avec une:
+	#   error: constant expression evaluates to 549755813888 which cannot be narrowed to type 'uptr' (aka 'unsigned long') [-Wc++11-narrowing]
+	cat > $TMP/$$/1.cxx <<TERMINE
+		typedef __UINTPTR_TYPE__ uptr;
+		int f(uptr m)
+		{
+			/* Pour détecter le -Wc++11-narrowing, il faut utiliser la notation accolades:
+			 * https://cppstyle.wordpress.com/narrowing-conversions-in-c-11/ */
+			uptr n = {0x8000000000UL};
+			return m == n;
+		}
+TERMINE
+	compilo_test $CXX $CPPFLAGS $CXXFLAGS $LDFLAGS $TMP/$$/1.cxx -c -o $TMP/$$/1.o ||
+		filtrer compiler-rt/lib/sanitizer_common/sanitizer_mac.cpp sed -e s/0x8000000000UL/0x80000000UL/g
 }
 
 auxv_optio()
