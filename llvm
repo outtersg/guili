@@ -388,6 +388,10 @@ is_same_ptrdiff_t()
 	#   error: static assertion failed due to requirement '__sanitizer::is_same<long, int>::value': 
 	# Jouons avec le feu: estimons que ce n'est pas bien grave?
 	
+	# Problème qui ne se manifeste que sur mon vieux Mac, en multiarch, sur la partie 32 bits. Inutile de réduire les contrôles pour tout le monde, contentons-nous du Mac.
+	# Idéalement il faudrait ne l'appliquer qu'en 32 bits, mais c'est déjà un premier pas.
+	mac || return 0
+	
 	filtrer compiler-rt/lib/interception/interception_type_test.cpp sed -E -e '/is_same<::PTRDIFF_T/s/\(__sanitizer::is_same<(::PTRDIFF_T), ::(ptrdiff_t)>::value\)/sizeof(\1) == sizeof(\2)/'
 }
 
