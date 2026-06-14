@@ -28,7 +28,7 @@ DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" i
 # Désormais les 8.0.tar.bz2 ne sont plus des 8.0.0, mais des 8.0.x embarquant les x premiers patches.
 demarrage=
 
-v 6.3 && prerequis="ncurses" && modifs="ncursesw" || true
+v 6.3 && prerequis="ncurses" && modifs="ncursesw mainint libsysinfo" || true
 v 6.4 || true
 v 7.0.205 && modifs="$modifs corr syntaxephp pyth" || true
 v 7.2.160 || true
@@ -47,7 +47,7 @@ v 8.1.804 || true
 v 8.2.3455 && modifs="$modifs char_from_string" && modifs_corr="corr82" || true
 v 8.2.5111 || true
 v 8.2.5172 || true
-v 9.0.790 && modifs="$modifs write_info_struct" && modifs_corr="corr90" || true
+v 9.0.790 && modifs="$modifs write_info_struct" && modifs_corr="corr90" && retirerModif mainint libsysinfo || true
 v 9.0.818 || true
 v 9.1.967 || true
 v 9.1.2148 || true
@@ -143,6 +143,33 @@ x
 a\
 #endif
 }'
+}
+
+mainint()
+{
+	# Quelques-uns des tests du configure faits vraiment à l'ancienne, un compilo moderne n'aime pas.
+	# Constaté en 7.0.205 (avant va savoir, pas essayé), 8.2.148, plus en 9.0.790.
+	filtrer src/auto/configure sed -e '/main()/{
+s//int main(int argc, char ** argv)/
+i\
+#include <stdlib.h>
+}'
+}
+
+libsysinfo()
+{
+	# FreeBSD avec des paquets issus du monde Linux peut posséder un sysinfo.h, couche de compatibilité avec Linux; le configure vim le détecte mais ne sait pas que le symbole est dans une biblio séparée.
+	# Constaté en 7.3.353 (avant va savoir: impossible de compiler pour d'autres raisons), 8.2.148, plus en 9.0.790.
+	cat > $TMP/$$/1.c <<TERMINE
+#include <sys/sysinfo.h>
+int main(int argc, char ** argv)
+{
+	struct sysinfo sinfo;
+	return sysinfo(&sinfo);
+}
+TERMINE
+	compilo_test $CC $CPPFLAGS -I/usr/local/include $CFLAGS $LDFLAGS -lsysinfo -o $TMP/$$/a.out $TMP/$$/1.c || return 1
+	export LDFLAGS="$LDFLAGS -lsysinfo"
 }
 
 ncursesw()
