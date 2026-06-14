@@ -30,11 +30,11 @@ demarrage=
 
 v 6.3 && prerequis="ncurses" && modifs="ncursesw" || true
 v 6.4 || true
-v 7.0.205 && modifs="ncursesw corr syntaxephp pyth" || true
+v 7.0.205 && modifs="$modifs corr syntaxephp pyth" || true
 v 7.2.160 || true
 v 7.3.353 || true
 v 7.3.1242 || true
-v 7.4.52 && modifs="ncursesw corr syntaxephp pyth mavericks" || true
+v 7.4.52 && modifs="$modifs mavericks" || true
 v 7.4.702 || true
 v 7.4.1847 || true
 v 7.4.2296 || true
