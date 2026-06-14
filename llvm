@@ -294,6 +294,13 @@ i\
 i\
 #endif
 }'
+	
+	# Le bout de code suivant foire, qui doit détecter les registres 32 bits trop étriqués:
+	# 1. il ne fonctionnerait que si $CXXFLAGS précisait -arch i386; multiarchConfigurer() le fait habituellement (cf. util.multiarch.sh)… sauf que nous passons par une version personnalisée de multiarchConfigurer(), qui tape CMAKE_OSX_ARCHITECTURES plutôt que $CXXFLAGS
+	# 2. il est violent: il bousille le code pour toutes les archis, alors que seule les archis 32 bits sont concernées.
+	# Cf. donc la version alternative, uniquement en préprocesseur, après l'accolade fermante.
+	true ||
+	{
 	# uptr est défini comme un unsigned long. Mais sur un vieux Mac, le long fait 4 octets, pas 8, donc on finit avec une:
 	#   error: constant expression evaluates to 549755813888 which cannot be narrowed to type 'uptr' (aka 'unsigned long') [-Wc++11-narrowing]
 	cat > $TMP/$$/1.cxx <<TERMINE
@@ -308,6 +315,20 @@ i\
 TERMINE
 	compilo_test $CXX $CPPFLAGS $CXXFLAGS $LDFLAGS $TMP/$$/1.cxx -c -o $TMP/$$/1.o ||
 		filtrer compiler-rt/lib/sanitizer_common/sanitizer_mac.cpp sed -e s/0x8000000000UL/0x80000000UL/g
+	}
+	# Version 4x4, en préprocesseur: #ifdef __i386__ version 32 bits #else version habituelle.
+	filtrer compiler-rt/lib/sanitizer_common/sanitizer_mac.cpp sed -e '/0x8000000000UL/{
+h
+s//0x80000000UL/g
+i\
+#ifdef __i386__
+p
+i\
+#else
+a\
+#endif
+x
+}'
 }
 
 auxv_optio()
