@@ -44,6 +44,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 #   ./clang "< 18"
 #   # Après passage à ninja, et marcherAccelere():
 #   ./clang "< 20"
+#   ./clang 21.1.6
+#   ./clang 22.1.6
+#   ./clang 22.1.6
 
 constr=configure
 v 3.3 || true
