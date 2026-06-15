@@ -86,6 +86,7 @@ v 3.0.17 || true
 v 3.0.18 || true
 v 3.0.19 || true
 v 3.0.20 || true
+v 3.0.21 || true
 v 3.1.4 || true
 v 3.1.5 || true
 v 3.1.6 || true
@@ -111,6 +112,7 @@ v 3.4.2 || true
 v 3.4.3 || true
 v 3.4.4 || true
 v 3.4.5 || true
+v 3.4.6 || true
 v 3.5.0 || true
 v 3.5.1 || true
 v 3.5.2 || true
@@ -118,9 +120,11 @@ v 3.5.3 || true
 v 3.5.4 || true
 v 3.5.5 || true
 v 3.5.6 || true
+v 3.5.7 || true
 v 3.6.0 || true
 v 3.6.1 || true
 v 3.6.2 || true
+v 3.6.3 || true
 # Beaucoup d'obsolétisations, apport de l'ECH (= SNI chiffré).
 # https://lesjoiesducode.fr/openssl-4-0-release "sujet qui fâche": perfs pourries du fait d'OSSL_PARAM (paramètres génériques plutôt que codés en dur).
 # N.B.: la 4 ne permet plus de compiler pour du 32 bits (les cibles *-i386-* ont disparu).
