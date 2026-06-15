@@ -123,8 +123,14 @@ v 3.6.1 || true
 v 3.6.2 || true
 # Beaucoup d'obsolétisations, apport de l'ECH (= SNI chiffré).
 # https://lesjoiesducode.fr/openssl-4-0-release "sujet qui fâche": perfs pourries du fait d'OSSL_PARAM (paramètres génériques plutôt que codés en dur).
+# N.B.: la 4 ne permet plus de compiler pour du 32 bits (les cibles *-i386-* ont disparu).
 v 4.0.0 || true
 v 4.0.1 || true
+
+# OpenSSL ne supporte pas la compilation 2 en 1, car ses chemins de compil' sont dissociés entre 32 et 64 bits.
+# Si on le lance avec le marcherAccelere() par défaut (comipiler les 2 versions en 1 passe, avec -arch x86_64 -arch i386),
+# il affiche un joli message "définissez KERNEL_32BITS si vous voulez vraiment" puis plante.
+marcherAccelere() { false ; }
 
 # Modifications
 
