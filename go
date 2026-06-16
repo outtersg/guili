@@ -122,7 +122,7 @@ t.Skip("M'\''en fous de TvOS")
 	#     "-ldflags", `-linkmode=external '-extldflags="-framework Security"'`
 	#     Hum, clang: error: unknown argument: '-framework Security'
 	#     Peut-être coller directement /System/Library/…/Versions/A/Security?
-	filtrer src/cmd/dist/test.go sed -e '/-race.*=external/s#^#//#'
+	filtrer src/cmd/dist/test.go sed -e '/-race.*=external/s#^#//#' -e '/if t.extLink/s/if /if false \&\& /'
 	
 	# Quelques tests vraiment trop tordus, qui pètent même avec stdlib.h; on vire, c'est plus simple que de commencer par un [darwin] skip.
 	rm -f \
