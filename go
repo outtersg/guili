@@ -410,9 +410,9 @@ do
 done
 
 echo Installation… >&2
-mkdir -p "$TMP/$$/build/libexec" "$TMP/$$/build/bin"
+mkdir -p "$TMP/$$/build/libexec/go" "$TMP/$$/build/bin"
 ln -s ../libexec/go/bin/go "$TMP/$$/build/bin/"
-cp -R ../. "$TMP/$$/build/libexec/go"
+( cd .. && tar cf - --exclude go-build . ) | ( cd "$TMP/$$/build/libexec/go" && tar xf - )
 chmod -R a+r "$TMP/$$/build/libexec/go"
 chmod a+x "$TMP/$$/build/libexec/go/bin/go"
 find "$TMP/$$/build/libexec/go" -type d -exec chmod a+x {} \;
