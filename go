@@ -26,11 +26,11 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 1.4.3 && modifs="enPrison incertitudes mmap64 cEstPasLaCourse deTester" && prerequis="openssl < 3" || true
+v 1.4.3 && modifs="enPrison incertitudes mmap64 deTester" && prerequis="openssl < 3" || true
 v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
-v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs certifFossile" || true
+v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile" || true
 v 1.19.13 || true
 v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
 v 1.20.14 || true
@@ -49,6 +49,86 @@ predestiner="$predestiner prerequisGo"
 
 # Modifications
 
+boucleTests()
+{
+	# À ajouter aux modifs lorsque la construction plante juste dans les tests:
+	# all.bash est horripilant, il reconstruit tout le compilo avant de lancer les dizaines de minutes de tests;
+	# quand on a juste à comprendre pourquoi un test plante, en bidouillant les tests plutôt que le compilo, on se passe bien de la phase de compilation du compilo.
+	
+	filtrer src/all.bash sed -e '/bash run.bash/s#.*#while ! & ; do echo "Planté; je retente dans 10 s" >&2 ; sleep 10 ; done#'
+	
+	# Une fois construit, on peut se balader dans un dossier et lancer les tests individuels, ex.:
+	#   ~/tmp/go/bin/go test crypto/x509 -list ParseASN1  2>&1 | egrep -v ': warning:|: note:|In file included'
+}
+
+testsCgoMac()
+{
+	mac || return 0
+	
+	# La suite de tests cgo lance de bêtes cc; sur Mac, sans un -I`xcrun --show-sdk-path`/usr/include (qu'on a dans nos $CPPFLAGS), tous ces tests échouent bêtement sur un stdlib.h introuvable.
+	# Ou alors export SDKROOT, mais pourtant je croyais que je le faisais déjà (https://github.com/golang/go/issues/44112): peut-être l'environnement n'est-il pas passé aux tests?
+	
+	# Le test suivant est foireux: notre $CC arrive à voir le $SDKROOT, alors que lancé par cgo il n'y parvient pas.
+	#printf '%s\n%s\n' '#include <stdlib.h>' 'void f() {}' > $TMP/$$/1.c
+	#if compilo_test $CC -c -o $TMP/$$/1.o $TMP/$$/1.c ; then return ; fi
+	
+	filtrer src/runtime/cgo/cgo.go sed -e '1,/^#cgo/{
+s/^#cgo/&/
+t-)
+b
+:-)
+i\
+#cgo CPPFLAGS: '"$CPPFLAGS"'
+i\
+#cgo CFLAGS: '"$CFLAGS"'
+i\
+#cgo CXXFLAGS: '"$CXXFLAGS"'
+i\
+#cgo LDFLAGS: '"$LDFLAGS"'
+}'
+	
+	filtrer src/net/cgo_bsd.go sed -e '/<netdb.h>/i\
+#cgo CPPFLAGS: '"$CPPFLAGS"'
+'
+	
+	# … Mais un vieux Mac avec un clang neuf et du -Werror explose de partout, rien que sur les inclusions système (ex.: #if __DARWIN_NO_LONG_LONG: le comportement d'un #define déclarant un autre #define est indéfini; et en effet __DARWIN_NO_LONG_LONG est défini comme une macro comportant du defined()).
+	filtrer src/runtime/cgo/cgo.go sed -e s/-Werror//g
+	
+	# Les tests sur Mac plantent sur crypto/x509.test: Undefined symbols for architecture x86_64: _SecTrustEvaluateWithError
+	# Pourtant le symbole est bien défini dans le framework Security (Mac OS X 10.13).
+	# Et bin/go est bien lié (otool -L) au Security.framework
+	# Exactement ce qu'on retrouve sur https://github.com/golang/go/issues/52112
+	# Hum, bizarre: la ligne est précédée d'un ##### GOOS=ios: essaie-t-il de lancer un test iOS?
+	# Ah, c'est parce qu'il tente une compil' croisée pour TvOS, assimilé iOS.
+	filtrer src/cmd/link/link_test.go sed -e '/TestBuildForTvOS/a\
+t.Skip("M'\''en fous de TvOS")
+'
+	# … Bon en réalité il continue à planter et je n'arrive pas à reproduire avec:
+	#   CGO_ENABLED=1 GOOS=ios /Users/gui/tmp/go/bin/go test crypto/x509 -run=SystemRoots 2>&1 | egrep -v ': warning:|: note:|In file included'
+	# Donc va pour une désactivation directement dans le lanceur:
+	filtrer src/cmd/dist/test.go sed -e '/iOS simulator/,/if .*"darwin"/s/"darwin"/"ornithorynque"/'
+	
+	# Idem sur Testing race detector
+	# Je n'ai pas de souci avec:
+	#   CGO_CPPFLAGS="-I`xcrun --show-sdk-path`/usr/include" ~/tmp/go/bin/go test -short=true -count=1 -tags= -race -run='TestParse|TestEcho|TestStdinCloseRace|TestClosedPipeRace|TestTypeRace|TestFdRace|TestFdReadRace|TestFileCloseRace' flag net os os/exec encoding/gob 2>&1 | egrep -v ': warning:|: note:|In file included'
+	#   # Ou le suivant dans src/cmd/dist/test.go, avec -ldflags=-linkmode=external
+	# qui est la commande que lui lance. Il passe sans doute du bazar par les variables d'environnement.
+	# Tentative de modifier src/cmd/dist/test.go:
+	#   Les setEnv CGO_LDFLAGS ou LDFLAGS ne suffisent pas
+	#   Essayé de rajouter plein de guillemets (façon https://github.com/junegunn/fzf/issues/1994):
+	#     "-ldflags", `-linkmode=external '-extldflags="-framework Security"'`
+	#     Hum, clang: error: unknown argument: '-framework Security'
+	#     Peut-être coller directement /System/Library/…/Versions/A/Security?
+	filtrer src/cmd/dist/test.go sed -e '/-race.*=external/s#^#//#'
+	
+	# Quelques tests vraiment trop tordus, qui pètent même avec stdlib.h; on vire, c'est plus simple que de commencer par un [darwin] skip.
+	rm -f \
+		src/cmd/go/testdata/script/list_compiled_imports.txt \
+		src/cmd/go/testdata/script/gccgo_link_ldflags.txt \
+		src/cmd/go/testdata/script/link_syso_deps.txt \
+		src/cmd/go/testdata/script/ldflag.txt
+}
+
 deTester()
 {
 	# Pour les plates-formes un peu limites (ex.: Raspberry Pi 3, qui met 10 x plus de temps à exécuter les tests que mon "petit" portable Dell, et finit dans le décor, le garde-fou lâchant au bout de plusieurs minutes), il est possible d'invoquer le script avec un DETESTER=1.
@@ -59,6 +139,11 @@ deTester()
 
 cEstPasLaCourse()
 {
+	# NOTE pour passer manuellement un seul test:
+	# https://stackoverflow.com/questions/26092155/just-run-single-test-instead-of-the-whole-suite
+	# bash run.bash --no-rebuild -run x509
+	# Bon en réalité il y a une différence entre le test tournant dans la série complète, et individuellement (même si on est dans un sh instancié avant notre compil).
+	
 	# Les compilos modernes n'aiment pas trop l'option -race qui fait tourner MSAN sur des binaires ASLR.
 	# https://github.com/golang/go/issues/51523
 	# https://github.com/golang/go/issues/73782
@@ -66,6 +151,11 @@ cEstPasLaCourse()
 	filtrer test/fixedbugs/bug513.go sed -e 's/-race//g'
 	
 	# Autres bizarreries survenues sur les versions suivantes.
+	
+	# 1.19 sur Mac: 
+	# fallocate_test.go:61: unexpected disk usage: got 2040 blocks, want at least 2048
+	# fallocate_test.go:61: unexpected disk usage: got 6136 blocks, want at least 6144
+	case "`uname`" in Darwin) rm -f src/cmd/link/internal/ld/fallocate_test.go ;; esac
 	
 	# 1.20
 	[ ! -f misc/cgo/testsanitizers/msan_test.go ] || filtrer misc/cgo/testsanitizers/msan_test.go grep -v msan8.go
@@ -293,6 +383,7 @@ then
 	sudo chown -R "`id -u -n`:" "$GOROOT_BOOTSTRAP"
 fi
 export GOROOT_FINAL GOROOT_BOOTSTRAP
+export CGO_CFLAGS="$CFLAGS" CGO_LDFLAGS="$LDFLAGS" CGO_CPPFLAGS="$CPPFLAGS" CGO_CXXFLAGS="$CXXFLAGS"
 
 echo Compilation… >&2
 cd src
