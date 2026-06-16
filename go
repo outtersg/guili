@@ -44,7 +44,9 @@ v 1.23.12 || true
 v 1.24.0 || true
 v 1.24.13 || true
 v 1.25.10 || true
+v 1.25.11 || true
 v 1.26.3 || true
+v 1.26.4 || true
 
 predestiner="$predestiner prerequisGo"
 
