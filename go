@@ -23,6 +23,7 @@ set -e
 
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.jalons.sh"
 
 # Historique des versions gérées
 
@@ -367,10 +368,18 @@ destiner
 
 prerequis
 
+if ! jalon source
+then
 obtenirEtAllerDansVersion
+jalonner source
+fi
 
 echo Correction… >&2
+if ! jalon modifs
+then
 for modif in true $modifs ; do $modif ; done
+jalonner modifs
+fi
 
 echo Configuration… >&2
 # La recommandation est "copiez tout dans le répertoire d'install et c'est bon". Sauf que "tout", c'est un bordel innommable, comprenant les src, des lib non préfixées go, etc. Du coup, il nous faut isoler la chose pour ne pas polluer notre dest. On pourrait choisir un toutdego, un bingo, mais rabattons-nous vers un plus classique libexec/go.
