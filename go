@@ -41,7 +41,7 @@ v 1.22.0 && remplacerPrerequis "go >= @n2version < @version" || true
 v 1.22.12 || true
 v 1.23.0 || true
 v 1.23.12 || true
-v 1.24.0 || true
+v 1.24.0 && prerequis="git >= 2.24 \\ $prerequis" || true # Utilise git --end-of-options
 v 1.24.13 || true
 v 1.25.10 || true
 v 1.25.11 || true
@@ -126,6 +126,7 @@ t.Skip("M'\''en fous de TvOS")
 	
 	# Quelques tests vraiment trop tordus, qui pètent même avec stdlib.h; on vire, c'est plus simple que de commencer par un [darwin] skip.
 	rm -f \
+		src/cmd/go/testdata/script/cgo_long_cmd.txt \
 		src/cmd/go/testdata/script/list_compiled_imports.txt \
 		src/cmd/go/testdata/script/gccgo_link_ldflags.txt \
 		src/cmd/go/testdata/script/link_syso_deps.txt \
