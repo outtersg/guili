@@ -43,7 +43,7 @@ v 1.23.0 || true
 v 1.23.12 || true
 v 1.24.0 && prerequis="git >= 2.24 \\ $prerequis" || true # Utilise git --end-of-options
 v 1.24.13 || true
-v 1.25.10 || true
+v 1.25.10 && modifs="$modifs SecTrustCopyCertificateChain" || true
 v 1.25.11 || true
 v 1.26.3 || true
 v 1.26.4 || true
@@ -51,6 +51,34 @@ v 1.26.4 || true
 predestiner="$predestiner prerequisGo"
 
 # Modifications
+
+SecTrustCopyCertificateChain()
+{
+	# Mac OS X x.x rend obsolète SecTrustGetCertificateAtIndex au profit de SecTrustCopyCertificateChain, et go s'aligne.
+	# https://stackoverflow.com/questions/68034788/replace-deprecated-sectrustgetcertificateatindex-in-ios-15
+	# Problème: sur certaines de mes vieilles machines, je suis encore avant et je n'ai pas SecTrustCopyCertificateChain
+	
+	mac || return 0
+	
+	local f
+	for f in SecTrustGetCertificateAtIndex SecTrustCopyCertificateChain
+	do
+		cat > $TMP/$$/$f.c <<TERMINE
+int $f(); // Symbole C, sans typage: l'important est juste que ça se lie.
+int main(int argc, char ** argv)
+{
+	return $f();
+}
+TERMINE
+	done
+	! compilable_c $TMP/$$/SecTrustCopyCertificateChain.c 2> /dev/null -framework Security && compilable_c $TMP/$$/SecTrustGetCertificateAtIndex.c -framework Security || return 0
+	
+	cyan "Mac OS X < 1x: retour à SecTrustGetCertificateAtIndex" >&2
+	
+	cat "$SCRIPTS/go.SecTrustCopyCertificateChain.diff" |
+	if pge $version 1.26 ; then sed -e s/macOS/macos/g ; else cat ; fi |
+	patch -l -R -p0
+}
 
 boucleTests()
 {
@@ -130,6 +158,7 @@ t.Skip("M'\''en fous de TvOS")
 		src/cmd/go/testdata/script/list_compiled_imports.txt \
 		src/cmd/go/testdata/script/gccgo_link_ldflags.txt \
 		src/cmd/go/testdata/script/link_syso_deps.txt \
+		src/cmd/link/internal/ld/macho_test.go \
 		src/cmd/go/testdata/script/ldflag.txt
 }
 

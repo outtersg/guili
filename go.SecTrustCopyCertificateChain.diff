@@ -1,0 +1,58 @@
+--- src/crypto/x509/root_darwin.go	2026-02-03 21:02:30.000000000 +0100
++++ src/crypto/x509/root_darwin.go	2026-05-29 17:26:39.000000000 +0200
+@@ -73,12 +73,13 @@
+ 	}
+ 
+ 	chain := [][]*Certificate{{}}
+-	numCerts := macOS.SecTrustGetCertificateCount(trustObj)
+-	for i := 0; i < numCerts; i++ {
+-		certRef, err := macOS.SecTrustGetCertificateAtIndex(trustObj, i)
++	chainRef, err := macOS.SecTrustCopyCertificateChain(trustObj)
+ 		if err != nil {
+ 			return nil, err
+ 		}
++	defer macOS.CFRelease(chainRef)
++	for i := 0; i < macOS.CFArrayGetCount(chainRef); i++ {
++		certRef := macOS.CFArrayGetValueAtIndex(chainRef, i)
+ 		cert, err := exportCertificate(certRef)
+ 		if err != nil {
+ 			return nil, err
++++ src/crypto/x509/internal/macos/security.go	2026-02-03 21:02:30.000000000 +0100
+--- src/crypto/x509/internal/macos/security.go	2026-05-29 17:26:39.000000000 +0200
+@@ -122,25 +214,6 @@
+ }
+ func x509_SecTrustEvaluateWithError_trampoline()
+ 
+-//go:cgo_import_dynamic x509_SecTrustGetCertificateCount SecTrustGetCertificateCount "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+-
+-func SecTrustGetCertificateCount(trustObj CFRef) int {
+-	ret := syscall(abi.FuncPCABI0(x509_SecTrustGetCertificateCount_trampoline), uintptr(trustObj), 0, 0, 0, 0, 0)
+-	return int(ret)
+-}
+-func x509_SecTrustGetCertificateCount_trampoline()
+-
+-//go:cgo_import_dynamic x509_SecTrustGetCertificateAtIndex SecTrustGetCertificateAtIndex "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+-
+-func SecTrustGetCertificateAtIndex(trustObj CFRef, i int) (CFRef, error) {
+-	ret := syscall(abi.FuncPCABI0(x509_SecTrustGetCertificateAtIndex_trampoline), uintptr(trustObj), uintptr(i), 0, 0, 0, 0)
+-	if ret == 0 {
+-		return 0, OSStatus{"SecTrustGetCertificateAtIndex", int32(ret)}
+-	}
+-	return CFRef(ret), nil
+-}
+-func x509_SecTrustGetCertificateAtIndex_trampoline()
+-
+ //go:cgo_import_dynamic x509_SecCertificateCopyData SecCertificateCopyData "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+ 
+ func SecCertificateCopyData(cert CFRef) ([]byte, error) {
+--- src/crypto/x509/internal/macos/security.s	2026-02-03 21:02:30.000000000 +0100
++++ src/crypto/x509/internal/macos/security.s	2026-05-29 17:26:39.000000000 +0200
+@@ -23,8 +19,4 @@
+ TEXT ·x509_SecTrustEvaluateWithError_trampoline(SB),NOSPLIT,$0-0
+ 	JMP x509_SecTrustEvaluateWithError(SB)
+-TEXT ·x509_SecTrustGetCertificateCount_trampoline(SB),NOSPLIT,$0-0
+-	JMP x509_SecTrustGetCertificateCount(SB)
+-TEXT ·x509_SecTrustGetCertificateAtIndex_trampoline(SB),NOSPLIT,$0-0
+-	JMP x509_SecTrustGetCertificateAtIndex(SB)
+ TEXT ·x509_SecCertificateCopyData_trampoline(SB),NOSPLIT,$0-0
+ 	JMP x509_SecCertificateCopyData(SB)
