@@ -21,7 +21,7 @@
 
 set -e
 
-Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 v 1.95.8 || true
@@ -29,18 +29,22 @@ v 2.1.0 || true
 v 2.1.1 || true
 v 2.2.4 || true
 v 2.2.8 || true
-v 2.4.9 || true
+v 2.4.9 && prerequis="langcxx(11) \\" || true
 v 2.6.4 || true
 v 2.7.5 || true
 v 2.8.1 || true
 
 destiner
+prerequis
 
 version_=`echo $version | tr . _`
 archive="https://github.com/libexpat/libexpat/releases/download/R_$version_/expat-$version.tar.gz"
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
