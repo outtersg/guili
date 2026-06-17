@@ -397,16 +397,6 @@ varsCc()
 	esac
 }
 
-langCEtCompagnie()
-{
-	case `uname` in
-		Darwin)
-			# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
-			envCompiloMac
-			;;
-	esac
-}
-
 langc()
 {
 	# À FAIRE:
@@ -446,6 +436,9 @@ _paramLangcxx()
 
 langcxx()
 {
+	# Recherche des spécificités système (Mac avec son $SDKROOT, etc.): à faire passer avant cxxXX, qui tente une compil.
+	langc
+	
 	local v_cxx="$v_langcxx" verpre_clang verpre_gcc
 	_paramLangcxx $*
 	# À FAIRE: pour le moment on s'ajoute encore à COMPILO_AJOUTS (au lieu d'un COMPILO_cxx_AJOUTS).
@@ -453,8 +446,6 @@ langcxx()
 		""|11|14|17) cxx$v_cxx + ;; # Avec un + car en $MODERNITE 5, nous sommes appelés en direct, et non plus en second choix après une passe en + qui elle aura eu le loisir de fouiller tous les compilos disponibles.
 		*) fatal "# Je ne sais pas gérer langcxx($*)" ;;
 	esac
-	
-	langCEtCompagnie
 }
 
 _cxx()
@@ -499,6 +490,23 @@ libcxx()
 	case "$CXX" in
 		g++|*/g++) libcxxgcc ;;
 	esac
+}
+
+envCompiloExploLibCXX()
+{
+	local p essai
+	for essai in "" "-lc++" "-lc++ -lc++abi"
+	do
+		for p in "$@"
+		do
+			printf "%s ; envCompiloLDFLAGS %s |" "$p" "$essai"
+		done
+	done
+}
+
+envCompiloLDFLAGS()
+{
+	export LDFLAGS="$LDFLAGS $*"
 }
 
 libcxxgcc()
@@ -748,8 +756,10 @@ pasfortiche()
 
 #--- Mac ---
 
-envCompiloMac()
+envCompiloExploDarwin()
 {
+	# Sur Mac, un clang "mimine" doit pour pouvoir appeler le ld système comme le ferait le compilo système, définir MACOSX_DEPLOYMENT_TARGET (sans quoi le ld est perdu, du type il n'arrive pas à se lier à une hypothétique libcrt.o.dylib).
+	
 	# Problème: sur certaines plates-formes, se cantonner à un SDK est une perte,
 	# car le SDK limite au système actuel, tandis que les biblios système savent revenir loin en arrière.
 	# Ex.: Bonemine est en 10.14.1, alors qu'il supporte jusqu'au 10.6.
@@ -760,18 +770,68 @@ envCompiloMac()
 	# D'un autre côté, sur certaines machines on peut avoir compilé un clang à part, plus récent que celui système, mais incapable de gérer la partie C++;
 	# en ce cas revenir au SDK est plus sûr.
 	
+	local p essai
+	
+	for p in "$@"
+	do
+		for essai in compilo_mac_sdk_xcrun compilo_mac_sdk_min
+		do
+			printf "%s ; %s |" "$p" "$essai"
+		done
+	done
+}
+
+# Détermine le premier environnement ($CC $CPPFLAGS $CFLAGS $LDFLAGS etc.) apte à compiler un programme.
+# Les versions antérieures à 2026 de ce programme fonctionnaient par pas successifs: d'abord le compilo, puis l'environnement système (.h), puis la partie C++.
+# En fait on ne peut ainsi découpler les différentes parties, par exemple un clang22 (2026) avec un Mac OS X 10.13 (2020) ne passe même pas la première étape, car les .h système (stdio.h, pour valider un compilateur minimal, partie compilo) sont désormais inaccessibles tant que n'est pas défini $SDKROOT (partie système).
+# On fonctionne donc en listant plusieurs combinaisons d'environneurs que l'on va jouer l'un après l'autre à l'aveugle, avant d'effectuer un test de compilation.
+langCEtCompagnie()
+{
+	# Principe: les $environneurs sont des suites de fonctions à appeler pour prépare l'environnement avant de lancer un test de compilation.
+	# Les différentes séries sont séparées par des | et les différentes fonctions d'une série par des ;
+	# Ainsi $environneurs pourrait avoir la forme:
+	#   envCompilo clang ; envLibCXX | envCompilo clang ; envLibCXX -lc++ | envCompilo gcc | envCompilo cc
+	# La présente fonction va appeler différents explorateurs (envCompiloExploXxx()) qui vont chacun ajouter des fonctions à explorer.
+	# Il est donc important que chaque envCompiloExplo, qui reçoit en paramètres les multiples combinaisons déjà constituées par ses prédécesseurs, renvoie une chaîne qui respecte ce format.
+	# Une fois constituée la liste de tous les chemins à explorer, ils sont joués un par un depuis cette fonction, jusqu'à ce qu'une suite permette de compiler les tests.
+	# C'est cette suite d'environneurs qui sera rejouée, cette fois dans le shell principal, pour configurer l'environnement pour les compilations à venir.
+	
+	# À FAIRE: cacher le résultat, a minima dépendant de la version majeure du compilo (ex.: envCompiloMac_clang22()).
+	
 	# À FAIRE: exporter, et récupérer de l'env: un openssl peut réutiliser celui calculé par le php qui l'a appelé.
 	# /!\ Dépendant des tests lancés.
 	
 	local methode test
+	local methodique
 	local tests=compilo_test_cc
-	# /!\ Du fait du scrutin sur $prerequis, envCompiloMac doit n'être appelé qu'après définition de celui-ci (MODERNITE >= 3).
-	case " $prerequis" in *" "cpp[\(1-9]*|*" "cxx[\(1-9]*|*" langcxx"*) tests="$tests compilo_test_cxx" ;; esac
+	local environneurs=true
 	
-	for methode in compilo_mac_sdk_min compilo_mac_sdk_xcrun
+	# À FAIRE: même le compiloSysVersion pourrait être intégré à langCEtCompagnie(), comme premier environneur.
+	
+	local envSys="envCompiloExplo`uname`"
+	! commande $envSys || environneurs="`IFS=\| ; tifs $envSys $environneurs`"
+	
+	# /!\ Du fait du scrutin sur $prerequis, envCompiloMac doit n'être appelé qu'après définition de celui-ci (MODERNITE >= 3).
+	case " $prerequis" in *" "cpp[\(1-9]*|*" "cxx[\(1-9]*|*" langcxx"*)
+		environneurs="`IFS=\| ; tifs envCompiloExploLibCXX $environneurs`"
+		tests="$tests;compilo_test_cxx"
+	;; esac
+	
+	IFS=\|
+	
+	for methode in $environneurs
 	do
-		compilo_tester $methode $tests || continue
-		$methode
+		methodique="`printf %s "$methode" | sed -e 's/ *; */;-i;/g' -e 's/^true *;//'`"
+		IFS=\;
+		tifs compilo_test $methodique $tests || continue
+		methode="`printf %s "$methode" | sed -e 's/^true *;//'`"
+		IFS=\;
+		gris "Compilabilité vérifiée via: $methode" >&2
+		for metho in $methode
+		do
+			unset IFS
+			$metho
+		done
 		break
 	done
 }
