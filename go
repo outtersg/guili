@@ -31,7 +31,7 @@ v 1.4.3 && modifs="enPrison incertitudes mmap64 deTester" && prerequis="bash \\ 
 v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
-v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10 TestDirentRepeat" || true
+v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10 TestDirentRepeat getentropyFBSD" || true
 v 1.19.13 || true
 v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
 v 1.20.14 || true
@@ -330,6 +330,24 @@ TestDirentRepeat()
 t.Skip("Borf")
 '
 	;; esac
+}
+
+getentropyFBSD()
+{
+	# getentropy n'est arrivé sous FreeBSD qu'en version 12.
+	# clang, qui depuis la 18 fourre tous les FreeBSD dans le même panier, a nécessité une adaptation (cf. getentropy_optio() dedans),
+	# mais pour go, c'est une autre paire de manche: leur utilisation de getentropy est codée en dur dans un gros fichier ELF src/runtime/race/race_freebsd_amd64.syso que je ne sais pas (et n'ai pas envie de) détricoter (https://github.com/golang/go/issues/19964 et https://github.com/llvm/llvm-project/issues/144400 donnent les pistes d'une collaboration entre llvm et go, qui part piocher compiler-rt/lib/tsan/go/buildgo.sh qui a une section dédiée FreeBSD. Mais bon d'autres chats à fouetter).
+	# On se contente donc de faire sauter les tests afférents.
+	
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	
+	printf '#include <unistd.h>\nint main(int argc, char ** argv) { return getentropy(NULL, 12); }' > $TMP/$$/1.c
+	if compilable_c $TMP/$$/1.c ; then return ; fi
+	
+	cyan "Sans getentropy(): TSAN pourri, le GetRandom() plantera, désactivation des tests correspondants" >&2
+	filtrer src/cmd/dist/test.go sed -e '/raceDetectorSupported() bool/a\
+return false
+'
 }
 
 exfiltrer()
