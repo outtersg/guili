@@ -31,7 +31,7 @@ v 1.4.3 && modifs="enPrison incertitudes mmap64 deTester" && prerequis="bash \\ 
 v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
-v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10" || true
+v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10 TestDirentRepeat" || true
 v 1.19.13 || true
 v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
 v 1.20.14 || true
@@ -319,6 +319,17 @@ return
 		xxxsrc/net/http/httptest/example_test.go \
 		xxxsrc/net/http/httputil/reverseproxy_test.go \
 		xxxsrc/net/http/pprof/pprof_test.go
+}
+
+TestDirentRepeat()
+{
+	# Sur mon FreeBSD 10.2, malgré une adaptation explicite du test, https://github.com/golang/go/issues/31403 continue à se produire.
+	case `uname` in FreeBSD|NetBSD)
+		# À FAIRE: dépend aussi de la version du système?
+		filtrer src/syscall/dirent_test.go sed -e '/TestDirentRepeat/a\
+t.Skip("Borf")
+'
+	;; esac
 }
 
 exfiltrer()
