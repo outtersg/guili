@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 1.4.3 && modifs="enPrison incertitudes mmap64 deTester" && prerequis="openssl < 3" || true
+v 1.4.3 && modifs="enPrison incertitudes mmap64 deTester" && prerequis="bash \\ openssl < 3" || true
 v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
