@@ -33,7 +33,7 @@ v 1.4.3.10 || true
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
 v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10 TestDirentRepeat getentropyFBSD fabsfgcc" || true
 v 1.19.13 || true
-v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
+v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" && modifs="$modifs restauFBSD10" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
 v 1.20.14 || true
 v 1.21.0 || true
 v 1.21.13 || true
@@ -78,6 +78,24 @@ TERMINE
 	cat "$SCRIPTS/go.SecTrustCopyCertificateChain.diff" |
 	if pge $version 1.26 ; then sed -e s/macOS/macos/g ; else cat ; fi |
 	patch -l -R -p0
+}
+
+restauFBSD10()
+{
+	# À FAIRE: alerter que désolé, mais en go 1.20 ils ont retiré toute la couche de compat' FreeBSD < 12. À commencer par l'appel système stat.
+	# cf. ~/src/installs/go-1.20-contre-freebsd-10.2.diff sur bas, si un jour j'ai envie de m'attaquer à restaurer ce qu'il faut pour le faire tourner.
+	
+	# Les symptômes sont assez rapides:
+	#   …
+	#   Building Go toolchain2 using go_bootstrap and Go toolchain1.
+	#   go: cannot find GOROOT directory: /home/bas/tmp/go
+	#   go tool dist: FAILED: /home/bas/tmp/go/pkg/tool/freebsd_amd64/go_bootstrap install cmd/asm cmd/cgo cmd/compile cmd/link: exit status 2
+	# Si on lance à la main:
+	#   while true ; do ./pkg/tool/freebsd_amd64/go_bootstrap env GOROOT ; sleep 3 ; done
+	#   go: cannot find GOROOT directory: /usr/local/go+ossl40-1.20.14/libexec/go
+	# https://github.com/golang/go/issues/58914
+	
+	case `uname` in FreeBSD) jaune "# /!\\ Ne tournera pas sur un FreeBSD < 12." >&2 ;; esac
 }
 
 boucleTests()
