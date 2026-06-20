@@ -31,7 +31,7 @@ v 1.4.3 && modifs="enPrison incertitudes mmap64 deTester" && prerequis="bash \\ 
 v 1.4.3.10 || true
 # Versions nécessaires: https://go.dev/doc/install/source#bootstrapFromSource
 v 1.7.1 && prerequis="go >= 1.4 < @version \\ $prerequis" || true
-v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10 TestDirentRepeat getentropyFBSD" || true
+v 1.19 && remplacerPrerequis "openssl" && modifs="$modifs testsCgoMac cEstPasLaCourse certifFossile ip10 TestDirentRepeat getentropyFBSD fabsfgcc" || true
 v 1.19.13 || true
 v 1.20 && remplacerPrerequis "$logiciel >= 1.19 < @version" || true # En réalité >= 1.17, mais on ne les a pas dans notre banque de versions.
 v 1.20.14 || true
@@ -348,6 +348,32 @@ getentropyFBSD()
 	filtrer src/cmd/dist/test.go sed -e '/raceDetectorSupported() bool/a\
 return false
 '
+}
+
+fabsfgcc()
+{
+	# Les tests sur mon FreeBSD 10.2 finissent par planter sur misc/cgo/test.test sur un:
+	#   /usr/local/binutils-2.46.0/bin/ld: /usr/lib/libgcc.a(mulsc3.o): in function `__mulsc3':
+	#   /usr/src/lib/libcompiler_rt/../../contrib/compiler-rt/lib/mulsc3.c:(.text+0x7e): undefined reference to `fabsf'
+	# On reproduit grâce à:
+	#   cd misc/cgo/test && ~/tmp/go/bin/go test -tags=static "-ldflags" '-linkmode=external -extldflags "-static -pthread"' .
+	# Un -v (dans les -ldflags) permet de retrouver la commande externalisée:
+	#   "clang" "-m64" ….c "-g" "-O2" "-pthread" "-lm" "-g" "-O2" "-lpthread" "-no-pie" "-static" "-pthread"
+	# Que l'on peut cibler sur un simple programme:
+	#   #include <math.h>
+	#   float __mulsc3 (float a, float b, float c, float d); /* En réalité un complex float, mais comment y accéder si on est en C plutôt qu'en C++? */
+	#   int main(int argc, char ** argv)
+	#   {
+	#     if(!__mulsc3(0, 0, 0, 0)) return 1;
+	#     return fabsf((float)0.1234) > 0.0; 
+	#   }
+	# Il s'avère que l'on peut résoudre:
+	# - en définissant float fabsf(float x) { return x; }
+	# - en retirant le -static
+	# Donc fabsf est définie dans la version dynamique de libm.so, mais pas dans la statique libm.a???
+	# Quoi qu'il en soit c'est assez gonflant donc on opte pour simplement dézinguer le test:
+	
+	filtrer src/cmd/dist/test.go sed -E -e '/(cgo\/tests|CGO_LDFLAGS).*-static -pthread/s/-static //g'
 }
 
 exfiltrer()
