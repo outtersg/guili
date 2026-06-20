@@ -634,8 +634,6 @@ compilo_modif()
 compilable()
 {
 	local reponse= executer=oui lier=oui compilo= oeuf=$TMP/$$/a.out
-	[ "x$1" != x-c ] || { executer= ; shift ; }
-	[ "x$1" != x-r ] || { reponse="$2" ; shift ; shift ; }
 	while true
 	do
 		case "$1" in
