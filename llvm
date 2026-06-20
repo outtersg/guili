@@ -380,11 +380,12 @@ signaux()
 
 getentropy_optio()
 {
-	# FreeBSD 10.2 n'a pas de getentropy, la 14.2 en a un. On place la barre entre les deux en attendant de connaître la version précise qui nous permet de l'utiliser.
+	# FreeBSD 10.2 n'a pas de getentropy, qui n'est arrivé qu'en version 12.
+	# À FAIRE?: détecter par compilo_test?
 	filtrer compiler-rt/lib/sanitizer_common/sanitizer_linux.cpp \
 		sed -e '/define.*SANITIZER_USE_GETENTROPY/{
 i\
-#if __FreeBSD_version >= 1202000
+#if __FreeBSD_version >= 1200000
 a\
 #endif
 }'
