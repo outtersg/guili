@@ -633,13 +633,14 @@ compilo_modif()
 # Le compilateur doit générer un exécutable $TMP/$$/a.out
 compilable()
 {
-	local reponse= executer=oui lier=oui compilo= oeuf=$TMP/$$/a.out
+	local reponse= executer=oui lier=oui compilo= oeuf=$TMP/$$/a.out franc=
 	while true
 	do
 		case "$1" in
 			-c) executer= ; lier= ;;
 			-l) executer= ;;
 			-r) reponse="$2" ; shift ;;
+			-v) franc=oui ;;
 			_*) [ -z "$compilo" ] || break ; compilo="$1" ;;
 			*) break ;;
 		esac
@@ -647,7 +648,12 @@ compilable()
 	done
 	
 	rm -f $oeuf
+	case "$franc" in
+		"")
 	$compilo "$@" 2> /dev/null || return
+			;;
+		oui) $compilo "$@" || return ;;
+	esac
 	[ -n "$executer" ] || return 0
 	[ -z "$reponse" -o "x$reponse" = "x`$oeuf`" ]
 }
