@@ -46,7 +46,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 #   ./clang "< 20"
 #   ./clang 21.1.6
 #   ./clang 22.1.6
-#   ./clang 22.1.6
+#   ./clang 22.1.7
 
 constr=configure
 v 3.3 || true
