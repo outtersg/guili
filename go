@@ -90,6 +90,7 @@ boucleTests()
 	
 	# Une fois construit, on peut se balader dans un dossier et lancer les tests individuels, ex.:
 	#   ~/tmp/go/bin/go test crypto/x509 -list ParseASN1  2>&1 | egrep -v ': warning:|: note:|In file included'
+	# De plus lui automatiquement cache certains tests réussis, ça accélère.
 }
 
 testsCgoMac()
