@@ -55,7 +55,8 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" --enable-64bit $OPTIONS_CONF # Crétin de configure qui fait du 32 bits par défaut.
+# Crétin de configure qui fait du 32 bits par défaut: https://firefox-source-docs.mozilla.org/nspr/nspr_build_instructions.html#configure-options
+./configure --prefix="$dest" --enable-64bit --disable-debug --enable-optimize $OPTIONS_CONF
 
 echo Compilation… >&2
 make
