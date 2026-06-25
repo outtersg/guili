@@ -288,6 +288,7 @@ configure()
 
 maqueue()
 {
+	# Par défaut non optimisé, et sans 64 bits: https://firefox-source-docs.mozilla.org/security/nss/build.html#build-with-make
 	CC="$CC" CCC="$CXX" BUILD_OPT=1 USE_64=1 \
 	NSS_DISABLE_GTESTS=1 NSS_USE_SYSTEM_SQLITE=1 \
 	make "$@"
