@@ -34,6 +34,7 @@ v 4.35 || true
 v 4.36 || true
 v 4.37 || true
 v 4.38.2 || true
+v 4.39 || true
 
 # À FAIRE?: NSPR gérant elle-même la double archi, il faut probablement désactiver le multiarch qui s'immisce dans les $predestiner
 
