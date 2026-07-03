@@ -213,6 +213,7 @@ v 8.2.28 || true
 v 8.2.29 || true
 v 8.2.30 || true
 v 8.2.31 || true
+v 8.2.32 || true
 v 8.3.2 && modifs="$modifs pdeathsig" || true
 v 8.3.3 || true
 v 8.3.4 || true
@@ -239,6 +240,7 @@ v 8.3.28 || true
 v 8.3.29 || true
 v 8.3.30 || true
 v 8.3.31 || true
+v 8.3.32 || true
 v 8.4.1 && retirerModif pgsqlSetNoticeCallback fileinfoSobre && modifs="$modifs ki_tracer" || true
 v 8.4.2 || true
 v 8.4.3 || true
@@ -260,6 +262,7 @@ v 8.4.19 || true
 v 8.4.20 || true
 v 8.4.21 || true
 v 8.4.22 || true
+v 8.4.23 || true
 v 8.5.0 && modifs="$modifs elffbsd10" || true
 v 8.5.1 || true
 v 8.5.2 || true
@@ -268,6 +271,7 @@ v 8.5.4 || true
 v 8.5.5 || true
 v 8.5.6 || true
 v 8.5.7 || true
+v 8.5.8 || true
 
 # Si on nous demande de nous installer sous l'alias phpx, on renseigne le numéro de version à la place du 'x'.
 aliasVersion 'x'
