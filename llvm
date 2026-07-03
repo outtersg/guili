@@ -95,6 +95,7 @@ v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit aligned_alloc s
 v 22.1.5 || true
 v 22.1.6 || true
 v 22.1.7 || true
+v 22.1.8 || true
 
 modifs="$modifsDyn $modifs"
 predestiner="multiarchAPartirDe $predestiner constructeur"
