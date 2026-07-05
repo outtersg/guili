@@ -30,6 +30,7 @@ v 2.0.21 && prerequis="openssl < 1.1" || true
 v 2.0.22 || true
 v 2.1.8 && prerequis="openssl" || true
 v 2.1.12 || true
+v 2.1.13 || true
 
 # Modifications
 
