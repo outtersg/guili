@@ -51,6 +51,7 @@ v 2.51.2 || true
 v 2.52.0 || true
 v 2.53.0 || true
 v 2.54.0 || true
+v 2.55.0 && predestiner="$predestiner derouiller" || true
 
 if option svn
 then
@@ -58,6 +59,12 @@ then
 fi
 
 # Modifications
+
+derouiller()
+{
+	# À FAIRE: si rust et cargo sont disponibles, les exploiter.
+	garg -a paramsMake NO_RUST=1
+}
 
 perler()
 {
