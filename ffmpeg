@@ -42,6 +42,7 @@ v 1.0 && prerequis="$prerequis opus lame" && retirerModif -v OPTIONS_CONF --enab
 v 1.0.1 || true
 v 2.5 && modifs="$modifs monCc" && remplacerPrerequis "lame >= 3.98.3" || true
 v 2.5.2 || true
+v 3.0.0 && modifs="$modifs environGlobal" || true
 v 3.2.2 || true # Possibilité: --enable-libopenh264 en plus ou à la place de libx264; accepte aussi gnutls et openssl pour la gestion des flux HTTPS
 v 3.3.2 || true
 v 4.0.2 || true # Possibilité: --enable-libtls, pour LibreTLS
@@ -99,6 +100,17 @@ metallib()
 {
 	# Sur mon Mac 10.13, metallib n'a pas la variante d'option …-without-linking.
 	filtrer ffbuild/common.mak sed -e 's/--split-module-without-linking/--split-module/g'
+}
+
+environGlobal()
+{
+	# Sous FreeBSD, pour être compatibles avec les ports, les symboles de la biblio doivent être versionnés (sinon par ex. Gimp refuse de charger libavcodec.so en "version LIBAVCODEC_62 required by /usr/local/lib/gegl-0.4/ff-load.so not defined").
+	# Mais ffmpeg finit par désactiver le symver (alors que freebsd est le seul des BSD à ne pas l'avoir de désactivé explicitement dans le configure).
+	# En fait le test du configure échoue car "local symbol `environ' in /usr/lib/crt1.o is referenced by DSO".
+	# En fouillant un peu (https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=269370), on comprend que leur fichu test "simple" passe en local: *, sans tenir compte de la spécificité FreeBSD (ou est-ce mon clang personnalisé?) qui embarque environ et __progname non dans une biblio mais avec le main.
+	
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	filtrer configure sed -e 's/local: \*/global: environ; __progname; &/'
 }
 
 monCc()
