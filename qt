@@ -21,7 +21,7 @@
 
 set -e
 
-Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delirant ; s="`dirname "$s"`" ; Delirant ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 prerequis="libjpeg libpng giflib dbus"
@@ -37,6 +37,8 @@ v 5.15.16 && lts=1 || true
 # /!\ Les modules pèsent plusieurs Go (4 Go rien que pour src/3rdparty en 6.11.1).
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
+
+predestiner="$predestiner prerequisOptionnels"
 
 # Pour Qt 5, l'archive publiée ne contient que le lanceur, pas les .git… mais le lanceur chope des git submodules, donc échoue sans ses .git. On doit donc récupérer l'étiquette plutôt que le .tgz
 pg 5 $version || versionComplete="$version.HEAD.silo.git" # Le HEAD de l'étiquette qui figure en @$version dans $archive_git. Avec un .silo pour préserver le .git/
@@ -105,10 +107,13 @@ cflagsEnCmake()
 #    libpci ............................... no
 # WARNING: QtPdf won't be built. Build can be done only on Linux, Windows, macO, iOS and Android.
 
+prerequisOptionnels()
+{
 for p in python pkgconf glib iconv icu pcre freetype harfbuzz libjpeg libpng postgresql sqlite mysql libtiff ninja gn fontconfig dbus nss re2 opus ffmpeg zlib libevent libxml libxslt lcms
 do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
 done
+}
 
 choixConstructeur()
 {
