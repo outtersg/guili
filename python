@@ -45,7 +45,8 @@ v 2.7.14 || true
 v 2.7.15 || true
 v 2.7.16 || true
 # À FAIRE: sur mon FreeBSD 10.2, failed to compile bsddb readline: pour le second, prérequérir readline et ncurses ferait-il l'affaire?
-v 3.4.3 && modifs="incdirbourrin testsLocalhost shellaligans" && remplacerPrerequis "openssl" && prerequis="$prerequis gettext libffi" || true
+# openssl < 4: jusqu'en 3.14.*, OpenSSL 4 finit en Undefined symbol "TLSv1_method", et _ssl.so renommée en _ssl_failed.so; cf. https://github.com/python/cpython/issues/146207 où une proposition est faite pour rendre compatible, ou alors suivons la décision de n'intégrer OpenSSL 4 qu'à partir de la 3.15.
+v 3.4.3 && modifs="incdirbourrin testsLocalhost shellaligans" && remplacerPrerequis "openssl < 4" && prerequis="$prerequis gettext libffi" || true
 v 3.6.2 || true
 v 3.7.4 || true
 v 3.7.6 || true
