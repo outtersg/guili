@@ -149,6 +149,10 @@ archive=https://github.com/qt/qt5/archive/refs/tags/v$version`[ -z "$lts" ] || p
 vgit=$version # La branche
 pge $version 6 || vgit=v$version-lts-lgpl # L'étiquette
 archive_git=https://code.qt.io/qt/qt5.git@$vgit
+# Ce crétin de cmake utilise l'@ comme séparateur, dans qtshadertools/tools/qsb/Qt6ShaderToolsMacros.cmake
+# résultat, son passage de paramètres truc:muche:$TMP/qt5@6.1.11.6.1.11.HEAD/etc. (format <option>:<option>:<chemin>) est découpé en deux blocs, le premier ayant un chemin incomplet, le second n'ayant pas de chemin (le 6.1.11.HEAD/etc. est vu comme l'<option> 1): list index: 2 out of range (-1, 0)
+# On utilise donc un séparateur plus neutre (ni @, ni ;, ni :):
+guili_etiquette_sep=_
 
 destiner
 
