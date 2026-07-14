@@ -182,7 +182,13 @@ obtenirEtAllerDansGit()
 			*)
 				case "$l;$v" in
 					";") l="`basename "$1"`" ;;
-					?*";") v="$1" ;;
+					?*";")
+						v="$1"
+						case "$v" in *.silo)
+							v="`printf %s "$v" | sed -e 's/\.silo$//'`"
+							silo=.silo
+						esac
+						;;
 					?*";"?*) echo "# obtenirEtAllerDansGit: trop de paramètres fournis." >&2 ; return 1 ;;
 				esac
 				;;
@@ -232,7 +238,9 @@ obtenirEtAllerDansGit()
 }
 
 # L'allègement d'archive est surchargeable si on veut conserver toutes les infos du gestionnaire de versions.
-# À FAIRE: c'était l'idée de l'invocation en --silo, pour le moment uniquement manuelle: ne pourrait-on le préciser via le nommage de l'archive (si l'archive est en .silo.git, on ne purge pas)?
+# Pour la version simple (tout conserver) il n'est pas nécessaire de surcharger cette fonction, il est possible de:
+# - invoquer l'obtenirEtAllerDansXxx avec l'option --silo
+# - avoir une archive .silo.xxx au lieu de simplement .xxx
 _obtenir_allegerArchive()
 {
 	rm -Rf .git
