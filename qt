@@ -28,6 +28,8 @@ prerequis="libjpeg libpng giflib dbus"
 
 # Historique des versions gérées
 
+modifsPostConf="$modifsPostConf choixConstructeur"
+
 v 3.3.8 || true
 v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus" || true
 v 5.12.12 && prerequis="git cmake \\" && modifs="modules cflagsEnCmake" && OPTIONS_CONF="-qdbus" || true
@@ -108,6 +110,17 @@ do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
 done
 
+choixConstructeur()
+{
+	# Choisit l'outil de construction en fonction de ce que cmake aura généré.
+	# Le fait de choisir les prérequis dynamiquement peut l'avoir incité à basculer vers ninja.
+	# À invoquer après la construction.
+	
+	constr="make -j4"
+	
+	if [ -f build.ninja ] ; then constr=ninja ; fi
+}
+
 fqtnConst()
 {
 	# Une 6.7 avec un clang 19 pète dans qdoc sur 3 erreurs, qui semblent être un durcissement de clang face aux tentatives d'extraction de type C++ sur des const tandis que lui attend des non const.
@@ -176,9 +189,9 @@ for modif in true $modifsPostConf ; do $modif ; done
 
 echo Compilation… >&2
 export DYLD_LIBRARY_PATH="`pwd`/lib" # Car utilise dans la génération les biblios produites.
-make -j4
+$constr
 
 echo Installation… >&2
-sudo make install
+sudoku $constr install
 
 sutiliser
