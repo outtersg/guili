@@ -36,8 +36,7 @@ v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
 
 # Pour Qt 5, l'archive publiée ne contient que le lanceur, pas les .git… mais le lanceur chope des git submodules, donc échoue sans ses .git. On doit donc récupérer l'étiquette plutôt que le .tgz
-pg 5 $version || versionComplete="$version.HEAD.git" # Le HEAD de l'étiquette qui figure en @$version dans $archive_git.
-_obtenir_allegerArchive() { true ; } # Et on surcharge _obtenir_allegerArchive() pour qu'il nous préserve le .git.
+pg 5 $version || versionComplete="$version.HEAD.silo.git" # Le HEAD de l'étiquette qui figure en @$version dans $archive_git. Avec un .silo pour préserver le .git/
 
 # Modifications
 
