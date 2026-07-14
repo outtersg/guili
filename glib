@@ -24,7 +24,7 @@ set -e
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-modifs="multiarch"
+modifs="moiDAbord multiarch"
 v 2.2.3 && prerequis="gettext iconv" || true
 v 2.6.5 || true
 v 2.12.12 && modifs="$modifs pasBesoinDeCarbon micMacGnuIconv" || true
@@ -167,6 +167,14 @@ varrun()
 	# Sous Meson, le runtimedir est étrangement par défaut à /run, qui n'existe pas.
 	# En fait comme expliqué dans le meson_options, c'est un problème de Meson, qui tarde à intégrer de façon standard un --runtimedir sur lequel tous les projets sont d'accord.
 	optionsMeson="$optionsMeson -Druntime_dir=/var/run"
+}
+
+moiDAbord()
+{
+	# Si on construit avec l'introspection, sans lui préciser pas d'aller fouiller en priorité dans le dossier de construction en cours,
+	# il peut aller trouver par exemple la libgio.so d'une précédente glib, dans lequel il ne déniche pas tous ses symboles, et donc échoue.
+	
+	export LDFLAGS="-L`pwd`/build/gio $LDFLAGS"
 }
 
 option intro || { optionsMeson="$optionsMeson -Dintrospection=disabled" ; virerPrerequis gobject-introspection ; }
