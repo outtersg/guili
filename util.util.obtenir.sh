@@ -225,10 +225,17 @@ obtenirEtAllerDansGit()
 		cd "$lv"
 		case "$v2" in ?*) git checkout "$v2" ;; esac
 		case "$v" in ?*)
-			case "$silo" in "") rm -Rf .git ;; esac
+			case "$silo" in "") _obtenir_allegerArchive ;; esac
 			( cd .. && tar czf "$a" "$lv" )
 		;; esac
 	fi
+}
+
+# L'allègement d'archive est surchargeable si on veut conserver toutes les infos du gestionnaire de versions.
+# À FAIRE: c'était l'idée de l'invocation en --silo, pour le moment uniquement manuelle: ne pourrait-on le préciser via le nommage de l'archive (si l'archive est en .silo.git, on ne purge pas)?
+_obtenir_allegerArchive()
+{
+	rm -Rf .git
 }
 
 obtenirEtAllerDansDarcs()
