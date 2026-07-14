@@ -197,6 +197,7 @@ obtenirEtAllerDansGit()
 	done
 	
 	local lv="$l-$v$silo"
+	case "$guili_etiquette_sep" in ?*) lv="`printf %s "$lv" | sed -e "s'@'$guili_etiquette_sep'"`" ;; esac
 	a="$INSTALL_MEM/$lv.tar.gz"
 	
 	cd "$TMP"
