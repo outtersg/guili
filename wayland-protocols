@@ -28,6 +28,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # openssl: pour httpfs
 prerequis="python >= 3 meson ninja \\"
 v 1.45 && modifs="pkgconfPasDansShare" || true
+v 1.49 || true
 
 archive=https://gitlab.freedesktop.org/wayland/wayland-protocols/-/releases/$version/downloads/wayland-protocols-$version.tar.xz
 
