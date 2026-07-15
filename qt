@@ -36,6 +36,7 @@ v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus
 v 5.12.12 && prerequis="git cmake \\" && modifs="modules cflagsEnCmake" && OPTIONS_CONF="-qdbus" || true
 v 5.15.16 && lts=1 || true
 # /!\ Les modules pèsent plusieurs Go (4 Go rien que pour src/3rdparty en 6.11.1).
+v 6.6.0 && modifsPostConf="$modifsPostConf environFreeBSD" || true
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
 
@@ -125,6 +126,36 @@ choixConstructeur()
 	constr="make -j4"
 	
 	if [ -f build.ninja ] ; then constr=ninja ; fi
+}
+
+environFreeBSD()
+{
+	# Sous FreeBSD, environ et __progname sont indéfinis (à définir par l'exécutable). Donc une biblio (libQtbase) compilée en -Wl,--no-undefined pète si un de ses composants exploite ces infos (ex.: qprocess_unix.cpp).
+	# Qt 6.6 introduit ce --no-undefined, avec une adaptation à FreeBSD (déclaration d'environ en __weak__) qui fonctionne avec GNU ld mais pas avec ld.ldd.
+	
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	
+	# https://github.com/rui314/mold/issues/152#issuecomment-996733517
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=263265 "Utilisez *dlsym(RTLD_DEFAULT, "environ")"
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=265008 "J'ai tenté de faire rentrer environ en weak dans la libc, refusé"
+	# https://codereview.qt-project.org/c/qt/qtbase/+/147845 "Qt 5.6 avait explicitement viré ce paramètre pour FreeBSD". Mais peut-être était-ce un ld non lld?
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=220103 "On vire le --no-undefined" (variante via meson)
+	
+	# À FAIRE: GNU ld a un --ignore-unresolved-symbol,environ; lld a-t-il un équivalent? --undefined=environ semblait prometteur, mais ça ne change rien, le --no-undefined prend le dessus
+	#   extern char ** environ; char ** toto() { return environ; }
+	#   clang -shared -fPIC -fuse-ld=lld -Wl,--undefined=environ -Wl,--no-undefined -o toto.so toto.c # undefined symbol: environ
+	
+	# La solution si --undefined=environ fonctionnait:
+	#local options="--undefined=environ"
+	#filtrer qtbase/cmake/QtFlagHandlingHelpers.cmake sed -e "/no_undefined_flag.*--no-undefined/s/--no-undefined/&,$options/g"
+	
+	# La solution par dlsym:
+	filtrer qtbase/src/corelib/io/qprocess_unix.cpp sed -e '/extern.*environ/{
+a\
+#include <dlfcn.h>
+a\
+#define environ (*(char ***)dlsym(RTLD_DEFAULT, "environ"))
+}'
 }
 
 fqtnConst()
