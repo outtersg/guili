@@ -43,6 +43,7 @@ v 2.37 && retirerModif max0 || true
 v 2.41 && retirerModif sansdoc || true
 v 2.44 || true
 v 2.46.0 || true
+v 2.46.1 || true
 
 # Modifications
 
