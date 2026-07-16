@@ -44,6 +44,7 @@ avecVersionScript()
 	# En conséquent ça lui plante la compile, ce qui laisse croire au configure que ça ne sert à rien de coller l'option, ce qui génère une biblio non versionnée, ce qui plante tout le système puisque le curl installé par paquets a besoin d'une libpsl qui a besoin de certains symboles versionnés de libidn.
 	# https://people.freebsd.org/~deischen/symver/library_versioning.txt
 	# https://maskray.me/blog/2020-11-26-all-about-symbol-versioning
+	# Info supplémentaire: c'est depuis lld 16 ou 17 (cf. https://www.freshports.org/security/gnutls/ "lld 17" ou https://lists.gnu.org/r/bug-gnulib/2025-11/msg00210.html)
 	filtrer configure sed -e 's/global: sym/global: */'
 }
 

@@ -182,7 +182,8 @@ _compilo_testerLieurVersionne()
 	# … Sauf que les paquets livrés par pkg utilisent le versionnage (ex.: firefox, wf-panel, etc.). Résultat: quand sur notre système une biblio GuiLI s'installe sans versionnage de symboles, tous ces programmes ne se lancent plus (sauf avec un LD_LIBRARY_PATH= (vide) pour ne plus utiliser les GuiLI).
 	# lld semble donc préférable… mais gérera-t-il toutes les options que des programmes GNU s'attendent à pouvoir invoquer?
 	# ON CHOISIT CETTE OPTION DU LLD PAR DÉFAUT, ET SI DES PROGRAMMES FONT LES DIFFICILES CAR TROP ORIENTÉS GNU CE SERONT EUX QUI DEVRONT DÉSORMAIS REQUÉRIR UN GNU LD EXPLICITE.
-	# Quelques GuiLI sur lesquels on a été confrontés au problème: libidn (avecVersionScript()), libtiff (avecVersionScript()), llvm (lieur()), dbus (pas de contournement: on en a profité pour élaborer cette fonction-ci).
+	# Quelques GuiLI sur lesquels on a été confrontés au problème: llvm (lieur()), dbus (pas de contournement: on en a profité pour élaborer cette fonction-ci).
+	#   (libtiff et libidn ont un autre problème similaire, mais non confondable)
 	# N.B.: ce comportement se manifeste depuis mai 2026, où j'ai corrigé le codage en dur de CC=cc: cc (le chapeau de chaîne de compil' système) forçait l'usage d'/usr/bin/ld, court-circuitant le GNU ld vers lequel bibliosCompiloSys() aiguillait.
 	# À FAIRE: virer les modifs de libidn, libtiff, llvm, après avoir validé qu'elles ne sont plus nécessaires.
 	
