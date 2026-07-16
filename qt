@@ -36,6 +36,7 @@ v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus
 v 5.12.12 && prerequis="git cmake \\" && modifs="modules cflagsEnCmake" && OPTIONS_CONF="-qdbus" || true
 v 5.15.16 && lts=1 || true
 # /!\ Les modules pèsent plusieurs Go (4 Go rien que pour src/3rdparty en 6.11.1).
+v 6.0.0 && modifsPostConf="$modifsPostConf kqueueEtInotify" || true
 v 6.6.0 && modifsPostConf="$modifsPostConf environFreeBSD" || true
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
@@ -126,6 +127,15 @@ choixConstructeur()
 	constr="make -j4"
 	
 	if [ -f build.ninja ] ; then constr=ninja ; fi
+}
+
+kqueueEtInotify()
+{
+	# qtbase/src/corelib/io/qfilesystemwatcher.cpp essaie l'un après l'autre USE_INOTIFY puis Q_OS_FREEBSD (condition qui va invoquer des classes définies dans qfilesystemwatcher_kqueue.cpp).
+	# Mais le CMakeLists.txt, lui, n'inclut qfilesystemwatcher_kqueue.cpp que si NOT QT_FEATURE_inotify AND FREEBSD.
+	# Or les FreeBSD récents (14? 15?) incluent une couche de compatibilité inotify.
+	# Donc le .cpp n'est pas inclus: undefined reference to `QKqueueFileSystemWatcherEngine::create(QObject*)'
+	filtrer qtbase/src/corelib/CMakeLists.txt sed -e '/FREEBSD/s/NOT QT_FEATURE_inotify AND //'
 }
 
 environFreeBSD()
