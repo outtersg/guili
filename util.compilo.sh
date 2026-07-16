@@ -676,7 +676,7 @@ compilo_test_cc()
 	# Le minimum viable: une biblio classique.
 	# COPIE: util.multiarch.sh
 	{ echo '#include <stdio.h>' ; echo 'int main(int argc, char ** argv) { fprintf(stdout, "oui\\n"); return 0; }' ; } > $TMP/$$/1.c
-	compilable_c -r oui $TMP/$$/1.c
+	compilable_c -r oui "$@" $TMP/$$/1.c
 }
 
 compilable_cxx()
