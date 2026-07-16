@@ -161,9 +161,50 @@ bibliosCompiloSys()
 			then
 				local lieur="`versions -1 binutils`"
 				[ -z "$lieur" ] || reglagesCompilSiGuili "$lieur"
+				_compilo_testerLieurVersionne
 			fi
 			;;
 	esac
+}
+
+_compilo_testerLieurVersionne()
+{
+	# Recherche d'un lieur sachant gérer le --version-script sur notre machine.
+	
+	# NOTE: dilemme sur FreeBSD
+	# Sur les trop vieux (ma référence: un 10.2, en 2026, soit 11 ans après sa sortie), le ld système ne gère pas toute la modernité attendue (versionnage?).
+	# On a donc historiquement recouru à binutils pour pallier cela (cf. bibliosCompiloSys()).
+	# D'un autre côté, le ld binutils ne connaît pas certaines subtilités de FreeBSD, notamment le fait qu'environ et __progname sont des symboles globaux, trouvables dans des biblios système (libcrt).
+	# clang (comme pilote de la chaîne) sait transmettre au lieur les options pour ajouter les /usr/lib/crt*.o nécessaires (cf. clang -v).
+	# Cela marche parfaitement pour un lien simple.
+	# Par contre quand on veut y ajouter du versionnage de symboles, GNU ld n'est pas capable d'inférer que ces deux symboles, même non déclarés dans le "global:", en sont. Alors que lld (le ld fourni avec clang) si (et donc le ld système sur les FreeBSD récents).
+	# Or pas mal de programmes GNU, plutôt Linux, font des tests débiles où ils vérifient la capacité du lieur à travailler en versionné en lui passant un "local: *;". Résultat: si sur lld environ et __progname échappent implicitement à ce "local:", ce n'est pas le cas sur GNU ld: le programme de test ne se lie pas, le configure en déduit qu'il ne peut pas faire de versionnage symboles, et donc compile tout le programme sans.
+	# … Sauf que les paquets livrés par pkg utilisent le versionnage (ex.: firefox, wf-panel, etc.). Résultat: quand sur notre système une biblio GuiLI s'installe sans versionnage de symboles, tous ces programmes ne se lancent plus (sauf avec un LD_LIBRARY_PATH= (vide) pour ne plus utiliser les GuiLI).
+	# lld semble donc préférable… mais gérera-t-il toutes les options que des programmes GNU s'attendent à pouvoir invoquer?
+	# ON CHOISIT CETTE OPTION DU LLD PAR DÉFAUT, ET SI DES PROGRAMMES FONT LES DIFFICILES CAR TROP ORIENTÉS GNU CE SERONT EUX QUI DEVRONT DÉSORMAIS REQUÉRIR UN GNU LD EXPLICITE.
+	# Quelques GuiLI sur lesquels on a été confrontés au problème: libidn (avecVersionScript()), libtiff (avecVersionScript()), llvm (lieur()), dbus (pas de contournement: on en a profité pour élaborer cette fonction-ci).
+	# N.B.: ce comportement se manifeste depuis mai 2026, où j'ai corrigé le codage en dur de CC=cc: cc (le chapeau de chaîne de compil' système) forçait l'usage d'/usr/bin/ld, court-circuitant le GNU ld vers lequel bibliosCompiloSys() aiguillait.
+	# À FAIRE: virer les modifs de libidn, libtiff, llvm, après avoir validé qu'elles ne sont plus nécessaires.
+	
+	# À FAIRE?: passer devant binutils (dans bibliosCompiloSys), et court-circuiter ces derniers si on a de quoi faire?
+	#   Va savoir: comme pas mal de nos logiciels sont GNU, peut-être faut-il tout de même conserver ces derniers dans la chaîne, pour que le configure les trouve s'il souhaite forcer un lieur GNU.
+	
+	# /!\ On cale cette implémentation sur le test dans dbus, qui se contente de créer l'exécutable, sans vérifier s'il marche (d'où le compilo_test_cc -l).
+	#     En effet, la différence entre GNU ld et lld sur ce genre de programmes (un fichier de versionnage de symboles qui met tous les symboles en local) est le moment du pet:
+	#     • GNU ld explose à l'édition de liens finale: local symbol `environ' in /usr/lib/crt1.o is referenced by DSO
+	#     • lld n'explose pas tout de suite, mais l'exécutable généré n'est pas exécutable: ld-elf.so.1: /lib/libc.so.7: Undefined symbol "environ"
+	echo 'RIEN { local: *; };' > $TMP/1.versions
+	if compilo_test_cc -l -Wl,--version-script,$TMP/1.versions ; then return 0 ; fi
+	if compilo_test_cc -l -fuse-ld=lld -Wl,--version-script,$TMP/1.versions
+	then
+		compilo_modif _compilo_parlld
+	fi
+}
+
+_compilo_parlld()
+{
+	gris "Édition de liens en -fuse-ld=lld" >&2
+	export LDFLAGS="-fuse-ld=lld $LDFLAGS"
 }
 
 _compilo_ajouterEnv()
