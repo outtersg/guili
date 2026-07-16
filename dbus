@@ -103,7 +103,7 @@ obtenirEtAllerDansVersion
 echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
-echo Compilation… >&2
+echo Configuration… >&2
 # À FAIRE: configurer avec le bus système similaire aux ports FreeBSD (/usr/local/var/run/dbus/system_bus_socket ?
 case "$prerequis" in
 	*meson*)
