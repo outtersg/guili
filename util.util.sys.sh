@@ -66,6 +66,8 @@ linuxInput()
 {
 	# Sous FreeBSD, input.h et input-event-codes.h sont dans …/include/dev/evdev/ et non …/include/linux/ (ou alors uniquement si on a installé la couche de compat Linux).
 	# Le problème est que la coquille n'est pas dans notre source, mais dans le paquet installé par les ports: on ne peut donc pas corriger, juste poser un fichier équivalent.
+	# Cf. le GuiLI mtdev pour un remplacement.
+	
 	echo "#include <linux/input.h>" > $TMP/$$/1.c
 	echo "#include <dev/evdev/input.h>" > $TMP/$$/2.c
 	if ! compilo_test $CC -E $TMP/$$/1.c > /dev/null 2>&1 && compilo_test $CC -E $TMP/$$/2.c > /dev/null 2>&1
