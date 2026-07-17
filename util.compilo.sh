@@ -690,6 +690,30 @@ compilable()
 		shift
 	done
 	
+	# La ligne de commande peut contenir -- suivi du programme à compiler.
+	case " $* " in
+		*" -- "*)
+			local fichier param pos=0
+			case "$compilo" in
+				_compiler_*) fichier=$TMP/$$/compilable.`printf %s $compilo | sed -e s/_compiler_//` ;;
+				*) rouge "# Je ne connais pas le suffixe à utiliser pour un fichier à passer par $compilo." >&2 ; return 1 ;;
+			esac
+			> "$fichier"
+			for param in "$@"
+			do
+				case $pos in
+					0) set -- ;;
+					apres) echo "$param" >> "$fichier" ; continue ;;
+				esac
+				pos=$((pos + 1))
+				case "$param" in
+					--) param="$fichier" ; pos=apres ;;
+				esac
+				set -- "$@" "$param"
+			done
+			;;
+	esac
+	
 	rm -f $oeuf
 	case "$franc" in
 		"")
