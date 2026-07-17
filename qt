@@ -31,12 +31,13 @@ prerequis="libjpeg libpng giflib dbus"
 
 modifsPostConf="$modifsPostConf choixConstructeur"
 
-v 3.3.8 || true
+v 3.3.8 && v_ossl="< 3" || true
 v 4.2.2 && modifs="qtcopy" && OPTIONS_CONF="$OPTIONS_CONF -qt-gif -thread -qdbus" || true
 v 5.12.12 && prerequis="git cmake \\" && modifs="modules cflagsEnCmake" && OPTIONS_CONF="-qdbus" || true
 v 5.15.16 && lts=1 || true
 # /!\ Les modules pèsent plusieurs Go (4 Go rien que pour src/3rdparty en 6.11.1).
 v 6.0.0 && modifsPostConf="$modifsPostConf kqueueEtInotify" || true
+v 6.2.0 && v_ossl="< 4" || true
 v 6.6.0 && modifsPostConf="$modifsPostConf environFreeBSD" || true
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
@@ -112,6 +113,7 @@ cflagsEnCmake()
 
 prerequisOptionnels()
 {
+	# N.B.: pour openssl, on ne bénéficiera pas de l'option automatique +osslxx, car la détection est faite sur la présence d'une ligne contenant une affectation d'openssl à prerequis me semble-t-il. Or on veut pouvoir se garder la liberté de ne pas l'embarquer.
 	for p in \
 		ninja gn pkgconf \
 		python re2 \
@@ -121,7 +123,7 @@ prerequisOptionnels()
 		freetype harfbuzz fontconfig \
 		lcms libjpeg libpng libtiff \
 		postgresql sqlite mysql \
-		nss \
+		nss "openssl $v_ossl" \
 		opus ffmpeg
 do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
