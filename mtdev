@@ -29,6 +29,8 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 modifs="linuxInputFreeBSD"
 v 1.1.7 || true
 
+option linuxinput || true
+
 # Modifications
 
 linuxInputFreeBSD()
@@ -42,12 +44,29 @@ linuxInputFreeBSD()
 	{ rempl="<dev/evdev/input.h>" && compilable_c -c -- "#include $rempl" ; } ||
 	{ rouge "# Impossible de trouver un <input.h>. Ça va être compliqué." >&2 && return 1 ; }
 	
+	# Deux possibilités: soit on remplace le <linux/input.h> codé en dur dans nos .h, soit on met à disposition de tous un <linux/input.h>
+	
+	if option linuxinput
+	then
+	
+	linuxInput # Défini dans util.util.sys.sh
+	modifsPostInstall="$modifsPostInstall _linuxInputFreeBSD_install"
+	
+	else
+	
 	gris "Remplacement de <linux/input.h> par $rempl"
 	
 	for f in include/mtdev.h include/mtdev-mapping.h
 	do
 		filtrer "$f" sed -e "s#<linux/input.h>#$rempl#"
 	done
+	
+	fi
+}
+
+_linuxInputFreeBSD_install()
+{
+	sudoku cp -R "`find "$TMP/$$" -name linux -type d`" "$dest/include/"
 }
 
 # Variables
