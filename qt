@@ -112,7 +112,17 @@ cflagsEnCmake()
 
 prerequisOptionnels()
 {
-for p in python pkgconf glib iconv icu pcre freetype harfbuzz libjpeg libpng postgresql sqlite mysql libtiff ninja gn fontconfig dbus nss re2 opus ffmpeg zlib libevent libxml libxslt lcms
+	for p in \
+		ninja gn pkgconf \
+		python re2 \
+		zlib iconv icu pcre \
+		libxml libxslt \
+		libevent glib dbus \
+		freetype harfbuzz fontconfig \
+		lcms libjpeg libpng libtiff \
+		postgresql sqlite mysql \
+		nss \
+		opus ffmpeg
 do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
 done
