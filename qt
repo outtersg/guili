@@ -38,6 +38,7 @@ v 5.15.16 && lts=1 || true
 # /!\ Les modules pèsent plusieurs Go (4 Go rien que pour src/3rdparty en 6.11.1).
 v 6.0.0 && modifsPostConf="$modifsPostConf kqueueEtInotify" || true
 v 6.2.0 && v_ossl="< 4" || true
+v 6.5.0 && modifsPostConf="$modifsPostConf x11Introuvable" || true
 v 6.6.0 && modifsPostConf="$modifsPostConf environFreeBSD" || true
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
@@ -149,6 +150,53 @@ choixConstructeur()
 	constr="make -j4"
 	
 	if [ -f build.ninja ] ; then constr=ninja ; fi
+}
+
+x11Introuvable()
+{
+	# lld n'inclut pas par défaut /usr/local/lib, où se trouvent les ports FreeBSD, dont par exemple libX11.so.
+	
+	{ echo '#include <X11/Xlib.h>' ; echo 'int main(int argc, char ** argv) { return NULL != XOpenDisplay(""); }' ; } > $TMP/$$/1.c
+	set -x
+	# Ça c'est ce que fait Qt tout seul, si ça passe pas la peine de triturer plus loin.
+	if compilable_c $TMP/$$/1.c -I/usr/local/include -lX11 ; then return 0 ; fi
+	
+	if compilable_c $TMP/$$/1.c -I/usr/local/include -L/usr/local/lib -lX11
+	then
+		# https://unix.stackexchange.com/questions/411355/cmake-to-recognize-library-path-installed-in-usr-local
+		# https://cmake.org/cmake/help/book/mastering-cmake/chapter/System%20Inspection.html
+		# https://github.com/conan-io/conan/issues/11688 très intéressant sur comment les outils FreeBSD divergent les uns des autres sur l'inclusion d'/usr/local/lib
+		# Les options sur lesquelles jouer (LINK_OPTIONS) sont décrites dans qtbase/cmake/QtTargetHelpers.cmake
+		# Notons aussi que CMakeFiles/CMakeConfigureLog.yaml inclut une recherche (et une trouvaille!) des 3 biblios: ne pourrait-on pas récupérer ces variables:
+		# - X11_X11_LIB / pkgcfg_lib_PKG_X11_XCB_X11 / pkgcfg_lib_XRender_X11 / pkgcfg_lib_PC_GSTREAMER_GLX11_X11 / pkgcfg_lib_X11_X11
+		# - X11_Xrandr_LIB / pkgcfg_lib_XRANDR_Xrandr
+		# - X11_Xext_LIB
+		# D'autre part les .prl à certains niveaux (qtbase/lib/libQt6FFmpegMediaPluginImpl.prl) incluent bien le -L/usr/local/lib sans qu'on ait fait quoi que ce soit pour. Sont-ce eux les utilisateurs de ces variables?
+		filtrer qtmultimedia/src/plugins/multimedia/ffmpeg/CMakeLists.txt awk 'retention&&/X11/{print"LINK_OPTIONS \"-L/usr/local/lib\""}retention{print retention;retention=""}/LIBRARIES/{retention=$0;next}{print}'
+		
+		# En outre, un petit souci de dépendances qt doublé de notre trituration a posteriori (on est appelé en $modifsPostConf, donc après une première passe de CMake), fait que la modif ci-dessus n'est pas répercutée sur les .prl. On applique manuellement.
+		for f in \
+			qtmultimedia/src/plugins/multimedia/ffmpeg/preliminary_prl_for_FFmpegMediaPluginImplPrivate_step?_Release.prl
+		do
+			[ -f "$f" ] || continue
+			filtrer "$f" sed -E -e 's#(;| )(-l)?(X11|Xrandr|Xext)#\1-L"/usr/local/lib"&#'
+		done
+	else
+		# Bon a priori il détecterait bien tout seul mais soyons prudents:
+		filtrer qtmultimedia/src/plugins/multimedia/ffmpeg/CMakeLists.txt sed -e s/QT_FEATURE_xlib/FALSE/g
+	fi
+	
+	return
+	
+	# Tentative initiale:
+	for f in \
+		qtbase/lib/libQt6FFmpegMediaPluginImpl.prl \
+		qtmultimedia/src/plugins/multimedia/ffmpeg/preliminary_prl_for_FFmpegMediaPluginImplPrivate_step1_Release.prl \
+		qtmultimedia/src/plugins/multimedia/ffmpeg/preliminary_prl_for_FFmpegMediaPluginImplPrivate_step2_Release.prl
+	do
+		filtrer "$f" sed -E -e 's/-l(X11|Xrandr|Xext)[ ;]//g'
+	done
+	filtrer qtbase/lib/cmake/Qt6FFmpegMediaPluginImplPrivate/Qt6FFmpegMediaPluginImplPrivateTargets.cmake sed -E -e 's/;[^;]*<LINK_ONLY:(X11|Xrandr|Xext)>//g'
 }
 
 resolveMultimedia()
