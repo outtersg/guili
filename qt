@@ -116,6 +116,15 @@ for p in python pkgconf glib iconv icu pcre freetype harfbuzz libjpeg libpng pos
 do
 	versions $p | grep -q . && prerequis="$prerequis $p" || true
 done
+	
+	case `uname` in
+		FreeBSD)
+			# Sur un FreeBSD contenant des paquets pkg, le mtdev installé peut faire référence à <linux/input.h> qui n'existe pas.
+			# Et notre contournement habituel (linuxInput() dans util.util.sys.sh) n'est pas pris en compte par CMake, qui ne prend des -I que ceux qui lui assurent la présence de certains .h, dont mtdev.h, mais pas input.h.
+			# On n'a donc d'autre possibilité qu'installer notre version de mtdev; avec en plus l'option +linuxinput, car ces gros malins de qt, même s'ils détectent bien notre $INSTALLS/mtdev-1.x/include, le placent juste après /usr/local/include, ce qui fait que le mtdev.h pourri est pris quand même. Mais notre option +linuxinput installant <linux/input.h>, ouf, au moins le mtdev.h ne se casse plus les dents en allant en chercher un.
+			{ grep -q linux.input.h < /usr/local/include/mtdev.h ; } 2> /dev/null && prerequis="$prerequis mtdev+linuxinput" || true
+			;;
+	esac
 }
 
 choixConstructeur()
