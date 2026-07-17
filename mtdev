@@ -71,5 +71,6 @@ make
 
 echo Installation… >&2
 sudoku make install
+for modif in true $modifsPostInstall ; do $modif ; done
 
 sutiliser
