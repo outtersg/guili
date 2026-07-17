@@ -41,6 +41,7 @@ v 6.2.0 && v_ossl="< 4" || true
 v 6.6.0 && modifsPostConf="$modifsPostConf environFreeBSD" || true
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
+v 6.10.0 && modifsPostConf="$modifsPostConf resolveMultimedia" || true
 
 predestiner="$predestiner prerequisOptionnels"
 
@@ -148,6 +149,15 @@ choixConstructeur()
 	constr="make -j4"
 	
 	if [ -f build.ninja ] ; then constr=ninja ; fi
+}
+
+resolveMultimedia()
+{
+	# In qtmultimedia/src/multimedia/pipewire/qpipewire_symbolloader_p.h
+	# file not found: #include <QtMultimedia/private/qsymbolsresolveutils_p.h>
+	# Et pourtant un FreeBSD 15 peut avoir un pipewire lui aussi (qui est d'ailleurs détecté par l'appelant, d'où sa surprise de ne pas trouver le .h correspondant).
+	
+	filtrer qtmultimedia/src/multimedia/CMakeLists.txt sed -e '/QT_FEATURE_library/s/LINUX OR ANDROID/& OR FREEBSD/'
 }
 
 kqueueEtInotify()
