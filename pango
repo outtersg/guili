@@ -55,6 +55,8 @@ trucz=xz
 pge $version 1.32 || trucz=bz2
 archive=https://ftp.gnome.org/pub/GNOME/sources/pango/`vmaj $version`/$logiciel-$version.tar.$trucz
 
+for modif in true $predestiner ; do "$modif" ; done
+
 destiner
 
 # Petit souci sur ma config
