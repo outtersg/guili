@@ -42,7 +42,11 @@ v 6.5.0 && modifsPostConf="$modifsPostConf x11Introuvable" || true
 v 6.6.0 && modifsPostConf="$modifsPostConf environFreeBSD" || true
 v 6.7.3 && lts= && modifs="$modifs fqtnConst" || true
 v 6.8.2 && retirerModif fqtnConst || true
+v 6.8.3 || true
+v 6.9.3 || true
 v 6.10.0 && modifsPostConf="$modifsPostConf resolveMultimedia" || true
+v 6.10.3 || true
+v 6.11.1 || true
 
 predestiner="$predestiner prerequisOptionnels"
 
