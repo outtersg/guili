@@ -45,6 +45,8 @@ v 2.16.2 || true
 v 2.17.1 && prerequis="meson ninja \\ $prerequis" || true
 v 2.18.2 && remplacerPrerequis "meson >= 1.11" || true
 
+# À FAIRE: proposer l'option iconv (désactivée par défaut dans fontconfig).
+
 suffixe=xz
 pge $version 2.14 || suffixe=gz
 archive=https://www.freedesktop.org/software/fontconfig/release/$logiciel-$version.tar.$suffixe
