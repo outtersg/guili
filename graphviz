@@ -26,7 +26,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-prerequis="make pkgconfig \\ expat zlib"
+# pkgconfig+-strict sur les systèmes hybrides comme mon FreeBSD 15, où le pango GuiLI dépend de paquets système (libinotify, libthai, xrender, xft, x11, xext, xrender, xcb, xcb-render, xcn-shm).
+# Si on le laisse utiliser le pkgconfig+strict (par défaut), il masquera les chemins système (/usr/local) et, même si --exists et --libs passent, --cflags, qui lui est récursif, empêchera la détection de pangocairo.
+prerequis="make pkgconfig+-strict \\ expat zlib"
 v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf uli" || true
 v 2.40.1 || true
 v 2.44.0 || true
