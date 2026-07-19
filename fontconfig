@@ -38,7 +38,7 @@ v 2.12.2 && modifs="" || true
 v 2.12.6 && modifs="" || true
 #v 2.13.1 || true # La 2.12.91 et suivantes utilisent uuid_generate, spécifique Linux (il faudrait une version qui sache faire du uuid_create sous BSD).
 # Les suivantes ont heureusement regagné en tout-terrain.
-v 2.13.96 && prerequis="python >= 3 \\ $prerequis" || true
+v 2.13.96 && prerequis="python >= 3 \\ $prerequis" && modifs="$modifs toiDAbord" || true
 v 2.14.1 || true
 v 2.16.0 || true
 v 2.16.2 || true
@@ -63,6 +63,15 @@ glibc225()
 #define FC_CHAR_WIDTH FC_CHARWIDTH
 '
 	done
+}
+
+toiDAbord()
+{
+	# Pour inspecter les dossier de polices, le make install lance les binaires tout juste installés, qui reposent sur $LD_LIBRARY_PATH, et donc plantent s'ils n'ont pas leur biblio (tout juste installée aussi) en vue.
+	export LD_LIBRARY_PATH="$dest/lib:$LD_LIBRARY_PATH"
+	
+	# Expérimentation avant la correction de pythonenboite: interposer un programme réinscripteur de $LD_LIBRARY_PATH avant l'appel de fc-cache:
+	#filtrer fc-cache/meson.build sed -e "/add_install_script(fccache/s#(#('$TMP/$$/monenv', #"
 }
 
 constantes()
