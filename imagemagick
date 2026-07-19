@@ -55,6 +55,8 @@ v 7.1.1.47 || true
 v 7.1.2.3 || true
 v 7.1.2.5 && retirerModif scaledpict || true
 v 7.1.2.8 || true
+v 7.1.2.9 && retirerModif rawpict || true # Après échanges, l'auteur a préféré sa version plus simple (moins adaptable et robuste) de rawpict. Espérons que ça gère.
+v 7.1.2.27 || true
 
 rawpict()
 {
