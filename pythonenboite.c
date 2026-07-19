@@ -21,7 +21,9 @@ const char * durs[] =
 const char precuisson[] =
 {
 	0,
-	0,
+	/* Précuisson pour le $LD_LIBRARY_PATH: celui provenant de l'environnement de l'appelant précède celui codé en dur dans notre binaire. */
+	/* À FAIRE: en réalité il faudrait scinder: sur un chemin en durs ~/local/python+curl+ossl36+sqlite+xz-3.14.6/lib:~/local/lib64:~/local/lib, la première partie (Python lui-même) pourrait être en post-cuisson (Python puis seulement l'environnement de l'appelant), pour avoir l'ordre suivant résultant: ~/local/python+curl+ossl36+sqlite+xz-3.14.6/lib:$LD_LIBRARY_PATH:~/local/lib64:~/local/lib */
+	1,
 	1,
 	-1
 };
