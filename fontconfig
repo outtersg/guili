@@ -43,6 +43,7 @@ v 2.14.1 || true
 v 2.16.0 || true
 v 2.16.2 || true
 v 2.17.1 && prerequis="meson ninja \\ $prerequis" || true
+v 2.18.2 && remplacerPrerequis "meson >= 1.11" || true
 
 suffixe=xz
 pge $version 2.14 || suffixe=gz
