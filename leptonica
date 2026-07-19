@@ -30,6 +30,7 @@ v 1.69 && prerequis="libjpeg < 9 libtiff libpng" || true
 v 1.71 || true
 v 1.76.0 || true
 v 1.85.0 || true
+v 1.87.0 || true
 
 # Modifications
 
