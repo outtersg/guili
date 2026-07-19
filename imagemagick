@@ -88,7 +88,9 @@ option svg && optionsConf="$optionsConf --with-rsvg=yes" || virerPrerequis librs
 
 version_min="`echo "$version" | sed -e 's/\.\([^.]*\)$/-\1/'`"
 archive=ftp://gd.tuwien.ac.at/pub/graphics/$logiciel_maj/$logiciel_maj-$version_min.tar.bz2
-archive=http://mirror.checkdomain.de/imagemagick/releases/$logiciel_maj-$version_min.tar.xz
+archive=http://mirror.checkdomain.de/imagemagick/releases/$logiciel_maj-$version_min.tar.xz # Celui-là n'a que la 7.1.2.25 (de début juin) le 19 juillet alors qu'on en est déjà à la .27.
+archive=https://github.com/ImageMagick/ImageMagick/releases/download/$version_min/ImageMagick-$version_min.tar.xz # Celle-ci marche à partir de la 7.1.2.27; sinon il existe une .7z à la place de .tar.xz, depuis des versions plus anciennes. Mais sinon celle-ci marche toujours (15 Mo au lieu de 10 Mo):
+archive=https://github.com/ImageMagick/ImageMagick/archive/refs/tags/$version_min.tar.gz
 
 destiner
 
