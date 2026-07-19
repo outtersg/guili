@@ -32,7 +32,7 @@ v 1.32.3 || true
 v 1.35.3 && modifs= || true
 v 1.36.5 || true
 v 1.36.8 || true
-v 1.44.7 && prerequis="meson ninja pkgconfig \\ $prerequis" && modifs="$modifs pkgsys" || true
+v 1.44.7 && prerequis="meson ninja \\ $prerequis" || true
 v 1.49.1 && prerequis="$prerequis fribidi" || true
 v 1.50.12 && remplacerPrerequis "fontconfig >= 2.13" || true
 v 1.56.3 && remplacerPrerequis "fontconfig >= 2.15" "cairo >= 1.18" || true
@@ -41,12 +41,19 @@ v 1.57.0 || true
 v 1.57.1 || true
 v 1.58.0 || true
 
+predestiner="$predestiner prePkgconfPasTropStrict"
+
 # Modifications
 
-pkgsys()
+prePkgconfPasTropStrict()
 {
-	# Sous FreeBSD, je ne sais quel .pc d'une dépendance inclut x11, qui est défini dans les paquets système. On ne peut donc se contenter du $PKG_CONFIG_PATH défini par prerequis.
-	export PKG_CONFIG_PATH="`pkgconf_path`"
+	# Sur un FreeBSD où glib s'est compilé en allant piocher ses dépendances à la fois dans les GuiLI mais aussi dans les pkg, par exemple libinotify (couche d'émulation inotify pour FreeBSD),
+	# un pkgconf avec l'option +strict n'ira pas chercher ces paquets non système mais non GuiLI non plus. Donc libinotify introuvable, donc gio-2.0 non chargeable, donc notre pango se met en tête de recompiler tout un glib.
+	# À FAIRE: être un peu fins dans la détection de la nécessité du non strict. Par exemple en testant avec --cflags (cf. graphviz).
+	
+	case `uname` in FreeBSD)
+		remplacerPrerequis pkgconfig+-strict
+	;; esac
 }
 
 # Variables
