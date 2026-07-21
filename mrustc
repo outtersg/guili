@@ -28,13 +28,15 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 binutils >= 2.21 git bash \\ openssl libssh curl" && modifs="viaGcc libcxxspecifique sousBsd" || true
+modifs="dylib"
+predestiner="$predestiner preChoixCompilo"
+v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && v_gcc=">= 6" && v_binutils=">= 2.21" && prerequis="make cmake git bash \\ openssl libssh curl" && modifs="$modifs libcxxspecifique sousBsd" || true
 v 2017.09.25 && versionComplete="$version.9f272dd25bf8ad69a1bd4611f7342e0d22ac6d9b.git" || true
 v 2017.10.01 && versionComplete="$version.5b5deea5fcc3e76690d20d8cba726f4edf462619.git" || true
 v 2017.11.04 && versionComplete="$version.715ab49457f5d797fae8b155f51142674fe0075c.git" || true
 v 2017.11.21 && versionComplete="$version.c131c30e6db48c1edc77b123ce6771e3c5608242.git" || true
 # Compile mais génère un _build qui part en boucle infinie (apparemment un mutex_wait qui wait quelque chose qui n'existe plus).
-v 2018.01.25 && versionComplete="$version.0de427d0acb099f83bcef81e819c629b703a6e24.git" && modifs="target viaGcc libcxxspecifique sousBsd pointpointbin patache"|| true
+v 2018.01.25 && versionComplete="$version.0de427d0acb099f83bcef81e819c629b703a6e24.git" && modifs="target $modifs pointpointbin patache"|| true
 # Compile mais le premier build.rs compilé se vautre (SIGABRT). main appelle _ZN3std2rt10lang_start qui appelle _ZN3std3sys3imp4args3imp4init qui appelle une inline quelquechose_issome, qui s'attend à ce que son premier paramètre ait un membre TAG valant 0 ou 1, sinon default: abort(). Or son premier paramètre (_ZN3std3sys3imp4args3imp15GLOBAL_ARGS_PTR, grosso modo argv) n'a pas ce qu'il faut: défaut d'initialisation de _ZN3std3sys3imp4args3imp15GLOBAL_ARGS_PTR? Ça pourrait être lié à l'ordre de chargement des biblios.
 v 2018.03.17 && versionComplete="$version.8a64df35a605394fdc969b7abb2702a810d740e5.git" || true
 v 2018.04.07 && versionComplete="$version.4f98e4322ef7aabd3bbef8cd93c0980cd6eeeed1.git" || true
@@ -45,11 +47,8 @@ v 2018.10.06 && versionComplete="$version.1382500b5fdba00568a86f0122bc2e78584dfb
 v 2019.01.15 && versionComplete="$version.1a3c5dfcab0776c9a9a057303f823cec16386517.git" || true
 v 2019.05.29 && versionComplete="$version.ebd8edeb4f1861943cc82d310564b1f592e63272.git" || true
 v 2020.01.07 && versionComplete="$version.7ae47eff58abb672dd8462fda84bf652b348225b.git" || true
-#v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(clang >= 8, gcc >= 6) git bash \\ openssl libssh curl" && modifs="target2 sousBsd pointpointbin patache" || true
-v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 binutils >= 2.21 git bash \\ openssl libssh curl" && modifs="target2 viaGcc libcxxspecifique sousBsd pointpointbin patache" || true
+v 2019.11.29 && versionComplete="$version.2549db1d01ac3e7dd1444860ec693d6b55b0efef.git" && v_clang=">= 8" && retirerModif target && modifs="target2 $modifs" || true
 v 2020.01.05 && versionComplete="$version.aa9d5a9fa0ee79650b15db06e69bbbf591710f68.git" || true
-prerequis="make cmake compiloSysVersion(gcc >= 6) gcc >= 6 git bash \\ openssl libssh curl"
-modifs="$modifs dylib"
 v 2020.08.10 && versionComplete="$version.32f67fd7f219cabc1d1b219e7d72dcab32130503.git" || true
 v 2021.01.25 && versionComplete="$version.40800d3dc098ae4b604a5192f309ff0f5ecc600e.git" || true
 v 2021.03.06 && versionComplete="$version.0eaf40b1d305d69372a5047f6a9323c00978aa11.git" || true
@@ -59,6 +58,17 @@ v 2021.11.23 && versionComplete="$version.2ba326cde8122f545a45e5ee4181ecce4837fa
 v 2023.10.15 && versionComplete="$version.38c9db25324351badeaaef91a7755cd5b50e1336.git" || true
 
 # Modifications
+
+preChoixCompilo()
+{
+	if option clang
+	then
+		prerequis="compiloSysVersion(clang $v_clang) \\ $prerequis"
+	else
+		prerequis="compiloSysVersion(gcc $v_gcc) gcc $v_gcc binutils $v_binutils \\ $prerequis"
+		modifs="viaGcc $modifs"
+	fi
+}
 
 dylib()
 {
