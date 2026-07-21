@@ -244,9 +244,9 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 # https://stackoverflow.com/a/17152622/1346819 référençant https://gcc.gnu.org/wiki/FAQ#configure:
-mkdir -p ../gcc-build
+mkdir -p gcc-build
 SRC="`pwd`"
-cd ../gcc-build
+cd gcc-build
 
 echo Configuration… >&2
 # Sans les --with-xxx, plutôt que d'utiliser $LDFLAGS, le configure définit par défaut les paramètres de lien à simplement -lxxx, sans -L, donc au final ld se vautre sauf sur les plates-formes où les biblios en question sont dans les chemins système (mais alors cela remet en cause tous les efforts que nous avons fait pour fournir notre version).
