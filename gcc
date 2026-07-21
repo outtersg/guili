@@ -42,6 +42,16 @@ v 7.4.0 || true # download_prerequisites: gmp 6.1.0 mpfr 3.1.4 mpc 1.0.3
 v 7.5.0 || true
 v 11.1.0 && retirerModif sansCore || true
 v 11.2.0 || true
+v 12.4.0 || true
+v 13.3.0 || true
+v 13.4.0 || true
+v 14.2.0 || true
+v 14.3.0 || true
+v 14.4.0 || true
+v 15.1.0 || true
+v 15.2.0 || true
+v 15.3.0 || true
+v 16.1.0 || true
 
 [ -z "$version" ] && echo "# Aucune règle pour compiler $logiciel $argVersion" >&2 && exit 1 || true
 
