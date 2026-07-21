@@ -29,6 +29,10 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
+# À FAIRE: maintenant que mrustc édite des versions officielles, il serait bon de suivre leurs versions, par exemple en ayant une $v_mrustc qui serait la dernière officielle, suivie de notre numéro de version daté.
+#   ex.: 0.12.0.2026.07.19
+#   Toute version commençant par 20[0-9][0-9]. serait ainsi raccrochée derrière sa version officielle (0.0.0 par défaut pour les toutes premières).
+
 modifs="dylib"
 predestiner="$predestiner preChoixCompilo"
 v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && v_gcc=">= 6" && v_binutils=">= 2.21" && prerequis="make cmake git bash \\ openssl libssh curl" && modifs="$modifs libcxxspecifique sousBsd" || true
