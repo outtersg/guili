@@ -57,6 +57,10 @@ v 2021.04.28 && versionComplete="$version.8f7baf68165571d381ddb47bef19eb4cd67292
 v 2021.10.01 && versionComplete="$version.5c07a88cb51c8fb6d66272db6559c1cb99c4affe.git" || true
 v 2021.11.23 && versionComplete="$version.2ba326cde8122f545a45e5ee4181ecce4837fa5e.git" || true
 v 2023.10.15 && versionComplete="$version.38c9db25324351badeaaef91a7755cd5b50e1336.git" || true
+v 2024.05.05 && versionComplete="$version.8c5141593ddc7b1ecd191ba9e2723718d3b5018d.git" && modifs="$modifs majorminor" || true
+v 2025.05.05 && versionComplete="$version.60fe53a61be03af07580fd78282ced5eafddebfb.git" || true
+v 2026.05.24 && versionComplete="$version.be69c7479a10bdce1b86cb886789d14a143ddf34.git" || true
+v 2026.07.19 && versionComplete="$version.ce62233838309df33ca7c9808bec387fef045ec6.git" || true
 
 # Modifications
 
@@ -69,6 +73,15 @@ preChoixCompilo()
 		prerequis="compiloSysVersion(gcc $v_gcc) gcc $v_gcc binutils $v_binutils \\ $prerequis"
 		modifs="viaGcc $modifs"
 	fi
+}
+
+majorminor()
+{
+	# Initialisation des membres major et minor par parenthèses (major(0)) depuis mai 2024;
+	# manque de bol, sous certains BSD (le .h a une clause dédiée à OpenBSD), major et minor sont des macros: pétage du compilo.
+	# Chez Vulkan, on considère que de toute façon il est temps de passer à l'initialisation par accolades (C++combien?), pour être sûrs de passer aussi bien clang que gcc.
+	
+	filtrer tools/minicargo/manifest.h sed -E -e 's/(major|minor)\(([^)]+)\)/\1{\2}/g'
 }
 
 dylib()
