@@ -25,6 +25,7 @@ set -e
 
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.jalons.sh"
 
 # Historique des versions gérées
 
@@ -245,15 +246,25 @@ export CC=gcc CXX=g++
 bash
 else
 
+if ! jalon source
+then
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
 OPTIONS_MAKE=
 for modif in true $modifs ; do $modif ; done
 
+jalonner source
+fi
+
 echo Configuration… >&2
 
 echo Compilation… >&2
+
+if ! jalon compil
+then
+
 minicargo=bin/minicargo
 if pge $version 2020.08.10
 then
@@ -304,6 +315,9 @@ then
 	make $OPTIONS_MAKE -f minicargo.mk
 	make $OPTIONS_MAKE -C run_rustc
 fi
+fi
+
+jalonner compil
 fi
 
 echo Installation… >&2
