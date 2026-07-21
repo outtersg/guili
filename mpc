@@ -46,7 +46,9 @@ fbsd8()
 
 # Variables
 
-archive="http://ftp.gnu.org/gnu/mpc/mpc-$version.tar.gz"
+suffixe=xz
+pge $version 1.4 || suffixe=gz
+archive="https://ftp.gnu.org/gnu/mpc/mpc-$version.tar.$suffixe"
 
 destiner
 
