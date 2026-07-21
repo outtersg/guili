@@ -55,9 +55,40 @@ v 16.1.0 || true
 
 [ -z "$version" ] && echo "# Aucune règle pour compiler $logiciel $argVersion" >&2 && exit 1 || true
 
-option go || true
+option go && modifs="$modifs fbsdgo" || true
 
 # Modifications
+
+fbsdgo()
+{
+	# La partie go repose sur la génération d'un gros fichier avec extraction de toutes les constantes nécessaires pour faire tourner sysinfo.
+	# Problème:
+	# - sous FreeBSD sysinfo est une couche de compatibilité Linux, passant par des sysctl
+	# - et les constantes sysctl sont déjà codées en dur dans libgo/go/runtime/os_freebsd.go
+	# - or en go, une constante déclarée deux fois (même avec la même valeur), c'est une erreur.
+	# Cf. "mkrsysinfo.sh generating bogus code for FreeBSD" dans https://forums.freebsd.org/threads/gccgo-port-on-freebsd.71315/ (qui résume https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg659897.html).
+	# À l'inverse certaines des inclusions systèmes FreeBSD (umtx.h) ont été oubliées, avec le retraitement des symboles derrière (suppression du _ de départ pour les structures).
+	
+	filtrer libgo/mkrsysinfo.sh "/egrep -v/a\\
+egrep -v 'const (_HW_PAGESIZE|_CPU_LEVEL_WHICH|_CPU_WHICH_PID|_CTL_HW|_CTL_MAXNAME) ' | \\
+" -e '/-e.*timespec_t/{
+p
+s/timespec\(_t\)*/umtx_time/g
+}'
+	
+	
+	filtrer libgo/sysinfo.c sed -e '/<sys\/times.h>/{
+a\
+#define _umtx_time umtx_time
+a\
+#include <sys/umtx.h>
+}
+'
+	filtrer libgo/go/runtime/os_freebsd.go sed -e 's/uinptr/uintptr/g' -e '/maskSize.*uintptr/s/uintptr/int/g' -e 's/maskSize,/uintptr(maskSize),/g' # Quelques incongruités qui traînent en 16.1.0.
+	
+	# À FAIRE: restent quelques symboles indéfinis (timekeepSharedPage, vdsoTimekeep, archauxv, getProcID, setThreadCPUProfiler, setProcessCPUProfiler, validSIGPROF):
+	#   sont-ce des sections qui ont été commentées en fonction du système?
+}
 
 fbsdbinutils()
 {
