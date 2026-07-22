@@ -69,25 +69,17 @@ fbsdgo()
 	# Cf. "mkrsysinfo.sh generating bogus code for FreeBSD" dans https://forums.freebsd.org/threads/gccgo-port-on-freebsd.71315/ (qui résume https://www.mail-archive.com/gcc-bugs@gcc.gnu.org/msg659897.html).
 	# À l'inverse certaines des inclusions systèmes FreeBSD (umtx.h) ont été oubliées, avec le retraitement des symboles derrière (suppression du _ de départ pour les structures).
 	
-	filtrer libgo/mkrsysinfo.sh "/egrep -v/a\\
-egrep -v 'const (_HW_PAGESIZE|_CPU_LEVEL_WHICH|_CPU_WHICH_PID|_CTL_HW|_CTL_MAXNAME) ' | \\
-" -e '/-e.*timespec_t/{
-p
-s/timespec\(_t\)*/umtx_time/g
-}'
+	# … Mais tout le boulot a déjà été fait par Rainer Orth: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86535#c45
 	
+	local rustine="`obtenir "https://gcc.gnu.org/bugzilla/attachment.cgi?id=64977" gcc.bugzilla.attachment.64977.patch`"
+	patch -p1 < "$rustine"
 	
-	filtrer libgo/sysinfo.c sed -e '/<sys\/times.h>/{
-a\
-#define _umtx_time umtx_time
-a\
-#include <sys/umtx.h>
-}
-'
-	filtrer libgo/go/runtime/os_freebsd.go sed -e 's/uinptr/uintptr/g' -e '/maskSize.*uintptr/s/uintptr/int/g' -e 's/maskSize,/uintptr(maskSize),/g' # Quelques incongruités qui traînent en 16.1.0.
+	# Bizarre, il aura fallu passer manuellement en 1 les 2 HAVE_*_ROUTE_H dans gcc-build/x86_64-unknown-freebsd15.0/libgo/config.h: non détectés au configure? Est-ce parce que je n'ai appliqué la rustine ci-dessus que de façon cradouille sur une arbo déjà triturée?
+	# De plus la compil' se termine sur un:
+	#   libgo.so: undefined reference to `syscall.sysctl'
+	# alors que sysctl dans libgo/go/runtime/os_freebsd.go est bien précédé d'un //extern sysctl
 	
-	# À FAIRE: restent quelques symboles indéfinis (timekeepSharedPage, vdsoTimekeep, archauxv, getProcID, setThreadCPUProfiler, setProcessCPUProfiler, validSIGPROF):
-	#   sont-ce des sections qui ont été commentées en fonction du système?
+	jaune "# La compilation de libgo n'ira probablement pas à terme." >&2
 }
 
 fbsdbinutils()
