@@ -39,6 +39,8 @@ v 3.7.5 && remplacerPrerequis cmake && modifs="$modifs string_view_iter capture_
 v 3.14.3 || true
 v 4.0.1 || true
 v 4.1.0 && retirerModif string_view_iter capture_regexp || true # Mes deux modifs ont été acceptées.
+v 4.1.1 && remplacerPrerequis "openssl" || true
+v 4.1.2 || true
 
 # À FAIRE: une option +blas (avec openblas?).
 
