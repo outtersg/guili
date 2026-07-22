@@ -34,6 +34,7 @@ v 1.6.2 && modifs="lpeginternevisible" || true
 v 1.6.6 || true
 v 1.7.0 && virerPrerequis fann && prerequis="$prerequis luajit" || true # Luajit optionnel avant; maintenant Cannot compile torch without luajit.
 v 1.9.4 || true
+v 2.2 && modifs="$modifs pasForcementLld" || true
 v 2.7 && prerequis="$prerequis libsodium" && modifs="$modifs icuDeSecours" || true
 v 3.7.5 && remplacerPrerequis cmake && modifs="$modifs string_view_iter capture_regexp" && predestiner="$predestiner vieillear" || true
 v 3.14.3 || true
@@ -75,6 +76,18 @@ icuDeSecours()
 {
 	# Curieusement alors que la version 1.9 trouvait tout ce qu'il fallait comme biblios ICU, la 2.7, bien que parcourant bien icui18n, icuuc, et icudata, n'inclue que la première aux paramètres d'édition de liens. Donc pétage à ce moment, pour quelques symboles manquants. On rajoute icuuc (elle-même liée à icudata, donc pas besoin d'ajout explicite de cette dernière).
 	OPTIONS="$OPTIONS -DCMAKE_REQUIRED_LIBRARIES=-licuuc"
+}
+
+pasForcementLld()
+{
+	# Le Toolset.cmake dit grosso modo: si find_program("lld") ajoute "-fuse-ld=lld".
+	# Sauf que find_program va chercher dans notre $PATH + les chemins système (/usr/local/bin par exemple sur FreeBSD),
+	# tandis que notre clang, avec exclusivementPrerequis(), ne va chercher que dans les chemins mentionnés explicitement.
+	# Donc dans une install' où le dernier clang compilé l'a été sans +lld, alors qu'une précédente l'avait (installé vers $INSTALLS/bin = /usr/local/bin),
+	# cmake va ajouter -fuse-ld=lld
+	# mais clang plantera en clang: error: invalid linker name in argument '-fuse-ld=lld'
+	
+	filtrer cmake/Toolset.cmake sed -e '/find_program.*ld\./s/)/ NO_CMAKE_SYSTEM_PATH)/'
 }
 
 lpeginternevisible()
