@@ -110,6 +110,15 @@ appelsSysBsdPurs()
 	do
 		filtrer "$f" sed -e 's/@FBSD_[.0-9]*//g'
 	done
+	
+	# Notons que les modifs appliquées par mrustc au source de rust doivent aussi être adaptées.
+	
+	modifsMrustc="$modifsMrustc _appelsSysBsdPurs_mrustc"
+}
+
+_appelsSysBsdPurs_mrustc()
+{
+	filtrer rustc-$version-src.patch sed -e 's/@FBSD_[.0-9]*//g'
 }
 
 sousBsdLienLlvm()
