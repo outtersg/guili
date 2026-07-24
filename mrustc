@@ -33,6 +33,26 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 #   ex.: 0.12.0.2026.07.19
 #   Toute version commençant par 20[0-9][0-9]. serait ainsi raccrochée derrière sa version officielle (0.0.0 par défaut pour les toutes premières).
 
+# État des lieux
+# - 2026-07-24
+#   FreeBSD 15.0p10 - clang 22.1.8 - gcc 16.1.0 - mrustc 2026.07.19 - rust +viamrustc:
+#     1.29.0:
+#       après un gros paquet de biblios, build_backtrace-sys:
+#       Process was terminated with signal 11
+#       Est-ce de l'avoir tenté avec un clang / llvm bien trop moderne pour lui?
+#     1.39.0:
+#       après 4 ou 5 biblios:
+#       mod.rs:1226:22-31 error:0: Couldn't find type name 'shmid_ds' of crate::shmid_ds/*?*/
+#     1.54.0:
+#       après pas mal de biblios, --features llvm:
+#       EXCEPTION: Dependency resolution failed
+#     1.74.0:
+#       après énormément de biblios, memoffset:
+#       Error { kind: Other("output path is not a writable directory") }
+#     1.90.0:
+#       après 4 ou 5 biblios:
+#       mod.rs:284-285 error:0: Couldn't find type name 'timespec' of crate::timespec/*?*/
+
 modifs="dylib"
 predestiner="$predestiner preChoixCompilo"
 v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && v_gcc=">= 6" && v_binutils=">= 2.21" && prerequis="make cmake git bash \\ openssl libssh curl" && modifs="$modifs libcxxspecifique sousBsd depaquette" || true
