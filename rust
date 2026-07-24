@@ -284,8 +284,10 @@ then
 	
 	cd ..
 	mkdir -p bin output tools/bin
-	cp -p "`obtenir "$archive"`" ./ # On ne va pas le laisser retélécharger tout le source à chaque fois, non?
-	touch rustc-$version-src/extracted # Après l'archive, sinon il réextrait.
+	
+	# On ne va pas le laisser retélécharger tout le source à chaque fois, non?
+	[ -f "$SRCRUST/extracted" ] || touch "$SRCRUST/extracted"
+	
 	cp "$destmrustc/bin"/* bin/
 	( cd "$destmrustc/share/mrustc" && tar cf - . ) | tar xf -
 	for modif in true $modifsMrustc ; do $modif ; done
@@ -315,9 +317,6 @@ TERMINE
 	chmod a+x tools/bin/$prefixecible-gcc
 	export PATH="`pwd`/tools/bin:$PATH"
 	
-	[ -f "$SRCRUST/.mrustinec" ] ||
-	( cd "$SRCRUST" && for f in rustc-$version-src.patch rust_src.patch ; do [ -f ../$f ] || continue ; patch -p0 < ../$f ; break ; done )
-	touch "$SRCRUST/.mrustinec"
 	# ARGH, le premier _build généré (build.rs -mrustc-> binaire lancé en guise de configure), pour pulldown-cmark, part en boucle infinie sur un pthread_mutex_lock.
 	if [ $logiciel = libstdrust ]
 	then
