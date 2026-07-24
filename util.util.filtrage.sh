@@ -24,14 +24,19 @@
 # En sortie, $FILTRER_RES est définie à 1 si un changement a eu lieu.
 filtrer()
 {
+	local preserve=
+	case "$1" in -p) preserve=1 ; shift ;; esac
+	
 	FILTRER_RES=
 	fichier="$1"
 	shift
 	if "$@" < "$fichier" > "$TMP/$$/temp"
 	then
 		if diff -q "$TMP/$$/temp" "$fichier" > /dev/null ; then return 0 ; fi
+		case "$preserve" in 1) touch -r "$fichier" "$TMP/$$/temp" ;; esac
 		FILTRER_RES=1
 		cat "$TMP/$$/temp" > "$fichier"
+		case "$preserve" in 1) touch -r "$TMP/$$/temp" "$fichier" ;; esac
 	else
 		return $?
 	fi
