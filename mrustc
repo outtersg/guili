@@ -35,7 +35,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 modifs="dylib"
 predestiner="$predestiner preChoixCompilo"
-v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && v_gcc=">= 6" && v_binutils=">= 2.21" && prerequis="make cmake git bash \\ openssl libssh curl" && modifs="$modifs libcxxspecifique sousBsd" || true
+v 2017.08.31 && versionComplete="$version.b6726e67982b9a73b9f5286c17ff81688ce06b11.git" && v_gcc=">= 6" && v_binutils=">= 2.21" && prerequis="make cmake git bash \\ openssl libssh curl" && modifs="$modifs libcxxspecifique sousBsd depaquette" || true
 v 2017.09.25 && versionComplete="$version.9f272dd25bf8ad69a1bd4611f7342e0d22ac6d9b.git" || true
 v 2017.10.01 && versionComplete="$version.5b5deea5fcc3e76690d20d8cba726f4edf462619.git" || true
 v 2017.11.04 && versionComplete="$version.715ab49457f5d797fae8b155f51142674fe0075c.git" || true
@@ -220,6 +220,32 @@ viaGcc()
 {
 	# mrustc utilise trop de trucs spécifiques GCC / libstdc++; bien qu'un effort ait été fait (libcxxspecifique), on n'arrive toujours pas à compiler via clang / libc++ au 2017-11-23. Donc GCC obligatoire.
 	export CC=gcc CXX=g++
+}
+
+depaquette()
+{
+	# On voudrait qu'il n'aille pas chercher l'archive à chaque fois qu'on retente la compil', alors qu'on l'a déjà téléchargée (à un endroit centralisé).
+	# Pour uniformiser on reprend le minicargo.mk des versions récentes, avec son témoin -extracted.
+	local f
+	for f in minicargo.mk Makefile # minicargo.mk après 2018, Makefile avant.
+	do
+		grep -q SRC_TARBALL < "$f" 2> /dev/null || continue
+		filtrer "$f" awk '
+			rempl&&/^([^\t]|$)/&&!/RUSTC_SRC_TARBALL|RUSTC_SRC_DL/{rempl=0}
+			rempl{next}
+			/curl.*static.rust-lang.org/{sub(/@/,"@[ -f \"'"$INSTALL_MEM"'/$@\" ] \\&\\& ln -s \"'"$INSTALL_MEM"'/$@\" $@ \\&\\& touch -h -t 197001010101 $@ || ");rempl=1}
+			{print}
+			rempl{
+				print "rustc-$(RUSTC_VERSION)-src/extracted: $(RUSTC_SRC_TARBALL)"
+				print "	tar -xzf $(RUSTC_SRC_TARBALL)"
+				print "	touch $@"
+				print "$(RUSTC_SRC_DL): rustc-$(RUSTC_VERSION)-src/extracted rustc-$(RUSTC_VERSION)-src.patch"
+				print "	cd $(RUSTCSRC) && patch -p0 < ../rustc-$(RUSTC_VERSION)-src.patch;"
+				print "	touch $@"
+			}
+		'
+		break
+	done
 }
 
 libcxxspecifique()
