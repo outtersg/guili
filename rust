@@ -259,6 +259,8 @@ then
 	
 	cd ..
 	mkdir -p bin output tools/bin
+	cp -p "`obtenir "$archive"`" ./ # On ne va pas le laisser retélécharger tout le source à chaque fois, non?
+	touch rustc-$version-src/extracted # Après l'archive, sinon il réextrait.
 	cp "$destmrustc/bin"/* bin/
 	( cd "$destmrustc/share/mrustc" && tar cf - . ) | tar xf -
 	cp bin/minicargo tools/bin/
