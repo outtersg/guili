@@ -256,6 +256,8 @@ if option viamrustc
 then
 	SRCRUST="`pwd`"
 	SRCRUST="`basename "$SRCRUST"`"
+	# Cf. le build-1.29.0.sh de mrustc
+	export MRUSTC_TARGET_VER="`echo $version | cut -d . -f 1,2`" export RUSTC_VERSION=$version OUTDIR_SUF=-$version
 	
 	cd ..
 	mkdir -p bin output tools/bin
