@@ -106,7 +106,7 @@ appelsSysBsdPurs()
 	# En effet, la compilation (via gcc en tout cas) transforme cela en 'call fstat@FBSD_1.0', or pour GNU as, "@" est un caractère réservé, il faudrait donc le mettre sous la forme 'call "fstat@FBSD_1.0"'.
 	# De plus cc1 en optimise l'exécution en lui ajoutant un @PLT (xxx@PLT est une procédure mutante, qui au début pointe sur la version lourde (initialisation puis réécriture de xxx@PLT pour pointer directement sur xxx puis appel de cette dernière), les appels subséquents allant directement à xxx).
 	# L'expression résultante 'call fstat@FBSD_1.0@PLT' est donc plantogène ("Error: junk `@FBSD_1.0@PLT' after expression"); on le résout en virant le suffixe @FBSD_x.x.
-	grep -rl @FBSD_ src/liblibc src/vendor | while read f
+	grep -rl @FBSD_ src/liblibc src/vendor vendor 2> /dev/null | while read f
 	do
 		filtrer "$f" sed -e 's/@FBSD_[.0-9]*//g'
 	done
