@@ -35,7 +35,7 @@ v 1.17.0 && prerequis="python < 3 cmake >= 3.4.3 clang 3.9.1" && modifs="$modifs
 v 1.18.0 || true
 v 1.19.0 || true
 v 1.20.0 || true
-v 1.29.0 && ajouterModif appelsSysBsdPurs && v_llvm=">= 7 < 8" || true
+v 1.29.0 && remplacerPrerequis python && ajouterModif appelsSysBsdPurs && v_llvm=">= 7" || true
 
 # NOTE: AVEC_GCC, v_llvm et Delicat
 # 
