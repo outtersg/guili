@@ -62,7 +62,12 @@ v 2021.10.01 && versionComplete="$version.5c07a88cb51c8fb6d66272db6559c1cb99c4af
 v 2021.11.23 && versionComplete="$version.2ba326cde8122f545a45e5ee4181ecce4837fa5e.git" || true
 v 2023.10.15 && versionComplete="$version.38c9db25324351badeaaef91a7755cd5b50e1336.git" || true
 v 2024.05.05 && versionComplete="$version.8c5141593ddc7b1ecd191ba9e2723718d3b5018d.git" && modifs="$modifs majorminor" || true
+v 2024.12.04 && versionComplete="$version.4305d427518b93ad450007eeb638e01aee08621f.git" || true
+v 2025.01.19 && versionComplete="$version.01f9ab80f8de7f01f008170c8d3d5d8378de298e.git" || true
+v 2025.02.15 && versionComplete="$version.d6966b84e3311c1b3f65fdd46ad124c07316a2ae.git" || true
+v 2025.02.23 && versionComplete="$version.44013560b99ee8f351807d5ad4b64ba36bfe7d01.git" && retirerModif dylib || true # À partir de là, les .hir sont pondus directement en .so, donc si nous on renomme les .rlib en .so, ouille, on se marche sur les pieds, et à la première compilation (libcore.so): Unable to deserialize: Unable to open file.
 v 2025.05.05 && versionComplete="$version.60fe53a61be03af07580fd78282ced5eafddebfb.git" || true
+v 2026.02.01 && versionComplete="$version.d7d8f549a6d4a221741bd71ebe3116c5e951f155.git" || true
 v 2026.05.24 && versionComplete="$version.be69c7479a10bdce1b86cb886789d14a143ddf34.git" || true
 v 2026.07.19 && versionComplete="$version.ce62233838309df33ca7c9808bec387fef045ec6.git" || true
 
