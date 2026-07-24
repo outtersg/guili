@@ -36,6 +36,7 @@ v 1.18.0 || true
 v 1.19.0 || true
 v 1.20.0 || true
 v 1.29.0 && remplacerPrerequis python && ajouterModif appelsSysBsdPurs && v_llvm=">= 7" || true
+v 1.39.0 && retirerModif sousBsdLienLlvm || true
 
 # NOTE: AVEC_GCC, v_llvm et Delicat
 # 
