@@ -265,6 +265,7 @@ then
 	touch rustc-$version-src/extracted # Après l'archive, sinon il réextrait.
 	cp "$destmrustc/bin"/* bin/
 	( cd "$destmrustc/share/mrustc" && tar cf - . ) | tar xf -
+	for modif in true $modifsMrustc ; do $modif ; done
 	cp bin/minicargo tools/bin/
 	# Et minicargo.mk n'a pas besoin de recontruire mrustc et minicargo, nom d'une pipe.
 	touch -t 197910100830 vieux
