@@ -38,6 +38,7 @@ v 3.109 && v_nspr=4.36 || true
 v 3.114 && v_nspr=4.37 || true
 v 3.120 && v_nspr=4.38.2 || true
 v 3.125 || true
+v 3.126 || true
 
 prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
 
@@ -303,6 +304,7 @@ install()
 	rm -Rf dest
 	cp -R -L "`ls -d ../dist/$prefixeObj*.OBJ | tail -1`" dest # bin et lib
 	cp -R -L "../dist/public" dest/include # include
+# À FAIRE: sans doute plus nécessaire avec les 1.8x qui passent par meson.
 	mkdir dest/lib/pkgconfig
 	sed \
 		-e "s#%prefix%#$dest#g" \
