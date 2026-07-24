@@ -279,8 +279,6 @@ if option viamrustc
 then
 	SRCRUST="`pwd`"
 	SRCRUST="`basename "$SRCRUST"`"
-	# Cf. le build-1.29.0.sh de mrustc
-	export MRUSTC_TARGET_VER="`echo $version | cut -d . -f 1,2`" export RUSTC_VERSION=$version OUTDIR_SUF=-$version
 	
 	cd ..
 	mkdir -p bin output tools/bin
@@ -316,6 +314,9 @@ TERMINE
 	fi
 	chmod a+x tools/bin/$prefixecible-gcc
 	export PATH="`pwd`/tools/bin:$PATH"
+	
+	# Cf. le build-1.29.0.sh de mrustc
+	export MRUSTC_TARGET_VER="`echo $version | cut -d . -f 1,2`" export RUSTC_VERSION=$version OUTDIR_SUF=-$version RUST_CHANNEL=stable
 	
 	# ARGH, le premier _build généré (build.rs -mrustc-> binaire lancé en guise de configure), pour pulldown-cmark, part en boucle infinie sur un pthread_mutex_lock.
 	if [ $logiciel = libstdrust ]
