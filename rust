@@ -292,7 +292,7 @@ then
 	cp bin/minicargo tools/bin/
 	# Et minicargo.mk n'a pas besoin de recontruire mrustc et minicargo, nom d'une pipe.
 	touch -t 197910100830 vieux
-	filtrer minicargo.mk sed -E -e '/(MINICARGO|MRUSTC).*:$/s/$/ vieux/' -e '/PHONY/s# [^ ]*(minicargo|mrustc)##g'
+	filtrer -p minicargo.mk sed -E -e '/(MINICARGO|MRUSTC).*:$/s/$/ vieux/' -e '/PHONY/s# [^ ]*(minicargo|mrustc)##g'
 	
 	# Mais pourquoi certaines commandes lancent-elles un x86_64-unknown-freebsd-gcc alors qu'il existe un x86_64-unknown-freebsd10.2-gcc?
 	target -g > /dev/null
