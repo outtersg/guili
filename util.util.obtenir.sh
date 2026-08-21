@@ -413,6 +413,7 @@ agiter()
 	esac
 	
 	(
+		avecOutilsGuili
 		cd "$archive_git" &&
 		{
 			git checkout "b$version_git" 2> /dev/null >&2 ||
@@ -423,7 +424,7 @@ agiter()
 	
 	# On invoque la modif, et on en fait une nouvelle révision git.
 	# checkout -b: pour être sûrs de ne pas être en détaché.
-	version_git="`cd "$archive_git" && "$@" && git add . && git commit -m "$*" > /dev/null && git rev-parse HEAD`"
+	version_git="`avecOutilsGuili && cd "$archive_git" && "$@" && git add . && git commit -m "$*" > /dev/null && git rev-parse HEAD`"
 	
 	# Et on réécrit l'extension.
 	
