@@ -416,6 +416,8 @@ agiter()
 		avecOutilsGuili
 		cd "$archive_git" &&
 		{
+			# git clean -d -f pour virer les éventuels fichiers restés d'un précédent aller, qui nous ferait un "erreur : Les fichiers suivants non suivis de la copie de travail seraient écrasés par l'extraction"
+			git clean -d -f &&
 			git checkout "b$version_git" 2> /dev/null >&2 ||
 			git checkout -b "b$version_git"
 		} &&
