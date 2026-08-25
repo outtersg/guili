@@ -87,6 +87,7 @@ v 3.0.18 || true
 v 3.0.19 || true
 v 3.0.20 || true
 v 3.0.21 || true
+v 3.0.22 || true
 v 3.1.4 || true
 v 3.1.5 || true
 v 3.1.6 || true
@@ -113,6 +114,7 @@ v 3.4.3 || true
 v 3.4.4 || true
 v 3.4.5 || true
 v 3.4.6 || true
+v 3.4.7 || true
 v 3.5.0 || true
 v 3.5.1 || true
 v 3.5.2 || true
@@ -121,15 +123,18 @@ v 3.5.4 || true
 v 3.5.5 || true
 v 3.5.6 || true
 v 3.5.7 || true
+v 3.5.8 || true
 v 3.6.0 || true
 v 3.6.1 || true
 v 3.6.2 || true
 v 3.6.3 || true
+v 3.6.4 || true
 # Beaucoup d'obsolétisations, apport de l'ECH (= SNI chiffré).
 # https://lesjoiesducode.fr/openssl-4-0-release "sujet qui fâche": perfs pourries du fait d'OSSL_PARAM (paramètres génériques plutôt que codés en dur).
 # N.B.: la 4 ne permet plus de compiler pour du 32 bits (les cibles *-i386-* ont disparu).
 v 4.0.0 || true
 v 4.0.1 || true
+v 4.0.2 || true
 
 # OpenSSL ne supporte pas la compilation 2 en 1, car ses chemins de compil' sont dissociés entre 32 et 64 bits.
 # Si on le lance avec le marcherAccelere() par défaut (comipiler les 2 versions en 1 passe, avec -arch x86_64 -arch i386),
