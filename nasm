@@ -30,6 +30,7 @@ prerequis="make \\ "
 v 2.12.02 || true
 v 2.14.02 || true
 v 2.16.03 || true
+v 3.02 || true
 
 prerequis
 
