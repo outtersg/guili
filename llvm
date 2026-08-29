@@ -96,6 +96,8 @@ v 22.1.5 || true
 v 22.1.6 || true
 v 22.1.7 || true
 v 22.1.8 || true
+v 23.1.0 || true
+# Une des prochaines versions devrait pouvoir se passer de threadAtExit.
 
 modifs="$modifsDyn $modifs"
 predestiner="multiarchAPartirDe $predestiner constructeur"
@@ -847,7 +849,9 @@ kvmopen2()
 {
 	grep -q kvm_open2 /usr/include/kvm.h && return 0 || true
 	
-	filtrer lldb/source/Plugins/Process/FreeBSDKernel/ProcessFreeBSDKernel.cpp sed -e '/<kvm/{
+	local f=lldb/source/Plugins/Process/FreeBSD-Kernel-Core/ProcessFreeBSDKernelCore.cpp
+	pge $version 23 || f=lldb/source/Plugins/Process/FreeBSDKernel/ProcessFreeBSDKernel.cpp
+	filtrer "$f" sed -e '/<kvm/{
 a\
 #define kvm_open2(execfile, corefile, flags, errbuf, resolver) kvm_open(execfile, corefile, NULL, flags, NULL)
 a\
