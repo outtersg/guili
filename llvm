@@ -1577,7 +1577,6 @@ case $constr in
 			-DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
 			-DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
 			-DCMAKE_BUILD_TYPE=$livrable \
--DCMAKE_LINKER=/usr/bin/ld \
 			$OPTIONS_CMAKE \
 			$racineCompil
 		;;
