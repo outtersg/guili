@@ -96,7 +96,7 @@ v 22.1.5 || true
 v 22.1.6 || true
 v 22.1.7 || true
 v 22.1.8 || true
-v 23.1.0 || true
+v 23.1.0 && modifs="$modifs mlirPasSysteme" || true
 # Une des prochaines versions devrait pouvoir se passer de threadAtExit.
 
 modifs="$modifsDyn $modifs"
@@ -267,6 +267,19 @@ archive="`archive llvm`"
 case $constr in runtimes) archive="https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-$version.tar.gz" ;; esac
 
 # Modifs.
+
+mlirPasSysteme()
+{
+	# flang/CMakeLists.txt fait du -isystem build/tools/mlir mais derrière fait du #include "" plutôt que #include <>
+	# Donc les -isystem ne sont pas utilisés, la compil' d'une 23 +flang (alors que sont installés une 22 +flang et une 23 +-flang d'amorçage) chope les .h de la 22, et ne trouve pas tous ses symboles.
+	# D'ailleurs un des commentaires y dit explicitement "may have to be fine-tuned".
+	filtrer flang/CMakeLists.txt sed -e '/include_directories(SYSTEM/{
+h
+s/SYSTEM //
+p
+x
+}'
+}
 
 dlfcnflangrt()
 {
