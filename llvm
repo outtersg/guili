@@ -100,6 +100,7 @@ v 23.1.0 && modifs="$modifs mlirPasSysteme" || true
 # Une des prochaines versions devrait pouvoir se passer de threadAtExit.
 
 modifs="$modifsDyn $modifs"
+modifs="$modifs lldQuelquePart"
 predestiner="multiarchAPartirDe $predestiner constructeur"
 
 multiarchAPartirDe()
@@ -279,6 +280,21 @@ s/SYSTEM //
 p
 x
 }'
+}
+
+lldQuelquePart()
+{
+	# Sur un système en cours d'installation sur une alternance clang-21 clang+lld-21 clang-22 clang+lld-22 clang-23 clang+lld-23 par exemple (la compilation de la n se fait grâce à la n-1+lld, la compilation de la n+lld grâce à la n-lld),
+	# (en réalité on fait des ensembles +fortran+lld+lldb, d'où la nécessité de cette alternance: fortran a besoin de tout l'environnement installé de la même version, qui doit se faire en une passe séparée)
+	# souci:
+	# si dans notre environnement complet notre bin/clang-23 arrive à retrouver le bin/ld.lld-22,
+	# une fois les modifs en place, avec exclusivementPrerequis qui cantonne le $PATH à un seul ensemble clang, on n'a plus cette capacité à utiliser le clang d'un ensemble avec le lld d'un autre:
+	# on se retrouve alors avec un clang incapable de lier.
+	
+	# À FAIRE: une détection un peu propre, qui n'inclue au $PATH que si nécessaire.
+	# À FAIRE: peut-être tout simplement décommenter le clang+lld dans lieur()? Mais attention, ça n'est pas strictement équivalent: là on ajoute le chemin d'un lld (potentiellement d'une version antérieure) *en plus* du clang choisi pour compiler (qui peut être un clang+runtimes de la même version que la cible), alors que dans lieur() ce serait *à la place* de: donc dans ce cas d'usage on risque de perdre le runtime (et donc de planter la compil').
+	
+	export PATH="$PATH:`versions -1 "clang +lld"`/bin"
 }
 
 dlfcnflangrt()
