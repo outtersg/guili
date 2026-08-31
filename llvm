@@ -100,7 +100,7 @@ v 23.1.0 && modifs="$modifs mlirPasSysteme" || true
 # Une des prochaines versions devrait pouvoir se passer de threadAtExit.
 
 modifs="$modifsDyn $modifs"
-modifs="$modifs lldQuelquePart"
+modifs="$modifs lldQuelquePart" # À FAIRE?: lldQuelquePart juste après exclusivementPrerequis? Dans ma tentative de compiler une 23.1.0 ce jour, atomicutmx() semble ne pas avoir agi: peut-être parce que le compilo + lieur n'était pas viable à ce moment?
 predestiner="multiarchAPartirDe $predestiner constructeur"
 
 multiarchAPartirDe()
