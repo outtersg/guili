@@ -1642,11 +1642,19 @@ do
 		-not -name "*.check_cache" \
 		-not -name progress.\* \
 		-not -name cmake_clean.cmake \
+		-not -name cmake_install.cmake \
 		-not -name CMakeError.log \
+		-not -name CMakeConfigureLog.yaml \
 		-not -name compiler_depend.\* \
+		-not -name \*DependInfo.json \
+		-not -name compile_commands.json \
 		-not -name .ninja_deps \
 		-not -name .ninja_log \
+		-not -name build.ninja \
 		-not -name "*.c*.o.d" \
+		-not -name \*.dd \
+		-not -name Labels.txt \
+		-not -name Labels.json \
 	|
 	tee $TMP/$$/z | grep -q . && magenta "Plantage, mais on progresse (`wc -l < $TMP/$$/z` fichiers générés entre-temps). On retente." && tail -10 < $TMP/$$/z | sed -e 's/^/  /' ||
 	{ jaune "# Nous vous plaçons dans un shell interactif. Tentez de rattraper le coup." >&2 && sh ; }
