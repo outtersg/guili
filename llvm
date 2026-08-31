@@ -100,7 +100,7 @@ v 23.1.0 && modifs="$modifs mlirPasSysteme" || true
 # Une des prochaines versions devrait pouvoir se passer de threadAtExit.
 
 modifs="$modifsDyn $modifs"
-modifs="$modifs lldQuelquePart" # À FAIRE?: lldQuelquePart juste après exclusivementPrerequis? Dans ma tentative de compiler une 23.1.0 ce jour, atomicutmx() semble ne pas avoir agi: peut-être parce que le compilo + lieur n'était pas viable à ce moment?
+modifs="lldQuelquePart $modifs" # lldQuelquePart doit se trouver juste après exclusivementPrerequis (qui tronque le $PATH), car parmi les autres modifs celles qui reposent par exemple sur compilo_test (ex.: atomicutmx()) se fourvoieront s'ils n'ont pas un clang + lld viable.
 predestiner="multiarchAPartirDe $predestiner constructeur"
 
 multiarchAPartirDe()
