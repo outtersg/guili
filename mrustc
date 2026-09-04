@@ -90,6 +90,7 @@ v 2025.05.05 && versionComplete="$version.60fe53a61be03af07580fd78282ced5eafddeb
 v 2026.02.01 && versionComplete="$version.d7d8f549a6d4a221741bd71ebe3116c5e951f155.git" || true
 v 2026.05.24 && versionComplete="$version.be69c7479a10bdce1b86cb886789d14a143ddf34.git" || true
 v 2026.07.19 && versionComplete="$version.ce62233838309df33ca7c9808bec387fef045ec6.git" || true
+v 2026.08.30 && versionComplete="$version.984a75bf5d46f5e9d9eb9a176324d46771c5ff28.git" || true
 
 # Modifications
 
