@@ -41,6 +41,7 @@ v 3.125 || true
 v 3.126 || true
 v 3.126.1 || true
 v 3.127 || true
+v 3.128 || true
 
 prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
 
