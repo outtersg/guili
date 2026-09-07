@@ -54,6 +54,7 @@ v 1.31.0 || true
 v 1.31.1 || true
 v 1.31.2 || true
 v 1.31.3 || true
+v 1.31.5 || true
 
 archive="http://nginx.org/download/nginx-$version.tar.gz"
 
