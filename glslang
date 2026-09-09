@@ -28,6 +28,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="cmake python \\"
 v 11.12.0 || true
+v 12.3.1 || true
 
 archive="https://github.com/KhronosGroup/glslang/archive/refs/tags/$version.tar.gz"
 
