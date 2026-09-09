@@ -32,10 +32,9 @@ v 0.7.4 && prerequis="cmake \\" && modifs="$modifs spng_pc" || true
 
 spng_pc()
 {
-	# La biblio fournit un libspng.pc. Sauf que tous les empaqueteurs Linux préfèrent un spng.pc (historique, du temps où le projet ne fournissait pas de .pc?), résultat, bon nombre de paquets cherchent un spng plutôt qu'un libspng. On fournit.
+	# La biblio fournit un libspng.pc quand elle est compilée par CMake. Sauf que tous les empaqueteurs Linux passent par meson, qui lui génère un spng.pc, résultat, bon nombre de paquets cherchent un spng plutôt qu'un libspng (ou cf. https://github.com/libvips/libvips/blob/master/meson.build qui cherche l'un ou l'autre). On est sympa, on fournit donc les deux.
 	filtrer CMakeLists.txt sed -e '/lib.*\.pc/{p;s#/lib#/#g;}'
 	sed -e '/Name/s/lib//' < cmake/libspng.pc.in > cmake/spng.pc.in
-	# À FAIRE: idem côté meson.
 }
 
 # Variables
