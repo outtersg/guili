@@ -29,7 +29,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 2.5.39 && prerequis="make m4 \\" && modifs="" || true
 v 2.6.3 || true
 v 2.6.4 && modifs="reallocarray" || true
-v 2.6.4.20230115 && versionComplete="$version.cf66c9e.git" && prerequis="$prerequis gettext" || true
+v 2.6.4.20230115 && versionComplete="$version.cf66c9e.git" && prerequis="$prerequis gettext < 0.23" || true
 v 2.6.4.20250114 && versionComplete="$version.051ab9e.git" || true
 
 # En autoreconf, flex a besoin d'un flex qui n'a pas besoin d'un flex (bref d'un flex non autoreconf).
