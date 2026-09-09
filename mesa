@@ -30,6 +30,11 @@ v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
 v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie log2" || true
 v 18.3.5 && modifs="choixSortie elf_nhdr" || true
 v 22.2.3 && prerequis="$prerequis glslang expat zstd libdrm" && modifs="$modifs sansIntel sansRtti wsiBsd" || true
+v 22.3.7 || true
+v 23.0.0 && modifs="$modifs paquets23" || true
+v 23.3.5 || true
+v 24.0.9 || true # Dernière version sans nécessité de libclc ni rustc
+# N.B.: plante encore sur du .lex
 
 # Bien que llvm fasse en théorie partie des prérequis, sur les machines sur lesquelles j'ai compilé un clang-13 et où reste encore un vieux llvm-7,
 # il ne faut SURTOUT PAS ajouter llvm aux prérequis, sans quoi c'est le 7 qui sera embarqué (et qui plantera, cf. https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/15724).
@@ -43,6 +48,11 @@ then
 fi
 
 # Modifications
+
+paquets23()
+{
+	pipi markupsafe pygments
+}
 
 wsiBsd()
 {
