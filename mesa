@@ -113,6 +113,7 @@ choixSortie()
 		then
 			optionsConf="--enable-osmesa --enable-glx=no --with-platforms="
 		fi
+		pg 25 $version || optionsConf="--enable-glx=no --with-platforms="
 	fi
 }
 
