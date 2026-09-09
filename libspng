@@ -26,9 +26,17 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 0.7.4 && prerequis="cmake \\" || true
+v 0.7.4 && prerequis="cmake \\" && modifs="$modifs spng_pc" || true
 
 # Modifications
+
+spng_pc()
+{
+	# La biblio fournit un libspng.pc. Sauf que tous les empaqueteurs Linux préfèrent un spng.pc (historique, du temps où le projet ne fournissait pas de .pc?), résultat, bon nombre de paquets cherchent un spng plutôt qu'un libspng. On fournit.
+	filtrer CMakeLists.txt sed -e '/lib.*\.pc/{p;s#/lib#/#g;}'
+	sed -e '/Name/s/lib//' < cmake/libspng.pc.in > cmake/spng.pc.in
+	# À FAIRE: idem côté meson.
+}
 
 # Variables
 
