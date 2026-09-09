@@ -28,6 +28,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="python meson ninja \\ pthreadstubs"
 v 2.4.114 || true
+v 2.4.134 || true
 
 archive="https://dri.freedesktop.org/libdrm/libdrm-$version.tar.xz"
 
