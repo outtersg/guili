@@ -75,6 +75,7 @@ a\
 
 sansRtti()
 {
+	! commande llvm-config || [ "`llvm-config --has-rtti`" = NO ] || return 0
 	# Il nous le demande explicitement quand notre llvm GuiLI est livré sans RTTI.
 	optionsConf="$optionsConf --no-cpp_rtti"
 }
