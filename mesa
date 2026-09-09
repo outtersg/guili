@@ -50,33 +50,27 @@ wsiBsd()
 	# https://lists.freebsd.org/pipermail/freebsd-x11/2020-April/025698.html
 	# https://gitlab.freedesktop.org/mesa/mesa/-/issues/6653 Indique que c'est depuis la 22.2.
 	
-	patch -p0 <<TERMINE
---- src/vulkan/wsi/wsi_common_drm.c.orig	22.1-branchpoint-2850-gcbcdcc412c9
-+++ src/vulkan/wsi/wsi_common_drm.c
-@@ -33,13 +33,20 @@
- #include "drm-uapi/drm_fourcc.h"
- 
- #include <errno.h>
--#include <linux/dma-buf.h>
--#include <linux/sync_file.h>
- #include <time.h>
- #include <unistd.h>
- #include <stdlib.h>
- #include <stdio.h>
- #include <xf86drm.h>
-+
-+#if __has_include(<linux/dma-buf.h>)
-+#include <linux/dma-buf.h>
-+#else
-+#define DMA_BUF_SYNC_READ      (1 << 0)
-+#define DMA_BUF_SYNC_WRITE     (2 << 0)
-+#define DMA_BUF_SYNC_RW        (DMA_BUF_SYNC_READ | DMA_BUF_SYNC_WRITE)
-+#define DMA_BUF_BASE		'b'
-+#endif
- 
- struct dma_buf_export_sync_file_wsi {
- __u32 flags;
-TERMINE
+	filtrer src/vulkan/wsi/wsi_common_drm.c sed \
+		-e '/#include <linux.dma-buf.h>/d' \
+		-e '/#include <linux.sync_file.h>/d' \
+		-e '/#include <xf86drm.h>/{
+a\
+#if __has_include(<linux/dma-buf.h>)
+a\
+#include <linux/dma-buf.h>
+a\
+#else
+a\
+#define DMA_BUF_SYNC_READ      (1 << 0)
+a\
+#define DMA_BUF_SYNC_WRITE     (2 << 0)
+a\
+#define DMA_BUF_SYNC_RW        (DMA_BUF_SYNC_READ | DMA_BUF_SYNC_WRITE)
+a\
+#define DMA_BUF_BASE		'\'b\''
+a\
+#endif
+}'
 }
 
 sansRtti()
