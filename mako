@@ -29,6 +29,8 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis="python"
 v 1.0.1 && modifs="ssl" || true
 v 1.2.4 || true
+v 1.3.12 || true
+v 1.4.1 || true
 
 # Modifications
 
