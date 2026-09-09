@@ -33,7 +33,7 @@ v 0.4 && prerequis="" && modifs="" || true
 
 # Variables
 
-archive="http://xcb.freedesktop.org/dist/libpthread-stubs-$version.tar.bz2"
+archive="http://xcb.freedesktop.org/dist/libpthread-stubs-$version.tar.gz"
 
 destiner
 
