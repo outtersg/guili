@@ -46,6 +46,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # Variables
 
+archive="https://pypi.python.org/packages/source/m/mako/mako-$version.tar.gz" ; pge $version 1.3.6 ||
 archive="https://pypi.python.org/packages/source/M/Mako/Mako-$version.tar.gz"
 
 destiner
