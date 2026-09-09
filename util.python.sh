@@ -86,4 +86,10 @@ finaliserInstallPyExt()
 	( cd "$desto" && tar cf - . ) | ( sudoku mkdir -p "$pyext" && cd "$pyext" && sudoku tar xf - )
 }
 
+# pip install vers notre dossier mutualisé (pour éviter de ne se retrouver que dans la version spécifique Python actuelle).
+pipi()
+{
+	sudokupy pip install --prefix "$INSTALLS/$PYEXT" "$@"
+}
+
 PYEXT="pyext-1.0"
