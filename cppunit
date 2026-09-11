@@ -28,6 +28,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 1.13.2 && prerequis="" && modifs="" || true
 v 1.14.0 || true
+v 1.15.1 || true
 
 # Modifications
 
