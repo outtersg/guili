@@ -27,6 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 v 1.7.6 && prerequis="" && modifs="fbsd10 cxx14max" || true
+v 1.8.4 || true
 
 # Modifications
 
