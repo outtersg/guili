@@ -51,9 +51,5 @@ make
 
 echo Installation… >&2
 sudo make install
-find "$dest/lib" -name "lib*.so.*" | grep '/lib[^/]*\.so\.[0-9.]*$' | while read biblio ; do
-	biblioSimple="`echo "$biblio" | sed -e 's#[.0-9]*$##'`"
-	[ -e "$biblioSimple" ] || sudo ln -s "`basename "$biblio"`" "$biblioSimple"
-done
 
 sutiliser
