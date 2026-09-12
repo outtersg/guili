@@ -1,4 +1,4 @@
-# Copyright (c) 2012-2013,2015,2017,2020-2021 Guillaume Outters
+# Copyright (c) 2012-2013,2015,2017,2020-2021,2026 Guillaume Outters
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
