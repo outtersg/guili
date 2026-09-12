@@ -26,9 +26,17 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 1.7.6 && prerequis="" && modifs="fbsd10" || true
+v 1.7.6 && prerequis="" && modifs="fbsd10 cxx14max" || true
 
 # Modifications
+
+cxx14max()
+{
+	# Jusqu'à la version 1.8.4 au moins, le code est tartiné de register int, non acceptés par C++17.
+	# À FAIRE: être plus subtils, tester d'abord sans et l'ajouter si vraiment on plante.
+	# Voir aussi gperf, php, icu qui ont des contournements proches.
+	export CXXFLAGS="$CXXFLAGS -std=c++14"
+}
 
 # Variables
 
