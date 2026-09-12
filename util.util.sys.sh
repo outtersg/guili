@@ -192,6 +192,6 @@ fbsd10()
 {
 	# Pour les couillons qui confondent freebsd10 et freebsd1.
 	find . -name configure | while read i ; do
-		[ ! -f "$i" ] || filtrer "$i" sed -e 's#freebsd1\*#freebsd1|freebsd1.*#g'
+		[ ! -f "$i" ] || filtrer "$i" sed -E -e 's#(freebsd(1|\[[-0-9]*\]))\*#\1|\1.*#g'
 	done
 }
