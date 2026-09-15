@@ -35,12 +35,21 @@ v 5.3.28 || true
 v 6.0.35 || true
 v 6.2.38 && retirerModif atomicce || true
 v 18.1.32 || true
+v 18.1.40 && modifs="$modifs rapt" || true
 
 archive="ftp://sleepycat1.inetu.net/releases/$logiciel-$version.tar.gz"
 archive="https://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
 archive="https://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
 archive="https://download.oracle.com/berkeley-db/db-$version.tar.gz"
 archive="https://download.oracle.com/otn/berkeley-db/db-$version.tar.gz"
+
+rapt()
+{
+	# Rien À PT.
+	# Il compile tout bien mais plante à l'installe, ne trouvant ni bdb-sql ni gsg_db_server.
+	# En fouillant le Makefile il s'avère que ce sont les docs…
+	filtrer dist/Makefile.in sed -e 's/gsg_db_server//g' -e 's/bdb-sql//g'
+}
 
 atomicce()
 {
