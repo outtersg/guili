@@ -31,6 +31,7 @@ v 2.68 || true
 v 2.69 || true
 v 2.71 || true
 v 2.72 || true
+v 2.73 || true
 
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.bz2
 archive=ftp://ftp.igh.cnrs.fr/pub/gnu/$logiciel/$logiciel-$version.tar.gz
