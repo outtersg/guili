@@ -22,7 +22,9 @@
 
 prerequisOpenssl()
 {
-	case "$argOptions $prerequis" in *ssl*) true ;; *) return 0 ;; esac
+	local prexec="$prerequis"
+	case "$prexec" in *ssl*\\*) prexec="`echo "$prexec" | sed -e 's/.*\\\\//'`" ;; esac # Si c'est cmake qui a un +osslxx, avant le \ séparant prérequis de construction de ceux d'exécution, en fait on n'a pas besoin d'OpenSSL à l'exécution.
+	case "$argOptions $prexec" in *ssl*) true ;; *) return 0 ;; esac
 	
 	# À FAIRE: dans les prerequis sans +osslxx, repérer ceux qui contiennent un prerequisOpenssl et leur ajouter alors un +osslxx.
 	case "$argOptions" in
