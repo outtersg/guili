@@ -42,6 +42,7 @@ archive="https://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
 archive="https://download-uk.oracle.com/berkeley-db/$logiciel-$version.tar.gz"
 archive="https://download.oracle.com/berkeley-db/db-$version.tar.gz"
 archive="https://download.oracle.com/otn/berkeley-db/db-$version.tar.gz"
+# Une vraie merde depuis que c'est passé chez Oracle: il faut se créer un compte très intrusif, qui fonctionne une fois sur deux, refuse qu'on ait le mot oracle dans son adrél, a une licence qu'on ne peut valider; et le téléchargement est un binaire pour Linux. Bon par contre une fois authentifié, l'URL ci-dessus fonctionne.
 
 rapt()
 {
