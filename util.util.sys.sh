@@ -29,7 +29,14 @@ localhost()
 
 #- Mac -------------------------------------------------------------------------
 
-mac() { [ "`uname`" = Darwin ] ; }
+mac()
+{
+	case "`uname`" in
+		Darwin) mac() { true ; } ;;
+		*) mac() { false ; } ;;
+	esac
+	mac
+}
 
 # Utilise le compilo Apple sur Mac (ex.: libao, libdiscid, qui doivent accéder à CoreAudio et autres Frameworks auxquels seul le compilo Apple sait accéder).
 ccMac()
