@@ -33,6 +33,7 @@ v 2.4.2 || true
 v 2.4.6 && prerequis="m4 >= 1.4.16" || true
 v 2.4.7 || true
 v 2.5.4 || true
+v 2.6.2 || true
 
 # Modifications
 
