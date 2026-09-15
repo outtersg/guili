@@ -18,7 +18,29 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
+#- POSIX -----------------------------------------------------------------------
+
+# Le localhost n'est pas toujours 127.0.0.1 (ex.: jails BSD). Si des programmes ont besoin de coder une IP en dur, mieux vaut passer par là.
+localhost()
+{
+	ifconfig | awk '/^lo/{split($0,ti,/:/);i=ti[1]}/inet /{if(i){print $2;exit}}'
+}
+
 #- Mac -------------------------------------------------------------------------
+
+mac() { [ "`uname`" = Darwin ] ; }
+
+# Utilise le compilo Apple sur Mac (ex.: libao, libdiscid, qui doivent accéder à CoreAudio et autres Frameworks auxquels seul le compilo Apple sait accéder).
+ccMac()
+{
+	case `uname` in
+		Darwin)
+			CC=cc
+			export CC
+			;;
+	esac
+}
 
 # Le Mac a la fâcheuse tendance d'embarquer ses propres versions de composants Open Source (iconv, sqlite3…);
 # et d'y lier certaines de ses bibliothèques système.

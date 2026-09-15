@@ -371,25 +371,6 @@ v()
 	testerVersion "$v" ppe $argVersion
 }
 
-# Le localhost n'est pas toujours 127.0.0.1 (ex.: jails BSD). Si des programmes ont besoin de coder une IP en dur, mieux vaut passer par là.
-localhost()
-{
-	ifconfig | awk '/^lo/{split($0,ti,/:/);i=ti[1]}/inet /{if(i){print $2;exit}}'
-}
-
-mac() { [ "`uname`" = Darwin ] ; }
-
-# Utilise le compilo Apple sur Mac (ex.: libao, libdiscid, qui doivent accéder à CoreAudio et autres Frameworks auxquels seul le compilo Apple sait accéder).
-ccMac()
-{
-	case `uname` in
-		Darwin)
-			CC=cc
-			export CC
-			;;
-	esac
-}
-
 # À VIRER (remplacer par multiarch partout)
 # Modifie libtool pour lui faire générer du 32 et 64 bits via les -arch propres aux gcc d'Apple.
 # Ne plus utiliser, ça marche trop peu souvent (certaines parties du compilo plantent sur du multiarchi). Passer par compil3264.
