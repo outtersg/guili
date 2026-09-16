@@ -27,6 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 v 1.5.3 && prerequis="meson >= 0.50 ninja" || true
+v 1.5.10 || true
 
 # Modifications
 
