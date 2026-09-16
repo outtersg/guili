@@ -32,6 +32,11 @@ v 3.2.1 || true
 # make: maké avec GNU make; avec celui de FreeBSD, la constitution de libffi.map donne un "clang-8: error: no input files
 v 3.3 && prerequis="make \\ " || true
 v 3.4.2 || true
+v 3.4.8 || true
+v 3.5.2 || true
+v 3.6.0 || true
+v 3.7.1 || true
+v 3.8.0 || true
 
 # Modifications
 
