@@ -32,7 +32,7 @@ v 1.5.3 && prerequis="meson >= 0.50 ninja" || true
 
 # Variables
 
-archive="https://github.com/anholt/libepoxy/releases/download/$version/libepoxy-$version.tar.xz"
+archive="https://github.com/anholt/libepoxy/archive/refs/tags/$version.tar.gz" # En fait toutes les versions n'ont pas généré un beau .xz, on repose sur le .tar.gz brut de sources qui au moins est toujours présent.
 
 destiner
 
