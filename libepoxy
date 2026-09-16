@@ -51,5 +51,6 @@ echo Compilation… >&2
 ninja
 
 echo Installation… >&2
+# sudokupy ne devrait plus être nécessaire avec un python emboité.
 sudokupy ninja install
 sutiliser
