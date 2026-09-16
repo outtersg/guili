@@ -26,16 +26,52 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 0.25.5 && prerequis="zlib gettext openssl < 1.1 expat" || true
+v 0.25.5 && prerequis="autoconf automake m4 libtool \\ zlib gettext openssl < 1.1 expat" && modifs="$modifs detectionSocket docATrous traducs" || true
 v 0.29.6 || true
 v 0.30.1 || true
 v 0.30.2 && remplacerPrerequis "openssl < 1.2" || true
 
 # Modifs
 
+traducs()
+{
+	# all n'inclut pas les traducs, par contre install s'attend à les avoir sous la main.
+	# Ça n'est pourtant pas pour des prunes qu'on a posé gettext en prérequis.
+	
+	local f
+	for f in Makefile Makefile.in
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e '/^all:/s/$/ compile-gmo/'
+	done
+}
+
+docATrous()
+{
+	# L'install' finit en:
+	#   for m in doc/man/*.3; do  /usr/bin/install -c -m 644 $m /home/gui/local/neon+ossl40-0.37.1/share/man/man3; done
+	# Mais plante en:
+	#   install: doc/man/*.3: No such file or directory
+	# Ça passe probablement sur des systèmes avec bash par défaut qui ignore les * ne correspondant à rien, mais pas sur mes FreeBSD avec un sh plus naturel.
+	# En fait le configure signale l'absence de xmlto, et désactive probablement la création des pages d'aide à la construction… mais pas à l'installation.
+	
+	local f
+	for f in Makefile Makefile.in
+	do
+		[ -f "$f" ] || continue
+		filtrer "$f" sed -e 's/ install-docs//'
+	done
+}
+
+detectionSocket()
+{
+	# À FAIRE: le configure de la 0.32.0 comparé à une 0.31 montre bien tout ce qui a été retravaillé pour détecter socket sur des systèmes un peu plus variés que le seul Linux. Auparavant, sur FreeBSD (10.2 ou 15.0), plantage du configure.
+	false
+}
+
 # Variables
 
-archive=http://www.webdav.org/$logiciel/$logiciel-$version.tar.gz
+archive="https://github.com/notroj/neon/archive/refs/tags/$version.tar.gz"
 
 destiner
 
@@ -47,6 +83,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
+[ -f configure ] || ./autogen.sh
 ./configure --prefix="$dest" --with-ssl
 
 echo Compilation… >&2
