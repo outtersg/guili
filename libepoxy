@@ -26,10 +26,43 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 1.5.3 && prerequis="meson >= 0.50 ninja" || true
+v 1.5.3 && prerequis="meson >= 0.50 ninja pkgconf+ig+-strict \\" || true # pkgconf non strict pour lui permettre d'aller chercher dans les dossiers systèmes pour les paquets GL, X11 etc.
 v 1.5.10 || true
 
+predestiner="$predestiner preGlx"
+
 # Modifications
+
+preGlx()
+{
+	local glx_racine options trouve=
+	
+	for glx_racine in "" /usr/local
+	do
+	# Nous tournons en phase de détection des prérequis, donc sans encore les modifs dont celle qui aura déterminé le $CC le plus adapté. Pour nous mettre dans les même conditions de compil que post-modifs, nous devons donc manuellement invoquer comme configurateur d'environnement le compiloSysVersion() habituel.
+		case "$glx_racine" in
+			"") options= ;;
+			*) options="-I$glx_racine/include -L$glx_racine/lib" ;;
+		esac
+		if compilable -i compiloSysVersion _compiler_c $options -lGLX -- '#include <GL/glx.h>' 'int main(int argc, const char ** argv) { glXWaitGL(); return 0; }'
+		then
+			# N.B.: en réalité le meson recherche via pkg-config, donc notre test compilable() n'est pas représentatif.
+			#       Ceci dit le pkgconf +ig +-strict en prérequis est censé connaître les chemins que nous testons ici (le +strict retirant les chemins système, ).
+			modifierOptions =glx
+			trouve=1
+			break
+		fi
+	done
+	case "$trouve" in "")
+		modifierOptions -glx
+		gris "libepoxy: compilé sans glx (introuvable)"
+	;; esac
+	
+	if ! option glx
+	then
+		OPTIONS_MESON="$OPTIONS_MESON -Dglx=no -Degl=no" # À FAIRE?: dissocier EGL de GLX?
+	fi
+}
 
 # Variables
 
@@ -46,7 +79,7 @@ for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
 mkdir -p _build && cd _build
-meson --prefix="$dest" -Dglx=no -Degl=no # On veut fonctionner en étêté.
+meson --prefix="$dest" $OPTIONS_MESON
 
 echo Compilation… >&2
 ninja
