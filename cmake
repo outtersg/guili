@@ -21,7 +21,7 @@
 
 set -e
 
-Delictueux() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delictueux ; s="`dirname "$s"`" ; Delictueux ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
 . "$SCRIPTS/libuv.util.sh"
@@ -157,7 +157,6 @@ archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
 # Pour ces détections de logiciels tierces, on préfère alors prendre les devants en imposant (via prerequis) que ce soit la version GuiLI qui soit utilisée: GuiLI installe toujours conjointement binaires et inclusions.
 
 ! commande openssl || prerequis="$prerequis openssl $v_openssl"
-prerequisOpenssl
 # La ligne suivante ne servirait que si, parmi les versions de cmake dont le libuv embarqué ne tourne pas sur certaines plates-formes (obsolètes), certaines pouvaient tourner avec un libuv externe (plus ancien que l'embarquée, mais tournant sur la plate-forme). Or il n'en existe pas: cmake repose étroitement sur des fonctionnalités de sa libuv embarquée, il est donc impossible de le compiler avec une libuv plus ancienne.
 #pge 3.13.5 $version || prerequisLibuv # Pour la 3.13.5 et en-dessous, la libuv intégrée est bonne, on s'en satisfait. Au dessus, il va falloir basculer vers une libuv externe.
 
