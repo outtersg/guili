@@ -661,7 +661,11 @@ compilo_modif()
 }
 
 # Teste qu'un programme simple compile et s'exécute.
-# Utilisation: compilercxx [-c|-l|-r <réponse>] <compilo> <paramètres compil>...
+# Utilisation: compilable [-i <environnementeur>] [-c|-l|-r <réponse>] <compilo> <paramètres compil>...
+#   -i <environnementeur>
+#     Effectue le test dans un environnement isolé modifié initialement par l'invocation d' <environnementeur>.
+#     Cette option peut être répétée.
+#     Mais elle DOIT être en première(s) position(s).
 #   -c
 #     Compilation seule.
 #   -l
@@ -676,6 +680,20 @@ compilo_modif()
 # Le compilateur doit générer un exécutable $TMP/$$/a.out
 compilable()
 {
+	# Traitement des Initialisations en Isolation.
+	
+	case "$1" in -i)
+		(
+			while [ "x$1" = x-i ]
+			do
+				$2 || exit $?
+				shift 2
+			done
+			compilable "$@" || exit $?
+		)
+		return
+	;; esac
+	
 	local reponse= executer=oui lier=oui compilo= oeuf=$TMP/$$/a.out franc=
 	while true
 	do
