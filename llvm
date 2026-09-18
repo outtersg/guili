@@ -178,11 +178,15 @@ flangPredestiner()
 	prerequis="clang +rt +omp +-flang $version \\ $prerequis"
 	export GUILI_CLANG_PID=$$
 	modifsPostCompil="$modifsPostCompil flangPostCompil"
-	modifsPostConf="$modifsPostConf flangPostConf"
+	# Ligne suivante commentée: cf. explication au début de flangPostConf().
+	#modifsPostConf="$modifsPostConf flangPostConf"
 }
 
 flangPostConf()
 {
+	# Finalement pas appelée: l'intérêt est limité (la reconstruction de certains artéfacts déclenche de toute façon une reconstruction complète), et on a le risque que les binaires aient gardé codées en dur des traces de ce qui eux a permis de les construire).
+	return 0
+	
 	local b0=../build-passe1
 	
 	[ -d "$b0" ] || return 0
