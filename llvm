@@ -48,6 +48,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 #   ./clang 22.1.6
 #   ./clang 22.1.7
 
+# À FAIRE?: un dossier de faux binaires aiguilleurs, en tête de $PATH, qui au démarrage invoquent la version N-1 de clang, et dès que présents ceux générés?
+# On ne peut pas simplement ajouter build au $PATH, car le cmake va résoudre les chemins vers les binaires à ce moment et coder en dur leur chemin dans les build.ninja etc.; on peut éventuellement depuis notre aiguilleur faire confiance au $PATH hors dossier de l'aiguilleur, mais en tout cas il nous faudra ces aiguilleurs intermédiaires.
+
 constr=configure
 v 3.3 || true
 v 3.4.2 && modifsDyn="pasTropOptim macMath taLibcxxEnPrio" && modifs="stdcppPasTropEnDur sansOcaml" || true # Ne compile pas avec gcc 4.7.4 (même erreur que https://bugs.gentoo.org/show_bug.cgi?id=515882)
@@ -274,6 +277,7 @@ mlirPasSysteme()
 	# flang/CMakeLists.txt fait du -isystem build/tools/mlir mais derrière fait du #include "" plutôt que #include <>
 	# Donc les -isystem ne sont pas utilisés, la compil' d'une 23 +flang (alors que sont installés une 22 +flang et une 23 +-flang d'amorçage) chope les .h de la 22, et ne trouve pas tous ses symboles.
 	# D'ailleurs un des commentaires y dit explicitement "may have to be fine-tuned".
+	# À FAIRE?: plutôt mettre des <> dans les .h, car s'ils sont déployés dans $INSTALLS conjointement aux .cmake mieux vaut ne pas demander aux autres logiciels de s'adapter.
 	filtrer flang/CMakeLists.txt sed -e '/include_directories(SYSTEM/{
 h
 s/SYSTEM //
@@ -920,13 +924,59 @@ a\
 
 buildInclude()
 {
+	gris "La modif buildInclude() (exploitation au plus tôt des en-têtes générés pour la fin de la compil) ne sera pas utilisée."
+	gris "Elle rend compliquée la construction des versions sans problème, obligeant à des phases manuelles."
+	gris "Elle a bien aidé cependant pour le passage entre versions majeures à différences: à cet effet elle reste présente dans le code (ainsi que sa petite sœur auFilDeLEau), pour pouvoir être jouée manuellement."
+	return 0
+	
 	# Cas étrange sur un clang +fortran 22.1.8 (qui commence par compiler la même version sans fortran):
 	# La première compil' s'était bien passée, mais la seconde, celle en fortran, plantait systématiquement sur charconv.cpp incapable de trouver <charconv> (et d'autres du même type).
 	# La ligne de commande contenant un -fdebug-prefix-map il fut facile de retrouver son CMakeLists.txt, et la solution consiste à simplement lui ajouter un -I sur le dossier de .h qu'il est en train de constituer (plus exactement -I$HOME/tmp/llvm-project-llvmorg-$version/build/include/c++/v1), que l'on trouve dans une variable CMake juste au-dessus.
 	
-	filtrer libcxx/include/CMakeLists.txt sed -e '/LIBCXX_INSTALL_HEADERS/i\
+	filtrer libcxx/include/CMakeLists.txt sed -e '/LIBCXX_INSTALL_HEADERS/{
+i\
 target_add_compile_flags_if_supported(cxx-headers INTERFACE "-I${LIBCXX_GENERATED_INCLUDE_DIR}")
+i\
+target_add_compile_flags_if_supported(cxx-headers INTERFACE "-I${LIBCXX_GENERATED_INCLUDE_DIR}/c++/v1")
+}
 '
+	# Pour la compil' de la 20 à partir de la 16 (passage de libc++ ABI 2 à 3), on doit aussi modifier les inclusions pour embarquer les fichiers générés,
+	# sans quoi le LLVMSupport est compilé une première fois sur l'ABI 2 de clang-16, mais une seconde passe (les runtimes?) le recompile, et à ce moment l'édition de liens plante car la libc++.so dans le chemin est une libc++.so.3.
+	# On colle donc le chemin vers les .h générés dans notre recherche, en espérant que la génération des .h se fera à peu près simultanément à celles de libc++.so.3.0.
+	# /!\ En fait sans doute une mauvaise idée, car d'une empiler les couches fait que les #include_next traversent tout un tas de #ifndef _LIBCPP_MACHIN_H qui empêche in fine d'accéder aux inclusions système (ex.: undeclared identifier FP_NAN), de deux l'installation des .h n'étant pas atomique, on se retrouve parfois avec des pétages, par exemple d'un __config_site installé avec des renommages de #define qui font croire aux en-têtes de la précédente version qu'ils tournent sur une implémentation incomplète, ou alors, en 22, un __assertion_handler qui inclut un __log_hardening_failure et un __verbose_trap pas encore installés.
+	filtrer llvm/CMakeLists.txt sed -e '/include_di.*MAIN_INCLUDE_DIR})/i\
+include_directories( "${CMAKE_CURRENT_BINARY_DIR}/include/c++/v1" )
+'
+}
+
+auFilDeLEau()
+{
+	# Diverses bidouilles pour modifier le dossier de construction en cours de route, par exemple quand il reste coincé en boucle sur une erreur.
+	# Chaque bidouille indique sur quelles transitions de version majeure elle a été nécessaire.
+	
+	# 16 → 17 → 19 → 20
+	# Depuis buildInclude(), dès que les en-têtes ./build/include/c++/v1 sont en place, ils sont utilisés pour la compilation de la fin des outils.
+	# Problème: parfois l'ancien compilo ne sait pas gérer.
+	# On bascule donc manuellement sur le nouveau compilo lors d'un plantage dû à l'utilisation de nouveaux en-têtes C++ incompatibles avec l'ancien compilo:
+	for f in build.ninja CMakeFiles/rules.ninja ; do filtrer -p "$f" sed -e 's#/usr/local/clang+libcxx+rt-'$version_clang'/bin/clang++#./bin/clang++#g' ; done
+	
+	# 19 → 20
+	# La bascule ci-dessus vers ./bin/clang++, si effectuée trop tôt (après la génération du __config_site, mais avant celle des include/c++/v1),
+	# remplace un vieux compilo qui avait ses en-têtes C++ codés en dur, par un qui n'a pas encore les siens.
+	# Notre environnement de compilation inclut le -I<ancien>/include, mais pas le -I<ancien>/include/c++/v1.
+	for f in build.ninja CMakeFiles/rules.ninja ; do filtrer -p "$f" sed -E -e 's#(-I/usr/local/clang.libcxx.rt-'$version_clang'/include) #& \1/c++/v1 #g' ; done
+	
+	# 19 → 20
+	# Lorsqu'on veut insérer le ../include/c++/v1 du clang 20 en -I, l'option -v informe que "ignoring duplicate directory … as it is a non-system directory that duplicates a system directory"
+	# En effet notre stdcppPasTropEnDur() a inséré cette valeur en système dans le binaire, or le -isystem arrive toujours après les -I
+	# Donc on ne doit surtout pas faire un -I19, sans quoi il masquera le -isystem20 codé en dur (et un -I20 sera ignoré, donc).
+	# Seule possibilité: transformer le -I19 en -isystem19, et le faire précéder d'un -isystem20.
+	#for f in build.ninja CMakeFiles/rules.ninja ; do filtrer -p "$f" sed -E -e 's#-I([^ ]*/c\+\+/v1)#-isystem \1#g' ; done
+	# … MAIS: si le -isystem19 se trouve après -isystem20, l'#include_next <math.h> de ce dernier va tomber sur celui du 19, qui, commençant par #ifndef _LIBCPP_MATH_H, ne poursuivra pas plus loin, et n'appelera donc pas son propre #include_next, qui allait chercher les constantes système C.
+	# Donc la seule solution est de virer simplement tout ce qui concerne la 19, en croisant les doigts pour que la 20 soit suffisamment complètement installée pour prendre le relais intégralement.
+	
+	# Euh, est-ce que ça ne revient pas à annuler tout simplement la modification du dessus (qui ajoutait la version …/c++/v1 à chaque … trouvé)?
+	# Finalement, une fois le ./bin/clang++ en place, il devrait automatiquement trouver ses ../include/c++/v1 dès qu'ils sont générés, et alors ignorer ceux de la 19, non?
 }
 
 quandMemeCxxISystem()
