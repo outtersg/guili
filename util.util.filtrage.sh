@@ -30,16 +30,11 @@ filtrer()
 	FILTRER_RES=
 	fichier="$1"
 	shift
-	if "$@" < "$fichier" > "$TMP/$$/temp"
-	then
-		if diff -q "$TMP/$$/temp" "$fichier" > /dev/null ; then return 0 ; fi
-		case "$preserve" in 1) touch -r "$fichier" "$TMP/$$/temp" ;; esac
+	"$@" < "$fichier" > "$fichier.filtrer.temp" || { local r=$? ; rm -f "$fichier.filtrer.temp" ; return $r ; }
+	if diff -q "$fichier.filtrer.temp" "$fichier" > /dev/null ; then rm -f "$fichier.filtrer.temp" ; return 0 ; fi
+	case "$preserve" in 1) touch -r "$fichier" "$fichier.filtrer.temp" ;; esac
 		FILTRER_RES=1
-		cat "$TMP/$$/temp" > "$fichier"
-		case "$preserve" in 1) touch -r "$TMP/$$/temp" "$fichier" ;; esac
-	else
-		return $?
-	fi
+	mv "$fichier.filtrer.temp" "$fichier"
 }
 
 sufiltrer()
