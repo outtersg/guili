@@ -664,9 +664,11 @@ endif()
 
 ptrace_events()
 {
+	local f=lldb/source/Plugins/Process/FreeBSD/NativeProcessFreeBSD.cpp
+	pge $version 23 || f=lldb/source/Plugins/Process/FreeBSD/NativeProcessFreeBSD.cpp
 	# /!\ Ça marche encore, si on neutralise SetupTrace et MonitorSIGTRAP?
 	[ ! -f /usr/include/sys/ptrace.h ] ||
-	grep -q PTRACE_EXEC /usr/include/sys/ptrace.h || filtrer lldb/source/Plugins/Process/FreeBSD/NativeProcessFreeBSD.cpp awk 'dedans&&/^}|return ReinitializeThreads/{print "#endif";dedans=0}/::SetupTrace|::MonitorSIGTRAP/{dedans=1}{print}dedans==1&&/{/{dedans=2;print"#if 0"}'
+	grep -q PTRACE_EXEC /usr/include/sys/ptrace.h || filtrer "$f" awk 'dedans&&/^}|return ReinitializeThreads/{print "#endif";dedans=0}/::SetupTrace|::MonitorSIGTRAP/{dedans=1}{print}dedans==1&&/{/{dedans=2;print"#if 0"}'
 }
 
 shaxxx()
