@@ -37,6 +37,7 @@ v 1.44.2 || true
 # /!\ Ne compile plus sur un FreeBSD 10 (manque recvmmsg et sendmmsg)
 v 1.45.0 || true
 v 1.46.0 || true
+v 1.52.1 || true
 fi
 
 # Modifications
