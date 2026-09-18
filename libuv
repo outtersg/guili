@@ -37,10 +37,24 @@ v 1.44.2 || true
 # /!\ Ne compile plus sur un FreeBSD 10 (manque recvmmsg et sendmmsg)
 v 1.45.0 || true
 v 1.46.0 || true
+v 1.48.0 || true
+v 1.49.0 && modifs="$modifs futimens1" || true
+v 1.50.0 || true
+v 1.51.0 && modifs="$modifs futimens2" || true
 v 1.52.1 || true
 fi
 
 # Modifications
+
+futimens2()
+{
+	# À FAIRE: la 1.51 utilise de plus en plus de futimens, non compatibles FreeBSD 10.2
+}
+
+futimens1()
+{
+	# À FAIRE: la 1.49 utilise un futimens, non compatible FreeBSD 10.2
+}
 
 deguillemette()
 {
