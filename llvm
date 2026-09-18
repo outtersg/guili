@@ -81,7 +81,7 @@ v 16.0.6 && remplacerPrerequis "cmake >= 3.20" && retirerModif float16 && modifs
 v 17.0.1 && modifs="$modifs tailleintsanitizer signaux" && prerequis="python >= 3 cmake >= 3.20 \\" || true
 v 17.0.3 || true
 v 17.0.6 || true
-v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setname" || true
+v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setname configSiteAdaptable" || true
 v 19.1.5 && modifs="$modifs fs_filesystem user_localbase" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
@@ -395,6 +395,32 @@ pthread_setname()
 		sed -e '/^namespace/i\
 #define pthread_setname_np(x, y) fprintf(stderr, "Renommage de fil en %s\n", y);
 '
+}
+
+configSiteAdaptable()
+{
+	# Adaptation du __config_site quand il change de format entre deux versions majeures, et qu'on veut (cf. buildInclude()) pouvoir commencer à compiler dès à présent avec un ancien compilo et le nouveau __config_site, ou bien l'inverse.
+	
+	# Lorsqu'une 17 compile une 19, la constante décrivant l'implémentation de la Parallel STL ayant changé de nom, on finit avec une "Invalid CPU backend choice" lorsque le compilo 17 charge le __config_site 19 tout juste généré.
+	filtrer libcxx/include/__config_site.in sed -e '/_LIBCPP_PSTL_BACKEND_STD_THREAD/{
+a\
+#ifdef _LIBCPP_PSTL_BACKEND_STD_THREAD
+a\
+#define _LIBCPP_PSTL_CPU_BACKEND_THREAD
+a\
+#endif
+}'
+	# À FAIRE: en 20, __config_site change radicalement de mode de fonctionnement: ce qui était #undef est maintenant #define à 0, et donc un compilo 19 explose de partout par exemple error: "Only one of _LIBCPP_ABI_FORCE_ITANIUM and _LIBCPP_ABI_FORCE_MICROSOFT can be defined"
+	
+	# Une 19 compilant une 20 a besoin d'une indication désormais inversée.
+	filtrer libcxx/include/__config_site.in sed -e '/_LIBCPP_HAS_VENDOR_AVAILABILITY_ANNOTATIONS/{
+a\
+#if defined(_LIBCPP_HAS_VENDOR_AVAILABILITY_ANNOTATIONS) && !_LIBCPP_HAS_VENDOR_AVAILABILITY_ANNOTATIONS
+a\
+#define _LIBCPP_HAS_NO_VENDOR_AVAILABILITY_ANNOTATIONS
+a\
+#endif
+}'
 }
 
 signaux()
