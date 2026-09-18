@@ -76,7 +76,7 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-[ -x configure ] || ./autogen.sh
+[ -x configure ] || { chmod u+x autogen.sh ; ./autogen.sh ; }
 ./configure --prefix="$dest"
 
 echo Compilation… >&2
