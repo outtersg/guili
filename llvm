@@ -85,10 +85,10 @@ v 18.1.8 && modifs="$modifs auxv_optio aslr_optio getentropy_optio pthread_setna
 v 19.1.5 && modifs="$modifs fs_filesystem user_localbase" || true
 v 19.1.6 || true # /!\ Les triplets exotiques marchent-ils encore? https://github.com/llvm/llvm-project/issues/101525
 v 19.1.7 || true
-v 20.1.3 && modifs="$modifs internal_close_range copy_file_range timespec_get is_same_ptrdiff_t" || true
+v 20.1.3 && modifs="$modifs internal_close_range copy_file_range is_same_ptrdiff_t" || true
 v 20.1.4 || true
 v 20.1.8 || true
-v 21.1.1 || true
+v 21.1.1 && modifs="$modifs timespec_get" || true
 v 21.1.6 || true
 v 21.1.8 || true
 v 22.1.2 && modifs="$modifs float16bis dlfcnflangrt threadAtExit aligned_alloc sanitizer_vieux_mac" || true
