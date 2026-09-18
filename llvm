@@ -27,6 +27,15 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Chemin de compilation pour un FreeBSD 11.2 (clang 6): clang "< 9", clang (12).
 # Chemin de compilation pour un FreeBSD 10.2 (clang 3.5): clang 3.7.1, clang 3.9.1.
+#   Puis après être monté en 23.1.1, avoir bousillé tout le reste (manque de place), et être reparti d'un 16:
+#   # Toutes ces constructions ont eu recours à auFilDeLEau():
+#   ./clang +libcxx+rt 17.0.6
+#   ./clang +libcxx+rt 19.1.7
+#   ./clang +libcxx+rt 20.1.8
+#   # Pour les suivantes on tranché dans les modifs, notamment en se débarrassant de buildInclude(), et donc on n'a effectué aucune des modifs d'auFilDeLEau():
+#   # (mais notons qu'on n'avait pas à passer un cap libc++.so.2 à libc++.so.3)
+#   ./clang +libcxx+rt 22.0.8
+#   ./clang +libcxx+rt+lld+lldb+flang 22.0.8
 # Chemin de compilation pour un FreeBSD 8 (gcc 4.2): gcc 4.8, clang 3.3 sans lldb, clang 3.4.2 sans lldb #, clang 3.5 en ajoutant --enable-libcpp au configure.
 # Chemin de compilation pour un Mac OS X 10.6 (clang 3.5svn): gcc 4.9.2, clang 3.6 sans lldb (et libcxx et libcxxabi sont ignorées) #, clang 3.6.
 # Chemin de compilation pour un Mac OS X 10.8 (clang 3.5svn): gcc 4.9.4, clang 3.4.2, clang 3.5.2, clang 3.7.1, clang 3.9.1.
