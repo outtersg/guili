@@ -66,6 +66,7 @@ v 4.2.8 || true
 v 4.3.1 || true
 v 4.3.2 || true
 v 4.3.5 || true
+v 4.4.3 || true
 fi
 
 # Modifications
