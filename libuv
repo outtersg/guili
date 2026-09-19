@@ -34,8 +34,7 @@ if eventfd
 then
 v 1.38.0 || true
 v 1.44.2 || true
-# /!\ Ne compile plus sur un FreeBSD 10 (manque recvmmsg et sendmmsg)
-v 1.45.0 || true
+v 1.45.0 && modifs="$modifs mmsg" || true
 v 1.46.0 || true
 v 1.48.0 || true
 v 1.49.0 && modifs="$modifs futimens1" || true
@@ -54,6 +53,25 @@ futimens2()
 futimens1()
 {
 	# À FAIRE: la 1.49 utilise un futimens, non compatible FreeBSD 10.2
+}
+
+mmsg()
+{
+	# La présence de sendmmsg et recvmmsg (lots de trames UDP) est supposée pour FreeBSD, mais tout dépend de la version.
+	
+	local HAVE_MMSG=1
+	compilable_c -- '#include <sys/socket.h>' 'int main(int argc, char ** argv) { return sendmmsg(0, 0, 0, 0); }' || HAVE_MMSG=0
+	filtrer src/unix/udp.c sed -E -e '/#include <sys\/un.h>/a\
+#define HAVE_MMSG '"$HAVE_MMSG"'
+/(int|void) (uv__udp_recvmmsg|uv_udp_using_recvmmsg|uv__udp_sendmsg)/h;/^}/{x;s/.*//;x;}' -e '/defined\(__FreeBSD__\)/{
+x
+s/././
+x
+t-O
+b
+:-O
+s/defined\(__FreeBSD__\)/HAVE_MMSG/
+}'
 }
 
 deguillemette()
