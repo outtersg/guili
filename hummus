@@ -88,6 +88,8 @@ monMake()
 CXX := $CXX
 CC := $CC
 CPPFLAGS := $CPPFLAGS
+CXXFLAGS := $CXXFLAGS
+CFLAGS := $CFLAGS
 LDFLAGS := $LDFLAGS
 biblios := $biblios
 dest := $dest
@@ -104,10 +106,10 @@ libhummus.so: \${objs}
 	\$(CXX) -shared -fpic \$(LDFLAGS) \$(biblios) \${objs} -o \$@
 
 .cpp.o:
-	\$(CXX) -c -fpic -I\$(INSTALLS)/include/freetype2 \$(CPPFLAGS) \$< -o \$@
+	\$(CXX) -c -fpic -I\$(INSTALLS)/include/freetype2 \$(CPPFLAGS) \$(CXXFLAGS) \$< -o \$@
 
 .c.o:
-	\$(CC) -c -fpic -I\$(INSTALLS)/include/freetype2 \$(CPPFLAGS) \$< -o \$@
+	\$(CC) -c -fpic -I\$(INSTALLS)/include/freetype2 \$(CPPFLAGS) \$(CFLAGS) \$< -o \$@
 
 install: libhummus.so
 	mkdir -p "\$(dest)/include/Hummus" "\$(dest)/lib"
