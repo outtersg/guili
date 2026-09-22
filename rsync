@@ -46,6 +46,7 @@ v 3.4.2 || true
 v 3.4.3 || true
 v 3.4.4 || true
 v 3.5.0 || true
+v 3.5.1 && prerequis="$prerequis libidn >= 2" || true
 
 # Modifications
 
