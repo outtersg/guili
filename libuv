@@ -38,21 +38,53 @@ v 1.45.0 && modifs="$modifs mmsg" || true
 v 1.46.0 || true
 v 1.48.0 || true
 v 1.49.0 && modifs="$modifs futimens1" || true
-v 1.50.0 || true
-v 1.51.0 && modifs="$modifs futimens2" || true
+v 1.50.0 && modifs="$modifs thread_setname" || true
+v 1.51.0 || true
 v 1.52.1 || true
 fi
 
 # Modifications
 
-futimens2()
+thread_setname()
 {
-	# À FAIRE: la 1.51 utilise de plus en plus de futimens, non compatibles FreeBSD 10.2
+	# Les vieux FreeBSD ont un pthread_set_name_np qui fait comme le pthread_setname_np standardisé, juste sans retour.
+	# Il se trouve que libuv utilise encore cette alternative pour OpenBSD.
+	
+	case `uname` in FreeBSD) true ;; *) return ;; esac
+	
+	compilable_c -lpthread -- '#include <pthread_np.h>' 'int main(int argc, char ** argv) { pthread_setname_np(0, "coucou"); return 0; }' && return || true
+	compilable_c -lpthread -- '#include <pthread_np.h>' 'int main(int argc, char ** argv) { pthread_set_name_np(0, "coucou"); return 0; }' || return 0 # Là on ne peut plus rien, on ne retraite pas le fichier et on laissera la compil' planter.
+	
+	gris "Compilation avec le pthread_set_name_np OpenBSD"
+	
+	filtrer src/unix/thread.c sed -e 's/defined(__OpenBSD__)/defined(__OpenBSD__) || defined(__FreeBSD__)/'
+	
+	compilable_c -lpthread -- '#include <pthread_np.h>' 'int main(int argc, char ** argv) { pthread_get_name_np(0, 0, 0); return 0; }' ||
+	filtrer src/unix/thread.c sed -e '/int uv__thread_getname[^;]*$/{
+a\
+return UV_ENOSYS;
+a\
+#define pthread_get_name_np(a, b, c) {}
+}
+'
 }
 
 futimens1()
 {
-	# À FAIRE: la 1.49 utilise un futimens, non compatible FreeBSD 10.2
+	compilable_c -- '#include <sys/stat.h>' 'int main(int argc, char ** argv) { struct timespec times[2]; return futimens(0, times); }' && return || gris "Compilation sans timespec (non implémentée sur ce système)"
+	
+	# À FAIRE?: réimplémenter utimensat(…, AT_SYMLINK_NOFOLLOW) plutôt que le dégrader en utimes() qui follow?
+	filtrer src/unix/fs.c sed -E -e \
+'
+s/struct timespec/struct timeval/g
+s/tv_nsec/tv_usec/g
+s/(st_[a-z]*tim)\.tv_usec/\1.tv_nsec/g
+s/1e9/1e6/g
+s/futimens/futimes/g
+s/utimensat\(AT_FDCWD, (.*), (0|AT_SYMLINK_NOFOLLOW)\)/utimes(\1)/g
+s#([^ ]*) = ([a-z_]*\.st_[a-z]*tim);#\1.tv_sec = \2.tv_sec; \1.tv_usec = \2.tv_nsec / 1000;#g
+s/return[^;]*UTIME_(NOW|OMIT)[^;]*;/{}/g
+'
 }
 
 mmsg()
@@ -60,7 +92,7 @@ mmsg()
 	# La présence de sendmmsg et recvmmsg (lots de trames UDP) est supposée pour FreeBSD, mais tout dépend de la version.
 	
 	local HAVE_MMSG=1
-	compilable_c -- '#include <sys/socket.h>' 'int main(int argc, char ** argv) { return sendmmsg(0, 0, 0, 0); }' || HAVE_MMSG=0
+	compilable_c -- '#include <sys/socket.h>' 'int main(int argc, char ** argv) { return sendmmsg(0, 0, 0, 0); }' || { gris "Compilation sans mmsg UDP (non implémentés sur ce système)" ; HAVE_MMSG=0 ; }
 	filtrer src/unix/udp.c sed -E -e '/#include <sys\/un.h>/a\
 #define HAVE_MMSG '"$HAVE_MMSG"'
 /(int|void) (uv__udp_recvmmsg|uv_udp_using_recvmmsg|uv__udp_sendmsg)/h;/^}/{x;s/.*//;x;}' -e '/defined\(__FreeBSD__\)/{
