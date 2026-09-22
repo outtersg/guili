@@ -29,12 +29,12 @@ Delirant() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 10.5.2 && prerequis="" && modifs="choixSortie log2" || true
 v 17.0.1 && prerequis="pthreadstubs" && modifs="choixSortie log2" || true
 v 18.3.5 && modifs="choixSortie elf_nhdr" || true
-v 22.2.3 && prerequis="$prerequis glslang expat zstd libdrm" && modifs="$modifs sansIntel sansRtti wsiBsd" || true
-v 22.3.7 || true
+# clang +flang pour avoir un accès à MLIR; < 23, cette dernière changeant plusieurs symboles (ex.: llvm::createSROAPass(bool) → llvm::createSROAPass(bool,bool)
+v 22.2.3 && prerequis="clang +flang < 23 \\ $prerequis glslang expat zstd libdrm" && modifs="$modifs sansIntel sansRtti wsiBsd memesHorloges glslex tripleBuse monCompilo" || true # À FAIRE: ne trouve pas libudev sur mon FBSD 15.0
+v 22.3.7 || true # Pour lui udev n'est pas fatal (détecte absence et ne compile juste pas cette partie).
 v 23.0.0 && modifs="$modifs paquets23" || true
 v 23.3.5 || true
-v 24.0.9 || true # Dernière version sans nécessité de libclc ni rustc
-# N.B.: plante encore sur du .lex
+v 24.0.9 || true # Dernière version sans nécessité de libclc ni rustc ni glvnd.
 
 # Bien que llvm fasse en théorie partie des prérequis, sur les machines sur lesquelles j'ai compilé un clang-13 et où reste encore un vieux llvm-7,
 # il ne faut SURTOUT PAS ajouter llvm aux prérequis, sans quoi c'est le 7 qui sera embarqué (et qui plantera, cf. https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/15724).
@@ -47,11 +47,64 @@ then
 	prerequis="python meson ninja mako pkgconfig \\ $prerequis"
 fi
 
+# À FAIRE: choper glx si disponible (cf. libepoxy)
+
 # Modifications
 
 paquets23()
 {
 	pipi markupsafe pygments
+}
+
+monCompilo()
+{
+	# Quand on mentionne vouloir un clang 22 (le 23 étant trop rigoureux pour certaines constructions anciennes), l'édition de liens se termine avec des -lLLVM-23 qu'il a dénichées on ne sait comment (et qui ne sont pas dans le LD_LIBRARY_PATH, donc échouent).
+	#filtrer meson.build sed -e "/_llvm_version = '>=/s/'\$/ < 23'/"
+	# Explication:
+	# LLVM vient sans .pc (cf. https://github.com/mesonbuild/meson/issues/11043 réponse de LLVM "z'avez qu'à utiliser les .cmake qu'on fournit").
+	# Or pkg-config est le fouilleur de dépendances utilisé par Meson… qui recourt donc à d'autres moyens pour une petite liste de logiciels dont LLVM (cf. https://mesonbuild.com/Dependencies.html#config-tool).
+	# Mais la détection meson de la chaîne clang est foireuse, elle ne cherche pas llvm-config, $CC ou $CXX dans le $PATH comme le reste du monde (les autotools): cf. https://github.com/mesonbuild/meson/issues/7284?
+	# On doit donc:
+	# • soit coder en dur le chemin complet dans $CC et $CXX
+	#   On devrait aussi pouvoir utiliser clang-22 avec une version explicite, mais cela ne fonctionne pas pour clang++-22 (clang++ est lui-même un lien vers clang) et encore moins llvm-config-22.
+	# • soit recourir à un --native-file= contenant c, cpp (et non pas cxx), llvm-config (cf. https://docs.mesa3d.org/meson.html#llvm et https://mesonbuild.com/howtox.html#set-compiler)
+	
+	export CC=`command -v clang` CXX=`command -v clang++` LLVM_CONFIG=`command -v llvm-config`
+	
+	# En outre, comportement observé depuis 2026 (cf. ./clang "duplicate"), lorsque l'on place les -I du clang choisi même en tête de $CPPFLAGS, ils sont ignorés car dupliquant ceux codés en dur dans clang (mais qui finissent en toute fin): donc tout -I…/clang-23/include figurant n'importe où dans les $CPPFLAGS (par exemple comme prérequis de prérequis) prendra le pas sur les nôtres, et fera échouer la compil.
+	# On laisse tout de même ceux concernant la version souhaitée, pour les clang datant d'avant stdcppPasTropEnDur() (cf. dans ./clang).
+	
+	export CPPFLAGS="`echo "$CPPFLAGS" | sed -e "s#-I *[^ ]*/clang[^/]*-[^ ]*#<&>#g;s#<\\(-I *[^ ]*/clang[^/]*-$version_clang/[^ ]*\\)>#\\1#g;s#<[^>]*>##g"`"
+}
+
+tripleBuse()
+{
+	# À FAIRE?: le rendre conditionnel? Peut-être d'anciens LLVM fournissaient-ils getTriple() sous forme d'un objet?
+	filtrer src/amd/llvm/ac_llvm_helper.cpp sed -e 's/\.getTriple()//g'
+}
+
+glslex()
+{
+	# Apparemment la partie glslang est adaptée à un lex GNU ou je ne sais quoi, qui passe très mal sur mon FreeBSD 15.
+	# Par exemple YY_EXTRA_TYPE n'est pas définie, donc définie par défaut à void *, sur lequel il est très difficile ensuite de faire un ->
+	# A contrario, le program_lexer.l est un bon soldat qui définit son YY_EXTRA_TYPE proprement, depuis toujours (https://elixir.bootlin.com/mesa/mesa-7.11.2/source/src/mesa/program/program_lexer.l).
+	
+	filtrer src/compiler/glsl/glcpp/glcpp-lex.l sed -e '/YY_USER_INIT/{
+i\
+#define YY_EXTRA_TYPE glcpp_parser_t *
+}'
+	filtrer src/compiler/glsl/glsl_lexer.ll sed -e '/YY_USER_INIT/{
+i\
+#define YY_EXTRA_TYPE _mesa_glsl_parse_state *
+}'
+}
+
+memesHorloges()
+{
+	# clang 23 n'apprécie pas le switch avec case CLOCK_MONOTONIC: case CLOCK_BOOTTIME: si les deux ont même valeur.
+	filtrer src/intel/common/xe/intel_gem.c sed -e '/#ifdef CLOCK_BOOTTIME/c\
+#if defined(CLOCK_BOOTTIME) && CLOCK_BOOTTIME != CLOCK_MONOTONIC
+'
 }
 
 wsiBsd()
