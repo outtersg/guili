@@ -23,6 +23,7 @@ set -e
 
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
+. "$SCRIPTS/util.jalons.sh"
 
 . "$SCRIPTS/libuv.util.sh"
 
@@ -173,6 +174,9 @@ destiner
 
 prerequis
 
+if ! jalon source
+then
+
 obtenirEtAllerDansVersion
 
 echo Correction… >&2
@@ -180,6 +184,9 @@ echo Correction… >&2
 # Le configure de cmake va tester plein de logiciels pour savoir quels modules précompiler, aussi on lui laisse accès au plus grand nombre de paquets; on compte sur sa maturité pour ne pas s'y lier.
 exclusivementPrerequis() { true ; }
 for modif in true $modifs ; do $modif ; done
+
+jalonner source
+fi
 
 echo Compilation… >&2
 ./configure --prefix="$dest" $OPTIONS_CONF
