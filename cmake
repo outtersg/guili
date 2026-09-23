@@ -37,10 +37,12 @@ v 2.8.6 || true
 v 2.8.11 && modifs="$modifs etToiAlors havefchdir" || true
 v 2.8.12 && retirerModif putainDeLibJPEGDeMacOSX || true
 v 3.5.2 && retirerModif havefchdir && modifs="$modifs speMac macGcc macOpenssl" || true
+v 3.7.0 || true # Introduction de la libuv dans le source de CMake. Mais celle embarquée ne pose aucun problème.
 v 3.13.1 && prerequis="langcxx(11) \\" || true
 v 3.13.5 || true
 if eventfd # À partir de là cmake repose sur une libuv qui ne compile pas sur les "vieux" systèmes.
 then
+prerequis="$prerequis libuv" # À partir de là la libuv intégrée peut poser problème. On requiert une version externe (dont on se passera peut-être finalement dans pre_choixLibuv()).
 v 3.14.7 || true
 v 3.15.7 || true
 v 3.16.8 || true
@@ -70,7 +72,25 @@ v 4.3.5 || true
 v 4.4.3 || true
 fi
 
+predestiner="$predestiner pre_choixLibuv"
+
 # Modifications
+
+pre_choixLibuv()
+{
+	# Pas la peine de se poser la question si on est une version sans libuv.
+	case "$prerequis" in *libuv*) true ;; *) return 0 ;; esac
+	
+	# Encore quelques échappatoires.
+	case `uname` in
+		Linux) if eventfd ; then return 0 ; fi ;;
+		# FreeBSD: jusqu'aux 4.3, on sait jouer avec la libuv embarquée (1.44.2). Au-delà ils montent en version la libuv intégrée, avec une version qui commence à poser problème sous FreeBSD (cf. mmsg dans libuv). On préfère alors basculer sur la version qu'on aura déjà galéré à mettre en place.
+		FreeBSD) pge $version 4.4 || return 0 ;;
+	esac
+	
+	prerequis="$prerequis libuv"
+	OPTIONS_CONF="$OPTIONS_CONF --system-libuv --bootstrap-system-libuv"
+}
 
 macOpenssl()
 {
@@ -128,7 +148,12 @@ etToiAlors()
 	# Notons aussi que selon les étapes, la compil se fait dans le dossier du source, ou dans un Bootstrap.cmk. On doit donc tout inclure.
 	rm -f toi && ln -s . toi
 	mkdir -p Utilities/cmcurl/etToiAlors
-	tiens="-IetToiAlors/.. -I../toi/Utilities/cmlibuv/include"
+	tiens="-IetToiAlors/.."
+	# libuv: uniquement si on ne pioche pas la biblio externe (--system-libuv).
+	case "$OPTIONS_CONF" in
+		*--system-libuv*) true ;;
+		*) tiens="$tiens -I../toi/Utilities/cmlibuv/include" ;;
+	esac
 	CPPFLAGS="$tiens $CPPFLAGS"
 	CXXFLAGS="$tiens $CXXFLAGS"
 	CFLAGS="$tiens $CFLAGS"
@@ -161,8 +186,6 @@ archive="http://www.cmake.org/files/v$v/$logiciel-$version.tar.gz"
 # Pour ces détections de logiciels tierces, on préfère alors prendre les devants en imposant (via prerequis) que ce soit la version GuiLI qui soit utilisée: GuiLI installe toujours conjointement binaires et inclusions.
 
 ! commande openssl || prerequis="$prerequis openssl $v_openssl"
-# La ligne suivante ne servirait que si, parmi les versions de cmake dont le libuv embarqué ne tourne pas sur certaines plates-formes (obsolètes), certaines pouvaient tourner avec un libuv externe (plus ancien que l'embarquée, mais tournant sur la plate-forme). Or il n'en existe pas: cmake repose étroitement sur des fonctionnalités de sa libuv embarquée, il est donc impossible de le compiler avec une libuv plus ancienne.
-#pge 3.13.5 $version || prerequisLibuv # Pour la 3.13.5 et en-dessous, la libuv intégrée est bonne, on s'en satisfait. Au dessus, il va falloir basculer vers une libuv externe.
 
 # Tous ces prérequis sont des prérequis de construction. À l'exécution, nos utilisateurs veulent simplement utiliser un cmake, et ne pas devoir dépendre de toutes les bibliothèques auxquelles lui est lié (exemple criant: un bidule nécessitant un OpenSSL < 1.1, se construisant avec cmake, n'a surtout pas envie que ce dernier lui impose son OpenSSL 1.1 "de compilation").
 prerequis="$prerequis \\"
