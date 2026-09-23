@@ -10,11 +10,3 @@ eventfd()
 	echo '#include <sys/eventfd.h>' > /tmp/1.c
 	$CC -c -o /tmp/1.o /tmp/1.c 2> /dev/null || return 1
 }
-
-prerequisLibuv()
-{
-	[ `uname` = Linux ] && ! eventfd || return 0
-	
-	prerequis="$prerequis libuv"
-	OPTIONS_CONF="$OPTIONS_CONF --system-libuv"
-}
