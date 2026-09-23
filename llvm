@@ -158,10 +158,35 @@ lieur()
 	# Compiler un 12 avec un 8, sur un FreeBSD 11.2 avec le ld par défaut (GNU ld 2.17.50 [FreeBSD] 2007-07-03) pète (à 97%, grrr) sur l'édition de liens. Possibilités à tester:
 	# 1. binutils plus récent
 	# 2. gold
-	# 3. lld (https://wiki.freebsd.org/LLD)
+	# 3. lld (https://wiki.freebsd.org/LLD) vu en 2015 mais a priori commence à ne bien tourner qu'à partir de 2017 (https://stackoverflow.com/questions/31252585/llvm-compilation-process-and-lld)
 	# À FAIRE: en fait la condition est: si celui par lequel on compile n'est pas celui système.
 	pge $version 6 || return 0
 	[ `uname` = FreeBSD ] || return 0
+	
+	# Expérience malheureuse avec un clang 23 sur un FreeBSD 15 (10 ans d'écart): plantage immédiat (SIGSEGV) du minilua intégré à PHP lors de la compil' de ce dernier.
+	# • détail du plantage:
+	#   un programme simple passe, mais dès qu'on colle quelques fonctions, même non appelées (après un exit(); pas après un if(0), sinon, détecté comme code mort, il n'est pas compilé), boum
+	#   peut-être quelque chose à voir avec les malloc et la récursivité des appels, puisque pour reproduire il fallait maintenir la boucle luaM_toobig → luaG_runerror → luaG_errormsg → resetstack → restore_stack_limit → luaD_reallocCI → luaM_reallocvector → luaM_reallocv → luaM_toobig → …
+	#   Attention, cela ne veut pas dire que tout est foutu, car nombre de programmes (donc clang lui-même) se lient très bien; c'est juste une étrangeté propre à minilua qui montre que quelques cas restent problématiques, mais sur un compilo utilisé globalement sur mon serveur de services perso et familiaux je préfère assurer le maximum de choses, quitte à paraître vieillot.
+	# • pourquoi à ce moment:
+	#   Il s'avère que la précédente version (une 22) était la première que je compilasse avec son lld; donc lui n'ayant rien vu qui ressemblât à lld au moment de se construire, prit par défaut un bête GNU ld (alias bfd). Mais il se compila bien un lld à côté, déjà incompatible avec le système (bogue minilua reproduit en forçant -fuse-ld=lld), seulement pas utilisé par défaut.
+	#   Par contre la 23 compilée grâce à ce 22, détectant un lld déjà installé, se définit lld comme lieur par défaut.
+	# • explication probable:
+	#   sur ce vieux système, toutes les biblios (crt etc.) ont été construites avec ld bfd de binutils, à une époque probablement moins regardante en matière d'agencement mémoire (ASLR etc.).
+	# On ne veut pas utiliser exclusivement /usr/bin/ld (cf. problèmes que ça pose dans les commentaires plus bas),
+	# par contre on souhaitera utiliser un lieur _de sa famille_ (bref, une version plus récente, mais de la même lignée).
+	# On définit donc notre lieur par défaut en dur à bfd
+	# En plus d'un -fuse-ld=… pour surcharger à l'exécution unitaire, il restera bien sûr la possibilité de définir un .cfg pour effectuer cette surcharge au niveau système:
+	#   https://github.com/llvm/llvm-project/issues/96897
+	#   https://blogs.gentoo.org/mgorny/2022/10/07/clang-in-gentoo-now-sets-default-runtimes-via-config-file/
+	#   https://clang.llvm.org/docs/UsersManual.html#configuration-files
+	
+	case "`/usr/bin/ld --version | head -1`" in
+		"GNU ld"*)
+			OPTIONS_CMAKE="$OPTIONS_CMAKE -DCLANG_DEFAULT_LINKER=bfd"
+			# À FAIRE?: ajouter binutils en $prerequis? Mais cf. la note plus bas sur clang-16.
+			;;
+	esac
 	
 	# Par contre quelques années plus tard, alors que reposer sur binutils (1.) a fonctionné pour monter jusqu'en 15, souci au moment de compiler une 16: le bin/clang-16 lié par ce ld jusque-là sans problème, n'est plus reconnu par le lieur système FBSD 10 (SIGABRT immédiat, ldd se vautre pareillement, seul readelf arrive à lire le binaire).
 	# Peut-être quelque chose à voir avec cxxToutEnDeux?
