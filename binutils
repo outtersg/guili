@@ -44,8 +44,23 @@ v 2.41 && retirerModif sansdoc || true
 v 2.44 || true
 v 2.46.0 || true
 v 2.46.1 || true
+v 2.47 && modifs="map_option_f_unused" || true
 
 # Modifications
+
+map_option_f_unused()
+{
+	# https://sourceware.org/bugzilla/show_bug.cgi?id=34670
+	# ld/ldlang.c:73:13: error: variable 'map_option_f' set but not used [-Werror,-Wunused-but-set-global]
+	# C'est clang-23 qui devient malin et voit que la variable, static, n'est exploitée qu'en écriture, donc il gueule en disant que c'est louche.
+	
+	# La solution bourrin:
+	#export CFLAGS="$CFLAGS -Wno-error=unused-but-set-global"
+	
+	# Plus en finesse:
+	filtrer ld/ldlang.c grep -v map_option_f
+	filtrer ld/mri.c sed -e '/symbol_truncate.*exp/s/.*/#pragma unused(exp)/;/symbol_truncate/d'
+}
 
 iostr()
 {
