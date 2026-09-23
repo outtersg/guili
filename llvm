@@ -210,7 +210,8 @@ flangPredestiner()
 {
 	option flang || return 0
 	
-	prerequis="clang +rt +omp +-flang $version \\ $prerequis"
+	local vmaj="`IFS=. ; for v in $version ; do printf %s $v ; break ; done`"
+	prerequis="clang +rt +omp +-flang >= $vmaj \\ $prerequis"
 	export GUILI_CLANG_PID=$$
 	modifsPostCompil="$modifsPostCompil flangPostCompil"
 	# Ligne suivante commentée: cf. explication au début de flangPostConf().
