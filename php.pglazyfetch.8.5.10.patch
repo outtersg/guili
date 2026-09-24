@@ -24,12 +24,14 @@ index 11fa58b4a7b..eb3ac329785 100644
  static void _pdo_pgsql_notice(void *context, const char *message) /* {{{ */
  {
  	int ret;
-@@ -260,6 +260,9 @@
+@@ -260,6 +260,11 @@
  			PQfinish(H->server);
  			H->server = NULL;
  		}
 +		if (H->cached_table_name) {
++			H->cached_table_oid = InvalidOid;
 +			efree(H->cached_table_name);
++			H->cached_table_name = NULL;
 +		}
  		if (H->einfo.errmsg) {
  			pefree(H->einfo.errmsg, dbh->is_persistent);
@@ -145,7 +147,18 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  
  	if (S->stmt_name) {
  		efree(S->stmt_name);
-@@ -585,12 +702,29 @@ static int pgsql_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pd
+@@ -271,9 +275,8 @@ static int pgsql_stmt_execute(pdo_stmt_t *stmt)
+ 	 * and returns a PGRES_FATAL_ERROR when PQgetResult gets called for stmt 2 if DEALLOCATE
+ 	 * was called for stmt 1 inbetween
+ 	 * (maybe it will change with pipeline mode in libpq 14?) */
+-	if (S->is_unbuffered && H->running_stmt) {
++	if (H->running_stmt && H->running_stmt->is_unbuffered) {
+ 		pgsql_stmt_finish(H->running_stmt, FIN_CLOSE);
+-		H->running_stmt = NULL;
+ 	}
+ 	/* ensure that we free any previous unfetched results */
+ 	pgsql_stmt_finish(S, 0);
+@@ -585,12 +702,35 @@ static int pgsql_stmt_get_col(pdo_stmt_t *stmt, int colno, zval *result, enum pd
  	return 1;
  }
  
@@ -157,8 +170,14 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  	PGresult *tmp_res;
  	char *querystr = NULL;
  
++	if (oid == InvalidOid) {
++		/* InvalidOid is emitted when not selecting from a table (e.g. "SELECT 1"). No need of
++		 * a database roundtrip.
++		 */
++		return NULL;
++	}
 +	if (oid == H->cached_table_oid) {
-+		return H->cached_table_name;
++		return H->cached_table_name ? estrdup(H->cached_table_name) : NULL;
 +	}
 +
 +	if (H->running_stmt && H->running_stmt->is_unbuffered) {
@@ -185,19 +204,15 @@ index 8f3dd5237b5..53e7c08f1e0 100644
  	table_name = estrdup(table_name);
  
  	PQclear(tmp_res);
-@@ -635,10 +770,9 @@ static int pgsql_stmt_get_column_meta(pdo_stmt_t *stmt, zend_long colno, zval *r
+@@ -635,7 +770,7 @@ static int pgsql_stmt_get_column_meta(pdo_stmt_t *stmt, zend_long colno, zval *r
  
  	table_oid = PQftable(S->result, colno);
  	add_assoc_long(return_value, "pgsql:table_oid", table_oid);
 -	table_name = pdo_pgsql_translate_oid_to_table(table_oid, S->H->server);
 +	table_name = pdo_pgsql_translate_oid_to_table(table_oid, S->H);
  	if (table_name) {
--		add_assoc_string(return_value, "table", table_name);
--		efree(table_name);
-+		add_assoc_string(return_value, "table", S->H->cached_table_name);
- 	}
- 
- 	switch (S->cols[colno].pgsql_type) {
+ 		add_assoc_string(return_value, "table", table_name);
+ 		efree(table_name);
 @@ -677,6 +811,10 @@ static int pgsql_stmt_get_column_meta(pdo_stmt_t *stmt, zend_long colno, zval *r
  			break;
  		default:
