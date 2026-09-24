@@ -503,7 +503,7 @@ pglazyfetch()
 	# https://github.com/php/php-src/pull/15750
 	# On part de a730319fd531eab6d843b08f8d67abfe278e66d4 qui était la dernière version compatible 8.4 avant rebase pour la 8.5.
 	local vphp
-	for vphp in 8.5 8.4 8.2
+	for vphp in 8.5.10 8.5 8.4 8.2
 	do
 		pge $version $vphp || continue
 		break
