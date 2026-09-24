@@ -32,7 +32,7 @@ esac
 
 # Une GNUmakerie avec un $(SED) -e s/NN/32/g < $< > $@ qui laisse apparemment bsdmake sans voix ($< rendu comme vide).
 prerequis="make \\"
-v 2.24 && modifs="sbrk" || true
+v 2.24 && modifs="$modifs sbrk map_option_f_unused" || true
 v 2.27 || true
 v 2.28.1 || true
 v 2.30 || true
@@ -44,7 +44,8 @@ v 2.41 && retirerModif sansdoc || true
 v 2.44 || true
 v 2.46.0 || true
 v 2.46.1 || true
-v 2.47 && modifs="map_option_f_unused" || true
+v 2.47 || true
+#v 2.48 && retirerModif map_option_f_unused || true
 
 # Modifications
 
