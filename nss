@@ -26,7 +26,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib dbsys monsqlite" || true
+v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib dbsys monsqlite setbutunused" || true
 v 3.40.1 && v_nspr="4.20" && modifs="$modifs nonInitialisees putenv le64" || true
 v 3.42.1 || true
 v 3.52.1 && v_nspr="4.25" || true
@@ -48,6 +48,30 @@ prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
 # À FAIRE?: NSS gérant elle-même la double archi, il faut probablement désactiver le multiarch qui s'immisce dans les $predestiner
 
 # Modifications
+
+setbutunused()
+{
+	# clang 23 considère toute variable global (static) non utilisée comme une erreur.
+	# https://bugzilla.mozilla.org/show_bug.cgi?id=2075958
+	
+	local f
+	
+	for f in cmd/httpserv/httpserv.c cmd/selfserv/selfserv.c
+	do
+		filtrer "$f" sed -E -e '/threadCount[^A-Z]|opsPerSec|previousOps/{
+i\
+#if defined(DEBUG) || defined(FORCE_PR_ASSERT)
+a\
+#endif
+}' -e '/LogModule.*lm|lm.*LogModule/{
+i\
+#ifdef PR_LOGGING
+a\
+#endif
+}'
+	done
+	filtrer cmd/signtool/javascript.c grep -v jartree
+}
 
 monsqlite()
 {
