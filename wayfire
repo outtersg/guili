@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # git: pour récupérer les extensions
 # openssl: pour httpfs
 prerequis="meson ninja pkgconfig \\ wayland-protocols libxml cairo"
-v 0.10.0 && modifs="usrLocalInclude linuxInput pkgconf_sysSiBesoin,wayland-server,xproto" || true
+v 0.10.0 && modifs="usrLocalInclude linuxInput pkgconf_sysSiBesoin,wayland-server,xproto inclang23" || true
 v 0.10.1 || true
 
 archive=https://github.com/WayfireWM/wayfire/releases/download/v$version/wayfire-$version.tar.xz
@@ -37,6 +37,17 @@ option extra || true
 option shell || true
 
 # Modifs
+
+inclang23()
+{
+	# clang 23 et sa libc++ deviennent vachement plus méchants sur les #include à déclarer: désormais <cmath>, <vector> etc. doivent être explicitement déclarés, sinon il refuse de voir les éléments standard.
+	filtrer src/api/wayfire/geometry.hpp sed -e '/<algorithm>/a\
+#include <cmath>
+'
+	filtrer src/api/wayfire/signal-provider.hpp sed -e '/<functional>/i\
+#include <vector>
+'
+}
 
 usrLocalInclude()
 {
