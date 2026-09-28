@@ -124,3 +124,24 @@ pkgconf_path()
 	done
 	# À FAIRE: en fait le début pourrait être récupéré de $guili_pcpath.
 }
+
+# Pour les logiciels ayant besoin de se lier à des paquets ni système ni GuiLI (ex.: les pkg sous FreeBSD), prépare $PKG_CONFIG_PATH à aller chercher dans les logiciels optionnels.
+# À invoquer avec des paquets à retrouver (on ne pollue pas le $PKG_CONFIG_PATH sauf à avoir trouvé un de ces paquets, notamment si le paquet est trouvable en GuiLI).
+pkgconf_sysSiBesoin()
+{
+	# Si notre pkgconfig est un pkgconf+ig+strict, il n'ira pas chercher les paquets système.
+	local p necessaires= etendu="$PKG_CONFIG_PATH:`pkgconf_path -s`"
+	for p in "$@"
+	do
+		! pkg-config "$p" || continue
+		PKG_CONFIG_PATH="$etendu" pkg-config "$p" || continue
+		necessaires="$necessaires$p "
+	done
+	case "$necessaires" in "") return 0 ;; esac # Si aucun paquet n'a pu être résolu, ça ne sert pas à grand-chose.
+	
+	export PKG_CONFIG_PATH="$etendu"
+	for p in $necessaires
+	do
+		gris "Utilisation du paquet $p système dans `pkg-config --path "$p"`"
+	done
+}
