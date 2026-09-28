@@ -30,6 +30,7 @@ analyserParametresPour --pour wayfire "$@"
 # openssl: pour httpfs
 prerequis="meson ninja pkgconfig \\ wayfire"
 v 0.10.0 && modifs="linuxInput" || true
+v 0.11.2 || true
 
 archive=https://github.com/WayfireWM/wayfire-plugins-extra/releases/download/v$version/wayfire-plugins-extra-$version.tar.xz
 
