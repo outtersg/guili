@@ -61,7 +61,8 @@ _itineraireBis()
 		[ ! -e "$racine/lib64" ] || guili_lpath="$guili_lpath$racine/lib64:"
 		guili_ipath="$guili_ipath$racine/include:"
 
-		for d in libdata lib lib64
+		# libdata: FreeBSD; share: meson pkgconfig.generate(dataonly)
+		for d in libdata lib lib64 share
 		do
 			[ ! -e "$racine/$d/pkgconfig" ] || guili_pcpath="$guili_pcpath$racine/$d/pkgconfig:"
 		done
