@@ -29,6 +29,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 prerequis="meson ninja pkgconfig \\ wayland-protocols libxml cairo"
 v 0.10.0 && modifs="usrLocalInclude linuxInput pkgconf_sysSiBesoin,wayland-server,xproto inclang23" || true
 v 0.10.1 || true
+v 0.11.0 || true
 
 archive=https://github.com/WayfireWM/wayfire/releases/download/v$version/wayfire-$version.tar.xz
 
