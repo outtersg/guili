@@ -43,6 +43,7 @@ v 2.12.9 || true
 v 2.13.5 || true
 v 2.15.1 || true
 v 2.15.3 || true
+v 2.15.4 || true
 
 predestiner="$predestiner gettextSansMoi"
 
