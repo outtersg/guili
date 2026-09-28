@@ -101,10 +101,18 @@ pkgconf_lib()
 
 # Renvoie la totale des chemins de recherche de .pc, dont les dossiers système
 # (à la différence de $guili_pcpath qui ne renvoie que la partie sous $INSTALLS)
+#   -s Juste les dossiers système.
+#   -f Avec aussi la racine GuiLI (par défaut)
 pkgconf_path()
 {
+	case "$1" in
+		-s|--sys) set -- ;;
+		-f|*) set -- "$INSTALLS" ;;
+	esac
+	set -- "$@" /usr/local /usr
+	
 	local prems=1 rech_racine rech_dossier
-	for rech_racine in "$INSTALLS" /usr/local /usr
+	for rech_racine in "$@"
 	do
 		for rech_dossier in libdata lib share
 		do
