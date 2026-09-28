@@ -302,3 +302,5 @@ else
 sudo make install
 fi
 sutiliser
+
+case "`pwd`" in */build) cd .. ;; esac
