@@ -54,7 +54,7 @@ prerequis
 obtenirEtAllerDansVersion
 
 echo Corrections… >&2
-for modif in true $modifs ; do "$modif" ; done
+for modif in true $modifs ; do IFS=, ; tifs $modif ; done
 
 echo Configuration… >&2
 meson setup build --prefix="$dest"
