@@ -26,7 +26,6 @@ prerequisOpenssl()
 	case "$prexec" in *ssl*\\*) prexec="`echo "$prexec" | sed -e 's/.*\\\\//'`" ;; esac # Si c'est cmake qui a un +osslxx, avant le \ séparant prérequis de construction de ceux d'exécution, en fait on n'a pas besoin d'OpenSSL à l'exécution.
 	case "$argOptions $prexec" in *ssl*) true ;; *) return 0 ;; esac
 	
-	# À FAIRE: dans les prerequis sans +osslxx, repérer ceux qui contiennent un prerequisOpenssl et leur ajouter alors un +osslxx.
 	case "$argOptions" in
 		# Au moins une option OpenSSL positive: on va pouvoir passer à la suite (qui gérera l'aiguillage).
 		*+ossl*|*+openssl*) true ;;
@@ -92,5 +91,34 @@ prerequisOpenssl()
 		fi
 	fi
 	argOptions="`options "$argOptions-openssl-ossl"`" # Les +openssl ou +ossl disparaissent au profit du +ossl1x.
+	prerequis="`_ossl_marquagePrerequis "$prerequis" | tr '\012' ' '`"
 	prerequis="`echo " $prerequis " | sed -e "s#+osslxx#+$osslxx#g"`"
+}
+
+# Marque chaque prérequis d'un +osslxx si dans son script GuiLI il mentionne avoir openssl en prérequis.
+# Utilisation: _ossl_marquagePrerequis "$prerequis"
+_ossl_marquagePrerequis()
+{
+	# À FAIRE: un cache, mis à jour par ex. par find . -maxdepth 1 -newer <cecache>, et qui rappelle cette fonction pour établir la valeur pour les fichiers touchés. Ce fichier cache pourrait être sous forme d'affectations pour un tableau awk, dans lequel il suffirait alors de taper pour retrouver nos +osslx à ajouter ou non.
+	decoupePrerequis "$*" | awk \
+	'
+		BEGIN { SCRIPTS = ARGV[1]; delete ARGV[1]; }
+		/[+]-?ossl/ { print; next; } # Sur les prérequis déjà décidés, inutile d investiguer.
+		{
+			if(!match($0, /[^-0-9_a-zA-Z]/))
+				coupure = length($0);
+			else
+				coupure = RSTART;
+			script = SCRIPTS"/"substr($0, 1, coupure);
+			prend = "";
+			while(getline ligne < script > 0)
+				if(ligne ~ /prerequis=.*openssl/)
+				{
+					$0 = substr($0, 1, length(script))"+osslxx"substr($0, 1 + length(script));
+					break;
+				}
+			close(script);
+			print;
+		}
+	' "$SCRIPTS"
 }
