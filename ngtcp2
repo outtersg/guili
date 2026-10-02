@@ -26,7 +26,10 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-prerequis="cmake \\"
+# Bien qu'OpenSSL ne soit pas nécessaire pour la bibliothèque cœur de ngtcp2, si le configure trouve une libssl.so, il compile alors en plus une libngtcp2_crypto_ssl.so qui elle est dépendante de libssl.so.
+# On doit donc inclure openssl en prérequis pour bénéficier de prerequisOpenssl() (qui définit une $dest dépendante de la version OpenSSL utilisée).
+# Sans cela, un curl +ossl36 va se lier avec un ngtcp2 sans mention de version OpenSSL, donc avec la dernière (4.0), et le configure plantera en "one or more libs available at link-time are not available runtime: libssl.so.4"
+prerequis="cmake \\ openssl"
 v 1.21.0 || true
 v 1.22.1 || true
 v 1.23.0 || true
