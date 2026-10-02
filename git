@@ -52,6 +52,7 @@ v 2.52.0 || true
 v 2.53.0 || true
 v 2.54.0 || true
 v 2.55.0 && predestiner="$predestiner derouiller" || true
+v 2.56.0 || true
 
 if option svn
 then
