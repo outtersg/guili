@@ -169,7 +169,7 @@ _readlinky_impl_iter()
 {
 	# Cf. aussi readlinkf()
 			local c="$1"
-			case "$c" in [^/]*) c="`pwd`/$c" ;; esac
+			case "$c" in [!/]*) c="`pwd`/$c" ;; esac
 			IFS=/
 			c="`_readlinky $c`"
 			unset IFS

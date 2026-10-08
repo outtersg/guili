@@ -152,7 +152,7 @@ serveur()
 	for remplace in $remplacer
 	do
 		case "$remplace" in
-			*[^0-9]*) true ;;
+			*[!0-9]*) true ;;
 			[0-9]*) # Numéro de port.
 				[ -z "$dest" ] || ports="$ports $remplace"
 				[ -L "$dservices/$remplace" ] || continue

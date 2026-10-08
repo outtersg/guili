@@ -52,7 +52,7 @@ util_menage()
 		
 		# Un minimum de blindage pour éviter de supprimer / en cas de gros, gros problème (genre le shell ne saurait même plus fournir $$).
 		case "$TMP/$$" in
-			[^/]*) true ;; # Un chemin relatif, ça pue.
+			[!/]*) true ;; # Un chemin relatif, ça pue.
 			*/[0-9]*)
 				rm -Rf "$TMP/$$"
 				;;

@@ -68,10 +68,10 @@ ln_sr()
 	
 	local o="$1" l="$2" dl
 	case "$o" in
-		[^/]*) o="$PWD/$o" ;;
+		[!/]*) o="$PWD/$o" ;;
 	esac
 	case "$l" in
-		[^/]*) o="$PWD/$l" ;;
+		[!/]*) o="$PWD/$l" ;;
 	esac
 	if [ -d "$l" ]
 	then

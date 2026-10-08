@@ -587,7 +587,7 @@ libcxxgcc()
 		for param in "$3" "$4" "$5"
 		do
 			case "$param" in
-				*[^0-9]*|"") return 1 ;;
+				*[!0-9]*|"") return 1 ;;
 			esac
 		done
 		echo "$3.$4.$5"

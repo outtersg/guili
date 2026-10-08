@@ -74,7 +74,7 @@ pkgconf_lignes()
 	while [ $# -gt 0 ]
 	do
 		case "$2" in
-			*[^\ ]*) echo "$1: $2" ;;
+			*[!\ ]*) echo "$1: $2" ;;
 		esac
 		shift
 		shift

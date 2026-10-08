@@ -200,7 +200,7 @@ utiliserSiDerniere()
 	
 	# Si $logiciel et $version ont été bouffés quelque part, c'est une erreur, car on va en avoir besoin dans ce qui suit.
 	case "$version" in
-		""|*[^.0-9]*|.*|*.) rouge "# Votre logiciel doit posséder une version pour être comparé aux précédentes installation." >&2 ; return 1 ;;
+		""|*[!.0-9]*|.*|*.) rouge "# Votre logiciel doit posséder une version pour être comparé aux précédentes installation." >&2 ; return 1 ;;
 	esac
 	
 	local cadets="`cadets "$INSTALLS/$lv"`"
@@ -239,7 +239,7 @@ versionDifferenciante()
 	# Pas le même logiciel? Différenciant.
 	case "$dest" in
 		$logiciel+*) true ;;
-		$logiciel-*[^0-9.]*) return 0 ;; # Un autre logiciel, même s'il a un nom similaire, ex.: apr-util par rapport à apr.
+		$logiciel-*[!0-9.]*) return 0 ;; # Un autre logiciel, même s'il a un nom similaire, ex.: apr-util par rapport à apr.
 		$logiciel-*) true ;;
 		*) return 0 ;; # Un tout autre logiciel.
 	esac
