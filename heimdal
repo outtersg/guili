@@ -1,0 +1,99 @@
+#!/bin/sh
+# Copyright (c) 2006 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
+
+# Historique des versions gérées
+
+prerequis="m4 autoconf automake libtool perl \\ openssl"
+# Peu de publications: en 2026, la dernière publiée a 4 ans. Il faudra peut-être tourner avec des versions intermédiaires git.
+v 7.8.0 && modifs="$modifs perljson lcrypt rk_getpwnam_r versionSymbolesAbsents sansDoc" || true
+
+# Modifications
+
+sansDoc()
+{
+	# Il s'obstine à vouloir reconstruire la doc (avec makeinfo, qu'on n'a pas).
+	OPTIONS_CONF="$OPTIONS_CONF --disable-heimdal-documentation"
+}
+
+versionSymbolesAbsents()
+{
+	# Le script de ponte des biblios tente de versionner, à l'ancienne, des symboles qu'il n'a finalement pas compilés (voire même certains comme cgetcap).
+	# https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=277075
+	
+	export LDFLAGS="$LDFLAGS -Wl,--undefined-version"
+}
+
+rk_getpwnam_r()
+{
+	# Le "checking for getpwnam_r" dans le configure teste d'abord la simple présence de la fonction, avant de s'assurer qu'elle est POSIX.
+	# Problème: le "simple test" se fait sans le <pwd.h> nécessaire sous FreeBSD. Donc plante, et donc on n'entre même pas dans la partie qui vérifie si en plus il est POSIX.
+	filtrer cf/check-getpwnam_r-posix.m4 sed -e '/AC_FIND_FUNC_NO_LIBS(getpwnam_r,[^)]*/s/)/, [#include <pwd.h>], [0,0,0,0,0]&/'
+	# À FAIRE?: le ccnfigure, en plus de cette partie du du preconfigure (m4).
+}
+
+lcrypt()
+{
+	# Aimerait bien un lien faible avec un biblio système FreeBSD.
+	# Mais avec un lieur moderne, ça ne passe plus: ld.lld: error: undefined reference: crypt ; referenced by ./.libs/libroken.so (disallowed by --no-allow-shlib-undefined)
+	
+	# À FAIRE: plus subtil que ce qui suit.
+	case `uname` in FreeBSD) true ;; *) return 0 ;; esac
+	
+	for f in lib/roken/Makefile.*
+	do
+		filtrer "$f" sed -e 's#^libroken_la_LDFLAGS *= *"*#& -lcrypt #'
+	done
+}
+
+perljson()
+{
+	PERL_MM_USE_DEFAULT=1 PERL_EXTUTILS_AUTOINSTALL="--defaultdeps" cpan install JSON
+}
+
+# Variables
+
+archive=https://github.com/heimdal/heimdal/archive/refs/tags/heimdal-$version.tar.gz
+
+destiner
+
+prerequis
+
+obtenirEtAllerDansVersion
+
+echo Correction… >&2
+for modif in true $modifs ; do $modif ; done
+
+echo Configuration… >&2
+[ -x configure ] || { chmod u+x autogen.sh ; ./autogen.sh ; }
+./configure --prefix="$dest" $OPTIONS_CONF
+
+echo Compilation… >&2
+make -j4
+
+echo Installation… >&2
+sudoku make install
+
+sutiliser
