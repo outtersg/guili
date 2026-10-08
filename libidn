@@ -33,7 +33,7 @@ v 2.2.0 || true
 v 2.3.7 || true
 v 2.3.8 || true
 
-optionSi unistring/libunistring
+optionSi unistring/libunistring || true
 
 # Modifications
 
