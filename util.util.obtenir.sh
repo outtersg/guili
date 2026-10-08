@@ -39,6 +39,7 @@ telech()
 	[ -n "$l" ] || l="$u"
 	commande=curl
 	[ -z "$http_proxy_user" ] || commande="curl -U $http_proxy_user"
+	commande="$commande $CURL_OPTIONS"
 	avecOutilsGuili \
 	affSiBinaire $commande -L -k -s "$u"
 }
