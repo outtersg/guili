@@ -49,8 +49,8 @@ sansGdbm()
 moiJeSais()
 {
 	filtrer Configure sed \
-		-e "s#^ccflags='#&$CFLAGS#" \
-		-e "s#^ldflags='#&$LDLAGS#"
+		-e "s#^ccflags='#& $CFLAGS #" \
+		-e "s#^ldflags='#& $LDLAGS #"
 }
 
 modifiable()
