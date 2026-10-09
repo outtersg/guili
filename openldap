@@ -26,10 +26,19 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
+modifs="$modifs undefinedVersion"
 v 2.4.28 || true
 v 2.4.40 || true
 
 # Modifications
+
+undefinedVersion()
+{
+	# Avec un éditeur de liens récent, versionner des symboles inexistants ne passe plus.
+	# https://bugs.gentoo.org/938553
+	
+	export LDFLAGS="$LDFLAGS -Wl,--undefined-version"
+}
 
 # Variables
 
