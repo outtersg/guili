@@ -33,7 +33,7 @@ v 2.4.40 || true
 
 # Variables
 
-archive="ftp://gd.tuwien.ac.at/infosys/network/OpenLDAP/openldap-release/$logiciel-$version.tgz"
+archive="https://gpl.savoirfairelinux.net/pub/mirrors/openldap/openldap-release/openldap-$version.tgz"
 
 destiner
 
