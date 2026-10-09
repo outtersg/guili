@@ -26,6 +26,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
+prerequis="bison \\" # Bison est tellement courant de nos jours que krb5 ne le précisait pas en prérequis… mais pourtant il en a besoin. Et quelques systèmes n'en ont pas. Alors on requiert un bison GuiLI, même si le système en a déjà un.
 v 1.22.2 && modifs="$modifs enodata" || true
 
 # Modifications
