@@ -197,6 +197,6 @@ for modif in true $modifs ; do $modif ; done
 
 # On installe une première version de l'AC. Ce avant le sutiliser, pour qu'elle soit embarquée dans l'éventuel paquet compilé.
 # On lui demande de préparer la version personnalisée, mais sans l'installer: le paquet compilé ne doit pas inclure les personnalisations.
-installerACDest --sans-perso -k
+installerACDest --sans-perso -k || { r=$? ; rouge "# Impossible de récupérer une liste d'AC initiale." ; exit $r ; }
 
 sutiliser
