@@ -87,7 +87,8 @@ then
 fi
 
 # LibSSH: si on la trouve dans notre $INSTALLS, alors on l'utilise. On ne se lie pas à une libssh système.
-if command -v pkg-config 2> /dev/null >&2 && pkg-config libssh2
+opSiPasPas ssh libssh || true
+if command -v pkg-config 2> /dev/null >&2 && pkg-config libssh2 || option ssh
 then
 	prerequis="$prerequis libssh+osslxx"
 	OPTIONS_CONF="$OPTIONS_CONF --with-libssh2"
