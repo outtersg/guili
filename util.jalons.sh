@@ -32,29 +32,41 @@
 
 jalon()
 {
+	local jtmp="$TMP"
+	case "$1" in -t) jtmp="$2" ; shift 2 ;; esac
 	local jalon="jalon:`bn "$dest"`$GUILI_MOIRE-$1" PWD=
 	eval jalon_$1="$jalon"
 	
-	[ -f "$TMP/$jalon" ] || return 1
+	[ -f "$jtmp/$jalon" ] || return 1
 	
-	gris "Chargement du jalon $TMP/$jalon (cache)"
-	. "$TMP/$jalon"
+	gris "Chargement du jalon $jtmp/$jalon (cache)" >&2
+	. "$jtmp/$jalon"
 	case "$PWD" in "") jaune "# jalon sans \$PWD; tant pis, on rebascule sur la version longue" >&2 ; return 1 ;; esac
 	cd "$PWD"
 }
 
 jalonner()
 {
+	unset PWD ; PWD="`pwd`" # Par sécurité on part d'un PWD réel (car c'est une variable qui peut être manuellement écrasée).
+	local p jtmp="$TMP"
+	for p in "$@"
+	do
+		case "$1" in
+			-t) jtmp="$2" ; shift ;;
+			.) PWD=. ;;
+			*) break ;;
+		esac
+		shift
+	done
+	
 	local jalon
 	eval jalon='"$jalon_'$1'"'
 	case "$jalon" in "") rouge "# jalonner() appelée sans jalon() préalable" >&2 ; return 1 ;; esac
 	
-	unset PWD ; PWD="`pwd`" # Par sécurité on part d'un PWD réel (car c'est une variable qui peut être manuellement écrasée).
-	
 	{
 		set # Inclut le PWD, normalement.
 		export -p # export -p est le seul qui marche à l'identique sur les /bin/sh de FreeBSD 15.0 ou 10.2, Mac OS X 10.13, et Raspbian sur un RPi3.
-	} | _jalonner_filtrer > "$TMP/$jalon.tmp" && mv "$TMP/$jalon.tmp" "$TMP/$jalon"
+	} | _jalonner_filtrer > "$jtmp/$jalon.tmp" && mv "$jtmp/$jalon.tmp" "$jtmp/$jalon"
 }
 
 _jalonner_filtrer()
