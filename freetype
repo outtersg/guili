@@ -105,7 +105,8 @@ moirantHb()
 	export GUILI_MOIRE_FT=":hb"
 	moire -i hb "$@" --sans-hb 7> $TMP/$$/sortieMoire
 	destAvecHb="`grep "^+ $logiciel+" < $TMP/$$/sortieMoire | tail -1 | cut -c 3-`"
-	[ -n "$destAvecHb" ] || fatal "# L'itération 0 (Freetype sans Harfbuzz) n'a pas daigné signaler où elle s'installait."
+	# L'install de l'itération 0 doit nous dire où elle réside (à moins qu'on soit dans une introspection sans install).
+	[ -n "$destAvecHb" -o -n "$INSTALLS_AVEC_INFOS" ] || fatal "# L'itération 0 (Freetype sans Harfbuzz) n'a pas daigné signaler où elle s'installait."
 	destAvecHb="$INSTALLS/$destAvecHb"
 	# On signale au freetype que l'on va compiler dans les prerequis que ce serait bien qu'il se lie à nous (qui ne sommes pas encore installés, mais notre moiré qui l'est tient lieu).
 	export PRE="$logiciel`argOptions`-$version@$destAvecHb $PRE"
