@@ -82,6 +82,12 @@ _prerequis()
 		echo "#p:$prerequis"
 		exit 0
 	fi
+	
+	if pge $MODERNITE 7
+	then
+		case "$dest" in "") rouge "# $logiciel: prerequis appelée avant destiner." >&2 ; exit 1 ;; esac
+	fi
+	
 	# Repêchage des modifs d'environnement (déterminées dans le prologue inclus par util.sh, potentiellement écrasées par la liste des versions du fichier GuiLI).
 	case " $modifs " in
 		*" $GUILI_MODIFS_ENV "*) true ;; # Pas la peine de les remettre si $modifs les contient déjà.
