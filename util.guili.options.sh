@@ -108,10 +108,20 @@ optionSi()
 		*:*) IFS=: ; _optionSiDecouper $1 ; unset IFS ;;
 	esac
 	shift
+	# Protection contre les boucles, en élaboration théorique.
+	# En fonctionnement normal, pas de souci: si le logiciel n'existe pas, optionSi() se disjoncte mécaniquement.
+	# Par contre en mode exploratoire (ex.: varsPrerequis -n prerequis-r python), on se projette logiciel déjà installé.
+	# En cas de boucle de prérequis, on doit donc casser la récursivité.
+	# À FAIRE: valider que cette protection, copiée de harfbuzz, n'interfère pas négativement avec. Côté positif: sans doute pourra-t-on simplifier harfbuzz.
+	case ":$GUILI_PILE" in
+		*:$l:*) true ;;
+		*)
 	if ! option "$l" && ( versions "$app" | grep -q . || ( [ $# -gt 0 ] && "$@" ) )
 	then
 		argOptions="`options "$argOptions=$l"`"
 	fi
+			;;
+	esac
 	# On joue sur les prérequis, soit en ajout soit en suppression:
 	# - si l'option est validée, on ajoute au prérequis le logiciel; s'il y était déjà (par exemple, avec une contrainte de version), pas grave, les deux mentions seront fusionnées.
 	# - si l'option est refusée, on s'assure que les prérequis ne comportent plus le prérequis.
@@ -133,6 +143,7 @@ opSiPasPas()
 	local p="$*"
 	[ -n "$p" ] || p="$o"
 	
+	# À FAIRE: la même protection avec $GUILI_PILE que dans optionSi().
 	argOptions="`options "$argOptions=$o"`"
 	if option "$o"
 	then
