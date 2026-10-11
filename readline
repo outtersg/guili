@@ -112,9 +112,9 @@ archive="http://ftp.gnu.org/gnu/$logiciel/$logiciel-$mineure.tar.gz"
 
 tinfoliee
 
-prerequis
-
 destiner
+
+prerequis
 
 echo Obtention et décompression… >&2
 obtenirEtAllerDansVersion
