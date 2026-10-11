@@ -32,7 +32,7 @@
 
 jalon()
 {
-	local jalon="jalon.$1:`bn "$dest"`$GUILI_MOIRE" PWD=
+	local jalon="jalon:`bn "$dest"`$GUILI_MOIRE-$1" PWD=
 	eval jalon_$1="$jalon"
 	
 	[ -f "$TMP/$jalon" ] || return 1
