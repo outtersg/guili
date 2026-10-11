@@ -53,9 +53,9 @@ cap_rights_right()
 archive=https://tukaani.org/xz/xz-$version.tar.gz
 archive=https://github.com/tukaani-project/xz/releases/download/v$version/xz-$version.tar.gz
 
-prerequis
-
 destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
