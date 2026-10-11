@@ -351,7 +351,25 @@ infosInstall()
 		vars) echo "dest$logiciel=$dest version_$logiciel=$version prerequis_$logiciel=\"$prerequis\"" ;;
 		"") true ;;
 		prerequis-r)
+					# Pour accélérer les gros GuiLI qui incluent indirectement cinquante fois les mêmes logiciels,
+					# on crée un cache où une occurrence d'un prérequis va s'inscrire, permettant s'il est rappelé avec exactement les mêmes paramètres, de recharger le cache plutôt que de réinvoquer ses propres prérequis.
+					# Valable uniquement pour les $MODERNITE >= 7, où on est certains d'avoir un $dest (l'ordre destiner ; prerequis étant imposé), nécessaire dans le nom du jalon.
+					# À FAIRE?: la logique pourrait-elle s'appliquer aux ./logiciel + (installation de tous les prérequis dans leur dernière version, récursivement)?
+					local cache=
+					if pge $MODERNITE 7
+					then
+						case "$GUILI_PREREQUIS_CACHE" in "") export GUILI_PREREQUIS_CACHE="$TMP/$$" ;; esac # C'est le niveau le plus haut qui définit le dossier pour que tout le monde s'y retrouve.
+						commande jalonner || . "$SCRIPTS/util.jalons.sh"
+						if jalon -t "$GUILI_PREREQUIS_CACHE" prerequis >&2
+						then
+							cache=1
+						fi
+					fi
+					if [ -z "$cache" ]
+					then
 					varsPrerequis `echo "$INSTALLS_AVEC_INFOS" | tr , ' '` "$prerequis" | tr '\012' ' '
+						pg 7 $MODERNITE || jalonner -t "$GUILI_PREREQUIS_CACHE" . prerequis
+					fi
 			echo "$prerequis"
 			;;
 		*)
