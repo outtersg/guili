@@ -340,6 +340,7 @@ infosInstall()
 	
 	if [ ! -z "$INSTALLS_AVEC_INFOS" ] # Petit test pour éviter d'ouvrir >&6 si on n'a rien à sortir (car si ça se trouve l'appelant, n'ayant pas défini la variable, n'a pas non plus ouvert le descripteur).
 	then
+		# À FAIRE: transformer tous ces tr en IFS=, (avec unset en premier tour de boucle + en fin au cas où 0 itération).
 		for ii_var in `echo "$INSTALLS_AVEC_INFOS" | tr , ' '`
 		do
 			case "$ii_var" in
