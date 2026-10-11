@@ -70,9 +70,9 @@ pointeurs()
 	filtrer ./c++/cursesm.h sed -e '/NCursesUserMenu.*NCursesMenuItem/s/NCursesMenuItem/NCursesMenuItem */'
 }
 
-prerequis
-
 destiner
+
+prerequis
 
 obtenirEtAllerDansVersion
 
