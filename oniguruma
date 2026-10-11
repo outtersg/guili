@@ -28,7 +28,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 prerequis="autoconf automake m4 libtool \\"
 v 6.9.4 && modifs="autoc" || true
-v 6.9.6 && modifs="autoc" || true
+v 6.9.6 || true
 
 # Modifications
 
