@@ -35,7 +35,15 @@ v 0.93.99.2024.03.12 && versionComplete="$version.20df10e51e41dc00db7327314b9eee
 v 0.94.0 || true
 v 0.94.0.0.2026.10.06 && versionComplete="$version.e37b373.git" || true
 
+predestiner="$predestiner preModules"
+
 # Modifications
+
+preModules()
+{
+	# À FAIRE: en réalité avant la 0.93.99.quelquechose ça n'ajoutait rien. Trouver la bonne version et quitter.
+	optionSi gss/krb5 || true
+}
 
 troncatureSilencieuse()
 {
