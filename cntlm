@@ -130,6 +130,8 @@ CC="$CC $CPPFLAGS $CFLAGS $LDFLAGS"
 
 # Variables
 
+archive=https://github.com/versat/cntlm/archive/refs/tags/$version.tar.gz
+pge $version 0.94 ||
 archive="http://freefr.dl.sourceforge.net/project/cntlm/cntlm/cntlm%20$version/cntlm-$version.tar.gz"
 archive_git="https://github.com/versat/cntlm.git"
 
