@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 prerequis="make \\"
-v 0.92.3 && modifs="freebsd troncatureSilencieuse" || true
+v 0.92.3 && modifs="guiliEnv freebsd troncatureSilencieuse" || true
 v 0.93.99.2022.10.14 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && retirerModif freebsd && modifs="$modifs fbsd2 prefixe" || true
 v 0.93.99.2022.10.15 && versionComplete="$version.533f1379af36a5a49cd6bdc074a686937ce9242e.git" && modifs="$modifs conclo" || true
 v 0.93.99.2023.03.30 && versionComplete="$version.149d916b84ab1d6cbc3c1b003da33e485edaccad.git" && retirerModif conclo || true
@@ -108,6 +108,24 @@ freebsd()
 	[ -e Makefile.clang ] || cp Makefile Makefile.clang
 	filtrer Makefile.clang sed -e '/OBJS=/s/^	*//' -e '/^ifeq/d' -e '/^else/,/^endif/d' -e 's/gcc/clang/g'
 	filtrer configure sed -e '/^CCS=/s/="/="clang /'
+}
+
+guiliEnv()
+{
+	# À FAIRE: freebsd() et fbsd2() ont sans doute une grosse partie qui pourrait aller ici (utilisation du $CC qu'on récupère en tant que GuiLI).
+	
+	# Quelques variables globales non exploitées dans le Makefile.
+	
+	filtrer Makefile sed -e '/^LDFLAGS[ 	]*:=/'"s#=#= $LDFLAGS #"
+	# CFLAGS: pas la peine, déjà en +=
+	# Par contre CPPFLAGS n'est pas exploitée. On le colle au CFLAGS.
+	export CFLAGS="$CPPFLAGS $CFLAGS"
+	
+	# … Ainsi que dans le configure (dommage pour la détection de présence, par exemple de krb5!).
+	
+	filtrer configure sed -e '/for.*TESTS/i\
+CC="$CC $CPPFLAGS $CFLAGS $LDFLAGS"
+'
 }
 
 # Variables
