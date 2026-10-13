@@ -24,7 +24,7 @@ set -e
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 8.0.1 && modifs="detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python+osslxx < 3 bison \\ ncurses readline zlib openssl < 1.1" || true
+v 8.0.1 && modifs="detectionPerl detectionReadline reflex" && contribs="pgcrypto" && prerequis="python+osslxx < 3 bison \\ ncurses readline zlib openssl < 1.1" || true
 v 8.0.3 || true
 v 9.1.2 && modifs="bsdAvecPythonThreade $modifs" && contribs="$contribs tablefunc" && remplacerPrerequis python+osslxx && prerequis="$prerequis gettext iconv" || true # gettext et iconv biblios de python3 (-lintl à la compil). # À FAIRE: comment détecter dynamiquement ces dépendances, sans surenchère pour les prérequis de python que celui-ci a embarqués statiquement? Certes en théorie mieux vaut trop que pas assez, en laissant l'édition de liens prendre ce qui l'intéresse, mais bon la pollution dans le .guili.prerequis, bof.
 v 9.2.1 && retirerModif bsdAvecPythonThreade && contribs="$contribs hstore" || true
@@ -172,6 +172,43 @@ prerequisMake()
 detectionReadline()
 {
 	filtrer configure sed -e 's#" -lncurses"#" -lncursesw" " -lncurses"#g'
+}
+
+reflex()
+{
+	# flex est en pleine refonte, avec des macros qui changent de nom ou de méthode d'invocation… alors que PostgreSQL a codé en dur un paquet de .l sur les anciennes façons de faire.
+	# À FAIRE: … Ce serait tout de même plus simple de prerequis="flex < x.y.z", non? Reste à retrouver à partir de quelle version ils se sont rendus incompatibles. C'est quelque part entre la 2.6.4 et les rustines qui l'ont suivie.
+	
+	for f in \
+		src/backend/parser/scan.l \
+		src/backend/replication/repl_scanner.l \
+		src/backend/replication/syncrep_scanner.l \
+		src/backend/utils/adt/jsonpath_scan.l
+	do
+		# On prélève l'%option extra-type pour la recaler en #define YY_EXTRA_TYPE juste avant la fin du premier bloc pur C.
+		filtrer "$f" awk \
+		'
+			!mode && /^%}/ { mode = 1; }
+			mode != 1 { print; next; }
+			{ retention = retention$0"\n"; }
+			/%option extra-type/ {
+				leType = $0;
+				gsub(/^[^"]*"|".*/, "", leType);
+				print "#define YY_EXTRA_TYPE "leType;
+				print retention;
+				++mode;
+			}
+		'
+	done
+	
+	# Celui-ci inclut fe_utils/psqlscan_int.h, qui fait un #ifndef TRUC typedef truc #define TRUC, sans doute recopié d'une ancienne version.
+	# Problème: ma nouvelle version de lex, elle, fait #ifndef TRUC typedef truc /* Legacy interface */; typedef machin; #define TRUC.
+	# Résultat, si elle passe après, comme TRUC est déjà défini, elle ne fait pas le typedef machin, et on se retrouve avec machin: undeclared type.
+	filtrer src/bin/pgbench/exprscan.l awk '!fait && /%}/ { print "#define YY_EXTRA_TYPE PsqlScanState"; fait = 1; } { print; }'
+	echo "%%|%option extra-type="unsigned long **"|%%" | tr \| \\012 > $TMP/$$/1.l
+	flex -o $TMP/$$/1.c $TMP/$$/1.l
+	sed < $TMP/$$/1.c -e '/YY_TYPEDEF_YY_BUFFER_STATE/,/^#endif/!d' > $TMP/$$/yybuffer.c
+	filtrer src/include/fe_utils/psqlscan_int.h awk '/ifndef YY_TYPEDEF_YY_BUFFER_STATE/{while(getline rempl < "'$TMP/$$/yybuffer.c'")print rempl;}{print}'
 }
 
 bsdAvecPythonThreade()
