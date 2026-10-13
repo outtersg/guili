@@ -26,12 +26,12 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 8.0.1 && modifs="detectionPerl detectionReadline" && contribs="pgcrypto" && prerequis="python+osslxx < 3 bison \\ ncurses readline zlib openssl < 1.1" || true
 v 8.0.3 || true
-v 9.1.2 && modifs="bsdAvecPythonThreade detectionPerl detectionReadline" && contribs="$contribs tablefunc" && remplacerPrerequis python+osslxx && prerequis="$prerequis gettext iconv" || true # gettext et iconv biblios de python3 (-lintl à la compil). # À FAIRE: comment détecter dynamiquement ces dépendances, sans surenchère pour les prérequis de python que celui-ci a embarqués statiquement? Certes en théorie mieux vaut trop que pas assez, en laissant l'édition de liens prendre ce qui l'intéresse, mais bon la pollution dans le .guili.prerequis, bof.
-v 9.2.1 && modifs="detectionPerl detectionReadline" && contribs="$contribs hstore" || true
+v 9.1.2 && modifs="bsdAvecPythonThreade $modifs" && contribs="$contribs tablefunc" && remplacerPrerequis python+osslxx && prerequis="$prerequis gettext iconv" || true # gettext et iconv biblios de python3 (-lintl à la compil). # À FAIRE: comment détecter dynamiquement ces dépendances, sans surenchère pour les prérequis de python que celui-ci a embarqués statiquement? Certes en théorie mieux vaut trop que pas assez, en laissant l'édition de liens prendre ce qui l'intéresse, mais bon la pollution dans le .guili.prerequis, bof.
+v 9.2.1 && retirerModif bsdAvecPythonThreade && contribs="$contribs hstore" || true
 v 9.2.9 || true
 v 9.2.18 || true
 v 9.5.3 && remplacerPrerequis "openssl < 1.2" || true
-v 9.6.1 && modifs="detectionPerl detectionReadline pathZic" || true
+v 9.6.1 && modifs="$modifs pathZic" || true
 v 9.6.5 || true
 v 9.6.6 || true
 v 9.6.10 || true
