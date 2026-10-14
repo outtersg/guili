@@ -114,11 +114,7 @@ case "$prerequis" in *nghttp3*)
 	argOptions="`options $argOptions=http3`"
 	option http3 && OPTIONS_CONF="$OPTIONS_CONF --with-ngtcp2 --with-nghttp3" || virerPrerequis nghttp3 ngtcp2
 ;; esac
-if option krb
-then
-	prerequis="$prerequis krb5"
-	OPTIONS_CONF="$OPTIONS_CONF --with-gssapi"
-fi
+	optionSi gss/krb5 && OPTIONS_CONF="$OPTIONS_CONF --with-gssapi" || OPTIONS_CONF="$OPTIONS_CONF --disable-gssapi"
 }
 
 # Modifications
