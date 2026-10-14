@@ -74,6 +74,10 @@ v 8.20.0 || true
 v 8.21.0 || true
 v 8.22.0 || true
 
+predestiner="preOpensslMollo preModules $predestiner" # $predestiner contient déjà prerequisOpenssl, on doit donc passer avant pour que cette dernière agisse sur les prérequis qu'on aura ajoutés dans nos preModules().
+
+preOpensslMollo()
+{
 # OpenSSL:
 # - s'il ne préexiste pas, on ne force pas: on est peut-être sur un système qui a besoin de cURL pour installer OpenSSL.
 # - s'il existe (dans un chemin système par exemple), on le prérequiert, afin de s'assurer d'utiliser une version contrôlée par nous.
@@ -85,7 +89,10 @@ then
 		OPTIONS_CONF="$OPTIONS_CONF --with-openssl"
 	fi
 fi
+}
 
+preModules()
+{
 # LibSSH: si on la trouve dans notre $INSTALLS, alors on l'utilise. On ne se lie pas à une libssh système.
 opSiPasPas ssh libssh || true
 if command -v pkg-config 2> /dev/null >&2 && pkg-config libssh2 || option ssh
@@ -112,6 +119,7 @@ then
 	prerequis="$prerequis krb5"
 	OPTIONS_CONF="$OPTIONS_CONF --with-gssapi"
 fi
+}
 
 # Modifications
 
