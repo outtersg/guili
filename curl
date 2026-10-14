@@ -101,7 +101,11 @@ then
 	OPTIONS_CONF="$OPTIONS_CONF --with-libssh2"
 fi
 
-# À FAIRE: --with-brotli, --with-zstd, --enable-ldap / --with-ldap-lib, --enable-ldaps
+# À FAIRE: --with-brotli, --enable-ldap / --with-ldap-lib, --enable-ldaps
+	
+	# Si curl détecte une zstd, même système, par un pkg-config laxiste, il va s'y lier.
+	# On préfère alors qu'il se lie à notre biblio GuiLI, pour éviter ensuite des montages bancals où par exemple un PHP ayant besoin de sa libcurl se retrouve dans l'impossibilité de dénicher la zstd utilisée.
+	opSiPasPas zstd || OPTIONS_CONF="$OPTIONS_CONF --disable-zstd"
 
 opSiPasPas idn libidn || true # libidn par défaut (sauf si explicitement exclue).
 optionSi ldap/openldap || true
