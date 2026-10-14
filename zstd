@@ -32,7 +32,7 @@ v 1.5.2 || true
 v 1.5.6 || true
 v 1.5.7 || true
 
-optionSi lz4
+optionSi lz4 || true
 
 # Modifications
 
