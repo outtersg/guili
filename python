@@ -73,6 +73,9 @@ v 3.14.3 || true
 v 3.14.6 || true
 v 3.14.7 || true
 v 3.14.8 || true
+# (GNU) make: jusqu'à la 3.14, le Makefile ne comporte qu'une seule structure $(if …), propre à GNU make; pas gênante, car devant donner quelque chose de vide: le make BSD se contente d'alerter sur cette structure non conventionnelle.
+# En 3.15.0, on passe à 3 structures $(if …), dont PY_CORE_EXE_LDFLAGS, bien gênante: elle finit vide, ce qui fait que la constitution du binaire python, qui se faisait autrefois en -L…/gettext-…/lib -lintl, perd maintenant tous les -L vers les dossiers GuiLI, finit avec juste un -lintl, et plante faute de trouver la biblio correspondante.
+v 3.15.0 && prerequis="make \\ $prerequis" && remplacerPrerequis "openssl < 5" || true
 
 predestiner="$predestiner preChoixOptions"
 
