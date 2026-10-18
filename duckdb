@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # git: pour récupérer les extensions
 # openssl: pour httpfs
 prerequis="langcxx() make cmake git \\ openssl"
-modifs="$modifs j4"
+modifs="$modifs j4 era"
 v 0.10.3 || true
 v 1.1.3 || true
 v 1.2.2 || true
@@ -103,6 +103,14 @@ chaussettedelespace()
 	# https://github.com/duckdb/duckdb-httpfs/pull/139
 	modifExt httpfs filtrer src/include/httpfs_curl_client.hpp sed -e '/#include <curl/d' -e '/^namespace/i\
 #include <curl/curl.h>
+'
+}
+
+era()
+{
+	# Pas trop jouasse, FreeBSD, d'avoir un enum DatePartSpecifier::ERA alors qu'ERA est un #define dans langinfo.h.
+	filtrer src/include/duckdb/common/enums/date_part_specifier.hpp sed -e '/ERA/i\
+#undef ERA
 '
 }
 
