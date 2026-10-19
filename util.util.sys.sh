@@ -226,3 +226,30 @@ fbsd10()
 }
 
 #- Linux -----------------------------------------------------------------------
+
+# La tradition sous Linux est d'avoir des paquets exécution, avec les libellule.so.2, et des paquets dév, avec le lien symbolique libellule.so -> libellule.so.2.
+# Ainsi un poste utilisateur simple n'est pas noyé de liens symboliques (inutiles puisque les exécutables sont liés en dur à la version suffixée .2).
+# L'inconvénient, quand on n'a pas le paquet dév d'installé, est qu'un $CC -lellule ne trouvera pas la biblio, et peut planter une construction (ex.: readline qui, ne trouvant pas -ltinfo, pourtant la biblio classique d'accès au terminal sous Linux, se rabat sur une biblio encore moins existante).
+# Nom de la fonction: biverre (BIbilothèque VERsionnée REcherchée) ou binocle (BIbliothèque NOn CLÉmente, parce que c'est vraiment pas sympa de se planquer comme ça); dans les deux cas on a besoin d'y voir plus clair.
+binocle()
+{
+	# Compliqué de savoir dans quels dossiers le chargeur dynamique va tenter!
+	# https://unix.stackexchange.com/a/308139/452410
+	# Le /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 / /lib/arm-linux-gnueabihf/ld-linux-armhf.so.3 étant un peu compliqué, on va se rabattre sur l'exploitation de l'approximant cache des biblios déjà chargées (qui se consulte sans avoir à se poser la question de l'archi, de l'ABI, et d'un numéro de version).
+	
+	# Bon si la biblio est trouvable telle quelle pas de souci.
+	! compilo_test_cc -l$1 || return 0
+	
+	# Sinon on cherche dans le cache tous les dossiers.
+	# À FAIRE: en cas de plusieurs résultats, il faudrait les classer pour que celui arrivant en premier dans le $LD_LIBRARY_PATH soit préféré aux autres.
+	local dossiers="$LD_LIBRARY_PATH:`ldconfig -p | tail -n +2 | grep -o '/.*/' | sort -u | tr '\012' :`" # À FAIRE: sous FreeBSD, un ldconfig -r | grep "search directories:" fait l'affaire. En plus ce sont les dossiers théoriques, pas seulement ceux déjà en cache.
+	local b
+	b="`IFS=: ; find $dossiers -maxdepth 1 -name "lib$1.so.[0-9]*" | tail -1`"
+	case "$b" in ?*)
+		vert "Trouvé $b pour -l$1" >&2
+		mkdir -p $TMP/$$/lib
+		ln -s "$b" $TMP/$$/lib/lib$1.so
+		export LDFLAGS="$LDFLAGS -L$TMP/$$/lib"
+		break
+	esac
+}
