@@ -128,7 +128,7 @@ do
 done
 
 echo Correction… >&2
-for modif in true $modifs ; do $modif ; done
+for modif in true $modifs ; do IFS=, ; tifs $modif ; done
 
 echo Configuration… >&2
 ./configure --prefix="$dest" $OPTIONS_CONF
