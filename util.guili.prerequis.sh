@@ -83,7 +83,8 @@ _prerequis()
 		exit 0
 	fi
 	
-	if pge $MODERNITE 7
+	# En modernité 7, à moins d'être dans une projection de prérequis théorique, la destination doit avoir été calculée avant. On alerte violemment si ce n'est pas le cas.
+	if pge $MODERNITE 7 && [ -z "$prerequisPour" ]
 	then
 		case "$dest" in "") rouge "# $logiciel: prerequis appelée avant destiner." >&2 ; exit 1 ;; esac
 	fi
