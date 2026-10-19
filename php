@@ -907,7 +907,7 @@ true || \
 # --enable-fileinfo=shared pour éviter de pénaliser de 7 Mo de mémoire chaque lancement de PHP, pour une fonction quasi inutilisée (et cf. https://bugs.php.net/bug.php?id=65106 2023-01-23 05:15 UTC); cf. https://bugs.php.net/bug.php?id=73046
 ./configure --prefix="$dest" \
 	--with-zlib \
-	--with-iconv \
+	--with-iconv="$desticonv" \
 	--enable-exif \
 	`pge $version 7.4 && printf %s --enable || printf %s --with`-gd \
 	--with-jpeg \
