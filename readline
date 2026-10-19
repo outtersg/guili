@@ -80,7 +80,7 @@ tinfoliee()
 		*+terminc[-+]*) avec=1 ;;
 		*+termsep[-+]*) avec= ;;
 		*)
-			for f in /lib/libreadline.so /usr/lib/libreadline.so /usr/local/lib/libreadline.so
+			for f in `find /lib/ /usr/lib/ /usr/local/lib/ -name "libreadline.so*"`
 			do
 				[ -e "$f" ] || continue
 				ldd "$f" 2> /dev/null | grep -q 'libtinfo\|libncurses' || continue
