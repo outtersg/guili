@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 5.0 && modifs="darwin8aussi asdc" || true
 v 5.2.14 || true
-v 6.1.2 && modifs=asdc || true
+v 6.1.2 && retirerModif darwin8aussi || true
 v 6.2.1 || true
 v 6.3.8 || true
 v 7.0.5 || true
