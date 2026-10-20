@@ -29,6 +29,7 @@ prerequis="python ninja meson pkgconf +-strict \\ ncurses fcft"
 v 1.25.0 && modifs="linuxInput" || true
 v 1.26.1 || true
 v 1.27.0 || true
+v 1.28.0 || true
 
 argOptions="`options "$argOptions=autoserver"`"
 ! option autoserver || modifs="$modifs autoserver"
