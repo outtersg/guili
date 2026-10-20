@@ -27,6 +27,45 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 1.9.0 && prerequis="make python pkgconfig \\ glib gobject-introspection" || true
 v 2.7.2 && remplacerPrerequis "glib >= 2.31.2" && modifs="putainDeLibJPEGDeMacOSX" || true
 
+predestiner="$predestiner preoutils"
+
+# Modifications
+
+preoutils()
+{
+	if pge $version 2.29.1
+	then
+		prerequis="meson ninja \\ $prerequis"
+		configurer="meson setup build --buildtype=release"
+		construire="ninja -C build"
+		installer="sudoku ninja -C build install"
+	else
+		# À FAIRE: le gettext à avoir dans la version des fichiers du projet. Ici pour une 2.28.1
+		prerequis="autoconf automake m4 libtool gettext >= 0.22 < 0.23 \\ $prerequis"
+		configurer=autoconfer
+		construire=make
+		installer="sudoku make install"
+		modifs="$modifs sansGtkDoc"
+	fi
+}
+
+autoconfer()
+{
+	[ -f configure ] || NOCONFIGURE=nono ./autogen.sh
+	./configure "$@"
+	# À FAIRE: le truc suivant demande d'appuyer sur la touche Entrée.
+	gettextize -f # Sans quoi "error: gettext infrastructure mismatch: using a Makefile.in.in from gettext version 0.19 but the autoconf macros are from gettext version 0.22"
+}
+
+sansGtkDoc()
+{
+	filtrer autogen.sh grep -v gtkdocize
+	filtrer configure.ac egrep -v 'docs/Makefile|GTK_DOC_CHECK'
+	[ ! -f configure ] || filtrer configure sed -e 's#docs/Makefile##g'
+	rm docs/Makefile.am
+	printf 'all:\n\ttrue\ninstall:\n\ttrue\n' > docs/Makefile
+}
+
 # Variables
 
 v_() { IFS=_ ; printf %s "$*" ; unset IFS ; }
@@ -42,12 +81,12 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+$configurer --prefix="$dest"
 
 echo Compilation… >&2
-make
+$construire
 
 echo Installation… >&2
-sudo make install
+$installer
 
 sutiliser
