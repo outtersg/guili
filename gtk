@@ -22,21 +22,23 @@
 
 set -e
 
-DelieS() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [^/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [^/]*) s="`pwd`/$s" ;; esac ; DelieS ; s="`dirname "$s"`" ; DelieS ; SCRIPTS="$s" ; } ; SCRIPTS
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
-
-inclure glib
-inclure libjpeg
-inclure libpng
-inclure libtiff
-
-logiciel=gtk+
 
 v 2.6.8 && prerequis="pkgconf+ig+-strict \\ glib libjpeg libpng libtiff atk >= 1.9 cairo pango+intro" || true
 v 2.24.13 && modifs="$modifs putainDeLibJPEGDeMacOSX" && remplacerPrerequis "atk >= 2.5.3" "gdk-pixbuf >= 2.26" "pango+intro >= 1.20 < 1.30" || true
 v 3.6.2 && remplacerPrerequis "pango+intro > 1.30" || true
 
+predestiner="$predestiner presortie"
+
+# Modifications
+
+presortie()
+{
 mac && optionsConf="--enable-quartz-backend --disable-x11-backend" || true
+}
+
+# Variables
 
 archive=ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/gtk+-$version.tar.bz2
 pge $version 2.11 && archive=ftp://ftp.gtk.org/pub/gtk/`vmaj $version`/gtk+-$version.tar.bz2 || true
