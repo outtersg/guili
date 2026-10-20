@@ -36,6 +36,7 @@ v 2.28.1 || true
 v 2.29.1 || true # Plus d'autoconf.
 v 2.32.0 || true
 v 2.35.1 || true
+v 2.38.0 || true
 
 predestiner="$predestiner preoutils"
 
@@ -79,6 +80,8 @@ sansGtkDoc()
 # Variables
 
 v_() { IFS=_ ; printf %s "$*" ; unset IFS ; }
+archive=https://gitlab.gnome.org/Archive/$logiciel/-/archive/$version/$logiciel-$version.tar.gz
+pge $version 2.38 ||
 archive=https://gitlab.gnome.org/Archive/atk/-/archive/ATK_`IFS=. ; v_ $version`/atk-ATK_`IFS=. ; v_ $version`.tar.gz
 
 destiner
