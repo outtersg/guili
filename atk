@@ -26,6 +26,16 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 1.9.0 && prerequis="make python pkgconfig \\ glib gobject-introspection" || true
 v 2.7.2 && remplacerPrerequis "glib >= 2.31.2" && modifs="putainDeLibJPEGDeMacOSX" || true
+v 2.13.3 || true
+v 2.15.4 || true
+v 2.22 || true
+v 2.24.0 || true
+v 2.25.2 || true # Introduction de meson, en plus d'autoconf.
+v 2.26.1 || true
+v 2.28.1 || true
+v 2.29.1 || true # Plus d'autoconf.
+v 2.32.0 || true
+v 2.35.1 || true
 
 predestiner="$predestiner preoutils"
 
