@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 2.6.8 && prerequis="pkgconf+ig+-strict \\ glib libjpeg libpng libtiff atk >= 1.9 cairo pango+intro" || true
 v 2.24.13 && modifs="$modifs putainDeLibJPEGDeMacOSX" && remplacerPrerequis "atk >= 2.5.3" "gdk-pixbuf >= 2.26" "pango+intro >= 1.20 < 1.30" || true
-v 3.6.2 && remplacerPrerequis "pango+intro > 1.30" || true
+v 3.6.2 && via="meson" && remplacerPrerequis "pango+intro > 1.30" || true
 
 predestiner="$predestiner preoutils presortie"
 
@@ -57,9 +57,7 @@ mac && optionsConf="--enable-quartz-backend --disable-x11-backend" || true
 
 # Variables
 
-archive=ftp://ftp.gtk.org/pub/gtk/v`vmaj $version`/gtk+-$version.tar.bz2
-pge $version 2.11 && archive=ftp://ftp.gtk.org/pub/gtk/`vmaj $version`/gtk+-$version.tar.bz2 || true
-pge $version 2.20 && archive=http://ftp.gnome.org/pub/gnome/sources/gtk+/`vmaj $version`/gtk+-$version.tar.xz || true
+archive=https://gitlab.gnome.org/GNOME/gtk/-/archive/$version/gtk-$version.tar.bz2
 
 destiner
 
