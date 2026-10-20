@@ -29,7 +29,7 @@ v 1.8.0 && prerequis="glib xft" || true
 # Et l'on recale un harfbuzz+glib tout à la fin pour être sûrs qu'il ne va pas en charger un autre lié par freetype+hb mais sans glib.
 v 1.29.3 && modifs="putainDeLibJPEGDeMacOSX" && prerequis="python pkgconfig \\ glib fontconfig >= 2.11 freetype+hb cairo >= 1.12 harfbuzz+glib" || true
 v 1.32.3 || true
-v 1.35.3 && modifs= || true
+v 1.35.3 && retirerModif putainDeLibJPEGDeMacOSX || true
 v 1.36.5 || true
 v 1.36.8 || true
 v 1.44.7 && prerequis="meson ninja \\ $prerequis" || true
