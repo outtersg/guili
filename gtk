@@ -29,9 +29,26 @@ v 2.6.8 && prerequis="pkgconf+ig+-strict \\ glib libjpeg libpng libtiff atk >= 1
 v 2.24.13 && modifs="$modifs putainDeLibJPEGDeMacOSX" && remplacerPrerequis "atk >= 2.5.3" "gdk-pixbuf >= 2.26" "pango+intro >= 1.20 < 1.30" || true
 v 3.6.2 && remplacerPrerequis "pango+intro > 1.30" || true
 
-predestiner="$predestiner presortie"
+predestiner="$predestiner preoutils presortie"
 
 # Modifications
+
+preoutils()
+{
+	case "$via" in
+		meson)
+			prerequis="meson ninja \\ $prerequis"
+			configurer="meson setup build --buildtype=release"
+			construire="ninja -C build"
+			installer="sudoku ninja -C build install"
+			;;
+		"")
+			configurer=./configure
+			construire=make
+			installer="sudoku make install"
+			;;
+	esac
+}
 
 presortie()
 {
@@ -54,12 +71,12 @@ echo Correction… >&2
 for modif in true $modifs ; do $modif ; done
 
 echo Configuration… >&2
-./configure --prefix="$dest" $optionsConf  # Attention à ce que le LDFLAGS soit bien défini: sans, -L/usr/X11R6/lib passe en premier, avec une fontconfig obsolète et incompatible avec celle d'/usr/local (FcObjectStaticName pas utilisée, donc les comparaisons de chaînes merdent).
+$configurer --prefix="$dest" $optionsConf  # Attention à ce que le LDFLAGS soit bien défini: sans, -L/usr/X11R6/lib passe en premier, avec une fontconfig obsolète et incompatible avec celle d'/usr/local (FcObjectStaticName pas utilisée, donc les comparaisons de chaînes merdent).
 
 echo Compilation… >&2
-make
+$construire
 
 echo Installation… >&2
-sudo make install
+$installer
 
 sutiliser
