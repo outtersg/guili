@@ -27,8 +27,10 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 1.9.0 && prerequis="make python pkgconfig \\ glib gobject-introspection" || true
 v 2.7.2 && remplacerPrerequis "glib >= 2.31.2" && modifs="putainDeLibJPEGDeMacOSX" || true
 
-archive=ftp://ftp.gtk.org/pub/gtk/v2.6/$logiciel-$version.tar.bz2
-pge $version 2 && archive="http://ftp.acc.umu.se/pub/gnome/sources/$logiciel/`vmaj $version`/$logiciel-$version.tar.xz"
+# Variables
+
+v_() { IFS=_ ; printf %s "$*" ; unset IFS ; }
+archive=https://gitlab.gnome.org/Archive/atk/-/archive/ATK_`IFS=. ; v_ $version`/atk-ATK_`IFS=. ; v_ $version`.tar.gz
 
 destiner
 
