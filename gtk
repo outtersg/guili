@@ -33,8 +33,8 @@ inclure libtiff
 logiciel=gtk+
 
 v 2.6.8 && prerequis="pkgconfig \\ glib libjpeg libpng libtiff atk >= 1.9 pango"|| true
-v 2.24.13 && modifs="putainDeLibJPEGDeMacOSX" && prerequis="pkgconfig \\ glib libjpeg libpng libtiff atk >= 2.5.3 gdk-pixbuf >= 2.26 pango >= 1.20 < 1.30" || true
-v 3.6.2 && modifs="putainDeLibJPEGDeMacOSX" && prerequis="pkgconfig \\ glib libjpeg libpng libtiff atk >= 2.5.3 gdk-pixbuf >= 2.26 pango > 1.30" || true
+v 2.24.13 && modifs="$modifs putainDeLibJPEGDeMacOSX" && remplacerPrerequis "atk >= 2.5.3" "gdk-pixbuf >= 2.26" "pango >= 1.20 < 1.30" || true
+v 3.6.2 && remplacerPrerequis "pango > 1.30" || true
 
 mac && optionsConf="--enable-quartz-backend --disable-x11-backend" || true
 
