@@ -306,7 +306,7 @@ estUnLOV()
 	if [ "x$1" = x-v ] ; then shift ; verbeux=1 ; fi
 	eval 'v="$'$#'"'
 	case "$v" in
-		*[^.0-9]*|.*|*.)
+		*[!.0-9]*|.*|*.)
 			[ -z "$verbeux" ] || ( IFS=- ; echo "\"$*\" n'est pas un logiciel(+option)*-version." ) >&2
 			return 1
 			;;
