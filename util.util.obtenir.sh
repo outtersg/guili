@@ -110,8 +110,8 @@ listeZip()
 
 nomArchive()
 {
-	echo "$1" | sed \
-		-e 's#\([^/]*\)\(/archive/refs/tags/\)v*\([0-9][^/]*\)$#\1\2\1-\3#'
+	echo "$1" | sed -E \
+		-e 's#([^/]*)(/archive/refs/tags/)(v|release-?)*([0-9][^/]*)$#\1\2\1-\4#'
 }
 
 # Téléchargege $1 et va dans le dossier obtenu en décompressant.
