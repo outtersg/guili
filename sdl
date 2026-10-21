@@ -21,27 +21,21 @@
 
 set -e
 
-absolutiseScripts() { SCRIPTS="$1" ; echo "$SCRIPTS" | grep -q ^/ || SCRIPTS="`dirname "$2"`/$SCRIPTS" ; } ; absolutiseScripts "`command -v "$0"`" "`pwd`/." ; while [ -h "$SCRIPTS" ] ; do absolutiseScripts "`readlink "$SCRIPTS"`" "$SCRIPTS" ; done ; SCRIPTS="`dirname "$SCRIPTS"`"
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel=sdl
 logiciel_maj="`echo $logiciel | tr '[a-z]' '[A-Z]'`"
 
-version=1.2.8
+v 1.2.8 && modifs="dyld105" || true
+v 1.2.14 || true
 
-version=1.2.14
-modifs="dyld105"
+# Modifications
 
-dest="$INSTALLS/$logiciel-$version"
+# Variables
+
 archive=http://www.libsdl.org/release/$logiciel_maj-$version.tar.gz
 
-[ -d "$dest" ] && exit 0
-
-echo Obtention et décompression… >&2
-obtenirEtAllerDansVersion
-
-echo Correction… >&2
-for modif in compil3264 $modifs ; do $modif "$@" ; done
+DPOM
 
 echo Configuration… >&2
 ./configure --prefix="$dest"
@@ -52,6 +46,5 @@ for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
 sudo make install
-sutiliser "$logiciel-$version"
 
-rm -Rf "$TMP/$$"
+sutiliser
