@@ -46,8 +46,11 @@ GUILI_F_VERSION=".guili.version"
 #   Pour cela, un mécanisme de liens symboliques (calculés la première fois) permettrait de faire pointer sur le bon logiciel; ainsi .guili/curl<params d'invocation>-<version> pointerait sur ../curl<params calculés>-<version>
 DPOM()
 {
-	echo "# DOP pas implémenté." >&2
-	return 1
+	destiner
+	prerequis
+	obtenirEtAllerDansVersion
+	echo Corrections… >&2
+	for modif in true $modifs ; do IFS=, ; tifs $modif ; done
 }
 
 destiner()
