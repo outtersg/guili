@@ -29,10 +29,38 @@ v 2.6.8 && prerequis="pkgconf+ig+-strict \\ glib libjpeg libpng libtiff atk >= 1
 v 2.24.13 && modifs="$modifs putainDeLibJPEGDeMacOSX" && remplacerPrerequis "atk >= 2.5.3" "gdk-pixbuf >= 2.26" "pango+intro >= 1.20 < 1.30" || true
 v 3.6.2 && via="meson" && remplacerPrerequis "pango+intro > 1.30" || true
 v 3.24.52 || true
+v 4.0.0 && modifs="$modifs sigsetjmpPointeur testDmaBuf" && prerequis="$prerequis glslc" || true
+v 4.22.5 || true
+v 4.24.1 || true
 
 predestiner="$predestiner preoutils presortie"
 
 # Modifications
+
+testDmaBuf()
+{
+	# Sur mon FreeBSD, le test colorstate.c entoure étrangement les tests accédant à dmabuf (une spécificité Linux) de #ifdef HAVE_DRM_FOURCC_H
+	
+	filtrer testsuite/gdk/colorstate.c sed -e 's/HAVE_DRM_FOURCC_H/HAVE_DMABUF/g'
+}
+
+sigsetjmpPointeur()
+{
+	# Est-ce mon clang 23 qui devient tatillon? En tout cas:
+	#   error: incompatible pointer types passing 'jmp_buf' (aka 'struct _jmp_buf[1]') to parameter of type 'struct _sigjmp_buf *' [-Wincompatible-pointer-types]
+	# Bon ça ne date pas d'hier:
+	#   https://lists.freebsd.org/pipermail/freebsd-pkg-fallout/Week-of-Mon-20161010/335201.html
+	#   https://gist.github.com/rbmarliere/1272e31b5c3699d82fa778de8990e74e
+	#   https://lists.freebsd.org/pipermail/freebsd-pkg-fallout/20201003/1568863.html
+	# De /usr/include/x86/setjmp.h:
+	#   jmp_buf and sigjmp_buf are encapsulated in different structs to force compile-time diagnostics for mismatches.
+	#   The structs are the same internally to avoid some run-time errors for mismatches.
+	
+	if compilable_c -v -- '#include <libpng16/png.h>' 'int main(int argc, char ** argv) { return sigsetjmp(png_jmpbuf(NULL), 1); }' > $TMP/$$/malcompile 2>&1 ; then return ; fi
+	grep -q Wincompatible-pointer-types < $TMP/$$/malcompile || return 0
+	
+	filtrer gdk/loaders/gdkpng.c sed -e '/sigsetjmp/s/png_jmpbuf *([^)]*)/(struct _sigjmp_buf *)\&(&)[0]/g'
+}
 
 preoutils()
 {
