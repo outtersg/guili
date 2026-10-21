@@ -24,8 +24,6 @@ set -e
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-logiciel_maj="`echo $logiciel | tr '[a-z]' '[A-Z]'`"
-
 v 1.2.8 && modifs="dyld105" || true
 v 1.2.14 || true
 
@@ -33,7 +31,9 @@ v 1.2.14 || true
 
 # Variables
 
-archive=http://www.libsdl.org/release/$logiciel_maj-$version.tar.gz
+vmaj() { unset IFS ; case "$1" in [01]) true ;; *) printf %s "$1" ;; esac ; }
+archive=http://www.libsdl.org/release/SDL`IFS=. ; vmaj $version`-$version.tar.gz
+#archive=https://github.com/libsdl-org/SDL/archive/refs/tags/release-$version.tar.gz # Seulement à partir de la 2.
 
 DPOM
 
