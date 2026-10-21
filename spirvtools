@@ -27,6 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 # Historique des versions gérées
 
 v 2026.3 && prerequis="cmake \\ spirvheaders" || true
+v 2026.4 || true
 
 archive="https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/v$version.tar.gz"
 
