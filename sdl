@@ -27,7 +27,31 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 1.2.8 && modifs="dyld105" || true
 v 1.2.14 || true
 
+predestiner="$predestiner preoutils"
+
 # Modifications
+
+preoutils()
+{
+	case "$via" in
+		cmake)
+			prerequis="cmake \\ $prerequis"
+			configurer=configurerCMake
+			construire="make -C build"
+			installer="sudoku make -C build install"
+			;;
+		"")
+			configurer=./configure
+			construire=make
+			installer="sudoku make install"
+			;;
+	esac
+}
+
+configurerCMake()
+{
+	cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$dest" $OPTIONS_CMAKE
+}
 
 # Variables
 
@@ -38,13 +62,13 @@ archive=http://www.libsdl.org/release/SDL`IFS=. ; vmaj $version`-$version.tar.gz
 DPOM
 
 echo Configuration… >&2
-./configure --prefix="$dest"
+$configurer --prefix="$dest"
 
 echo Compilation… >&2
-make
+$construire
 for modif in true $modifspostcompil ; do $modif "$@" ; done
 
 echo Installation… >&2
-sudo make install
+$installer
 
 sutiliser
