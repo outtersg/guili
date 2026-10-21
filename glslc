@@ -1,0 +1,76 @@
+#!/bin/sh
+# Copyright (c) 2005 Guillaume Outters
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+set -e
+
+Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
+. "$SCRIPTS/util.sh"
+
+# Connue aussi sous le nom de shaderc.
+
+prerequis="cmake \\ spirvheaders spirvtools glslang"
+modifs="autonome"
+v 2026.4 || true
+
+# Les tests reposent sur GUnit, une biblio qui semble mal branlée donc on s'en passera pour le moment.
+OPTIONS_CMAKE="$OPTIONS_CMAKE -DSHADERC_SKIP_TESTS=TRUE -DSHADERC_SKIP_EXAMPLES=TRUE"
+
+# Modifications
+
+autonome()
+{
+	# third_party contient SPIRV-Tools, glslang, que nous préférons aller chercher en prérequis GuiLI.
+	# D'autant qu'ils requièrent les sous-dossiers source correspondants, mais ne les fournissent pas: c'est à nous d'aller les remplir…
+	
+	filtrer CMakeLists.txt grep -v third_party
+	# Et évidemment ils ne sont pas fichus d'aller chercher le $CMAKE_INCLUDE_PATH, donc il faut leur faire croire que nos dossiers d'include installés sont les sources des machins qu'ils s'imaginaient déposés à leurs pieds (cf. par ex. le build/glslc/CMakeFiles/glslc_exe.dir/flags.make résulant, où leur CXX_INCLUDES ne contient rien de $CMAKE_INCLUDE_PATH).
+	# Sauf qu'une fois installés, on a un include qui contient glslang, qui contient toute la surcouche glslang + un sous-dossier SPIRV; tandis qu'en sources, SPIRV est au même niveau qu'include.
+	# Ah et puis on y fourre tout, puisque, bien que certains des CMakeLists.txt fassent référence à spirv-tools_SOURCE_DIR, il n'est pas utilisé partout (si ce n'est à l'étape "Update build-version.inc in the Shaderc build directory", mais bon c'est pour lire le CHANGES), donc on doit passer par glslang_SOURCE_DIR qui lui est surexploité.
+	mkdir -p $TMP/$$/glslanginc
+	ln -s $destglslang/include/glslang/* $TMP/$$/glslanginc/
+	ln -s . $TMP/$$/glslanginc/glslang
+	ln -s $destspirvtools/include/* $TMP/$$/glslanginc/
+	# Il a besoin de récupérer la version (et la date) de SPIRV-Tools. On émule la date par celle de compil (qui n'est pas celle de publication, mais moi je m'en fiche)."
+	# À FAIRE?: spirvtools +changes, qui installe son CHANGES dans les include?
+	{
+		echo "Revision history for SPIRV-Tools"
+		echo
+		echo "v$version_spirvtools `spirv-cfg --version | sed -E -e '/.*(20..-..-..).*/!d' -e 's//\1/'`"
+	} > $TMP/$$/CHANGES
+	OPTIONS_CMAKE="$OPTIONS_CMAKE -Dglslang_SOURCE_DIR=$TMP/$$/glslanginc -DSPIRV-Headers_SOURCE_DIR=$destspirvheaders -Dspirv-tools_SOURCE_DIR=$TMP/$$"
+}
+
+# Variables
+
+archive=https://github.com/google/shaderc/archive/refs/tags/v$version.tar.gz
+
+DPOM
+
+echo Configuration… >&2
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$dest" $OPTIONS_CMAKE
+
+echo Compilation… >&2
+make -C build
+
+echo Installation… >&2
+sudoku make -C build install
+
+sutiliser
