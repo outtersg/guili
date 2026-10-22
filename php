@@ -135,6 +135,7 @@ v 7.4.29 || true
 v 7.4.30 || true
 v 7.4.32 || true
 v 7.4.33 || true
+v 7.4.33.20261021 && modifs="$modifs CVE_2026_109618" || true
 # Pour compiler la master:
 #v 7.5 && prerequis="re2c \\ $prerequis oniguruma" && OPTIONS_CONF="$OPTIONS_CONF --enable-maintainer-zts --enable-debug" || true
 v 8.0.1 && remplacerPrerequis "openssl < 4" "curl+osslxx" "postgresql+osslxx" "icu >= 60" libxml || true
@@ -188,7 +189,7 @@ v 8.1.31 || true
 v 8.1.32 || true
 v 8.1.33 || true
 v 8.1.34 || true
-v 8.2.1 && virerPrerequis "langcxx()" && prerequis="langcxx(17) \\ $prerequis" && modifs="$modifs atomicconst pglazyfetch" || true
+v 8.2.1 && retirerModif CVE_2026_109618 && virerPrerequis "langcxx()" && prerequis="langcxx(17) \\ $prerequis" && modifs="$modifs atomicconst pglazyfetch" || true
 v 8.2.3 || true
 v 8.2.4 || true
 v 8.2.6 || true
@@ -348,6 +349,11 @@ args_reduc_u()
 flagsUniques
 
 # Modifs
+
+CVE_2026_109618()
+{
+	patch -p1 < "`obtenir "https://github.com/php/php-src/compare/master...PHP-7.4-CVE-2026-109618-109619.diff"`"
+}
 
 zendNsNameEspace()
 {
