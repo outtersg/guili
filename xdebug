@@ -28,6 +28,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 analyserParametresPour --pour php "$@"
 
+# Curieux, analyserParametresPour n'a pas modifié le $PATH et le $LD_LIBRARY_PATH? Est-ce le passage en Delibere()? À investiguer… En attendant on joue à la main.
+export PATH="$destphp/bin:$PATH"
+
 # https://xdebug.org/docs/compat
 # /!\ Parfois en contradiction avec https://github.com/xdebug/xdebug.org/blob/master/src/XdebugVersion.php; on met en commentaire la version max proposée par ce dernier.
 case `php-config --version | cut -d . -f 1-2` in

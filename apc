@@ -27,6 +27,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 analyserParametresPour --pour php "$@"
 
+# Curieux, analyserParametresPour n'a pas modifié le $PATH et le $LD_LIBRARY_PATH? Est-ce le passage en Delibere()? À investiguer… En attendant on joue à la main.
+export PATH="$destphp/bin:$PATH"
+
 # https://pecl.php.net/package-changelog.php?package=APCu: rechercher la dernière mention à "compatibility with PHP x.x".
 v_zoc=
 case `php-config --version | cut -d . -f 1-2` in
