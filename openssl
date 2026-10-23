@@ -139,6 +139,7 @@ v 4.0.0 || true
 v 4.0.1 || true
 v 4.0.2 || true
 v 4.0.3 || true
+v 4.1.0 || true
 
 # OpenSSL ne supporte pas la compilation 2 en 1, car ses chemins de compil' sont dissociés entre 32 et 64 bits.
 # Si on le lance avec le marcherAccelere() par défaut (comipiler les 2 versions en 1 passe, avec -arch x86_64 -arch i386),
