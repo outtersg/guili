@@ -47,6 +47,7 @@ v 1.25.10 && modifs="$modifs SecTrustCopyCertificateChain" || true
 v 1.25.11 || true
 v 1.26.3 || true
 v 1.26.4 || true
+v 1.27.4 || true
 
 predestiner="$predestiner prerequisGo"
 
