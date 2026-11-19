@@ -114,6 +114,7 @@ v 23.1.2 || true
 v 23.1.3 || true
 v 23.1.3 || true
 v 23.1.4 || true
+v 23.1.6 || true
 # Une des prochaines versions devrait pouvoir se passer de threadAtExit.
 
 modifs="$modifsDyn $modifs"
