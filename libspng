@@ -26,9 +26,18 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 0.7.4 && prerequis="cmake \\" && modifs="$modifs spng_pc" || true
+v 0.7.4 && prerequis="cmake \\" && modifs="$modifs spng_pc cmake_find_dep" || true
 
 # Modifications
+
+cmake_find_dep()
+{
+	# find_dependency était peut-être une macro standard en cmake 3, mais ce n'est plus le cas (en 3.9 ils signalent qu'elle est désormais passe-plat vers find_package).
+	# En regardant les autres paquets qui continuent à l'utiliser, on trouve ceci en début de fichier:
+	filtrer cmake/Config.cmake.in sed -e '1i\
+include(CMakeFindDependencyMacro)
+'
+}
 
 spng_pc()
 {
