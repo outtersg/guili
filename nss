@@ -45,6 +45,8 @@ v 3.126.1 || true
 v 3.127 || true
 v 3.128 || true
 v 3.130 || true
+v 3.133 || true
+v 3.134 && retirerModif setbutunused || true
 
 prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
 
