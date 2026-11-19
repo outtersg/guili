@@ -39,6 +39,7 @@ v 14.1.5 || true
 v 15.1.0 || true
 v 15.1.1 || true
 v 16.0.0 || true
+v 16.1.1 || true
 
 # À FAIRE: ne trouve pas gdk, gdk_pixbuf, gtk, pangocairo, webp, gv_php, gv_python3: les passer en optionSi?
 
