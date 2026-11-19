@@ -36,6 +36,7 @@ v 1.16.0 && retirerModif gnu89 || true
 v 1.17.4 || true
 v 1.18.2 && prerequis="meson ninja \\ $prerequis" || true
 v 1.18.4 || true
+v 1.18.6 || true
 
 gnu89()
 {
