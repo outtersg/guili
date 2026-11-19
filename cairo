@@ -27,7 +27,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 v 1.12.8 && prerequis="pkgconfig \\ pixman >= 0.22 glib libpng" && modifs="gnu89" || true
 v 1.12.14 && prerequis="pkgconfig \\ pixman >= 0.30 glib libpng" || true
 v 1.12.16 || true
-v 1.12.18 && modifs="gnu89 strndup" || true
+v 1.12.18 && modifs="$modifs strndup" || true
 v 1.14.6 || true
 v 1.14.8 && prerequis="$prerequis harfbuzz freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
 #v 1.15.2 || true # Lien cassé?
