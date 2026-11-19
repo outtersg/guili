@@ -26,7 +26,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib dbsys monsqlite setbutunused" || true
+v 3.29.3 && v_nspr="4.13.1" && modifs="pasGcc unistd alertesZlib dbsys monsqlite setbutunused compatGcc16" || true
 v 3.40.1 && v_nspr="4.20" && modifs="$modifs nonInitialisees putenv le64" || true
 v 3.42.1 || true
 v 3.52.1 && v_nspr="4.25" || true
@@ -49,10 +49,34 @@ v 3.133 || true
 v 3.134 && retirerModif setbutunused || true
 
 prerequis="make \\ $prerequis zlib nspr $v_nspr sqlite"
+#prerequis="compiloSysVersion(gcc) gcc $prerequis" # Forçage gcc sur FreeBSD.
 
 # À FAIRE?: NSS gérant elle-même la double archi, il faut probablement désactiver le multiarch qui s'immisce dans les $predestiner
 
 # Modifications
+
+compatGcc16()
+{
+	# Quelques modifs nécessaires pour compiler NSS avec un GCC récent qui est impardonnable.
+	# L'idée est évidemment qu'un NSS récent (3.134 dans mon cas) compile avec un GCC récent (16 chez moi),
+	# mais tant qu'à faire on essaie de retrouver jusqu'où on peut remonter avec un GCC récent sur une NSS ancienne: d'où les mentions de version minimale ci-dessous.
+	
+	# N.B.: tests
+	# Pour tester avec gcc sur un système qui l'a sans que ça soit son compilo principal (ex.: FreeBSD dont compiloSysVersion choisira en priorité clang):
+	# décommenter les "Forçage gcc sur FreeBSD".
+	# - en tête de prerequis= : ajouter:
+	#   compiloSysVersion(gcc) gcc
+	# - dans pasGcc() tant qu'elle a encore son appel à meilleurCompilo: ajouter après celui-ci un:
+	#   compiloSysVersion gcc
+	
+	# Repéré au moins des versions 3.42 (avant même NSPR ne compile plus) à 3.134:
+	# gcc -Werror=stringop-overflow= a l'impression qu'on écrit au 16ème octet de 16.
+	# On le rassure en bornant de façon plus explicite sa boucle.
+	filtrer lib/softoken/pkcs11c.c sed -e 's/i < context->blockSize/& \&\& i < sizeof(context->padBuf)/g'
+	
+	# À FAIRE?: pour les versions plus anciennes: il va falloir du -Wno-error=unused-but-set-variable= -Wno-error=maybe-uninitialized (par exemple dans pasGcc).
+	# Peut-être le coller ici?
+}
 
 setbutunused()
 {
@@ -294,7 +318,10 @@ c\
 
 pasGcc()
 {
+	# À FAIRE: virer meilleurCompilo; en théorie, avec une modernité suffisamment avancée, le compilo est déjà calculé à ce stade.
 	meilleurCompilo
+	#compiloSysVersion gcc # Forçage gcc sur FreeBSD.
+	#CC="$CC -Wno-error=unused-but-set-variable= -Wno-error=maybe-uninitialized" # Pour compiler avec un GCC récent sur de très vieilles versions.
 	filtrer coreconf/`uname`.mk sed -e "s#gcc#$CC#g" -e "s#g++#$CXX#g"
 }
 
