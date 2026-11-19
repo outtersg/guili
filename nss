@@ -32,12 +32,14 @@ v 3.42.1 || true
 v 3.52.1 && v_nspr="4.25" || true
 v 3.53 && modifs="$modifs Iutil" || true
 v 3.70 && prerequis="perl \\ $prerequis" && v_nspr=4.32 || true
+v 3.90.7 || true
 v 3.99 && v_nspr=4.35 || true
 v 3.107 && v_nspr=4.36 || true
 v 3.109 && v_nspr=4.36 || true
 v 3.114 && v_nspr=4.37 || true
 v 3.120 && v_nspr=4.38.2 || true
 v 3.125 || true
+v 3.125.1 || true
 v 3.126 || true
 v 3.126.1 || true
 v 3.127 || true
