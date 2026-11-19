@@ -31,7 +31,8 @@ v 1.12.18 && modifs="gnu89 strndup" || true
 v 1.14.6 || true
 v 1.14.8 && prerequis="$prerequis harfbuzz freetype fontconfig" || true # freetype pour éviter le "use of undeclared identifier 'cairo_ft_font_face_create_for_pattern'".
 #v 1.15.2 || true # Lien cassé?
-v 1.16.0 || true
+# gnu89 fait plus de mal que de bien, mais à partir de quelle version? Mettons la 1.16, à affiner.
+v 1.16.0 && retirerModif gnu89 || true
 v 1.17.4 || true
 v 1.18.2 && prerequis="meson ninja \\ $prerequis" || true
 v 1.18.4 || true
