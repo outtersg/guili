@@ -408,4 +408,5 @@ install
 # A priori toutes les distribs (Linux, Homebrew pour sûr) zappent les statiques. Faisons la même chose.
 sudoku sh -c "cd \"$dest/lib\" && mkdir -p nss && mv *.a nss/"
 
+case `pwd` in */nss) cd .. ;; esac
 sutiliser
