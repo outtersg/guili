@@ -26,7 +26,7 @@ FNR == 1 {
 		if(fs[ps[p]] && !deja[ps[p]])
 		{
 			deja[ps[p]] = 1;
-			print ps[p]" -> "f;
+			print ps[p]" -> "f";";
 		}
 }
 END {
