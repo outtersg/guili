@@ -24,7 +24,9 @@ set -e
 Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2" in [!/]*) s2="`dirname "$s"`/$s2" ;; esac ; s="$s2" ; done ; } ; SCRIPTS() { local s="`command -v "$0"`" ; [ -x "$s" -o ! -x "$0" ] || s="$0" ; case "$s" in */bin/*sh) case "`basename "$s"`" in *.*) true ;; *sh) s="$1" ;; esac ;; esac ; case "$s" in [!/]*) local d="`dirname "$s"`" ; s="`cd "$d" ; pwd`/`basename "$s"`" ;; esac ; Delibere ; s="`dirname "$s"`" ; Delibere ; SCRIPTS="$s" ; } ; SCRIPTS
 . "$SCRIPTS/util.sh"
 
-v 1.12.8 && prerequis="pkgconfig \\ pixman >= 0.22 glib libpng" && modifs="gnu89" || true
+# pkgconf pas trop strict sans quoi il ne détectera pas un X11 système.
+# À FAIRE?: uniquement sur les systèmes où on veut un lien à X11?
+v 1.12.8 && prerequis="pkgconf+ig+-strict \\ pixman >= 0.22 glib libpng" && modifs="gnu89" || true
 v 1.12.14 && remplacerPrerequis "pixman >= 0.30" || true
 v 1.12.16 || true
 v 1.12.18 && modifs="$modifs strndup" || true
