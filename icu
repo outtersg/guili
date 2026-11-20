@@ -49,6 +49,7 @@ v 76.1 || true
 v 77.1 || true
 v 78.2 && modifs="$modifs gen78" || true
 v 78.3 || true
+v 79.1 && retirerModif gen78 || true
 
 versiong="`echo "$version" | tr . _`"
 versiont="`echo "$version" | tr . -`"
