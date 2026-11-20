@@ -67,6 +67,18 @@ option qt && versions "qt >= 6 < 7" | grep -q . || OPTIONS_CMAKE="$OPTIONS_CMAKE
 
 # Modifications
 
+sansLAideDeCppFlags()
+{
+	# Le CMake a de quoi transmettre $CFLAGS et $CXXFLAGS, mais pas $CPPFLAGS ni $CMAKE_INCLUDE_PATH.
+	# L'oubli ne se voyait pas immédiatement, parce qu'une bonne partie des paquets est fouinée via CMake et pkgconfig,
+	# mais je m'en suis rendu compte au moment d'intégrer harfbuzz:
+	# le source poppler #include <harfbuzz/hb.h>
+	# mais le harfbuzz.pc définit Cflags à …/include/harfbuzz
+	# donc avec uniquement ceux-là il cherchait un fichier …/include/harfbuzz/harfbuzz/hb.h qui n'existe pas.
+	true
+	# Implémenté au moment de l'appel à cmake (Configurer).
+}
+
 chartrait()
 {
 	# L'obsolétisation forcée des basic_string<autre_chose_que_du_caractère> par clang a laissé sur le carreau pas mal de monde, qui ont mis un peu de temps à se relever. Poppler en fait partie.
@@ -163,7 +175,13 @@ if pge $version 0.60 # Quelle version exactement? > 0.52 < 0.72
 then
 	mkdir -p build
 	cd build
-	cmake -DCMAKE_INSTALL_PREFIX="$dest" $OPTIONS_CMAKE ..
+	# Cf. sansLAideDeCppFlags() pour CMAKE_C*_FLAGS.
+	cmake \
+		-DCMAKE_INSTALL_PREFIX="$dest" \
+		-DCMAKE_C_FLAGS="$CPPFLAGS $CFLAGS" \
+		-DCMAKE_CXX_FLAGS="$CPPFLAGS $CXXFLAGS" \
+		$OPTIONS_CMAKE \
+		..
 else
 	./configure --prefix="$dest" $OPTIONS_CONF
 fi
