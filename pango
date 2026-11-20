@@ -52,7 +52,7 @@ setbutnotused()
 	# À FAIRE: probablement un #ifdef plutôt que de les virer salement.
 	
 	filtrer tests/testboundaries.c sed -e '/return g_test_run/i\
-if(g_test_verbose()) fprintf(stderr, "%d %d %d %p %p\n", offset, line, current_wc, line_start, line_end);
+if(g_test_verbose()) fprintf(stderr, "%d %d %d %p %p\\n", offset, line, current_wc, line_start, line_end);
 '
 }
 
