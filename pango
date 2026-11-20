@@ -34,7 +34,7 @@ v 1.36.5 || true
 v 1.36.8 || true
 v 1.44.7 && prerequis="meson ninja \\ $prerequis" || true
 v 1.49.1 && prerequis="$prerequis fribidi" || true
-v 1.50.12 && remplacerPrerequis "fontconfig >= 2.13" || true
+v 1.50.12 && remplacerPrerequis "fontconfig >= 2.13" || true # À FAIRE: sur celle-là un -Werror=array-bounds qui pète, à retirer du meson.build; une des versions suivantes s'en est débarrassé.
 v 1.56.3 && remplacerPrerequis "fontconfig >= 2.15" "cairo >= 1.18" || true
 v 1.56.4 || true
 v 1.57.0 || true
