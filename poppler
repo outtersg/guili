@@ -115,8 +115,6 @@ nssVisible()
 	if true
 	then
 		export CPPFLAGS="-I$destnss/include/nss $CPPFLAGS"
-		export CXXFLAGS="-I$destnss/include/nss $CXXFLAGS"
-		export CFLAGS="-I$destnss/include/nss $CFLAGS"
 	else
 	filtrer poppler/SignatureHandler.h sed -E -e '/<(cert|cms|cryptohi|sec[a-z]*)\.h>/s#<#<nss//#'
 	fi
