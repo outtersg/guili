@@ -1,0 +1,34 @@
+#!/usr/bin/awk -f
+# Ex.:
+#   ./deps ./harfbuzz ./libopenjp2  ./libjpegturbo ./libspng  ./nspr   ./postgresql    ./fribidi  ./poppler  ./pango  ./flex  ./graphviz  ./cairo > /tmp/1.dot && dot /tmp/1.dot -Tsvg > /tmp/1.svg && firefox /tmp/1.svg
+
+BEGIN {
+	print "digraph";
+	print "{";
+	for(i = 0; ++i < ARGC;)
+	{
+		f = ARGV[i];
+		sub(/.*\//, "", f);
+		fs[f] = 1;
+		print f";";
+	}
+}
+FNR == 1 {
+	f = FILENAME;
+	sub(/.*\//, "", f);
+	delete deja;
+}
+/prerequis=/ {
+	sub(/.*prerequis="/, "");
+	sub(/".*/, "");
+	split($0, ps, /[ +]+/);
+	for(p in ps)
+		if(fs[ps[p]] && !deja[ps[p]])
+		{
+			deja[ps[p]] = 1;
+			print ps[p]" -> "f;
+		}
+}
+END {
+	print "}";
+}
