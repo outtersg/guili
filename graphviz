@@ -33,7 +33,7 @@ v 2.38.0 && modifs="sfFlags gnu89 sansps2pdf uli" || true
 v 2.40.1 || true
 v 2.44.0 || true
 v 2.44.1 || true
-v 7.1.0 && prerequis="autoconf automake m4 libtool bison python >= 3 \\ $prerequis" || true
+v 7.1.0 && retirerModif gnu89 && modifs="$modifs reflex" && prerequis="autoconf automake m4 libtool flex bison python >= 3 \\ $prerequis" || true
 v 14.1.1 || true
 v 14.1.5 || true
 v 15.1.0 || true
@@ -49,6 +49,30 @@ optionSi fontconfig || true
 optionSi gdkpb/gdk-pixbuf || true
 
 # Modifications
+
+reflex()
+{
+	# Les versions de flex que j'ai réussi à obtenir ne génèrent plus les #define YY_EXTRA_TYPE etc. correspondant aux options.
+	# Ça me chagrine bien (cf. mesa, postgresql, graphviz),
+	# le fichier généré a presque ce qu'il faut (un M4_MODE_EXTRA_TYPE qui correspond à ce qu'on cherche),
+	# mais en attendant je n'ai rien de mieux que de transcrire.
+	
+	for f in \
+		lib/cgraph/scan.l
+	do
+		# On prélève l'%option extra-type pour la recaler en #define YY_EXTRA_TYPE juste avant la fin du premier bloc pur C.
+		filtrer "$f" awk \
+		'
+			{ print; }
+			/^%{/ { print retention; retention = ""; }
+			/%option extra-type/ {
+				leType = $0;
+				gsub(/^[^"]*"|".*/, "", leType);
+				retention = retention"\n#define YY_EXTRA_TYPE "leType;
+			}
+		'
+	done
+}
 
 uli()
 {
