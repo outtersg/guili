@@ -28,6 +28,8 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 v 1.0.10 && prerequis="make autoconf automake m4 libtool pkgconfig \\" && modifs="autoc" || true
 v 1.0.16 || true
+v 1.0.17 && modifs="$modifs sansDoc" || true
+v 1.0.18 || true
 
 # Modifications
 
@@ -35,6 +37,13 @@ configure=./configure
 autoc()
 {
 	[ -f configure ] || { filtrer autogen.sh sed -e 's/which/command -v/g' && configure=./autogen.sh ; }
+}
+
+sansDoc()
+{
+	# Je ne veux pas à avoir à installer un help2man.
+	# À FAIRE: la version meson se fait simplement grâce à une option docs à passer à false.
+	filtrer bin/Makefile.am sed -e '/^dist_man_MANS *=/s/=.*/=/'
 }
 
 # Variables
