@@ -25,7 +25,7 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 . "$SCRIPTS/util.sh"
 
 v 1.12.8 && prerequis="pkgconfig \\ pixman >= 0.22 glib libpng" && modifs="gnu89" || true
-v 1.12.14 && prerequis="pkgconfig \\ pixman >= 0.30 glib libpng" || true
+v 1.12.14 && remplacerPrerequis "pixman >= 0.30" || true
 v 1.12.16 || true
 v 1.12.18 && modifs="$modifs strndup" || true
 v 1.14.6 || true
