@@ -26,9 +26,9 @@ Delibere() { local s2 ; while [ -h "$s" ] ; do s2="`readlink "$s"`" ; case "$s2"
 
 # Historique des versions gérées
 
-v 2.5.39 && prerequis="make m4 \\" && modifs="" || true
+v 2.5.39 && prerequis="make m4 bison \\" && modifs="" || true
 v 2.6.3 || true
-v 2.6.4 && modifs="reallocarray" || true
+v 2.6.4 && modifs="reallocarray" && virerPrerequis bison || true # Autonome, se passe de bison désormais.
 v 2.6.4.20230115 && versionComplete="$version.cf66c9e.git" && prerequis="$prerequis gettext < 0.23" || true
 v 2.6.4.20250114 && versionComplete="$version.051ab9e.git" || true
 v 2.6.4.20260730 && versionComplete="$version.4fcc714.git" || true
