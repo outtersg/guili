@@ -51,7 +51,9 @@ v 25.03.0 || true
 v 25.08.0 || true
 v 26.01.0 || true
 v 26.07.0 || true
-v 26.09.0 || true
+# Là ils commencent à ajouter pas mal de dépendances par défaut. Il y a sans doute possibilité d'y renoncer, mais tant qu'à les avoir sous la main on les inscrit.
+v 26.09.0 && prerequis="$prerequis harfbuzz" || true
+v 26.10.0 && prerequis="$prerequis brotli" || true
 v 26.11.0 || true
 
 # Pour LibreOffice, il nous faut les en-têtes internes (Inkscape a le même souci, cf. https://bugs.launchpad.net/inkscape/+bug/254849).
