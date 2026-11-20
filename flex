@@ -32,6 +32,10 @@ v 2.6.4 && modifs="reallocarray" && virerPrerequis bison || true # Autonome, se 
 v 2.6.4.20230115 && versionComplete="$version.cf66c9e.git" && prerequis="$prerequis gettext < 0.23" || true
 v 2.6.4.20250114 && versionComplete="$version.051ab9e.git" || true
 v 2.6.4.20260730 && versionComplete="$version.4fcc714.git" || true
+# Et puis là tout d'un coup ils se décident à publier toutes les versions restées planquées (branches?) depuis des années.
+v 2.6.5 || true
+v 2.6.17 || true
+v 2.7.3 || true
 
 # En autoreconf, flex a besoin d'un flex qui n'a pas besoin d'un flex (bref d'un flex non autoreconf).
 case "$versionComplete" in
