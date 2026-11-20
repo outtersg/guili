@@ -29,7 +29,7 @@ OPTIONS_CMAKE=
 
 # Historique des versions gérées
 
-prerequis="python cmake pkgconfig \\ libpng"
+prerequis="python cmake pkgconf+ig+strict \\ libpng"
 v 0.22.5 && modifs="llongmax" || true
 v 0.24.4 || true
 v 0.32.0 && prerequis="$prerequis libopenjp2" || true
