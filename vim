@@ -55,6 +55,8 @@ v 9.1.2148 || true
 v 9.2.10 || true
 v 9.2.45 || true
 v 9.2.596 || true
+v 9.2.747 || true
+v 9.2.1393 || true
 
 option python3 && prerequis="$prerequis python >= 3" || true
 
