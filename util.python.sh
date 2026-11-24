@@ -92,4 +92,20 @@ pipi()
 	sudokupy pip install --prefix "$INSTALLS/$PYEXT" "$@"
 }
 
+# Si le logiciel est python, lui ajoute une option de version python.
+# En effet ses biblios iront s'installer dans du python/x.y/, et donc il nous faut une option pour distinguer deux versions installées dans des python différents (sans quoi il se croira installé mais ne sera pas fonctionnel pour le python en cours).
+prepyver()
+{
+	# À FAIRE?: se limiter à ceux demandant explicitement? Il se pourrait que certains demandent un python uniquement parce qu'ils utilisent par exemple un meson en python, mais eux n'en ont pas besoin. La détection qui suit est peut-être trop inclusive.
+	egrep -q 'PYTHONPATH|sudokupy|prerequis=.*python' < "$SCRIPTS/$logiciel" || return 0
+	
+	local filtre="`decoupePrerequis "python \\ $prerequis" | grep ^python`"
+	local v="`versions -1 "$filtre"`" # À FAIRE: si aucune version d'installée, récupérer via varsPrerequis celle qui sera installée.
+	v="`echo "$v" | sed -E -e 's/.*-//' -e 's/([0-9]+\.[0-9]+)\..*/\1/' -e 's/\./_/g'`"
+	case "$v" in [1-9]*)
+		modifierOptions +py$v
+	esac
+}
+
 PYEXT="pyext-1.0"
+predestiner="$predestiner prepyver"
